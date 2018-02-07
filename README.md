@@ -131,11 +131,13 @@ been explained here), please let us know to correct it.
 
      ```shell
      $ git clone https://gitlab.com/makhlaghi/reproduction-pipeline-template.git
+     $ mv reproduction-pipeline-template your-project-name
+     $ cd your-project-name
      ```
 
  - **Copyright**, **name** and **date**: Go over the following files and
      correct the copyright, names and dates in their first few lines:
-     `README`, `Makefile` and `reproduce/src/make/*.mk`. When making new
+     `configure`, `Makefile` and `reproduce/src/make/*.mk`. When making new
      files, always remember to add a similar copyright statement at the top
      of the tile.
 
@@ -177,12 +179,21 @@ been explained here), please let us know to correct it.
      $ git commit            # Make your first commit (mention the first output)
      ```
 
+ - **Title**, **Short description** of project: In this raw skeleton, the
+     title or short descripton of your project should be added in the
+     following two files: `Makefile` (the first line), and
+     `tex/preamble-style.tex` (the last few lines, along with the names of
+     you and your colleagues). In both cases, the texts you should replace
+     are all in capital letters to make them easier to identify.
+
+
  - **`README`**: Go through this top-level instruction file and make it fit
      to your pipeline: update the text and etc. Don't forget that your
      colleagues or anyone else, will first be drawn to read this file, so
      make it as easy as possible for them to understand your
      work. Therefore, also check and update `README` one last time when you
      are ready to publish your work (and its reproduction pipeline).
+
 
  - **First input dataset**: The user manages the top-level directory of the
      input data through the variables set in
@@ -290,6 +301,16 @@ way, we can add it here for others to also benefit.
       the comment first if you later want to make changes to the variable,
       recipe or rule. As a general rule of thumb: first the comments, then
       the code.
+
+   - *File title*: In general, it is good practice to start all files with
+      a single line description of what that particular file does. If
+      further information about the totality of the file is necessary, add
+      it after a blank line. This will help a fast inspection where you
+      don't care about the details, but just want to remember/see what that
+      file is for. This information must ofcourse be commented (its for a
+      human), but this is kept separate from the general recommendation on
+      comments, because this is a comment for the whole file, not each step
+      within it.
 
 
  - **Make programming**: Here are some experiences that we have come to
