@@ -1,0 +1,115 @@
+%% Biblatex settings.
+%%
+%% Since the preamble settings necessary to make the bibliography with
+%% Biblatex is a little long and unclean, and might be used in other places
+%% separately later, it is easier to have it here as a separate file.
+%%
+%% USAGE:
+%%
+%%  - `tex/ref.tex': the file containing Bibtex source of each
+%%     reference. The file suffix doesn't have to be `.bib', this naming
+%%     helps in clearly identifying the files and avoiding places that
+%%     complain about `.bib' files.
+
+
+
+
+
+%% To break up highlighted text (for example texttt when some it is on the
+%% line break) and also to no underline emphasized words (like journal
+%% titles in the references).
+\usepackage[normalem]{ulem}
+
+
+
+
+
+% Basic BibLaTeX settings
+\usepackage[
+    doi=false,
+    url=false,
+    dashed=false,
+    eprint=false,
+    maxbibnames=4,
+    minbibnames=1,
+    hyperref=true,
+    maxcitenames=2,
+    mincitenames=1,
+    style=authoryear,
+    uniquelist=false,
+    backend=biber,natbib]{biblatex}
+\DeclareFieldFormat[article]{pages}{#1}
+\DeclareFieldFormat{pages}{\mkfirstpage[{\mkpageprefix[bookpagination]}]{#1}}
+\addbibresource{./tex/ref.tex}
+\renewbibmacro{in:}{}
+\renewcommand*{\bibfont}{\footnotesize}
+\DefineBibliographyStrings{english}{references = {References}}
+
+%% Include the adsurl field key into those that are recognized:
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \step[fieldsource=adsurl,fieldtarget=iswc]
+      \step[fieldsource=gbkurl,fieldtarget=iswc]
+    }
+  }
+}
+
+%% Set the color of the doi link to mymg (magenta) and the ads links
+%% to mypurp (or purple):
+\definecolor{mypurp}{cmyk}{0.75,1,0,0}
+\newcommand{\doihref}[2]{\href{#1}{\color{magenta}{#2}}}
+\newcommand{\adshref}[2]{\href{#1}{\color{mypurp}{#2}}}
+\newcommand{\blackhref}[2]{\href{#1}{\color{black}{#2}}}
+
+%% Define a format for the printtext commands in
+%% DeclareBibliographyDriver to make links for the doi, ads link and
+%% arxiv link:
+\DeclareFieldFormat{doilink}{
+  \iffieldundef{doi}{#1}{\doihref{http://dx.doi.org/\thefield{doi}}{#1}}}
+\DeclareFieldFormat{adslink}{
+    \iffieldundef{iswc}{#1}{\adshref{\thefield{iswc}}{#1}}}
+\DeclareFieldFormat{arxivlink}{
+  \iffieldundef{eprint}{#1}{\href{http://arxiv.org/abs/\thefield{eprint}}{#1}}}
+
+\DeclareListFormat{doiforbook}{
+  \iffieldundef{doi}{#1}{\doihref{http://dx.doi.org/\thefield{doi}}{#1}}}
+\DeclareFieldFormat{googlebookslink}{
+    \iffieldundef{iswc}{#1}{\adshref{\thefield{iswc}}{#1}}}
+
+%% Set the formatting to make the last three values into the
+%% appropriate link. Note that the % signs are necessary. Without
+%% them, the items will be indented.
+\DeclareBibliographyDriver{article}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/translator+others}%
+  \newunit%
+  \ifdefined\makethesis\printtext{\usebibmacro{title}}\fi%
+  \newunit%
+  \printtext[doilink]{\usebibmacro{journal}}%
+  \addcomma%
+  \printtext[adslink]{\printfield{volume}}%
+  \addcomma%
+  \printtext[arxivlink]{\printfield{pages}}%
+  \addperiod%
+}
+
+\DeclareBibliographyDriver{book}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/translator+others}%
+  \newunit%
+  \printtext{\usebibmacro{title}}%
+  \addperiod%
+  \addspace%
+  \printlist[doiforbook]{publisher}%
+  \addcomma%
+  \addspace%
+  \printfield[googlebookslink]{edition}%
+  \printtext{ ed.}%
+  \addperiod%
+}
+
+%% In order to have et al. instead of et al.,:
+\renewcommand*{\nameyeardelim}{\addspace}

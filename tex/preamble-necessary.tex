@@ -1,0 +1,68 @@
+%% Some (commonly) necessary LaTeX packages.
+%%
+%% These are a set of packages that are commonly necessary in most LaTeX
+%% usages. However, if any are not needed in your work, you can remove them
+%% from here.
+
+
+
+
+
+% Macros for to help in typing, remove them if you don't need them, but
+% this can help as a demo on how you can simply writing of commonly used
+% words that need special formatting (like software names).
+\newcommand{\snsign}{{\small S}/{\small N}}
+\newcommand{\originsoft}{\textsf{ORIGIN}}
+\newcommand{\sextractor}{\textsf{SE\-xtractor}}
+\newcommand{\noisechisel}{\textsf{Noise\-Chisel}}
+\newcommand{\makecatalog}{\textsf{Make\-Catalog}}
+
+
+
+
+
+%% For highlighting updates. When this is set, text marked as \new
+%% will be colored in dark green and text that is marked wtih \tonote
+%% will be marked in dark red.
+\ifdefined\highlightchanges
+\newcommand{\new}[1]{\textcolor{green!60!black}{#1}}
+\newcommand{\tonote}[1]{\textcolor{red!60!black}{[#1]}}
+\else
+\newcommand{\new}[1]{\textcolor{black}{#1}}
+\newcommand{\tonote}[1]{{}}
+\fi
+
+
+
+
+
+% Better than verbatim for displaying typed text.
+\usepackage{alltt}
+
+
+
+
+
+% For arithmetic opertions within LaTeX
+\usepackage[nomessages]{fp}
+
+
+
+
+
+%To add a code font to the text:
+\usepackage{courier}
+
+
+
+
+
+%To add some enumerating styles
+\usepackage{enumerate}
+
+
+
+
+
+%Including images if necessary
+\usepackage{graphicx}

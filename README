@@ -1,0 +1,153 @@
+Reproduction pipeline for XXXXX.
+
+For a general introduction to reproducible science as done here,
+please see the link below:
+
+  http://akhlaghi.org/reproducible-science.html
+
+
+
+Running the pipeline
+====================
+
+To reproduce the results, please take these steps in order:
+
+1. Make sure you have the dependencies (below).
+
+2. Edit `reproduce/config/pipeline/DIRECTORIES.mk'.
+
+   This file keeps the important top-level directories for this
+   pipeline in your system. Open it with a text editor and give the
+   necessary locations. The comments in this file (lines starting with
+   a `#') should help in understanding the purpose of each directory.
+
+   In short, if you don't have the input files on your system, this
+   pipeline will download them in the specified directory. Also, the
+   intermediate/build directory may be relatively large (~1GB), so
+   please choose a build location with sufficient space.
+
+3. Run the following command to reproduce everything on 8 threads. If
+   your CPU has a different number of threads, change the number.
+
+     $ make -j8
+
+
+
+Output
+======
+
+The output of the pipeline is a PDF file, describing the published
+paper.
+
+
+
+Dependencies
+============
+
+To reproduce the results you need the following programs. Except for
+Gnuastro, the version of the other programs will not make a
+difference.
+
+  Gnuastro Y.Y
+  ------------
+
+  Gnuastro is a large collection of programs for astronomical data
+  analysis on the command-line. This is an intermediate version of
+  Gnuastro (the tarball is not officially released on the Gnuastro
+  webpage). However, this pipeline will ONLY work with this version of
+  Gnuastro. For convenience, this tarball is available in the
+  following link:
+
+    https://zenodo.org/record/ZZZZZZ/files/gnuastro-Y.Y.tar.gz
+
+  To uncompress, build and install the Gnuastro tarball, follow the
+  instructions in the link below.
+
+    https://www.gnu.org/software/gnuastro/manual/html_node/Quick-start.html
+
+  If you successfully downloaded the tarball from the link above,
+  please ignore the rest of this section on Gnuastro. If not, this
+  version of Gnuastro is always present in Gnuastro's version
+  controlled history and this reproduction pipeline contains the fix
+  to implement to it.
+
+  To build the above version of Gnuastro, please clone Gnuastro and
+  checkout this version as shown in the following commands:
+
+    $ git clone http://git.sv.gnu.org/r/gnuastro.git
+    $ git checkout Y.Y
+
+  Afterwords, you need to bootstrap Gnuastro as described in the
+  following link.
+
+    https://www.gnu.org/software/gnuastro/manual/html_node/Bootstrapping.html
+
+  You are now ready to configure, build and install Gnuastro as
+  described in the "Quick start" link above.
+
+
+
+  AWK
+  ---
+
+  AWK is a program for working with text files. GNU AWK is the most
+  common implementation and it is commonly already installed on most
+  systems.
+
+
+  GNU Make
+  --------
+
+  This reproduction pipeline uses some features that may not be
+  present in other implementations of Make.
+
+
+  flock
+  -----
+
+  This is a small program to manage file locks from the
+  command-line. It is available in most GNU/Linux distributions.
+
+  If you can't find it in your package manager or on some Mac OS
+  systems, please put a copy of `reproduce/src/flock' file into your
+  search path (this script needs Perl, so have that installed is
+  well). To learn more about the search path and where to install this
+  file, please see the link below. Before running this pipeline you
+  should be able to run the `flock' command on your command-line.
+
+    https://www.gnu.org/software/gnuastro/manual/html_node/Installation-directory.html
+
+
+  Wget or cURL
+  ------------
+
+  These programs (`wget' or `curl' on the command-line) are used to
+  download the input files if you don't already have them.
+
+
+  Tar and Gzip
+  ------------
+
+  Tar is used for packaging multiple files into one and Gzip is used
+  for compression. They are both very common software in Unix-like
+  operating systems, so they are probably already available on your
+  system.
+
+
+  GNU Coreutils
+  -------------
+
+  Very basic command-line programs (for example `cp' or `mkdir'). They
+  may be implemented differently in non-GNU systems (for example Mac
+  OS). But have not actually been tested in Mac OS. Alternatively,
+  there are ways to install Coreutils on Mac OS (for example with
+  Homebrew), please do a search to find solutions. Please get in touch
+  with us if any errors occur due to such basic programs.
+
+
+  LaTeX
+  -----
+
+  LaTeX is used to build the final PDF of this pipeline. Some
+  important packages within LaTeX that this pipeline uses are:
+  `biblatex' and `pgfplots'.

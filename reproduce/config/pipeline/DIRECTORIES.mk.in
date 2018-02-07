@@ -1,0 +1,50 @@
+# Top-level user specific directories. Note the points below:
+#
+# - The VALUES to these directories are initially JUST PLACE-HOLDERS!
+#   Please correct them based on your system.
+#
+# - The directories don't need to necessarily exist. If they do not exist,
+#   they will be created and the necessary data will be downloaded into
+#   them. Ofcourse provided that you have write permissions and an internet
+#   connection.
+#
+# - Do not use the tilde expansion `~' or variables for your home
+#   directory. Please use the full address, for example
+#   `/home/your-user-name'.
+#
+# - An ending forward-slash `/' is NOT necessary. In the pipeline, all
+#   these variables will be followed by a `/', so if you put a `/' at the
+#   end of the value here, you will see a `//' in the printed outputs
+#   during the processing. This has no technical problem, but can make
+#   reading the outputs harder and is thus not recommended.
+
+
+
+
+
+# Input data directories
+# ----------------------
+#
+# This is where the input data (with the same file-name standard as the
+# online webpage) are stored. If this directory doesn't exist, or it
+# doesn't contain the files (with the correct file-name formats), it will
+# be created and the images will be downloaded. See
+# `reproduce/config/pipeline/web.mk', for the URLs containing the expected
+# inputs for each survey.
+SURVEY = reproduce/SURVEY
+
+
+
+
+
+# Build directory
+# ---------------
+#
+# This is where the intermediate outputs of each step are kept.
+#
+# Why a separate build directory? So the source and configuration files for
+# this reproduction pipeline do not get crowded by all the
+# intermediate/derivative files. Also to make synchronization and backups
+# more easy: the contents of the build directory do not need to be backed
+# up since they can be reproduced and they can be large.
+BDIR = reproduce/BDIR

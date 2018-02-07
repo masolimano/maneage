@@ -1,0 +1,97 @@
+%% General paper's style settings.
+%%
+%% This preamble can be completely ignored when including this TeX file in
+%% another style. This is done because this LaTeX build is meant to be an
+%% initial/internal phase or part of a larger effort, so it has a basic
+%% style defined here as a preamble. To ignore it, uncomment or delete the
+%% respective line in `paper.tex'.
+
+
+
+%% Print size
+\usepackage[a4paper, includeheadfoot, body={18.7cm, 24.5cm}]{geometry}
+
+
+
+
+%% Set the distance between the columns if two columns:
+\setlength{\columnsep}{0.75cm}
+
+
+
+
+
+% To allow figures to take up more space on the top of the page:
+\renewcommand{\topfraction}{.99}
+\renewcommand{\bottomfraction}{.7}
+\renewcommand{\textfraction}{.05}
+\renewcommand{\floatpagefraction}{.99}
+\renewcommand{\dbltopfraction}{.99}
+\renewcommand{\dblfloatpagefraction}{.99}
+\setcounter{topnumber}{1}
+\setcounter{bottomnumber}{0}
+\setcounter{totalnumber}{2}
+\setcounter{dbltopnumber}{1}
+
+
+
+%% Color related settings:
+\usepackage{xcolor}
+\color{black}                   % Text color
+\definecolor{DarkBlue}{RGB}{0,0,90}
+
+
+% figure and figure* ordering correction:
+\usepackage{fixltx2e}
+
+
+
+%% For editing the caption appearence. The `setspace' package defines
+%% the `stretch' variable. `abovecaptionskip' is the distance between
+%% the figure and the caption.
+\usepackage{setspace, caption}
+\captionsetup{font=small, labelfont={color=DarkBlue,bf}, skip=1pt}
+\captionsetup[figure]{font={stretch=1, small}}
+\setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
+
+
+
+%% To make the footnotes align:
+\usepackage[hang]{footmisc}
+\setlength\footnotemargin{10pt}
+
+
+
+%For including time in the title:
+\usepackage{datetime}
+
+
+
+%To make links to webpages and include document information in the
+%properties of the PDF
+\usepackage[
+  colorlinks,
+  urlcolor=blue,
+  citecolor=blue,
+  linkcolor=blue,
+  linktocpage]{hyperref}
+\renewcommand\UrlFont{\rmfamily}
+
+
+
+% Basic Document information
+\hypersetup
+{
+    pdfauthor={Mohammad Akhlaghi},
+    pdfsubject={MUSE detected objects},
+    pdftitle={Broadband HST photometry of MUSE detected objects},
+    pdfkeywords={Mohammad, Akhlaghi, photometry, MUSE, HST}
+}
+
+
+
+% Title
+\title{A nice title for your research project}
+\date{\small Reproduction pipeline \pipelineversion{}
+      and Gnuastro \gnuastroversion\\on \today, \currenttime}
+\author{Your name here.}

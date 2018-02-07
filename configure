@@ -1,0 +1,88 @@
+#! /bin/sh
+#
+# Necessary preparations/configurations for the reproduction pipeline.
+#
+# Original author:
+#     Your name <your@email.address>
+# Contributing author(s):
+# Copyright (C) YYYY, Your Name.
+#
+# This script is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This script is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# A copy of the GNU General Public License is available at
+# <http://www.gnu.org/licenses/>.
+
+
+
+
+
+# Location of the settings directory:
+pdir=reproduce/config/pipeline
+
+
+# Message to print for editing
+function msg {
+    echo; echo "Top-level reproduction directories are set.";
+    echo "Please run the following command to start the pipeline:"
+    echo "(Replace '8' with the number of CPU threads available)"
+    echo; echo "    make -j8"
+    echo;
+}
+
+
+# If `DIRECTORIES.mk' is already created, then ignore this step.
+if [ -f $pdir/DIRECTORIES.mk ]; then
+    echo
+    echo "$pdir/DIRECTORIES.mk already exists."
+    echo "To change/correct the top-level directories, please remove/edit it manually."
+    echo
+else
+
+    # Copy the base file to the desired output file.
+    if cp $pdir/DIRECTORIES.mk.in $pdir/DIRECTORIES.mk; then
+
+        # Tell the user to edit the directories.
+        while [ "$userread" != "y" -a "$userread" != "n" ]
+        do
+            echo "Top-level directories..."
+            echo
+            echo "These directories define the input(s) location and the"
+            echo "directory to host the intermediate/processing files."
+            echo
+            echo "To help in your ability to read and manage this pipeline,"
+            echo "it is recommended (but not mandatory) to change them to"
+            echo "a directory outside this reproduction pipeline."
+            echo
+            echo "More descriptions are provided within the file that is"
+            echo "opened if you choose to edit the directories."
+            echo
+            read -p"Edit the default top-level directories (y/n)? " userread
+        done
+
+        # Only continue if the user wants to edit the top level
+        # directories
+        if [ $userread = "y" ]; then
+
+            # Open a text editor to set the given directories
+            if emacs $pdir/DIRECTORIES.mk;   then msg
+            elif gedit $pdir/DIRECTORIES.mk; then msg
+            elif vi $pdir/DIRECTORIES.mk;    then msg
+            else
+                echo
+                echo "No common text editor found on your system."
+                echo "Please set the values in '$pdir/DIRECTORIES.mk' manually."
+                echo
+            fi
+        fi
+    else
+        echo; echo "Couldn't create $pdir/DIRECTORIES.mk"
+    fi
+fi
