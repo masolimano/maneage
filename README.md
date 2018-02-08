@@ -12,12 +12,12 @@ which contains a portion of the introduction in this webpage.
   http://akhlaghi.org/reproducible-science.html
 
 This template is created with the aim of supporting reproducible research
-by making it easy to start a project in this framework. It is very easy to
-customize this template pipeline for any particular research/job and expand
-it as it starts and evolves. It can be run with no modification (as
-described in `README`) as a demonstration and customized by editing the
-existing rules and adding new rules as well as adding new Makefiles as the
-research/project grows.
+by making it easy to start a project in this framework. As shown below, it
+is very easy to customize this template pipeline for any particular
+research/job and expand it as it starts and evolves. It can be run with no
+modification (as described in `README`) as a demonstration and customized
+by editing the existing rules and adding new rules as well as adding new
+Makefiles as the research/project grows.
 
 This file will continue with a discussion of why Make is the perfect
 language/framework for a research reproduction pipeline and how to master
@@ -41,20 +41,20 @@ start from the top/start every time it is run. So if you have gone through
 newly added, you have to run the whole script from the start again and wait
 until you see the effects of the last few steps (for the possible errors,
 or better solutions and etc). It is possible to manually ignore/comment
-parts of a script to only do a special part, but such checks/comments will
-only add to the complexity of the script and they is prone to very serious
-bugs in the end (when trying to reproduce from scratch). Such bugs are very
-hard to notice when adding the checks or commenting-code in a script.
+parts of a script to only do a special part. However, such checks/comments
+will only add to the complexity of the script and they are prone to very
+serious bugs in the end (when trying to reproduce from scratch). Such bugs
+are very hard to notice during the work and frustrating to find in the end.
 
 The Make paradigm, on the other hand, starts from the end: the final
-target. It builds a dependency tree internally, and finds where it should
-actually start each time it is run. Therefore, in the scenario above, a
+*target*. It builds a dependency tree internally, and finds where it should
+start each time the pipeline is run. Therefore, in the scenario above, a
 researcher that has just added the final 10% of steps of her research to
 her Makefile, will only have run those extra steps. As commonly happens in
-a research context, due to its paradigm Make, it is also trivial to change
-the processing of any intermediate (already written) rule/step in the
-middle of an already written pipeline: the next time Make is run, only
-rules affected by the changes/additions will be re-run.
+a research context, in Make, it is also trivial to change the processing of
+any intermediate (already written) *rule* (or step) in the middle of an
+already written analysis: the next time Make is run, only rules affected by
+the changes/additions will be re-run, not the whole analysis.
 
 This greatly speeds up the processing (enabling creative changes), while
 keeping all the dependencies clearly documented (as part of the Make
@@ -69,11 +69,11 @@ is a highly mature paradigm/system with robust and highly efficient
 implementations in various operating systems perfectly suited for a complex
 non-linear research project.
 
-Make is a small language with the aim of defining "rules" containing
-"targets", "prerequisites" and "recipes". It comes with some cool features
+Make is a small language with the aim of defining *rules* containing
+*targets*, *prerequisites* and *recipes*. It comes with some nice features
 like functions or automatic-variables to greatly facilitate the management
-of any of those constructs. For a more detailed (yet still general)
-introduction see Wikipedia:
+of text (filenames for example) or any of those constructs. For a more
+detailed (yet still general) introduction see Wikipedia:
 
   https://en.wikipedia.org/wiki/Make_(software)
 
@@ -93,19 +93,21 @@ release. It also clearly explains which features are specific to GNU Make
 and which are general in all implementations. So the first few chapters
 regarding the generalities are useful for all implementations.
 
-The first link below has links to the GNU Make manual in various formats
-and in the second, you can get it in PDF (which may be easier to read in
-the first time).
+The first link below points to the GNU Make manual in various formats and
+in the second, you can get it in PDF (which may be easier to read in the
+first time).
 
   https://www.gnu.org/software/make/manual/
 
   https://www.gnu.org/software/make/manual/make.pdf
 
 If you use GNU Make, you also have the whole GNU Make manual on the
-command-line with the following command (you can come out of the "info"
-environment by pressing `q`, if you don't know "Info", we strongly
-recommend running "$ info info" to learn it easily, it greatly simplifies
-your access to many manuals that are installed on your system).
+command-line with the following command (you can come out of the "Info"
+environment by pressing `q`). If you don't know Info, we strongly recommend
+running `$ info info` anywhere on your command-line to learn it easily in
+less than an hour. Info greatly simplifies your access (without taking your
+hands off the keyboard!) to many manuals that are installed on your system,
+allowing you to be more efficient.
 
 ```shell
   $ info make
@@ -178,23 +180,24 @@ been explained here), please let us know to correct it.
  - **First input dataset**: The user manages the top-level directory of the
      input data through the variables set in
      `reproduce/config/pipeline/DIRECTORIES.mk.in` (the user actually edits
-     a `DIRECTORIES.mk` file that is copied from the `.mk.in` file, but the
-     `.mk` file is not under version control). So open this file and
-     replace `SURVEY` with the name of your input survey or dataset (all in
-     capital letters), for example if you are working on data from the XDF
-     survey, replace `SURVEY` with `XDF`. But don't change the value, just
-     the name. Afterwards, change any occurrence of `SURVEY` in the whole
-     pipeline with the new name. You can find the occurrences with a simple
-     command like the ones shown below. We follow the Make convention here
-     that all `ONLY-CAPITAL` variables are those directly set by the user
-     and all `small-caps` variables are set by the pipeline designer. All
-     variables that also depend on this survey have a `survey` in their
-     name. Hence, also correct all these occurrences to your new name in
-     small-caps. Of course, ignore those occurrences that are irrelevant,
-     like those in this file. Note that in the raw version of this template
-     no target depends on these files, so they are ignored. Afterwards, set
-     the webpage and correct the filenames in
-     `reproduce/src/make/download.mk' if necessary.
+     a `DIRECTORIES.mk` file that is created by `configure` from the
+     `.mk.in` file, but the `.mk` file is not under version control). So
+     open this file and replace `SURVEY` in the variable name and value
+     with the name of your input survey or dataset (all in capital
+     letters), for example if you are working on data from the XDF survey,
+     replace `SURVEY` with `XDF`. Don't change anything else in the value,
+     just the the all-caps name. Afterwards, change any occurrence of
+     `SURVEY` in the whole pipeline with the new name. You can find the
+     occurrences with a simple command like the ones shown below. We follow
+     the Make convention here that all `ONLY-CAPITAL` variables are those
+     directly set by the user and all `small-caps` variables are set by the
+     pipeline designer. All variables that also depend on this survey have
+     a `survey` in their name. Hence, also correct all these occurrences to
+     your new name in small-caps. Of course, ignore those occurrences that
+     are irrelevant, like those in this file. Note that in the raw version
+     of this template no target depends on these files, so they are
+     ignored. Afterwards, set the webpage and correct the filenames in
+     `reproduce/src/make/download.mk` if necessary.
 
      ```shell
      $ grep -r SURVEY ./
@@ -218,9 +221,9 @@ been explained here), please let us know to correct it.
      your first commit message to document what point in this pipeline's
      history you started from. Since the pipeline is highly integrated with
      your particular research, it may not be easy to merge the changes
-     later. Having the commit in this history that you started from, will
-     allow you to check and manually apply any changes that don't interfere
-     with your implemented pipeline. After this step, you can commit your
+     later. Having the commit information that you started from, will allow
+     you to check and manually apply any changes that don't interfere with
+     your implemented pipeline. After this step, you can commit your
      changes into your newly initiated history as you like.
 
      ```shell
@@ -254,35 +257,37 @@ way, we can add it here for others to also benefit.
      sub-components as reasonable. Here are some tips to stay modular.
 
    - *Short recipes*: if you see the recipe of a rule becoming more than a
-      few lines, it probably a good sign that you should break up the job.
+      handful of lines which involve significant processing, it probably a
+      good sign that you should break up the rule into its main
+      components. Try to only have one major processing step per rule.
 
    - *Context-based (many) Makefiles*: This pipeline is designed to allow
       the easy inclusion of many Makefiles (in `reproduce/src/make/*.mk`)
       for maximal modularity. So keep the rules for closely related parts
       of the processing in separate Makefiles.
 
-   - *Clear file names*: Be very clear and descriptive with the naming of
-      the files and the variables because a few months after the processing
-      it will be very hard to remember what each one does. Also this helps
-      others (your collaborators or other people reading the pipeline after
-      it is published) to more easily understand your work and find their
-      way around.
+   - *Descriptive names*: Be very clear and descriptive with the naming of
+      the files and the variables because a few months after the
+      processing, it will be very hard to remember what each one was
+      for. Also this helps others (your collaborators or other people
+      reading the pipeline after it is published) to more easily understand
+      your work and find their way around.
 
-   - *Standard naming*: As the project grows, following a good standard in
-      naming the files is very useful. Try best to use multiple word
-      filenames for anything that is non-trivial (separating the words with
-      a `-`). For example if you have a Makefile for creating a catalog and
-      another two for processing it under models A and B, you can name them
-      like this: `catalog-create.mk`, `catalog-modela.mk` and
-      `catalog-modelb.mk`. In this way, when listing the contents of
-      `reproduce/src/make` to see all the Makefiles, those related to the
-      catalog will all be close to each other and thus easily found. This
-      also helps in auto-completions by the shell or text editors like
-      Emacs.
+   - *Naming convention*: As the project grows, following a single standard
+      or convention in naming the files is very useful. Try best to use
+      multiple word filenames for anything that is non-trivial (separating
+      the words with a `-`). For example if you have a Makefile for
+      creating a catalog and another two for processing it under models A
+      and B, you can name them like this: `catalog-create.mk`,
+      `catalog-model-a.mk` and `catalog-model-b.mk`. In this way, when
+      listing the contents of `reproduce/src/make` to see all the
+      Makefiles, those related to the catalog will all be close to each
+      other and thus easily found. This also helps in auto-completions by
+      the shell or text editors like Emacs.
 
-   - *Source directories*: If you need to add scripts (shell, Python, AWK
-      or any other language), keep them in a separate directory under
-      `reproduce/src`, with the appropriate name.
+   - *Source directories*: If you need to add files in other languages for
+      example in shell, Python, AWK or C, keep them in a separate directory
+      under `reproduce/src`, with the appropriate name.
 
    - *Configuration files*: If your research uses special programs as part
       of the processing, put all their configuration files in a devoted
