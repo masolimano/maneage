@@ -205,6 +205,11 @@ been explained here), please let us know to correct it.
      necessary for your research to the pipeline based on the example
      above.
 
+ - **Delete this `README.md`**: `README.md` is designed for this template,
+     not your reproduction pipeline. So to avoid later confusion, delete it
+     from your own repository (you may want to keep a copy outside for the
+     notes and discussions below until you are familiar with it).
+
  - **Initiate a new Git repo**: You don't want to mix the history of this
      template reproduction pipeline with your own reproduction
      pipeline. You have already made some small changes in the previous
