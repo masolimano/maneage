@@ -117,6 +117,7 @@ Make manual there also.
 
 
 
+
 Checklist to customize the pipeline
 ===================================
 
@@ -141,6 +142,16 @@ been explained here), please let us know to correct it.
      files, always remember to add a similar copyright statement at the top
      of the tile.
 
+ - **Title**, **short description** and **author** of project: In this raw
+     skeleton, the title or short descripton of your project should be
+     added in the following two files: `Makefile` (the first line), and
+     `tex/preamble-style.tex` (the last few lines, along with the names of
+     you and your colleagues). In both cases, the texts you should replace
+     are all in capital letters to make them easier to identify. Ofcourse,
+     if you use a different LaTeX method of managing the title and authors,
+     please feel free to use your own methods, just find a way to keep the
+     pipeline version in a nicely visible place.
+
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
      dependency of the pipeline and without it, the pipeline will complain
      and abort. The main reason for this is to demonstrate how critically
@@ -157,25 +168,12 @@ been explained here), please let us know to correct it.
    - Delete everything about Gnuastro in `reproduce/src/make/initialize.mk`.
    - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style`.
 
-
- - **Title**, **Short description** and **author** of project: In this raw
-     skeleton, the title or short descripton of your project should be
-     added in the following two files: `Makefile` (the first line), and
-     `tex/preamble-style.tex` (the last few lines, along with the names of
-     you and your colleagues). In both cases, the texts you should replace
-     are all in capital letters to make them easier to identify. Ofcourse,
-     if you use a different LaTeX method of managing the title and authors,
-     please feel free to use your own methods, just find a way to keep the
-     pipeline version in a nicely visible place.
-
-
  - **`README`**: Go through this top-level instruction file and make it fit
      to your pipeline: update the text and etc. Don't forget that your
      colleagues or anyone else, will first be drawn to read this file, so
      make it as easy as possible for them to understand your
      work. Therefore, also check and update `README` one last time when you
      are ready to publish your work (and its reproduction pipeline).
-
 
  - **First input dataset**: The user manages the top-level directory of the
      input data through the variables set in
@@ -207,7 +205,6 @@ been explained here), please let us know to correct it.
      necessary for your research to the pipeline based on the example
      above.
 
-
  - **Initiate a new Git repo**: You don't want to mix the history of this
      template reproduction pipeline with your own reproduction
      pipeline. You have already made some small changes in the previous
@@ -234,6 +231,9 @@ been explained here), please let us know to correct it.
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. Just don't forget to share your experiences
      with us as you go along so we can make this a more robust skeleton.
+
+
+
 
 
 Tips on using the pipeline
@@ -394,10 +394,8 @@ way, we can add it here for others to also benefit.
 
 
 
-
-
-Appendix: Introduction to this concept from link above
-======================================================
+Appendix: Necessity of exact reproduction in scientific research
+================================================================
 
 In case [the link above](http://akhlaghi.org/reproducible-science.html) is
 not accessible at the time of reading, here is a copy of the introduction
