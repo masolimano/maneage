@@ -65,7 +65,7 @@ $(texdir) $(lockdir): | $(BDIR); mkdir $@
 # included here ensure that the file is always built in every run: for
 # example the pipeline versions may change within two separate runs, so we
 # want it to be rebuilt every time.
-.PHONY: all clean clean-mmap $(texdir)/versions.tex
+.PHONY: all clean clean-mmap $(mtexdir)/initialize.tex
 clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
 clean:
 	rm -rf $(BDIR) $(bdirsym) *.pdf *.log *.out *.aux *.auxlock \
@@ -75,21 +75,25 @@ clean:
 
 
 
-# Pipeline version
-# ----------------
+# Pipeline initialization results
+# -------------------------------
 #
-# The pipeline's version is necessary for the analysis and must be
-# calculated everytime the pipeline is run, so even though this file
+# This file will store some basic info about the pipeline that is necessary
+# for the final PDF. Since these are not version controlled, it must be
+# calculated everytime the pipeline is run. So even though this file
 # actually exists, it is also aded as a `.PHONY' target above.
 $(mtexdir)/initialize.tex: | $(mtexdir)
 
+        # Version of the pipeline.
 	@v=$$(git describe --dirty --always);                      \
 	echo "\newcommand{\pipelineversion}{$$v}"  > $@
 
+        # Version of Gnuastro.
 	@v=$$(astnoisechisel --version | awk 'NR==1{print $$NF}'); \
 	echo "\newcommand{\gnuastroversion}{$$v}" >> $@
 
-	echo "\newcommand{\bdir}{$(BDIR)}" >> $@
+        # Location of the build directory (for LaTeX inputs).
+	echo "\newcommand{\bdir}{$(BDIR)}"        >> $@
 
 
 
