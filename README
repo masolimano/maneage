@@ -14,17 +14,12 @@ To reproduce the results, please take these steps in order:
 
 1. Make sure you have the dependencies (below).
 
-2. Edit `reproduce/config/pipeline/DIRECTORIES.mk'.
+2. Configure/set your top-level directories with the command below. It is
+   recommended to modify the directories. Please read the comments (lines
+   starting with an `#') in the file that is opened by `./configure' and
+   set the directories accordingly.
 
-   This file keeps the important top-level directories for this pipeline in
-   your system. Open it with a text editor and give the necessary
-   locations. The comments in this file (lines starting with a `#') should
-   help in understanding the purpose of each directory.
-
-   In short, if you don't have the input files on your system, this
-   pipeline will download them in the specified directory. Also, the
-   intermediate/build directory may be relatively large (~1GB), so please
-   choose a build location with sufficient space.
+     $ ./configure
 
 3. Run the following command to reproduce everything on 8 threads. If your
    CPU has a different number of threads, change the number.
