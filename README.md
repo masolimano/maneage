@@ -179,12 +179,15 @@ been explained here), please let us know to correct it.
      $ git commit            # Make your first commit (mention the first output)
      ```
 
- - **Title**, **Short description** of project: In this raw skeleton, the
-     title or short descripton of your project should be added in the
-     following two files: `Makefile` (the first line), and
+ - **Title**, **Short description** and **author** of project: In this raw
+     skeleton, the title or short descripton of your project should be
+     added in the following two files: `Makefile` (the first line), and
      `tex/preamble-style.tex` (the last few lines, along with the names of
      you and your colleagues). In both cases, the texts you should replace
-     are all in capital letters to make them easier to identify.
+     are all in capital letters to make them easier to identify. Ofcourse,
+     if you use a different LaTeX method of managing the title and authors,
+     please feel free to use your own methods, just find a way to keep the
+     pipeline version in a nicely visible place.
 
 
  - **`README`**: Go through this top-level instruction file and make it fit
