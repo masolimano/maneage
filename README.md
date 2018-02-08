@@ -154,30 +154,9 @@ been explained here), please let us know to correct it.
      this list:
 
    - Delete the description about Gnuastro in `README`.
-   - Delete everything about Gnuastro in `reproduce/src/make/initialize.mk`
-   - Delete `and Gnuastro \gnuastrover` from `tex/preamble-style`
+   - Delete everything about Gnuastro in `reproduce/src/make/initialize.mk`.
+   - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style`.
 
- - **Initiate a new Git repo**: You don't want to mix the history of this
-     template reproduction pipeline with your own reproduction
-     pipeline. You have already made some small changes in the previous
-     step, so let's re-initiate history before continuing. But before doing
-     that, keep the output of `git describe` in a place and write it in
-     your first commit message to document what point in this pipeline's
-     history you started from. Since the pipeline is highly integrated with
-     your particular research, it may not be easy to merge the changes
-     later. Having the commit in this history that you started from, will
-     allow you to check and manually apply any changes that don't interfere
-     with your implemented pipeline. After this step, you can commit your
-     changes into your newly initiated history as you like.
-
-     ```shell
-     $ git describe          # The point in this history you started from.
-     $ git clean -fxd        # Remove any possibly created extra files.
-     $ rm -rf .git           # Completely remove this history.
-     $ git init              # Initiate a new history.
-     $ git add --all         # Stage everything that is here.
-     $ git commit            # Make your first commit (mention the first output)
-     ```
 
  - **Title**, **Short description** and **author** of project: In this raw
      skeleton, the title or short descripton of your project should be
@@ -227,6 +206,34 @@ been explained here), please let us know to correct it.
  - **Other input datasets**: Add any other input datasets that may be
      necessary for your research to the pipeline based on the example
      above.
+
+
+ - **Initiate a new Git repo**: You don't want to mix the history of this
+     template reproduction pipeline with your own reproduction
+     pipeline. You have already made some small changes in the previous
+     step, so let's re-initiate history before continuing. But before doing
+     that, keep the output of `git describe` in a place and write it in
+     your first commit message to document what point in this pipeline's
+     history you started from. Since the pipeline is highly integrated with
+     your particular research, it may not be easy to merge the changes
+     later. Having the commit in this history that you started from, will
+     allow you to check and manually apply any changes that don't interfere
+     with your implemented pipeline. After this step, you can commit your
+     changes into your newly initiated history as you like.
+
+     ```shell
+     $ git describe          # The point in this history you started from.
+     $ git clean -fxd        # Remove any possibly created extra files.
+     $ rm -rf .git           # Completely remove this history.
+     $ git init              # Initiate a new history.
+     $ git add --all         # Stage everything that is here.
+     $ git commit            # Make your first commit (mention the first output)
+     ```
+
+ - **Start your exciting research**: You are now ready to add flesh and
+     blood to this raw skeleton by further modifying and adding your
+     exciting research steps. Just don't forget to share your experiences
+     with us as you go along so we can make this a more robust skeleton.
 
 
 Tips on using the pipeline
