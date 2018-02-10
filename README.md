@@ -244,13 +244,13 @@ been explained here), please let us know to correct it.
 
 
 
-Tips on using the pipeline
-==========================
+Tips on expanding this template (designing your pipeline)
+=========================================================
 
-The following is a list of points, tips, or recommendations that have been
-learned after some experience with this pipeline. Please don't hesitate to
-share any experience you gain after using this pipeline with us. In this
-way, we can add it here for others to also benefit.
+The following is a list of design points, tips, or recommendations that
+have been learned after some experience with this pipeline. Please don't
+hesitate to share any experience you gain after using this pipeline with
+us. In this way, we can add it here for the benefit of others.
 
  - **Modularity**: Modularity is the key to easy and clean growth of a
      project. So it is always best to break up a job into as many
