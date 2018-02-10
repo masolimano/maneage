@@ -257,8 +257,8 @@ us. In this way, we can add it here for the benefit of others.
      sub-components as reasonable. Here are some tips to stay modular.
 
    - *Short recipes*: if you see the recipe of a rule becoming more than a
-      handful of lines which involve significant processing, it probably a
-      good sign that you should break up the rule into its main
+      handful of lines which involve significant processing, it is probably
+      a good sign that you should break up the rule into its main
       components. Try to only have one major processing step per rule.
 
    - *Context-based (many) Makefiles*: This pipeline is designed to allow
@@ -309,28 +309,28 @@ us. In this way, we can add it here for the benefit of others.
       with (for example in the top level `Makefile`).
 
    - *Comments*: Comments are vital for readability (by yourself in two
-      months or others). Describe everything you can about why you are
+      months, or others). Describe everything you can about why you are
       doing something, how you are doing it, and what you expect the result
       to be. Write the comments as if it was what you would say to describe
       the variable, recipe or rule to a friend sitting beside you. When
-      writing the pipeline it is very tempting to just steam ahead, but be
-      patient and write comments before the rules or recipes. This will
-      also allow you to think more about what you should be doing. Also, in
-      several months when you come back to the code, you will appreciate
-      the effort of writing them. Just don't forget to also read and update
-      the comment first if you later want to make changes to the variable,
-      recipe or rule. As a general rule of thumb: first the comments, then
-      the code.
+      writing the pipeline it is very tempting to just steam ahead with
+      commands and codes, but be patient and write comments before the
+      rules or recipes. This will also allow you to think more about what
+      you should be doing. Also, in several months when you come back to
+      the code, you will appreciate the effort of writing them. Just don't
+      forget to also read and update the comment first if you later want to
+      make changes to the code (variable, recipe or rule). As a general
+      rule of thumb: first the comments, then the code.
 
    - *File title*: In general, it is good practice to start all files with
       a single line description of what that particular file does. If
       further information about the totality of the file is necessary, add
       it after a blank line. This will help a fast inspection where you
       don't care about the details, but just want to remember/see what that
-      file is for. This information must ofcourse be commented (its for a
-      human), but this is kept separate from the general recommendation on
-      comments, because this is a comment for the whole file, not each step
-      within it.
+      file is (generally) for. This information must ofcourse be commented
+      (its for a human), but this is kept separate from the general
+      recommendation on comments, because this is a comment for the whole
+      file, not each step within it.
 
 
  - **Make programming**: Here are some experiences that we have come to
@@ -338,12 +338,13 @@ us. In this way, we can add it here for the benefit of others.
      contexts.
 
    - *Automatic variables*: These are wonderful and very useful Make
-      constructs that greatly shrink the text, while help in read-ability,
-      robustness (less bugs in typos for example) and generalization. For
-      example even when a rule only has one target or one prerequisite,
-      always use `$@` instead of the target's name, `$<` instead of the
-      first prerequisite, `$^` instead of the full list of prerequisites
-      and etc. You can see the full list of automatic variables
+      constructs that greatly shrink the text, while helping in
+      read-ability, robustness (less bugs in typos for example) and
+      generalization. For example even when a rule only has one target or
+      one prerequisite, always use `$@` instead of the target's name, `$<`
+      instead of the first prerequisite, `$^` instead of the full list of
+      prerequisites and etc. You can see the full list of automatic
+      variables
       [here](https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html). If
       you use GNU Make, you can also see this page on your command-line:
 
