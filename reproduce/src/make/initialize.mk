@@ -130,11 +130,11 @@ reproduce/build: | $(BDIR)
 .PHONY: all clean distclean clean-mmap $(mtexdir)/initialize.tex
 distclean: clean; rm -f $(pconfdir)/LOCAL.mk
 clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
-clean:
+clean: clean-mmap
 ifeq ($(configure-run),yes)
 	rm -rf $(BDIR)
 endif
-	rm -f reproduce/build $(gconfdir)/mmap* *.pdf *.log *.out *.aux *.auxlock
+	rm -f reproduce/build *.pdf *.log *.out *.aux *.auxlock
 
 
 
