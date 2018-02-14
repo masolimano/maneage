@@ -36,7 +36,6 @@
 texdir      = $(BDIR)/tex
 srcdir      = reproduce/src
 lockdir     = $(BDIR)/locks
-bdirsym     = reproduce/build
 mtexdir     = $(texdir)/macros
 gconfdir    = reproduce/config/gnuastro
 pconfdir    = reproduce/config/pipeline
@@ -100,6 +99,26 @@ $(texdir) $(lockdir): | $(BDIR); mkdir $@
 
 
 
+# Symbolic link to build directory
+# --------------------------------
+#
+# Besides $(BDIR), we are also making a symbolic link to it for easy
+# access. Recall that it is recommended that the actual build directory be
+# in a completely separate part of the file system (a place that may easily
+# be completely deleted).
+#
+# Note that $(BDIR) might not be an absolute path and this will complicate
+# the symbolic link creation. To be generic, we'll first call `readlink' to
+# make sure we have an absolute address, then we'll make a symbolic link to
+# that.
+reproduce/build: | $(BDIR)
+	absbdir=$$(readlink -f $(BDIR));                        \
+	ln -s $$absbdir $@
+
+
+
+
+
 # High-level Makefile management
 # ------------------------------
 #
@@ -115,7 +134,7 @@ clean:
 ifeq ($(configure-run),yes)
 	rm -rf $(BDIR)
 endif
-	rm -f $(bdirsym) $(gconfdir)/mmap* *.pdf *.log *.out *.aux *.auxlock
+	rm -f reproduce/build $(gconfdir)/mmap* *.pdf *.log *.out *.aux *.auxlock
 
 
 
@@ -140,25 +159,3 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Location of the build directory (for LaTeX inputs).
 	@echo "\newcommand{\bdir}{$(BDIR)}"       >> $@
-
-
-
-
-
-# Symbolic link to build directory
-# --------------------------------
-#
-# Besides $(BDIR), we are also making a symbolic link to it if $(bdirsym)
-# is not empty. In case this symbolic link is not needed, simply remove its
-# value from the definitions above. In that case, it will be read as a
-# blank (non-existant).
-#
-# Note that $(BDIR) might not be an absolute path and this will complicate
-# the symbolic link creation. To be generic, we'll first call `readlink' to
-# make sure we have an absolute address, then we'll make a symbolic link to
-# that.
-ifneq ($(bdirsym),)
-$(bdirsym): | $(BDIR)
-	absbdir=$$(readlink -f $(BDIR));                        \
-	ln -s $$absbdir $(bdirsym)
-endif

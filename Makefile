@@ -27,12 +27,14 @@
 #
 # The final paper (in PDF format) is the main target of this whole
 # reproduction pipeline. So as defined in the Make paradigm, we are
-# defining it as the first target.
+# defining it here. But since we also want easy access to the build
+# directory during processing (before the PDF is build), that is placed as
+# the first prerequisite.
 #
 # Note that if you don't have LaTeX to build the PDF or generally are just
-# interested in the processing, you can avoid the skip to create the final
-# PDF, see `reproduce/config/pipeline/pdf.mk'.
-all: paper.pdf
+# interested in the processing, you can skip create the final PDF creation
+# with `BUILD-FINAL-PDF' of `reproduce/config/pipeline/LOCAL.mk'.
+all: reproduce/build paper.pdf
 
 
 
@@ -79,33 +81,20 @@ include $(foreach f, initialize download paper, reproduce/src/make/$(f).mk)
 # `reproduce/src/make/paper.mk'). This enables a clear demonstration of the
 # top-level dependencies clearly.
 #
-# The symbolic link to the build directory (`bdirsym') is also placed here
-# as a dependency if the pipeline is to be created. It is very important
-# that it be an "order-only prerequisite" (after a `|', otherwise, it will
-# try to be remade on every call and `ln' will complain and abort).
-#
 # Note that if you don't want the final PDF and just want the processing
 # and file outputs, you can remove the value of the `BUILD-FINAL-PDF'
 # variable in `reproduce/config/LOCAL.mk'.
-tex/pipeline.tex: $(foreach f, initialize download, $(mtexdir)/$(f).tex)   \
-                  | $(bdirsym)
+tex/pipeline.tex: $(foreach f, initialize download, $(mtexdir)/$(f).tex)
 
         # If no PDF is requested, then just exit here.
 ifeq ($(BUILD-FINAL-PDF),)
-	@echo;
+	@echo
 	@echo "Everything is OK until this point, but not building PDF."
 	@echo "To do so, give a value to the 'BUILD-FINAL-PDF' variable."
 	@echo "It is defined in 'reproduce/config/pipeline/LOCAL.mk'."
-	@echo;
+	@echo
 	@exit 1
 endif
 
-        # Read all the separate files and put them into the final TeX
-        # macros file. Since `bdirsym' maybe empty, we can't use the
-        # `filter-out' function generically. We'll have to check `bdirsym'
-        # first.
-ifeq ($(bdirsym),)
-	cat $^ > $@
-else
-	cat $(filter-out $(bdirsym),$^) > $@
-endif
+        # Merge all the TeX macros that are prepared for building the PDF.
+	@cat $(mtexdir)/*.tex > $@
