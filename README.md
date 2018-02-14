@@ -179,24 +179,24 @@ been explained here), please let us know to correct it.
 
  - **First input dataset**: The user manages the top-level directory of the
      input data through the variables set in
-     `reproduce/config/pipeline/DIRECTORIES.mk.in` (the user actually edits
-     a `DIRECTORIES.mk` file that is created by `configure` from the
-     `.mk.in` file, but the `.mk` file is not under version control). So
-     open this file and replace `SURVEY` in the variable name and value
-     with the name of your input survey or dataset (all in capital
-     letters), for example if you are working on data from the XDF survey,
-     replace `SURVEY` with `XDF`. Don't change anything else in the value,
-     just the the all-caps name. Afterwards, change any occurrence of
-     `SURVEY` in the whole pipeline with the new name. You can find the
-     occurrences with a simple command like the ones shown below. We follow
-     the Make convention here that all `ONLY-CAPITAL` variables are those
-     directly set by the user and all `small-caps` variables are set by the
-     pipeline designer. All variables that also depend on this survey have
-     a `survey` in their name. Hence, also correct all these occurrences to
-     your new name in small-caps. Of course, ignore those occurrences that
-     are irrelevant, like those in this file. Note that in the raw version
-     of this template no target depends on these files, so they are
-     ignored. Afterwards, set the webpage and correct the filenames in
+     `reproduce/config/pipeline/LOCAL.mk.in` (the user actually edits a
+     `LOCAL.mk` file that is created by `configure` from the `.mk.in` file,
+     but the `.mk` file is not under version control). So open this file
+     and replace `SURVEY` in the variable name and value with the name of
+     your input survey or dataset (all in capital letters), for example if
+     you are working on data from the XDF survey, replace `SURVEY` with
+     `XDF`. Don't change anything else in the value, just the the all-caps
+     name. Afterwards, change any occurrence of `SURVEY` in the whole
+     pipeline with the new name. You can find the occurrences with a simple
+     command like the ones shown below. We follow the Make convention here
+     that all `ONLY-CAPITAL` variables are those directly set by the user
+     and all `small-caps` variables are set by the pipeline designer. All
+     variables that also depend on this survey have a `survey` in their
+     name. Hence, also correct all these occurrences to your new name in
+     small-caps. Of course, ignore those occurrences that are irrelevant,
+     like those in this file. Note that in the raw version of this template
+     no target depends on these files, so they are ignored. Afterwards, set
+     the webpage and correct the filenames in
      `reproduce/src/make/download.mk` if necessary.
 
      ```shell

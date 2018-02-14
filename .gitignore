@@ -11,4 +11,4 @@ reproduce/build
 reproduce/BDIR/
 tex/pipeline.tex
 reproduce/SURVEY/
-reproduce/config/pipeline/DIRECTORIES.mk
+reproduce/config/pipeline/LOCAL.mk

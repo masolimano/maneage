@@ -33,24 +33,67 @@
 # parallel. Also, some programs may not be thread-safe, therefore it will
 # be necessary to put a lock on them. This pipeline uses the `flock'
 # program to achieve this.
-texdir = $(BDIR)/tex
-lockdir = $(BDIR)/locks
-bdirsym = reproduce/build
-mtexdir = $(texdir)/macros
-pconfdir = reproduce/config/pipeline
+texdir      = $(BDIR)/tex
+srcdir      = reproduce/src
+lockdir     = $(BDIR)/locks
+bdirsym     = reproduce/build
+mtexdir     = $(texdir)/macros
+gconfdir    = reproduce/config/gnuastro
+pconfdir    = reproduce/config/pipeline
+
+
+
+
+
+# Sanity check
+# ------------
+#
+# We need to make sure that the `./configure' command has already been
+# run. The output of `./configure' is the `$(pconfdir)/LOCAL.mk' file and
+# this is the non-time-stamp prerequisite of $(BDIR), see below.
+#
+# There is one problem however: if the user hasn't run `./configure' yet,
+# then `BDIR' isn't defined (will just evaluate to blank space). Therefore
+# it won't appear in the prerequisites and the pipeline will try to build
+# the other directories in the top root directory (`/'). To solve this
+# problem, when `BDIR' isn't defined, we'll define it with a place-holder
+# name ((only so it won't evaluate to blank space). Note that this
+# directory will never be built.
+ifeq ($(BDIR),)
+configure-run = no
+BDIR = reproduce/BDIR
+else
+configure-run = yes
+endif
+$(pconfdir)/LOCAL.mk:
+	@echo
+	@echo "================================================================"
+	@echo "For the pipeline's local settings, please run this command first"
+	@echo "(P.S. this local configuration is only necessary one time)"
+	@echo
+	@echo "    $$ ./configure"
+	@echo "================================================================"
+	@echo
+	@exit 1
 
 
 
 
 
 # Make the high-level level directories
-# ------------------------------
+# -------------------------------------
 #
 # These are just the top-level directories for all the separate steps. The
 # directories (or possible sub-directories) for individual steps will be
 # defined and added within their own Makefiles.
-$(BDIR):; mkdir $@;
+#
+# IMPORTANT NOTE for $(BDIR)'s dependency: it only depends on the existance
+# (not the time-stamp) of `$(pconfdir)/LOCAL.mk'. So the user can make any
+# changes within that file and if they don't affect the pipeline. For
+# example a change of the top $(BDIR) name, while the contents are the same
+# as before.
 $(mtexdir): | $(texdir); mkdir $@
+$(BDIR): | $(pconfdir)/LOCAL.mk; mkdir $@
 $(texdir) $(lockdir): | $(BDIR); mkdir $@
 
 
@@ -65,11 +108,14 @@ $(texdir) $(lockdir): | $(BDIR); mkdir $@
 # included here ensure that the file is always built in every run: for
 # example the pipeline versions may change within two separate runs, so we
 # want it to be rebuilt every time.
-.PHONY: all clean clean-mmap $(mtexdir)/initialize.tex
+.PHONY: all clean distclean clean-mmap $(mtexdir)/initialize.tex
+distclean: clean; rm -f $(pconfdir)/LOCAL.mk
 clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
 clean:
-	rm -rf $(BDIR) $(bdirsym) *.pdf *.log *.out *.aux *.auxlock \
-               reproduce/config/gnuastro/mmap*
+ifeq ($(configure-run),yes)
+	rm -rf $(BDIR)
+endif
+	rm -f $(bdirsym) $(gconfdir)/mmap* *.pdf *.log *.out *.aux *.auxlock
 
 
 
@@ -93,7 +139,7 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\gnuastroversion}{$$v}" >> $@
 
         # Location of the build directory (for LaTeX inputs).
-	echo "\newcommand{\bdir}{$(BDIR)}"        >> $@
+	@echo "\newcommand{\bdir}{$(BDIR)}"       >> $@
 
 
 

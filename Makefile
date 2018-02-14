@@ -85,16 +85,17 @@ include $(foreach f, initialize download paper, reproduce/src/make/$(f).mk)
 # try to be remade on every call and `ln' will complain and abort).
 #
 # Note that if you don't want the final PDF and just want the processing
-# and file outputs, you can remove the value of the `pdf-compile' variable
-# in `reproduce/config/pipeline/pdf.mk'.
+# and file outputs, you can remove the value of the `BUILD-FINAL-PDF'
+# variable in `reproduce/config/LOCAL.mk'.
 tex/pipeline.tex: $(foreach f, initialize download, $(mtexdir)/$(f).tex)   \
                   | $(bdirsym)
 
         # If no PDF is requested, then just exit here.
-ifeq ($(pdf-compile),)
+ifeq ($(BUILD-FINAL-PDF),)
 	@echo;
 	@echo "Everything is OK until this point, but not building PDF."
-	@echo "To do so, give a value to the 'pdf-compile' variable."
+	@echo "To do so, give a value to the 'BUILD-FINAL-PDF' variable."
+	@echo "It is defined in 'reproduce/config/pipeline/LOCAL.mk'."
 	@echo;
 	@exit 1
 endif

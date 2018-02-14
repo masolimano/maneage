@@ -28,43 +28,37 @@
 pdir=reproduce/config/pipeline
 
 
-# Message to print for editing
-function msg {
-    echo; echo "Top-level reproduction directories are set.";
-    echo "Please run the following command to start the pipeline:"
-    echo "(Replace '8' with the number of CPU threads available)"
-    echo; echo "    make -j8"
-    echo;
-}
 
 
-# If `DIRECTORIES.mk' is already created, then ignore this step.
-if [ -f $pdir/DIRECTORIES.mk ]; then
+
+# If `LOCAL.mk' is already created, then ignore this step.
+if [ -f $pdir/LOCAL.mk ]; then
     echo
-    echo "$pdir/DIRECTORIES.mk already exists."
+    echo "$pdir/LOCAL.mk already exists."
     echo "To change/correct the top-level directories, please remove/edit it manually."
     echo
 else
 
     # Copy the base file to the desired output file.
-    if cp $pdir/DIRECTORIES.mk.in $pdir/DIRECTORIES.mk; then
+    if cp $pdir/LOCAL.mk.in $pdir/LOCAL.mk; then
 
         # Tell the user to edit the directories.
         while [ "$userread" != "y" -a "$userread" != "n" ]
         do
-            echo "Top-level directories..."
             echo
-            echo "These directories define the input(s) location and the"
-            echo "directory to host the intermediate/processing files."
+            echo "------------------------------------"
+            echo "Reproduction pipeline local configuration"
+            echo "-----------------------------------------"
             echo
-            echo "To help in your ability to read and manage this pipeline,"
-            echo "it is recommended (but not mandatory) to change them to"
-            echo "a directory outside this reproduction pipeline."
+            echo "Local settings include things like top-level directories,"
+            echo "or processing steps (e.g., if you want a final PDF output)."
             echo
-            echo "More descriptions are provided within the file that is"
-            echo "opened if you choose to edit the directories."
+            echo "Pressing 'y' will open the local settings file in an editor"
+            echo "so you can modify the default values if you want. Each"
+            echo "variable is also thoroughly described in the comments (lines"
+            echo "starting with a '#') above it."
             echo
-            read -p"Edit the default top-level directories (y/n)? " userread
+            read -p"Edit the default local configuration (y/n)? " userread
         done
 
         # Only continue if the user wants to edit the top level
@@ -72,17 +66,28 @@ else
         if [ $userread = "y" ]; then
 
             # Open a text editor to set the given directories
-            if emacs $pdir/DIRECTORIES.mk;   then msg
-            elif gedit $pdir/DIRECTORIES.mk; then msg
-            elif vi $pdir/DIRECTORIES.mk;    then msg
+            if   emacs $pdir/LOCAL.mk; then junk=1
+            elif gedit $pdir/LOCAL.mk; then junk=1
+            elif vi    $pdir/LOCAL.mk; then junk=1
             else
                 echo
                 echo "No common text editor found on your system."
-                echo "Please set the values in '$pdir/DIRECTORIES.mk' manually."
+                echo "Please set the values in '$pdir/LOCAL.mk' manually."
                 echo
             fi
         fi
+        echo
+        echo "This reproduction pipeline has been configured for this system."
+        echo "Please run the following command to start the pipeline:"
+        echo "(Replace '8' with the number of CPU threads available)"
+        echo
+        echo "    make -j8"
+        echo
+        echo
+        echo "(you can always check/modify the default local settings"
+        echo " by editing this file: '$pdir/LOCAL.mk')"
+        echo
     else
-        echo; echo "Couldn't create $pdir/DIRECTORIES.mk"
+        echo; echo "Couldn't create $pdir/LOCAL.mk"
     fi
 fi
