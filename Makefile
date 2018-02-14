@@ -89,6 +89,8 @@ tex/pipeline.tex: $(foreach f, initialize download, $(mtexdir)/$(f).tex)
         # If no PDF is requested, then just exit here.
 ifeq ($(BUILD-FINAL-PDF),)
 	@echo
+	@echo
+	@echo "-----"
 	@echo "Everything is OK until this point, but not building PDF."
 	@echo "To do so, give a value to the 'BUILD-FINAL-PDF' variable."
 	@echo "It is defined in 'reproduce/config/pipeline/LOCAL.mk'."
