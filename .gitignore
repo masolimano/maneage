@@ -4,6 +4,7 @@
 *.log
 *.pdf
 *.out
+.nfs*
 mmap_*
 *.auxlock
 
