@@ -4,8 +4,8 @@
 *.log
 *.pdf
 *.out
+mmap_*
 *.auxlock
-.gnuastro/mmap_*
 
 LOCAL_tmp.mk
 LOCAL_old.mk
