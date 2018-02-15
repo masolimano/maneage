@@ -142,10 +142,11 @@ echo "minmapsize $mm" >> $gconf
 
 
 
-# Make the final file that will be used.
+# Make the final file that will be used and delete the temporary file along
+# with a possible file ending with `~' that is put there by some editors.
 add_top_notice $pconf
 cat $ptconf >> $pconf
-rm $ptconf
+rm -f $ptconf $ptconf"~"
 
 
 
