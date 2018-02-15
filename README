@@ -85,6 +85,13 @@ Gnuastro, the version of the other programs will not make a difference.
   implementation and it is commonly already installed on most systems.
 
 
+  Bash
+  ----
+
+  Bash is the most common "shell" or command-line manager and available in
+  almost all systems (even if not the default). It doesn't need to be the
+  default for this pipeline to run.
+
 
   flock
   -----
