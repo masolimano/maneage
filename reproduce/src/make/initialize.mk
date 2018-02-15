@@ -129,7 +129,9 @@ reproduce/build: | $(BDIR)
 # want it to be rebuilt every time.
 .PHONY: all clean distclean clean-mmap $(mtexdir)/initialize.tex
 distclean: clean; rm -f $(pconfdir)/LOCAL.mk
+# --------- Delete for no Gnuastro ---------
 clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
+# ------------------------------------------
 clean: clean-mmap
 ifeq ($(configure-run),yes)
 	rm -rf $(BDIR)
@@ -153,9 +155,11 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	@v=$$(git describe --dirty --always);                      \
 	echo "\newcommand{\pipelineversion}{$$v}"  > $@
 
+# --------- Delete for no Gnuastro ---------
         # Version of Gnuastro.
 	@v=$$(astnoisechisel --version | awk 'NR==1{print $$NF}'); \
 	echo "\newcommand{\gnuastroversion}{$$v}" >> $@
+# ------------------------------------------
 
         # Location of the build directory (for LaTeX inputs).
 	@echo "\newcommand{\bdir}{$(BDIR)}"       >> $@

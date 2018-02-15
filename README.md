@@ -158,16 +158,22 @@ been explained here), please let us know to correct it.
      dependency of the pipeline and without it, the pipeline will complain
      and abort. The main reason for this is to demonstrate how critically
      important it is to version your software. If you don't want to install
-     Gnuastro please follow the instructions in the list below. If you do
-     have Gnuastro (or have installed it to check this pipeline), then
-     after an initial check, try un-commenting the `onlyversion` line and
-     running the pipeline to see the respective error. Such features in a
-     software makes it easy to design a robust pipeline like this. If you
-     have tried it and don't need Gnuastro in your pipeline, also follow
-     this list:
+     Gnuastro please follow the instructions in the list below. If you have
+     installed Gnuastro and tried the pipeline, but don't need Gnuastro in
+     your pipeline, also follow the list below. If you do want to use
+     Gnuastro in your pipeline, be sure to un-comment the `onlyversion`
+     option in `reproduce/config/gnuastro/gnuastro.conf' file and set it to
+     your version of Gnuastro. This will force you to keep the pipeline in
+     match with the version of Gnuastro you are using all the time and also
+     allow commits to be exactly reproducible also (for example if you
+     update to a new version of Gnuastro during your research project). If
+     you will be using Gnuastro, you can also remove the "marks" (comments)
+     put in the relevant files of the list below to make them more
+     readable.
 
    - Delete the description about Gnuastro in `README`.
-   - Delete everything about Gnuastro in `reproduce/src/make/initialize.mk`.
+   - Delete marked parts in `configure`.
+   - Delete marked parts in `reproduce/src/make/initialize.mk`.
    - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style`.
 
  - **`README`**: Go through this top-level instruction file and make it fit

@@ -24,70 +24,146 @@
 
 
 
-# Location of the settings directory:
-pdir=reproduce/config/pipeline
+# Top level locations
+cdir=reproduce/config
+pdir=$cdir/pipeline
+pconf=$pdir/LOCAL.mk
+ptconf=$pdir/LOCAL_tmp.mk
+poconf=$pdir/LOCAL_old.mk
+gconf=$cdir/gnuastro/gnuastro-local.conf
 
 
 
 
 
-# If `LOCAL.mk' is already created, then ignore this step.
-if [ -f $pdir/LOCAL.mk ]; then
-    echo
-    echo "$pdir/LOCAL.mk already exists."
-    echo "To change/correct the top-level directories, please remove/edit it manually."
-    echo
-else
+# Functions.
+function add_top_notice() {
+    if echo "# DO NOT EDIT MANUALLY: this is an automatically generated file." > $1
+    then
+        echo "#"                                                   >> $1
+        echo "# This file is generated from the reproduction"      >> $1
+        echo "# pipeline's './configure' script. Please re-run"    >> $1
+        echo "# that command."                                     >> $1
+    else
+        exit 1
+    fi
+}
 
-    # Copy the base file to the desired output file.
-    if cp $pdir/LOCAL.mk.in $pdir/LOCAL.mk; then
 
-        # Tell the user to edit the directories.
-        while [ "$userread" != "y" -a "$userread" != "n" ]
-        do
-            echo
-            echo "-----------------------------------------"
-            echo "Reproduction pipeline local configuration"
-            echo "-----------------------------------------"
-            echo
-            echo "Local settings include things like top-level directories,"
-            echo "or processing steps (e.g., if you want a final PDF output)."
-            echo
-            echo "Pressing 'y' will open the local settings file in an editor"
-            echo "so you can modify the default values if you want. Each"
-            echo "variable is thoroughly described in the comments (lines"
-            echo "starting with a '#') above it."
-            echo
-            read -p"Edit the default local configuration (y/n)? " userread
-        done
 
-        # Only continue if the user wants to edit the top level
-        # directories
-        if [ $userread = "y" ]; then
 
-            # Open a text editor to set the given directories
-            if   emacs $pdir/LOCAL.mk; then junk=1
-            elif gedit $pdir/LOCAL.mk; then junk=1
-            elif vi    $pdir/LOCAL.mk; then junk=1
-            else
-                echo
-                echo "No common text editor found on your system."
-                echo "Please set the values in '$pdir/LOCAL.mk' manually."
-                echo
-            fi
-        fi
+
+# If `LOCAL.mk' already exists, then copy it to an `.old' file.
+if [ -f $pconf ]; then
+    if mv $pconf $poconf; then
         echo
-        echo "This reproduction pipeline has been configured for this system."
-        echo "Please run the following command to start the pipeline:"
-        echo "(Replace '8' with the number of CPU threads available)"
+        echo "-------"
+        echo "WARNING"
+        echo "-------"
+        echo "  Existing configuration moved to '$poconf'."
         echo
-        echo "    make -j8"
-        echo
-        echo
-        echo "(you can always check/modify the default local settings"
-        echo " by editing this file: '$pdir/LOCAL.mk')"
         echo
     else
-        echo; echo "Couldn't create $pdir/LOCAL.mk"
+        exit 1
     fi
 fi
+
+
+
+
+
+# Using the base file, prepare the output file.
+cp $pconf.in $ptconf
+
+
+
+
+
+# Tell the user to edit the directories.
+echo
+echo "-----------------------------------------"
+echo "Reproduction pipeline local configuration"
+echo "-----------------------------------------"
+echo
+echo "Local settings include things like top-level directories,"
+echo "or processing steps (e.g., if you want a final PDF output)."
+echo
+echo "Pressing 'y' will open the local settings file in an editor"
+echo "so you can modify the default values if you want. Each"
+echo "variable is thoroughly described in the comments (lines"
+echo "starting with a '#') above it."
+echo
+while [ "$userread" != "y" -a "$userread" != "n" ]
+do
+    read -p"Edit the default local configuration (y/n)? " userread
+done
+
+
+
+
+
+# Open an editor if the user wants to edit the file.
+if [ $userread = "y" ]; then
+
+    # Open a text editor to set the given directories
+    if   emacs $ptconf; then ready=1
+    elif gedit $ptconf; then ready=1
+    elif vi    $ptconf; then ready=1
+    else
+        echo
+        echo "================="
+        echo "IMPORTANT WARNING"
+        echo "================="
+        echo "No common text editor was found on this system."
+        echo "Please set the values in the following files manually:"
+        echo "  - $pconf"
+        # --------- Delete for no Gnuastro ---------
+        echo "  - $gconf"
+        # ------------------------------------------
+        echo "================="
+        echo
+        ready=0
+    fi
+else
+    ready=1
+fi
+
+
+
+
+# --------- Delete for no Gnuastro ---------
+# From the input file, set the Gnuastro configuration file.
+mm=$(awk '$1=="MINMAPSIZE"{print $3}' $ptconf)
+add_top_notice $gconf
+echo "minmapsize $mm" >> $gconf
+# ------------------------------------------
+
+
+
+
+
+# Make the final file that will be used.
+add_top_notice $pconf
+cat $ptconf >> $pconf
+rm $ptconf
+
+
+
+
+
+# Print a final notice.
+echo
+if [ $ready = 1 ]; then
+    echo "This reproduction pipeline has been configured for this system."
+    echo "Please run the following command to start the pipeline:"
+else
+    echo "AFTER MANUALLY EDITING THE FILE(S) ABOVE, please run the following"
+    echo "commands to run the pipeline."
+fi
+echo "(Replace '8' with the number of CPU threads available)"
+echo
+echo "    make -j8"
+echo
+echo "To change the configuration later, please re-run './configure',"
+echo "DO NOT manually edit the relevant files."
+echo

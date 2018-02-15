@@ -48,3 +48,23 @@ SURVEY = reproduce/SURVEY
 # more easy: the contents of the build directory do not need to be backed
 # up since they can be reproduced and they can be large.
 BDIR = reproduce/BDIR
+
+
+
+
+
+# Memory mapping minimum size
+# ---------------------------
+#
+# Some programs (for example Gnuastro) can deal with cases where the local
+# system doesn't have enough memory (RAM) to keep large files there. For
+# example, they will create memory-mapped (`mmap' for short) files on the
+# HDD or SSD and read/write to them instead of RAM. This will ofcourse,
+# slow down the processing, but atleast the program won't crash.
+#
+# Since the memory requirements of different systems are different and it
+# has no effect on the software's final result, the minimum size of an
+# allocated array to warrant a mapping to HDD/SSD instead of RAM must also
+# be defined here. This value will be used in the programs that support
+# this feature.
+MINMAPSIZE = 1000000000

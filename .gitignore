@@ -5,10 +5,14 @@
 *.pdf
 *.out
 *.auxlock
-config/mmap_*
+.gnuastro/mmap_*
 
+LOCAL_tmp.mk
+LOCAL_old.mk
 reproduce/build
-reproduce/BDIR/
 tex/pipeline.tex
-reproduce/SURVEY/
+gnuastro-local.conf
 reproduce/config/pipeline/LOCAL.mk
+
+reproduce/BDIR/
+reproduce/SURVEY/
