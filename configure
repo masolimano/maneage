@@ -46,7 +46,7 @@ else
         while [ "$userread" != "y" -a "$userread" != "n" ]
         do
             echo
-            echo "------------------------------------"
+            echo "-----------------------------------------"
             echo "Reproduction pipeline local configuration"
             echo "-----------------------------------------"
             echo
@@ -55,7 +55,7 @@ else
             echo
             echo "Pressing 'y' will open the local settings file in an editor"
             echo "so you can modify the default values if you want. Each"
-            echo "variable is also thoroughly described in the comments (lines"
+            echo "variable is thoroughly described in the comments (lines"
             echo "starting with a '#') above it."
             echo
             read -p"Edit the default local configuration (y/n)? " userread

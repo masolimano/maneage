@@ -33,7 +33,7 @@
 #
 # Note that if you don't have LaTeX to build the PDF or generally are just
 # interested in the processing, you can skip create the final PDF creation
-# with `BUILD-FINAL-PDF' of `reproduce/config/pipeline/LOCAL.mk'.
+# with `pdf-build-final' of `reproduce/config/pipeline/pdf-build.mk'.
 all: reproduce/build paper.pdf
 
 
@@ -82,18 +82,18 @@ include $(foreach f, initialize download paper, reproduce/src/make/$(f).mk)
 # top-level dependencies clearly.
 #
 # Note that if you don't want the final PDF and just want the processing
-# and file outputs, you can remove the value of the `BUILD-FINAL-PDF'
-# variable in `reproduce/config/LOCAL.mk'.
+# and file outputs, you can remove the value of the `pdf-build-final'
+# variable in `reproduce/config/pdf-build.mk'.
 tex/pipeline.tex: $(foreach f, initialize download, $(mtexdir)/$(f).tex)
 
         # If no PDF is requested, then just exit here.
-ifeq ($(BUILD-FINAL-PDF),)
+ifeq ($(pdf-build-final),)
 	@echo
 	@echo
 	@echo "-----"
 	@echo "Everything is OK until this point, but not building PDF."
-	@echo "To do so, give a value to the 'BUILD-FINAL-PDF' variable."
-	@echo "It is defined in 'reproduce/config/pipeline/LOCAL.mk'."
+	@echo "To do so, give a value to the 'pdf-build-final' variable."
+	@echo "It is defined in 'reproduce/config/pipeline/pdf-build.mk'."
 	@echo
 	@exit 1
 endif
