@@ -162,7 +162,7 @@ been explained here), please let us know to correct it.
      installed Gnuastro and tried the pipeline, but don't need Gnuastro in
      your pipeline, also follow the list below. If you do want to use
      Gnuastro in your pipeline, be sure to un-comment the `onlyversion`
-     option in `reproduce/config/gnuastro/gnuastro.conf' file and set it to
+     option in `reproduce/config/gnuastro/gnuastro.conf` file and set it to
      your version of Gnuastro. This will force you to keep the pipeline in
      match with the version of Gnuastro you are using all the time and also
      allow commits to be exactly reproducible also (for example if you
@@ -214,13 +214,14 @@ been explained here), please let us know to correct it.
      necessary for your research to the pipeline based on the example
      above.
 
- - **Delete this `README.md`**: `README.md` is designed for this template,
+ - **Delete `README.md`**: This `README.md` is designed for this template,
      not your reproduction pipeline. So to avoid later confusion, delete it
-     from your own repository (you may want to keep a copy outside for the
-     notes and discussions below until you are familiar with it).
+     from your own repository. You may want to keep a copy outside for the
+     notes and discussions below until you are sufficiently familiar with
+     it and don't need it any more.
 
- - **Initiate a new Git repo**: You don't want to mix the history of this
-     template reproduction pipeline with your own reproduction
+ - **Initiate a new Git repo**: You probably don't want to mix the history
+     of this template reproduction pipeline with your own reproduction
      pipeline. You have already made some small changes in the previous
      step, so let's re-initiate history before continuing. But before doing
      that, keep the output of `git describe` in a place and write it in
@@ -238,13 +239,20 @@ been explained here), please let us know to correct it.
      $ rm -rf .git           # Completely remove this history.
      $ git init              # Initiate a new history.
      $ git add --all         # Stage everything that is here.
-     $ git commit            # Make your first commit (mention the first output)
+     $ git commit            # Make your first commit (mention the first output).
+     $ git tag -a v0         # Tag this as the zero-th version of your pipeline.
      ```
 
  - **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. Just don't forget to share your experiences
-     with us as you go along so we can make this a more robust skeleton.
+     with us as you go along so we can make this a more robust
+     skeleton. You can see some example pipelines (with their accompanying
+     software and data in the `reproduce-vXXXXX.tar.gz` files of
+     [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746) and
+     [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774). Links to
+     their Git version controlled history are also available in the
+     respective page.
 
 
 
@@ -406,6 +414,27 @@ us. In this way, we can add it here for the benefit of others.
    - *Keep your input data*: The input data is also critical to the
       pipeline, so like the above for software, make sure you have a backup
       of them
+
+ - **Version control**: It is important (and extremly useful) to have the
+   history of your pipeline under version control. So try to make commits
+   regularly (after any meaningful change/step/result), while not
+   forgetting the following notes.
+
+   - *Tags*: To help manage the history, tag all major commits. This helps
+      make a more human-friendly output of `git describe`: for example
+      `v1-4-gaafdb04` states that we are on commit `aafdb04` which is 4
+      commits after tag `v1`. The output of `git describe` is included in
+      your final PDF as part of this pipeline. Also, if you use
+      reproducibility-friendly software like Gnuastro, this value will also
+      be included in all output files, see the description of `COMMIT` in
+      [Output
+      headers](https://www.gnu.org/software/gnuastro/manual/html_node/Output-headers.html).
+      In the checklist above, we tagged the first commit of your pipeline
+      with `v0`. Here is one suggestion on when to tag: when you have fully
+      adopted the pipeline and have got the first (initial) results, you
+      can make a `v1` tag. Subsequently when you first start reporting the
+      resutls to your colleages, you can tag the commit as `v2`. Afterwards
+      when you submit to a paper, it can be tagged `v3` and so on.
 
 
 
