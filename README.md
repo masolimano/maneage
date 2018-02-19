@@ -145,11 +145,11 @@ been explained here), please let us know to correct it.
      of the tile.
 
  - **Title**, **short description** and **author** of project: In this raw
-     skeleton, the title or short descripton of your project should be
+     skeleton, the title or short description of your project should be
      added in the following two files: `Makefile` (the first line), and
      `tex/preamble-style.tex` (the last few lines, along with the names of
      you and your colleagues). In both cases, the texts you should replace
-     are all in capital letters to make them easier to identify. Ofcourse,
+     are all in capital letters to make them easier to identify. Of course,
      if you use a different LaTeX method of managing the title and authors,
      please feel free to use your own methods, just find a way to keep the
      pipeline version in a nicely visible place.
@@ -247,12 +247,14 @@ been explained here), please let us know to correct it.
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. Just don't forget to share your experiences
      with us as you go along so we can make this a more robust
-     skeleton. You can see some example pipelines (with their accompanying
-     software and data in the `reproduce-vXXXXX.tar.gz` files of
+     skeleton. You can see some published pipelines in
      [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746) and
-     [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774). Links to
-     their Git version controlled history are also available in the
-     respective page.
+     [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774). The
+     reproduction pipeline tarball names follow this format
+     `reproduce-vXXXXX.tar.gz` and are available with their accompanying
+     software and data on Zenodo. Links to the Git version controlled
+     history of each pipeline is also available in the description of the
+     pipeline of the respective project.
 
 
 
@@ -341,7 +343,7 @@ us. In this way, we can add it here for the benefit of others.
       further information about the totality of the file is necessary, add
       it after a blank line. This will help a fast inspection where you
       don't care about the details, but just want to remember/see what that
-      file is (generally) for. This information must ofcourse be commented
+      file is (generally) for. This information must of course be commented
       (its for a human), but this is kept separate from the general
       recommendation on comments, because this is a comment for the whole
       file, not each step within it.
@@ -415,7 +417,7 @@ us. In this way, we can add it here for the benefit of others.
       pipeline, so like the above for software, make sure you have a backup
       of them
 
- - **Version control**: It is important (and extremly useful) to have the
+ - **Version control**: It is important (and extremely useful) to have the
    history of your pipeline under version control. So try to make commits
    regularly (after any meaningful change/step/result), while not
    forgetting the following notes.
@@ -433,7 +435,7 @@ us. In this way, we can add it here for the benefit of others.
       with `v0`. Here is one suggestion on when to tag: when you have fully
       adopted the pipeline and have got the first (initial) results, you
       can make a `v1` tag. Subsequently when you first start reporting the
-      resutls to your colleages, you can tag the commit as `v2`. Afterwards
+      results to your colleagues, you can tag the commit as `v2`. Afterwards
       when you submit to a paper, it can be tagged `v3` and so on.
 
 
