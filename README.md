@@ -245,9 +245,7 @@ been explained here), please let us know to correct it.
 
  - **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
-     exciting research steps. Just don't forget to share your experiences
-     with us as you go along so we can make this a more robust
-     skeleton. You can see some published pipelines in
+     exciting research steps. You can see some published pipelines in
      [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746) and
      [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774). The
      reproduction pipeline tarball names follow this format
@@ -255,6 +253,14 @@ been explained here), please let us know to correct it.
      software and data on Zenodo. Links to the Git version controlled
      history of each pipeline is also available in the description of the
      pipeline of the respective project.
+
+
+ - **Feedback**: As you use the pipeline you will notice many things that
+     if implemented from the start would have been very useful for your
+     work. This can be in the actual file structure of the pipeline or in
+     useful implementation and usage tips like below. In any case, since
+     this concept is still evolving, please share your thoughts and
+     suggestions, so we can add them here for everyone's benefit.
 
 
 
@@ -388,7 +394,7 @@ us. In this way, we can add it here for the benefit of others.
                 rm $(subst .txt,,$<)
                 echo "done" > $@
         ```
-     A more advanced Make programmer will use [Make's call
+     A more advanced Make programmer will use Make's [call
      function](https://www.gnu.org/software/make/manual/html_node/Call-Function.html)
      to define a wrapper in `reproduce/src/make/initialize.mk`. This
      wrapper will replace `$(subst .txt,,XXXXX)`. Therefore, it will be
@@ -407,11 +413,14 @@ us. In this way, we can add it here for the benefit of others.
       higher-level libraries they depend on). Software evolves very fast
       and only in a few years, a feature might be changed or removed from
       the mainstream version or the software server might go down. To be
-      safe, keep a copy of the tarballs (they are hardly ever over a few
-      megabytes, very insignificant compared to the data). If you intend to
-      release the pipeline in a place like Zenodo, then you can create your
-      submission early (before public release) and upload/keep all the
-      necessary tarballs (and data) there.
+      safe, keep a copy of the tarballs. Software tarballs are rarely over
+      a few megabytes, very insignificant compared to the data. If you
+      intend to release the pipeline in a place like Zenodo, then you can
+      create your submission early (before public release) and upload/keep
+      all the necessary tarballs (and data)
+      there. [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746) is
+      one example of how the data, Gnuastro (main software used) and all
+      major Gnuastro's dependencies have been uploaded with the pipeline.
 
    - *Keep your input data*: The input data is also critical to the
       pipeline, so like the above for software, make sure you have a backup
