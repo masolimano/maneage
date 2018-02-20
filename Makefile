@@ -60,7 +60,10 @@ all: reproduce/build paper.pdf
 # high-level processing Makefiles are included through the `foreach' loop
 # below by explicitly requesting them in a specific order here.
 include reproduce/config/pipeline/*.mk
-include $(foreach f, initialize download paper, reproduce/src/make/$(f).mk)
+include $(foreach f, initialize                     \
+                     download                       \
+                     paper,                         \
+                  reproduce/src/make/$(f).mk)
 
 
 
@@ -84,7 +87,9 @@ include $(foreach f, initialize download paper, reproduce/src/make/$(f).mk)
 # Note that if you don't want the final PDF and just want the processing
 # and file outputs, you can remove the value of the `pdf-build-final'
 # variable in `reproduce/config/pdf-build.mk'.
-tex/pipeline.tex: $(foreach f, initialize download, $(mtexdir)/$(f).tex)
+tex/pipeline.tex: $(foreach f, initialize           \
+                               download,            \
+                            $(mtexdir)/$(f).tex)
 
         # If no PDF is requested, then just exit here.
 ifeq ($(pdf-build-final),)

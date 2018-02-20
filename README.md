@@ -127,9 +127,114 @@ Reproduction pipeline architecture
 ==================================
 
 In order to adopt this pipeline to your research, it is important to first
-understand its architecture so you can navigate your research within its
-(very general) framework. The version of
+understand its architecture so you can navigate your way in the directories
+and understand how to implement your research project within its
+framework. In short, when the user runs `make` to start the processing, the
+first file that is read is the top-level `Makefile`. Therefore, we'll start
+our navigation with this file. This file is heavily commented so hopefully
+the descriptions in each comment will be enough to understand the general
+details.
 
+As you see in the top Makefile, the first step is to define the ultimate
+target (`paper.pdf`). You shouldn't modify this line. The rule to build
+`paper.pdf` is in another Makefile that will be imported into this top
+Makefile later. Don't forget that Make goes over all the process once (to
+define dependencies and etc) and then starts its execution. So it is fine
+to define how to build `paper.pdf` later.
+
+Having defined the top target, we will import all the necessary
+Makefiles. As you see in `Makefile`, first we include all
+`reproduce/config/pipeline/*.mk`. The configuration of each logical step of
+the pipeline is placed here as a separate file. These Makefiles must only
+contain raw Make variables (pipeline configurations). By raw we mean that
+the Make variables in these files must not depend on any other variables
+because we don't want to assume any order to read them. It is very
+important to *not* define any rule or other Make construct in any of these
+Makefiles (see the next paragraph for Makefiles with rules). This will
+enable you to set the respective files in this directory as a prerequisite
+to any target that depends on their variables. Therefore, if you change any
+of the values, all targets that depend on those values will be
+re-built.
+
+Once all the raw variables have been imported into the top Makefile, we are
+ready to import the Makefiles containing the details of the processing
+steps (Makefiles containing rules). But *order is important* in this phase
+because the prerequisites of most rules will be other rules that will be
+defined at a lower level. These lower-level rules must be imported into
+Make before the higher-level ones. Hence, we can't use a simple wildcard
+like above. The Makefiles containing rules must be imported in a specific
+order. All these Makefiles are defined in `reproduce/src/make`, so we use
+Make's `foreach` function to define a specific order to read them in.
+
+The main body of your pipeline is thus going to be managed within the
+workhorse-Makefiles of `reproduce/src/make`. If you set clear to understand
+names for this workhorse-Makefiles and follow the convention here that you
+only include one Makefile per line, the `foreach` loop of the top Makefile
+that imports them will become very easy to read and understand by eye to
+clearly let you know which step you are taking before or after
+another. Projects will scale up very fast and if you don't start clean, in
+the end it will become very dirty and hard to manage. So break your rules
+into as many logically-similar but independent steps as possible.
+
+All processing steps ultimately (usually after many rules) end up in some
+number, image, figure, or table that must be included in the paper. After
+all, if you don't want to report the value of a processing, why would you
+do it in the first place? Therefore if the targets in a workhorse-Makefile
+aren't directly a prerequisite of other workhorse-Makefiles, they should be
+a pre-requisite of an intermediate LaTeX macro file that is produced as the
+highest-level target of that workhorse-Makefile.
+
+The last part of the top-level Makefile is the rule to build
+`tex/pipeline.tex`. This file is the connection between the processing
+steps of the pipeline and the creation of the final PDF. In
+`reproduce/src/make/paper.mk`, you will notice that `paper.pdf` (final
+target of the whole reproduction pipeline) depends on
+`tex/pipeline.tex`. This file is thus the connection of these two very
+high-level different phases of the reproduction pipeline. Therefore, to
+keep the over-all management clean, the rule to create this bridge between
+the processing and paper-writing phases is defined in the top-level
+Makefile.
+
+But `tex/pipeline.tex` is only a merging/concatenation of LaTeX macros
+defined as the output of each high-level processing step. In some cases you
+want tables and images to also be included in the final PDF. For such LaTeX
+constructs, in the relevant workhorse-Makefile, you can define other
+directories under `$(BDIR)/tex` (`BDIR` is the top build directory for
+intermediate files) to keep the necessary tables, plots, figures or any
+other necessary file you need for each figure in the final PDF. One of the
+LaTeX macros that `reproduce/src/make/initialize.mk` creates is the
+location of the build directory, so you can easily guide LaTeX to look into
+the proper directory through the `\bdir` macro. If the target of the rule
+that creates these other LaTeX inputs isn't a prerequisite of other rules,
+add it as a pre-requisite of `tex/pipeline.tex`.
+
+During the research, it often happens that you want to test a step that is
+not a prerequisite of any higher-level operation. In such cases, you can
+(temporarily) define the target of that rule as a prerequisite of
+`tex/pipeline.tex`. If your test gives a promising result and you want to
+include it in your research, set it as prerequisites to other rules and
+remove it from the list of prerequisites for `tex/pipeline.tex`. In fact,
+this is how a project is designed to grow in this framework.
+
+Summary of steps to take as your research grows:
+
+ - define new `reproduce/src/make/XXXXXX.mk` file(s) with good and
+   human-friendly name(s) replacing `XXXXXX`.
+
+ - Add `XXXXXX` in the proper place of the loop which includes
+   workhorse-Makefiles.
+
+ - Do not use any constant numbers (or important names like filter names)
+   in the workhorse-Makefiles. Define such constants as logically-grouped
+   separate configuration-Makefiles in `reproduce/config/pipeline`. Then
+   set the respective configuration-Makefiles file as a pre-requisite to
+   any rule that uses the variable defined in it.
+
+ - Each target should either be a prerequisite of another rule (possibly in
+   another Makefile), or a file that is directly imported into LaTeX as
+   fixed macros for inclusion in text or LaTeX settings (in
+   `$(BDIR)/tex/macros`), images, plots or tables (in other `$(BDIR)/tex`
+   sub-directories).
 
 
 
