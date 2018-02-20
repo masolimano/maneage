@@ -7,7 +7,9 @@ This description is for *creators* of the reproduction pipeline. See
 This project contains a **fully working template** for a high-level
 research reproduction pipeline as defined in the link below. If this page
 is inaccessible at the time of reading, please see the end of this file
-which contains a portion of the introduction in this webpage.
+which contains a portion of the introduction in this webpage. Some
+[slides](http://akhlaghi.org/pdf/reproduction-pipeline.pdf) are also
+available to help demonstrate the concept implemented here.
 
   http://akhlaghi.org/reproducible-science.html
 
