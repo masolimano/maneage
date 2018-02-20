@@ -68,3 +68,17 @@ BDIR = reproduce/BDIR
 # be defined here. This value will be used in the programs that support
 # this feature.
 MINMAPSIZE = 1000000000
+
+
+
+
+
+# Downloader program
+# ------------------
+#
+# The downloder program (and its output option name) that will be used if
+# any of the necessary datasets aren't already available on the
+# system. This is usually set at an early stage of the configuration system
+# automatically before the file is opened for editing by the user. It is
+# thus recommended to not modify it manually.
+DOWNLOADER = @downloader@

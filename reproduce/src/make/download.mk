@@ -24,22 +24,6 @@
 
 
 
-# Identify the downloader tool
-# ----------------------------
-#
-# If cURL is already present, that will be used, otherwise, we'll use
-# Wget. Since the options specifying the output filename are different
-# between the two, we'll also specify the output option within the
-# `downloader' variable. So it is important to first give the output
-# filename after calling `downloader', then the web address.
-downloader := $(shell if type curl > /dev/null; then downloader="curl -o";  \
-	              else                           downloader="wget -O";  \
-	              fi; echo "$$downloader";                               )
-
-
-
-
-
 # Download SURVEY data
 # --------------------
 #
@@ -52,7 +36,7 @@ all-survey = $(foreach f, $(filters-survey),                                 \
                           $(SURVEY)/a-possibly-additional-$(f)-format.fits )
 $(SURVEY):; mkdir $@
 $(all-survey): $(SURVEY)/%: | $(SURVEY) $(lockdir)
-	flock $(lockdir)/download -c "$(downloader) $@ $(web-survey)/$*"
+	flock $(lockdir)/download -c "$(DOWNLOADER) $@ $(web-survey)/$*"
 
 
 

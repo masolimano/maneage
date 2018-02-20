@@ -19,12 +19,15 @@ modification (as described in `README`) as a demonstration and customized
 by editing the existing rules and adding new rules as well as adding new
 Makefiles as the research/project grows.
 
-This file will continue with a discussion of why Make is the perfect
-language/framework for a research reproduction pipeline and how to master
-Make easily. Afterwards, a checklist of actions that are necessary to
-customize this pipeline for your research is provided. The main body of
-this text will finish with some tips and guidelines on how to manage or
-extend it as your research grows. Please share your thoughts and
+This file will continue with a discussion of why Make is a suitable (maybe
+perfect) language/framework for a research reproduction pipeline and how to
+master Make easily (and freely). An introduction is then given to the
+general architecture of the pipeline. It is followed b checklist of steps
+that are necessary to start customizing this pipeline for your
+research. The main body will finish with some tips and guidelines on how to
+manage or extend it as your research grows based on our experiences with
+it. As discussed above, in the appendix, a short introduction on the
+necessity of reproducible science is given. Please share your thoughts and
 suggestions on this pipeline so we can implement them and make it even more
 easier to use and more robust.
 
@@ -120,6 +123,18 @@ Make manual there also.
 
 
 
+Reproduction pipeline architecture
+==================================
+
+In order to adopt this pipeline to your research, it is important to first
+understand its architecture so you can navigate your research within its
+(very general) framework. The version of
+
+
+
+
+
+
 Checklist to customize the pipeline
 ===================================
 
@@ -172,9 +187,18 @@ been explained here), please let us know to correct it.
      readable.
 
    - Delete the description about Gnuastro in `README`.
-   - Delete marked parts in `configure`.
+   - Delete marked part(s) in `configure`.
    - Delete marked parts in `reproduce/src/make/initialize.mk`.
    - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style`.
+
+ - **Other dependencies**: If there are any more of the dependencies that
+     you don't use (or others that you need), then remove (or add) them in
+     the respective parts of `configure`. It is commented thoroughly and
+     reading over the comments should guide you on what to add/remove and
+     where. Note that it is always good to have an option to download the
+     necessary datasets in case the user doesn't have them. But in case
+     your pipeline doesn't need any downloads, you can also remove the
+     sections of `configure' that are for `flock' and the downloader.
 
  - **`README`**: Go through this top-level instruction file and make it fit
      to your pipeline: update the text and etc. Don't forget that your

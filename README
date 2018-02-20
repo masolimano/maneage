@@ -97,16 +97,11 @@ Gnuastro, the version of the other programs will not make a difference.
   -----
 
   This is a small program to manage file locks from the command-line. It is
-  available in most GNU/Linux distributions.
+  available in all GNU/Linux distributions. For those operating systems
+  that don't have it, an implementation that is easy to install is
+  available in the link below.
 
-  If you can't find it in your package manager or on some Mac OS systems,
-  please put a copy of `reproduce/src/flock' file into your search path
-  (this script needs Perl, so have that installed is well). To learn more
-  about the search path and where to install this file, please see the link
-  below. Before running this pipeline you should be able to run the `flock'
-  command on your command-line.
-
-    https://www.gnu.org/software/gnuastro/manual/html_node/Installation-directory.html
+    https://github.com/discoteq/flock
 
 
 

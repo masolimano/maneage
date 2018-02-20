@@ -24,44 +24,102 @@
 
 
 
-# Top level locations
+# Important internal locations
+# ----------------------------
+#
+# These are defined to help make this script more readable.
 cdir=reproduce/config
 pdir=$cdir/pipeline
 pconf=$pdir/LOCAL.mk
 ptconf=$pdir/LOCAL_tmp.mk
 poconf=$pdir/LOCAL_old.mk
-gconf=$cdir/gnuastro/gnuastro-local.conf
+glconf=$cdir/gnuastro/gnuastro-local.conf
 
 
 
 
 
-# Functions.
-function add_top_notice() {
-    if echo "# DO NOT EDIT MANUALLY: this is an automatically generated file." > $1
-    then
-        echo "#"                                                   >> $1
-        echo "# This file is generated from the reproduction"      >> $1
-        echo "# pipeline's './configure' script. Please re-run"    >> $1
-        echo "# that command."                                     >> $1
+# Check mandatory dependencies
+# ----------------------------
+#
+# The list of program names you need for this pipeline is in the `for' loop
+# below. In case you don't need Gnuastro, then remove `astnoisechisel' from
+# the list.
+echo "---------------------"
+echo "Checking dependencies"
+echo "---------------------"
+for prog in cat sed make awk grep flock astnoisechisel pdflatex biber; do
+    if type $prog > /dev/null; then
+        echo "  '$prog' was found."
     else
+        echo
+        echo "ERROR: '$prog' not found in search path."
+        if [ $prog = "flock" ]; then
+            echo
+            echo "'flock' is available on GNU/Linux operating system"
+            echo "repositories, please install it through your package"
+            echo "manager. For other OSs, you can install the "
+            echo "implementation at: https://github.com/discoteq/flock"
+        fi
         exit 1
     fi
-}
+done
 
 
 
 
 
-# If `LOCAL.mk' already exists, then copy it to an `.old' file.
+# Identify the downloader tool
+# ----------------------------
+#
+# If cURL is already present, that will be used, otherwise, we'll use
+# Wget. Since the options specifying the output filename are different
+# between the two, we'll also specify the output option within the
+# `downloader' variable. So it is important to first give the output
+# filename after calling `DOWNLOADER' within the Makefiles, and finish the
+# command with the web address.
+print_downloader_notice=1
+if type curl > /dev/null; then
+    downloader="curl -o"
+elif type wget > /dev/null; then
+    downloader="wget -O";
+else
+    echo
+    echo "======="
+    echo "Warning"
+    echo "======="
+    echo "Couldn't find any of the 'curl' or 'wget' programs. They are used for"
+    echo "downloading necessary data if they aren't already present in the"
+    echo "specified directories. Therefore the pipeline will crash if the"
+    echo "necessary data are not already present on the system."
+    echo "======="
+    echo
+    downloader="no-downloader-found"
+    print_downloader_notice=0
+fi;
+if [ $print_downloader_notice = 1 ]; then
+    prog=$(echo "$downloader" | awk '{print $1}')
+    echo "  '$prog' will be used for downloading files if necessary."
+fi
+
+
+
+
+
+# If `LOCAL.mk' already exists
+# ----------------------------
+#
+# `LOCAL.mk' is the top-most local configuration for the pipeline. If it
+# already exists when this script is run, we'll copy it to a `LOCAL.mk.old'
+# file as backup. For example the user might have ran `./configure' by
+# mistake.
 if [ -f $pconf ]; then
     if mv $pconf $poconf; then
         echo
-        echo "-------"
+        echo "======="
         echo "WARNING"
-        echo "-------"
+        echo "======="
         echo "  Existing configuration moved to '$poconf'."
-        echo
         echo
     else
         exit 1
@@ -72,26 +130,38 @@ fi
 
 
 
-# Using the base file, prepare the output file.
-cp $pconf.in $ptconf
+# Write values obtained so far
+# ----------------------------
+#
+# We'll start writing of the local configuration file with the values that
+# have been found so far.
+sed -e 's|@downloader[@]|'"$downloader"'|g'           \
+    $pconf.in > $ptconf
 
 
 
 
 
-# Tell the user to edit the directories.
+# Inform the user
+# ---------------
+#
+# Print some basic information so the user gets a feeling of what is going
+# on and is prepared on what will happen next.
 echo
 echo "-----------------------------------------"
 echo "Reproduction pipeline local configuration"
 echo "-----------------------------------------"
 echo
 echo "Local settings include things like top-level directories,"
-echo "or processing steps (e.g., if you want a final PDF output)."
+echo "or processing steps."
 echo
 echo "Pressing 'y' will open the local settings file in an editor"
 echo "so you can modify the default values if you want. Each"
 echo "variable is thoroughly described in the comments (lines"
 echo "starting with a '#') above it."
+echo
+echo "It is strongly recommended to inspect/edit/set the best "
+echo "values for your system (where necessary)."
 echo
 while [ "$userread" != "y" -a "$userread" != "n" ]
 do
@@ -102,7 +172,11 @@ done
 
 
 
-# Open an editor if the user wants to edit the file.
+# Let user to edit local settings
+# -------------------------------
+#
+# We'll open a text editor so the user can read the comments of the
+# necessary local settings and set the top directories manually.
 if [ $userread = "y" ]; then
 
     # Open a text editor to set the given directories
@@ -118,7 +192,7 @@ if [ $userread = "y" ]; then
         echo "Please set the values in the following files manually:"
         echo "  - $pconf"
         # --------- Delete for no Gnuastro ---------
-        echo "  - $gconf"
+        echo "  - $glconf"
         # ------------------------------------------
         echo "================="
         echo
@@ -131,20 +205,53 @@ fi
 
 
 
+
+# Notice for top of files
+# -----------------------
+#
+# In case someone opens the files output from the configuration scripts in
+# a text editor and wants to edit them, it is important to let them know
+# that their changes are not going to be permenant.
+function create_file_with_notice() {
+    if echo "# IMPORTANT: file will be RE-WRITTEN after './configure'" > $1
+    then
+        echo "#"                                                      >> $1
+        echo "# This file was created during the reproduction"        >> $1
+        echo "# pipeline's configuration ('./configure'). Therefore," >> $1
+        echo "# it is not under version control and any manual "      >> $1
+        echo "# changes to it will be over-written if the pipeline "  >> $1
+        echo "# is re-configured."                                    >> $1
+        echo "#"                                                      >> $1
+    else
+        exit 1
+    fi
+}
+
+
+
+
+
 # --------- Delete for no Gnuastro ---------
-# From the input file, set the Gnuastro configuration file.
+# Gnuastro's local configuration settings
+#
+# The `minmapsize' parameter has been set by the user, so we can read it
+# and add it to Gnuastro's local configuration file.
+create_file_with_notice $glconf
 mm=$(awk '$1=="MINMAPSIZE"{print $3}' $ptconf)
-add_top_notice $gconf
-echo "minmapsize $mm" >> $gconf
+echo "# Minimum number of bytes to use HDD/SSD instead of RAM." >> $glconf
+echo " minmapsize $mm"                                          >> $glconf
 # ------------------------------------------
 
 
 
 
 
+# Final pipeline local settings
+# -----------------------------
+#
 # Make the final file that will be used and delete the temporary file along
 # with a possible file ending with `~' that is put there by some editors.
-add_top_notice $pconf
+create_file_with_notice $pconf
 cat $ptconf >> $pconf
 rm -f $ptconf $ptconf"~"
 
@@ -152,7 +259,11 @@ rm -f $ptconf $ptconf"~"
 
 
 
-# Print a final notice.
+# Print a final notice
+# --------------------
+#
+# The configuration is now complete, we can inform the user on the next
+# step(s) to take.
 echo
 if [ $ready = 1 ]; then
     echo "This reproduction pipeline has been configured for this system."
