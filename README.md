@@ -266,14 +266,14 @@ this is how a project is designed to grow in this framework.
 Summary
 -------
 
-A general series of steps you should take and things to have in mind based
-on the explanation above is provided here:
+Based on the explanation above, some major design points you should have in
+mind are listed below.
 
- - define new `reproduce/src/make/XXXXXX.mk` file(s) with good and
-   human-friendly name(s) replacing `XXXXXX`.
+ - Define new `reproduce/src/make/XXXXXX.mk` workhorse-Makefile(s) with
+   good and human-friendly name(s) replacing `XXXXXX`.
 
- - Add `XXXXXX` in the proper place of the loop which includes
-   workhorse-Makefiles.
+ - Add `XXXXXX`, as a new line, to the loop which includes the
+   workhorse-Makefiles in the top-level `Makefile`.
 
  - Do not use any constant numbers (or important names like filter names)
    in the workhorse-Makefiles. Define such constants as logically-grouped
@@ -281,12 +281,13 @@ on the explanation above is provided here:
    set the respective configuration-Makefiles file as a pre-requisite to
    any rule that uses the variable defined in it.
 
- - Each target should either be a prerequisite of another rule (possibly in
-   another Makefile), or a file that is directly imported into LaTeX as
-   fixed macros for inclusion in text or LaTeX settings (in
+ - To be executed, any target should either be a prerequisite of another
+   rule (possibly in another Makefile), or a file that is directly imported
+   into LaTeX as fixed macros for inclusion in text or LaTeX settings (in
    `$(BDIR)/tex/macros`), images, plots or tables (in other `$(BDIR)/tex`
-   sub-directories).
-
+   sub-directories). In any cases, through any number of intermediate
+   prerequisites, all processing steps should end in (be a prerequisite of)
+   `tex/pipeline.tex`.
 
 
 
