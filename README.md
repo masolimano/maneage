@@ -32,6 +32,7 @@ suggestions on this pipeline so we can implement them and make it even more
 easier to use and more robust.
 
 
+
 Why Make?
 ---------
 
@@ -86,6 +87,7 @@ which is the most common implementation. But if you see parts specific to
 GNU Make, please inform us to correct it.
 
 
+
 How can I learn Make?
 ---------------------
 
@@ -121,6 +123,30 @@ Make manual there also.
 
 
 
+Published works using this pipeline
+-----------------------------------
+
+The links below will guide you to some of the works that have already been
+published using the method of this pipeline. Note that this pipeline is
+evolving, so some small details may be different in them, but they can be
+used as a good working model to build your own.
+
+ - Section 7.3 of Bacon et al. (2017, A&A 608, A1): The version controlled
+   reproduction pipeline is available [on
+   Gitlab](https://gitlab.com/makhlaghi/muse-udf-origin-only-hst-magnitudes)
+   and a snapshot of the pipeline along with all the necessary input
+   datasets and outputs is available in
+   [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774).
+
+ - Section 4 of Bacon et al. (2017, A&A, 608, A1): The version controlled
+   reproduction pipeline is available [on
+   Gitlab](https://gitlab.com/makhlaghi/muse-udf-photometry-astrometry) and
+   a snapshot of the pipeline along with all the necessary input datasets
+   is available in
+   [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746).
+
+
+
 
 
 Reproduction pipeline architecture
@@ -133,14 +159,31 @@ framework. In short, when the user runs `make` to start the processing, the
 first file that is read is the top-level `Makefile`. Therefore, we'll start
 our navigation with this file. This file is heavily commented so hopefully
 the descriptions in each comment will be enough to understand the general
-details.
+details. As you read this section, please also look at the contents of the
+mentioned files and directories to fully understand what is being said.
 
-As you see in the top Makefile, the first step is to define the ultimate
+Before starting to look into the top Makefile, it is important to recall
+that Make defines dependencies by files. Therefore, the input and output of
+every step must be a file. Also recall that Make will use the modification
+date of the prerequisite and target files to see if the a target must be
+re-built or not. Therefore during the processing _many_ intermediate files
+will be created (see the tips section below on a good strategy to deal with
+large/huge files). Therefore, in configuration time, the user can define a
+top-level build directory variable (or `$(BDIR)`) to host all the
+intermediate files. This directory doesn't need to be version controlled or
+even synchronized or backed-up in other servers: its contents are all
+products of the pipeline after all, and can be easily re-created any
+time. As you define targets, it is thus important to place them all under
+sub-directories of `$(BDIR)`.
+
+Let's start reviewing the processing with the top Makefile. Please open and
+inspect it as we go along here. The first step is to define the ultimate
 target (`paper.pdf`). You shouldn't modify this line. The rule to build
 `paper.pdf` is in another Makefile that will be imported into this top
 Makefile later. Don't forget that Make goes over all the process once (to
 define dependencies and etc) and then starts its execution. So it is fine
-to define how to build `paper.pdf` later.
+to define the rule to build `paper.pdf` at a later stage (this is the
+beauty of Make after all).
 
 Having defined the top target, we will import all the necessary
 Makefiles. As you see in `Makefile`, first we include all
@@ -148,33 +191,37 @@ Makefiles. As you see in `Makefile`, first we include all
 the pipeline is placed here as a separate file. These Makefiles must only
 contain raw Make variables (pipeline configurations). By raw we mean that
 the Make variables in these files must not depend on any other variables
-because we don't want to assume any order to read them. It is very
+because we don't want to assume any order in read them. It is very
 important to *not* define any rule or other Make construct in any of these
-Makefiles (see the next paragraph for Makefiles with rules). This will
-enable you to set the respective files in this directory as a prerequisite
-to any target that depends on their variables. Therefore, if you change any
-of the values, all targets that depend on those values will be
-re-built.
+_configuration-Makefiles_ (see the next paragraph for Makefiles with
+rules). This will enable you to set the respective files in this directory
+as a prerequisite to any target that depends on their variable
+values. Therefore, if you change any of the values, all targets that depend
+on those values will be re-built.
 
 Once all the raw variables have been imported into the top Makefile, we are
 ready to import the Makefiles containing the details of the processing
-steps (Makefiles containing rules). But *order is important* in this phase
-because the prerequisites of most rules will be other rules that will be
-defined at a lower level. These lower-level rules must be imported into
-Make before the higher-level ones. Hence, we can't use a simple wildcard
-like above. The Makefiles containing rules must be imported in a specific
-order. All these Makefiles are defined in `reproduce/src/make`, so we use
-Make's `foreach` function to define a specific order to read them in.
+steps (Makefiles containing rules, let's call these
+_workhorse-Makefiles_). But *order is important* in this phase because the
+prerequisites of most rules will be other rules that will be defined at a
+lower level (not a fixed name like `paper.pdf`). The lower-level rules must
+be imported into Make before the higher-level ones. Hence, we can't use a
+simple wildcard like when we imported configuration-Makefiles above. All
+these Makefiles are defined in `reproduce/src/make`, therefore, the top
+Makefile uses the `foreach` function to read them in a specific order.
 
-The main body of your pipeline is thus going to be managed within the
-workhorse-Makefiles of `reproduce/src/make`. If you set clear to understand
-names for this workhorse-Makefiles and follow the convention here that you
-only include one Makefile per line, the `foreach` loop of the top Makefile
-that imports them will become very easy to read and understand by eye to
-clearly let you know which step you are taking before or after
-another. Projects will scale up very fast and if you don't start clean, in
-the end it will become very dirty and hard to manage. So break your rules
-into as many logically-similar but independent steps as possible.
+The main body of this pipeline is thus going to be managed within the
+workhorse-Makefiles of `reproduce/src/make`. If you set clear-to-understand
+names for thse workhorse-Makefiles and follow the convention of the top
+Makefile that you only include one workhorse-Makefile per line, the
+`foreach` loop of the top Makefile that imports them will become very easy
+to read and understand by eye. This will let you know which step you are
+taking before or after another without much thought (in a few months
+especially). Projects will scale up very fast. Thus if you don't start and
+continue with a clean and robust management strategy, in the end it will
+become very dirty and hard to manage/understand (even for yourself). As a
+general rule of thumb, break your rules into as many logically-similar but
+independent steps as possible.
 
 All processing steps ultimately (usually after many rules) end up in some
 number, image, figure, or table that must be included in the paper. After
@@ -197,16 +244,14 @@ Makefile.
 
 But `tex/pipeline.tex` is only a merging/concatenation of LaTeX macros
 defined as the output of each high-level processing step. In some cases you
-want tables and images to also be included in the final PDF. For such LaTeX
-constructs, in the relevant workhorse-Makefile, you can define other
-directories under `$(BDIR)/tex` (`BDIR` is the top build directory for
-intermediate files) to keep the necessary tables, plots, figures or any
-other necessary file you need for each figure in the final PDF. One of the
-LaTeX macros that `reproduce/src/make/initialize.mk` creates is the
-location of the build directory, so you can easily guide LaTeX to look into
-the proper directory through the `\bdir` macro. If the target of the rule
-that creates these other LaTeX inputs isn't a prerequisite of other rules,
-add it as a pre-requisite of `tex/pipeline.tex`.
+want tables and images to also be included in the final PDF. To keep these
+necessary LaTeX inputs, you can define other directories under
+`$(BDIR)/tex` in the relevant workhorse-Makefile. One of the LaTeX macros
+that `reproduce/src/make/initialize.mk` creates is the location of the
+build directory, so you can easily guide LaTeX to look into the proper
+directory through the `\bdir` macro. If the target of the rule that creates
+these other LaTeX inputs isn't a prerequisite of other rules, add it as a
+pre-requisite of `tex/pipeline.tex`.
 
 During the research, it often happens that you want to test a step that is
 not a prerequisite of any higher-level operation. In such cases, you can
@@ -216,7 +261,13 @@ include it in your research, set it as prerequisites to other rules and
 remove it from the list of prerequisites for `tex/pipeline.tex`. In fact,
 this is how a project is designed to grow in this framework.
 
-Summary of steps to take as your research grows:
+
+
+Summary
+-------
+
+A general series of steps you should take and things to have in mind based
+on the explanation above is provided here:
 
  - define new `reproduce/src/make/XXXXXX.mk` file(s) with good and
    human-friendly name(s) replacing `XXXXXX`.
@@ -235,6 +286,7 @@ Summary of steps to take as your research grows:
    fixed macros for inclusion in text or LaTeX settings (in
    `$(BDIR)/tex/macros`), images, plots or tables (in other `$(BDIR)/tex`
    sub-directories).
+
 
 
 
@@ -374,15 +426,8 @@ been explained here), please let us know to correct it.
 
  - **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
-     exciting research steps. You can see some published pipelines in
-     [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746) and
-     [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774). The
-     reproduction pipeline tarball names follow this format
-     `reproduce-vXXXXX.tar.gz` and are available with their accompanying
-     software and data on Zenodo. Links to the Git version controlled
-     history of each pipeline is also available in the description of the
-     pipeline of the respective project.
-
+     exciting research steps. You can use the "published works" section in
+     the introduction as some fully working models to learn from.
 
  - **Feedback**: As you use the pipeline you will notice many things that
      if implemented from the start would have been very useful for your
