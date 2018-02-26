@@ -24,14 +24,14 @@ Makefiles as the research/project grows.
 This file will continue with a discussion of why Make is a suitable (maybe
 perfect) language/framework for a research reproduction pipeline and how to
 master Make easily (and freely). An introduction is then given to the
-general architecture of the pipeline. It is followed b checklist of steps
-that are necessary to start customizing this pipeline for your
-research. The main body will finish with some tips and guidelines on how to
-manage or extend it as your research grows based on our experiences with
-it. As discussed above, in the appendix, a short introduction on the
-necessity of reproducible science is given. Please share your thoughts and
-suggestions on this pipeline so we can implement them and make it even more
-easier to use and more robust.
+general architecture of the pipeline. It is followed by a checklist of
+steps that are necessary to start customizing this pipeline for your
+research. The main body finishs with some tips and guidelines on how to
+manage or extend the pipeline as your research grows based on our
+experiences with it so far. As discussed above, in the appendix, a short
+introduction on the necessity of reproducible science is given. Please
+share your thoughts and suggestions on this pipeline so we can implement
+them and make it even more easier to use and more robust/generic.
 
 
 
