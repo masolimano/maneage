@@ -242,7 +242,7 @@ Makefiles. As you see in `Makefile`, first we include all
 the pipeline is placed here as a separate file. These Makefiles must only
 contain raw Make variables (pipeline configurations). By raw we mean that
 the Make variables in these files must not depend on any other variables
-because we don't want to assume any order in read them. It is very
+because we don't want to assume any order in reading them. It is very
 important to *not* define any rule or other Make construct in any of these
 _configuration-Makefiles_ (see the next paragraph for Makefiles with
 rules). This will enable you to set the respective files in this directory
@@ -278,9 +278,9 @@ All processing steps ultimately (usually after many rules) end up in some
 number, image, figure, or table that must be included in the paper. After
 all, if you don't want to report the value of a processing, why would you
 do it in the first place? Therefore if the targets in a workhorse-Makefile
-aren't directly a prerequisite of other workhorse-Makefiles, they should be
-a pre-requisite of an intermediate LaTeX macro file that is produced as the
-highest-level target of that workhorse-Makefile.
+aren't directly a prerequisite of other workhorse-Makefile targets, they
+should be a pre-requisite of an intermediate LaTeX macro file in
+`$(BDIR)/tex/macros` (the highest-level target of that workhorse-Makefile).
 
 The last part of the top-level Makefile is the rule to build
 `tex/pipeline.tex`. This file is the connection between the processing
