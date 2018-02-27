@@ -1,9 +1,10 @@
 # Initialize the reproduction pipeline.
 #
 # Original author:
-#     Your name <your@email.address>
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
-# Copyright (C) YYYY, Your Name.
+#     Your name <your@email.address>
+# Copyright (C) 2018, Your Name.
 #
 # This Makefile is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -91,6 +92,14 @@ $(pconfdir)/LOCAL.mk:
 # changes within that file and if they don't affect the pipeline. For
 # example a change of the top $(BDIR) name, while the contents are the same
 # as before.
+#
+# The `.SUFFIXES' rule with no prerequisite is defined to eliminate all the
+# default implicit rules. The default implicit rules are to do with
+# programming (for example converting `.c' files to `.o' files). The
+# problem they cause is when you want to debug the make command with `-d'
+# option: they add too many extra checks that make it hard to find what you
+# are looking for in this pipeline.
+.SUFFIXES:
 $(mtexdir): | $(texdir); mkdir $@
 $(BDIR): | $(pconfdir)/LOCAL.mk; mkdir $@
 $(texdir) $(lockdir): | $(BDIR); mkdir $@

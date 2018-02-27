@@ -314,10 +314,10 @@ been explained here), please let us know to correct it.
      ```
 
  - **Copyright**, **name** and **date**: Go over the following files and
-     correct the copyright, names and dates in their first few lines:
-     `configure`, `Makefile` and `reproduce/src/make/*.mk`. When making new
-     files, always remember to add a similar copyright statement at the top
-     of the tile.
+     add your name and email to the copyright notice: `configure`,
+     `Makefile` and `reproduce/src/make/*.mk`. When making new files,
+     always remember to add a similar copyright statement at the top of the
+     file.
 
  - **Title**, **short description** and **author** of project: In this raw
      skeleton, the title or short description of your project should be
@@ -550,6 +550,15 @@ us. In this way, we can add it here for the benefit of others.
         ```shell
         $ info make "automatic variables
         ```
+
+   - *Debug*: Since Make doesn't follow the common top-down paradigm, it
+      can be a little hard to get accustomed to why you get an error or
+      un-expected behavior. In such cases, run Make with the `-d`
+      option. With this option, Make prints a full list of exactly which
+      prerequisites are being checked for which targets. Looking
+      (patiently) through this output and searching for the faulty
+      file/step will clearly show you any mistake you might have made in
+      defining the targets or prerequisites.
 
    - *Large files*: If you are dealing with very large files (thus having
       multiple copies of them for intermediate steps is not possible), one

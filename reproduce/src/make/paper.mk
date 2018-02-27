@@ -1,9 +1,9 @@
 # Build the final PDF paper/report.
 #
 # Original author:
-#     Your name <your@email.address>
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
-# Copyright (C) YYYY, Your Name.
+# Copyright (C) 2018, Mohammad Akhlaghi.
 #
 # This script is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -27,8 +27,15 @@
 #
 # The commands to build the final report. We want the pipeline version to
 # be checked everytime the final PDF is to be built.
-paper.pdf: tex/pipeline.tex paper.tex
+texbdir=$(texdir)/build
+tikzdir=$(texbdir)/tikz
+$(texbdir): | $(texdir); mkdir $@
+$(tikzdir): | $(texbdir); mkdir $@
+paper.pdf: tex/pipeline.tex paper.tex | $(tikzdir) $(texbdir)
 
         # Make the report.
-	@pdflatex -shell-escape -halt-on-error paper.tex
-	@rm -f *.auxlock *.aux *.out *.log
+	p=$$(pwd);                                               \
+	export TEXINPUTS=$$p:$$TEXINPUTS;                        \
+	cd $(texbdir);                                           \
+        pdflatex -shell-escape -halt-on-error $$p/paper.tex
+	cp $(texbdir)/$@ $@

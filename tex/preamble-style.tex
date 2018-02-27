@@ -8,8 +8,27 @@
 
 
 
+
+
 %% Print size
 \usepackage[a4paper, includeheadfoot, body={18.7cm, 24.5cm}]{geometry}
+
+
+
+
+
+%% Page using multiple columns
+\usepackage{multicol}
+
+
+
+
+
+%% Allow using figures within the `multi-col' environment.
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+
 
 
 
@@ -35,10 +54,16 @@
 
 
 
+
+
 %% Color related settings:
 \usepackage{xcolor}
 \color{black}                   % Text color
 \definecolor{DarkBlue}{RGB}{0,0,90}
+
+
+
+
 
 
 % figure and figure* ordering correction:
@@ -46,13 +71,17 @@
 
 
 
+
+
 %% For editing the caption appearence. The `setspace' package defines
 %% the `stretch' variable. `abovecaptionskip' is the distance between
 %% the figure and the caption.
 \usepackage{setspace, caption}
-\captionsetup{font=small, labelfont={color=DarkBlue,bf}, skip=1pt}
+\captionsetup{font=footnotesize, labelfont={color=DarkBlue,bf}, skip=1pt}
 \captionsetup[figure]{font={stretch=1, small}}
 \setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
+
+
 
 
 
@@ -62,8 +91,12 @@
 
 
 
+
+
 %For including time in the title:
 \usepackage{datetime}
+
+
 
 
 
@@ -79,6 +112,8 @@
 
 
 
+
+
 % Basic Document information that goes into the PDF meta-data.
 \hypersetup
 {
@@ -87,6 +122,8 @@
     pdftitle={THE TITLE OF THIS PROJECT},
     pdfkeywords={SOME, KEYWORDS, FOR, THE, PDF}
 }
+
+
 
 
 

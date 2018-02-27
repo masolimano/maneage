@@ -1,13 +1,31 @@
 \documentclass{article}
 
+%% This is a convenience variable if you are using PGFPlots to build plots
+%% within LaTeX. If you want to import PDF files for plots directly (and
+%% not build them with TikZ in LaTeX), then comment the next line. To use
+%% PDF files, they have to be in a `tikz' directory. To MAKE PDF files with
+%% TikZ and PGFPlots, it is assumed that the texfile containing the source
+%% are in a `tex' subdirectory relative to the directory which latex is run
+%% in.
+\newcommand{\makepdf}{}
+
 %% Necessary LaTeX preambles to include for relevant functionality. We want
 %% to start this file as fast as possible with the actual body of the
 %% report, while keeping modularity in the preambles.
 \input{tex/pipeline.tex}
 \input{tex/preamble-style.tex}
 %\input{tex/preamble-biblatex.tex}
-%\input{tex/preamble-pgfplots.tex}
+\input{tex/preamble-pgfplots.tex}
 \input{tex/preamble-necessary.tex}
+
+
+
+
+
+
+
+
+
 
 %% Start writing.
 \begin{document}

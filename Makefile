@@ -1,9 +1,10 @@
 # A ONE-LINE DESCRIPTION OF THE WHOLE PIPELINE
 #
 # Original author:
-#     Your name <your@email.address>
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
-# Copyright (C) YYYY, Your Name.
+#     Your name <your@email.address>
+# Copyright (C) 2018, Your Name.
 #
 # This Makefile is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
