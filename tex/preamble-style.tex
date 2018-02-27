@@ -64,6 +64,8 @@
 \captionsetup{font=footnotesize, labelfont={color=DarkBlue,bf}, skip=1pt}
 \captionsetup[figure]{font={stretch=1, small}}
 \setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowcaptionskip}{-1.25em}
+
 
 
 
@@ -98,6 +100,37 @@
 
 
 
+%% Define the abstract environment
+\renewenvironment{abstract}
+ {\vspace{-0.5cm}\small%
+  \list{}{%
+    \setlength{\leftmargin}{2cm}%
+    \setlength{\rightmargin}{\leftmargin}%
+  }%
+  \item\relax}
+ {\endlist}
+
+
+
+
+
+%% To keep the main page's code clean.
+\newcommand{\includeabstract}[1]{%
+\twocolumn[%
+  \begin{@twocolumnfalse}%
+    \maketitle%
+    \begin{abstract}%
+    #1%
+    \end{abstract}%
+    \vspace{1cm}%
+  \end{@twocolumnfalse}%
+  ]%
+}
+
+
+
+
+
 % Basic Document information that goes into the PDF meta-data.
 \hypersetup
 {
@@ -112,7 +145,7 @@
 
 
 % Title, author, pipeline info and date as they appear on the output PDF.
-\title{THE TITLE OF YOUR PROJECT}
+\title{\vspace{-3em}THE TITLE OF YOUR PROJECT}
 \author{YOUR NAME, COLLEAGE1 NAME, ETC}
 \date{\small Reproduction pipeline \pipelineversion{}
       and Gnuastro \gnuastroversion\\on \today, \currenttime}
