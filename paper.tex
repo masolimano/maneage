@@ -11,7 +11,7 @@
 
 %% Necessary LaTeX preambles to include for relevant functionality. We want
 %% to start this file as fast as possible with the actual body of the
-%% report, while keeping modularity in the preambles.
+%% paper, while keeping modularity in the preambles.
 \input{tex/pipeline.tex}
 \input{tex/preamble-style.tex}
 \input{tex/preamble-biblatex.tex}
@@ -30,15 +30,13 @@
 %% Start writing.
 \begin{document}
 
+%% Write the title, authors and date.
 \maketitle
 
-
-
-%% Begin the multi-column environment. A `*' means that all extra empty
-%% space is added in the last column.
+%% Begin the multi-column environment. If you use the `multicols*' instead,
+%% all extra empty space is added in the last column (so the columns in the
+%% last page will not end on the same horizontal line).
 \begin{multicols}{2}
-
-
 
 %% -------- Delete this ---------
 \section{Congratulations!}
@@ -109,7 +107,6 @@ cite the first paper that used the first version of this pipeline:
 After publication, don't forget to upload all the necessary data, software
 source code and the reproduction pipeline to a long-lasting host like
 Zenodo (\url{https://zenodo.org/}).
-
 %% ------------------------------
 
 
