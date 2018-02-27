@@ -26,12 +26,14 @@ perfect) language/framework for a research reproduction pipeline and how to
 master Make easily (and freely). An introduction is then given to the
 general architecture of the pipeline. It is followed by a checklist of
 steps that are necessary to start customizing this pipeline for your
-research. The main body finishs with some tips and guidelines on how to
+research. The main body finishes with some tips and guidelines on how to
 manage or extend the pipeline as your research grows based on our
 experiences with it so far. As discussed above, in the appendix, a short
 introduction on the necessity of reproducible science is given. Please
 share your thoughts and suggestions on this pipeline so we can implement
 them and make it even more easier to use and more robust/generic.
+
+
 
 
 
@@ -90,6 +92,8 @@ GNU Make, please inform us to correct it.
 
 
 
+
+
 How can I learn Make?
 ---------------------
 
@@ -125,6 +129,8 @@ Make manual there also.
 
 
 
+
+
 Published works using this pipeline
 -----------------------------------
 
@@ -133,19 +139,62 @@ published using the method of this pipeline. Note that this pipeline is
 evolving, so some small details may be different in them, but they can be
 used as a good working model to build your own.
 
- - Section 7.3 of Bacon et al. (2017, A&A 608, A1): The version controlled
-   reproduction pipeline is available [on
+ - Section 7.3 of Bacon et
+   al. ([2017](http://adsabs.harvard.edu/abs/2017A%26A...608A...1B), A&A
+   608, A1): The version controlled reproduction pipeline is available [on
    Gitlab](https://gitlab.com/makhlaghi/muse-udf-origin-only-hst-magnitudes)
    and a snapshot of the pipeline along with all the necessary input
    datasets and outputs is available in
    [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774).
 
- - Section 4 of Bacon et al. (2017, A&A, 608, A1): The version controlled
-   reproduction pipeline is available [on
+ - Section 4 of Bacon et
+   al. ([2017](http://adsabs.harvard.edu/abs/2017A%26A...608A...1B), A&A,
+   608, A1): The version controlled reproduction pipeline is available [on
    Gitlab](https://gitlab.com/makhlaghi/muse-udf-photometry-astrometry) and
    a snapshot of the pipeline along with all the necessary input datasets
    is available in
    [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746).
+
+ - Akhlaghi & Ichikawa
+   ([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS, 220,
+   1): The version controlled reproduction pipeline is available [on
+   Gitlab](https://gitlab.com/makhlaghi/NoiseChisel-paper). This is the
+   very first (and much less mature) implementation of this pipeline: the
+   history of this template pipeline started more than two years after that
+   paper was published. It is a very rudimentary/initial implementation,
+   thus it is only included here for historical reasons. However, the
+   pipeline is complete and accurate and uploaded to arXiv along with the
+   paper. See the more recent implementations if you want to get ideas for
+   your version of this pipeline.
+
+
+
+
+
+Citation
+--------
+
+A paper will be published to fully describe this reproduction
+pipeline. Until then, if this pipeline is useful in your work, please cite
+the paper that implemented the first version of this pipeline: Akhlaghi &
+Ichikawa ([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS,
+220, 1).
+
+The experience gained with this template after several more implementations
+will be used to make this pipeline robust enough for a complete and useful
+paper to introduce to the community afterwards.
+
+Also, when your paper is published, don't forget to add a notice in your
+own paper (in coordination with the publishing editor) that the paper is
+fully reproducible and possibly add a sentence or paragraph in the end of
+the paper shortly describing the concept. This will help spread the word
+and encourage other scientists to also publish their reproduction
+pipelines.
+
+
+
+
+
 
 
 
@@ -214,7 +263,7 @@ Makefile uses the `foreach` function to read them in a specific order.
 
 The main body of this pipeline is thus going to be managed within the
 workhorse-Makefiles of `reproduce/src/make`. If you set clear-to-understand
-names for thse workhorse-Makefiles and follow the convention of the top
+names for these workhorse-Makefiles and follow the convention of the top
 Makefile that you only include one workhorse-Makefile per line, the
 `foreach` loop of the top Makefile that imports them will become very easy
 to read and understand by eye. This will let you know which step you are
@@ -265,6 +314,8 @@ this is how a project is designed to grow in this framework.
 
 
 
+
+
 Summary
 -------
 
@@ -295,6 +346,11 @@ mind are listed below.
 
 
 
+
+
+
+
+
 Checklist to customize the pipeline
 ===================================
 
@@ -319,8 +375,8 @@ been explained here), please let us know to correct it.
      always remember to add a similar copyright statement at the top of the
      file.
 
- - **Title**, **short description** and **author** of project: In this raw
-     skeleton, the title or short description of your project should be
+ - **Title**, **short description** and **author** in source files: In this
+     raw skeleton, the title or short description of your project should be
      added in the following two files: `Makefile` (the first line), and
      `tex/preamble-style.tex` (the last few lines, along with the names of
      you and your colleagues). In both cases, the texts you should replace
@@ -349,7 +405,7 @@ been explained here), please let us know to correct it.
    - Delete the description about Gnuastro in `README`.
    - Delete marked part(s) in `configure`.
    - Delete marked parts in `reproduce/src/make/initialize.mk`.
-   - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style`.
+   - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style.tex`.
 
  - **Other dependencies**: If there are any more of the dependencies that
      you don't use (or others that you need), then remove (or add) them in
@@ -358,7 +414,7 @@ been explained here), please let us know to correct it.
      where. Note that it is always good to have an option to download the
      necessary datasets in case the user doesn't have them. But in case
      your pipeline doesn't need any downloads, you can also remove the
-     sections of `configure' that are for `flock' and the downloader.
+     sections of `configure` that are for `flock` and the downloader.
 
  - **`README`**: Go through this top-level instruction file and make it fit
      to your pipeline: update the text and etc. Don't forget that your
@@ -398,11 +454,28 @@ been explained here), please let us know to correct it.
      necessary for your research to the pipeline based on the example
      above.
 
- - **Delete `README.md`**: This `README.md` is designed for this template,
-     not your reproduction pipeline. So to avoid later confusion, delete it
-     from your own repository. You may want to keep a copy outside for the
-     notes and discussions below until you are sufficiently familiar with
-     it and don't need it any more.
+ - **Paper title and authors**: The final paper's title, authors and other
+     information are defined in the last two sections of the
+     `tex/preamble-style.tex` file (section that are written in
+     ONLY-CAPITAL characters). Correct these for your project or use any
+     other LaTeX title and author management package that you prefer
+     instead. As you add more packages to the preambles, it is recommended
+     to follow this convention of having five empty lines between each group
+     of package importing and configuration along with comments for each
+     package. This will greatly help you in readability later.
+
+ - **Delete dummy parts**: The template pipeline contains some parts that
+     are only for the initial/test run, not for any real analysis. The
+     respective files to remove and parts to fix are discussed here.
+
+     - `paper.tex`: Delete the main body of text that is marked within
+       comments.
+
+     - `Makefile`: Delete the two occurrences of `delete-me` in the
+       `foreach` loops.
+
+     - Delete the following files: `README.md`, all `delete-me*` files (in
+       `reproduce/config/pipeline`, `reproduce/src/make`, and `tex`).
 
  - **Initiate a new Git repo**: You probably don't want to mix the history
      of this template reproduction pipeline with your own reproduction
@@ -423,9 +496,16 @@ been explained here), please let us know to correct it.
      $ rm -rf .git           # Completely remove this history.
      $ git init              # Initiate a new history.
      $ git add --all         # Stage everything that is here.
-     $ git commit            # Make your first commit (mention the first output).
+     $ git commit            # Your first commit (mention the first output).
      $ git tag -a v0         # Tag this as the zero-th version of your pipeline.
      ```
+
+ - **Notice on reproducibility**: Add a notice somewhere prominent in the
+     first page within your paper, informing the reader that your research
+     is fully reproducible. For example in the end of the abstract, or
+     under the keywords with a title like "reproducible paper". This will
+     encourage them to publish their own works in this manner also and also
+     will help spread the word.
 
  - **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
@@ -438,6 +518,11 @@ been explained here), please let us know to correct it.
      useful implementation and usage tips like below. In any case, since
      this concept is still evolving, please share your thoughts and
      suggestions, so we can add them here for everyone's benefit.
+
+
+
+
+
 
 
 
@@ -632,6 +717,11 @@ us. In this way, we can add it here for the benefit of others.
       can make a `v1` tag. Subsequently when you first start reporting the
       results to your colleagues, you can tag the commit as `v2`. Afterwards
       when you submit to a paper, it can be tagged `v3` and so on.
+
+
+
+
+
 
 
 

@@ -37,8 +37,12 @@
 %% figures. These numbers can be hard to manage and they will also depend
 %% on order in the final PDF, so it will be very buggy to manage them.
 \newcommand{\includetikz}[1]{%
+  \ifdefined\makepdf%
     \tikzsetnextfilename{#1}%
     \input{tex/#1.tex}%
+  \else
+    \includegraphics[width=\linewidth]{\bdir/tex/build/tikz/#1.pdf}
+  \fi
 }
 
 

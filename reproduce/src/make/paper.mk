@@ -22,16 +22,39 @@
 
 
 
+# The bibliography
+# ----------------
+#
+# We need to run the `biber' program on the output of LaTeX to generate the
+# necessary bibliography before making the final paper.
+#
+# NOTE: `tex/pipeline.tex' is an order-only-prerequisite for
+# `paper.bbl'. This is because we need to run LaTeX in both the `paper.bbl'
+# recipe and the `paper.pdf' recipe. But if `tex/references.tex' hasn't
+# been modified, we don't want to re-build the bibliography, only the final
+# PDF.
+$(texbdir)/paper.bbl: tex/references.tex                         \
+                      | $(tikzdir) $(texbdir) tex/pipeline.tex
+
+        # We'll run LaTeX first to generate the `.bcf' file (necessary for
+        # `biber') and then run `biber' to generate the `.bbl' file.
+	p=$$(pwd);                                               \
+	export TEXINPUTS=$$p:$$TEXINPUTS;                        \
+	cd $(texbdir);                                           \
+        pdflatex -shell-escape -halt-on-error $$p/paper.tex;     \
+	biber paper
+
+
+
+
+
 # The final paper
 # ---------------
 #
 # The commands to build the final report. We want the pipeline version to
 # be checked everytime the final PDF is to be built.
-texbdir=$(texdir)/build
-tikzdir=$(texbdir)/tikz
-$(texbdir): | $(texdir); mkdir $@
-$(tikzdir): | $(texbdir); mkdir $@
-paper.pdf: tex/pipeline.tex paper.tex | $(tikzdir) $(texbdir)
+paper.pdf: tex/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
+	   | $(tikzdir) $(texbdir)
 
         # Make the report.
 	p=$$(pwd);                                               \

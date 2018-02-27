@@ -1,0 +1,17 @@
+%% PGFPlots code to plot a random set of numbers as demo
+
+\begin{tikzpicture}
+
+  %% Settings of the plotted axis
+  \begin{axis}[
+      width=\linewidth,
+      xlabel=Counter,
+      ylabel=Random value,
+    ]
+
+    %% A particular plot.
+    \addplot+[scatter, only marks]
+    table {\bdir/tex/delete-me/data.txt};
+
+  \end{axis}
+\end{tikzpicture}

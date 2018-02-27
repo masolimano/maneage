@@ -37,6 +37,8 @@
 texdir      = $(BDIR)/tex
 srcdir      = reproduce/src
 lockdir     = $(BDIR)/locks
+texbdir     = $(texdir)/build
+tikzdir     = $(texbdir)/tikz
 mtexdir     = $(texdir)/macros
 gconfdir    = reproduce/config/gnuastro
 pconfdir    = reproduce/config/pipeline
@@ -100,10 +102,10 @@ $(pconfdir)/LOCAL.mk:
 # option: they add too many extra checks that make it hard to find what you
 # are looking for in this pipeline.
 .SUFFIXES:
-$(mtexdir): | $(texdir); mkdir $@
+$(tikzdir): | $(texbdir); mkdir $@
 $(BDIR): | $(pconfdir)/LOCAL.mk; mkdir $@
 $(texdir) $(lockdir): | $(BDIR); mkdir $@
-
+$(mtexdir) $(texbdir): | $(texdir); mkdir $@
 
 
 
