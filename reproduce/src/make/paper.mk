@@ -26,7 +26,8 @@
 # ----------------
 #
 # We need to run the `biber' program on the output of LaTeX to generate the
-# necessary bibliography before making the final paper.
+# necessary bibliography before making the final paper. So we'll first have
+# one run of LaTeX (similar to the `paper.pdf' recipe), then `biber'.
 #
 # NOTE: `tex/pipeline.tex' is an order-only-prerequisite for
 # `paper.bbl'. This is because we need to run LaTeX in both the `paper.bbl'
@@ -51,8 +52,11 @@ $(texbdir)/paper.bbl: tex/references.tex                         \
 # The final paper
 # ---------------
 #
-# The commands to build the final report. We want the pipeline version to
-# be checked everytime the final PDF is to be built.
+# Run LaTeX in the `$(texbdir)' directory so all the intermediate and
+# auxiliary files stay there and keep the top directory clean. To be able
+# to run everything cleanly from there, it is necessary to add the current
+# directory (top reproduction pipeline directory) to the `TEXINPUTS'
+# environment variable.
 paper.pdf: tex/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
 	   | $(tikzdir) $(texbdir)
 
