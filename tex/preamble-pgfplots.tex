@@ -1,14 +1,44 @@
 %% PGFPlots settings
 %% -----------------
-
+%%
 %% PGFPLOTS is a package in (La)TeX for making plots internally. It fits
 %% nicely with the purpose of a reproduction pipeline. But it isn't
-%% mandatory. Therefore if needed, you can just uncomment the line that
-%% includes this file in the top LaTeX source (`paper.tex').
-
+%% mandatory. Therefore if you don't need it, just comment/delete the line
+%% that includes this file in the top LaTeX source (`paper.tex').
+%%
+%% However, TiKZ and PGFPlots are the recommended way to include figures
+%% and plots in your paper. There are two main reasons: 1) it follows the
+%% same LaTeX settings as the text of the paper, so the figures will be in
+%% the exact same settings (for example font or lines) as the main body of
+%% the papers. 2) It doesn't require any extra dependency (it is
+%% distributed as part of TeX-live). Adding specific programs/libraries for
+%% plots can greatly increase the number of dependencies for the
+%% pipeline. For example Python's Matplotlib library is indeed very good,
+%% but it requires Python and Numpy. The latter is not easy to build from
+%% source, so after a few years, installing the required version can be
+%% very frustrating.
+%%
+%% Keeping all BibLaTeX settings in a separate preamble was done in the
+%% spirit of modularity to 1) easily managable, 2) If a similar BibLaTeX
+%% configuration is necessary in another LaTeX compilation, this file can
+%% just be copied there and used.
+%%
 %% PGFPlots uses the (La)TeX TiKZ package to build plots. So we will first
 %% do the settings that are necessary in TiKZ, and then go onto the actual
 %% PGFPlots package.
+%%
+%% USAGE:
+%%
+%%  - All plots are made within a `tikz' directory (that must already be
+%%    present in the location LaTeX is run).
+%%
+%%  - Use `\includetikz{XXXX}' to make/use the figure. If a `makepdf' LaTeX
+%%    macro is not defined, then it will simply assume a `XXXX.pdf' file
+%%    exists in the `\bdir/tex/build/tikz' directory and simply import
+%%    it. If `makepdf' is defined, then TiKZ/PGFPlot will be called to
+%%    (possibly) build the plot based on `tex/XXXX.tex'. Note that if the
+%%    contents of `tex/XXXX.tex' hasn't changed since the las
+%%    build. TiKZ/PGFPlots won't rebuild the plot.
 
 
 
