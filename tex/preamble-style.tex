@@ -10,6 +10,15 @@
 
 
 
+%% Font.
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+
+
+
+
+
 %% Print size
 \usepackage[a4paper, includeheadfoot, body={18.7cm, 24.5cm}]{geometry}
 
@@ -126,26 +135,3 @@
   \end{@twocolumnfalse}%
   ]%
 }
-
-
-
-
-
-% Basic Document information that goes into the PDF meta-data.
-\hypersetup
-{
-    pdfauthor={YOUR NAME},
-    pdfsubject={A SHORT DESCRIPTION OF THE WORK},
-    pdftitle={THE TITLE OF THIS PROJECT},
-    pdfkeywords={SOME, KEYWORDS, FOR, THE, PDF}
-}
-
-
-
-
-
-% Title, author, pipeline info and date as they appear on the output PDF.
-\title{\vspace{-3em}THE TITLE OF YOUR PROJECT}
-\author{YOUR NAME, COLLEAGE1 NAME, ETC}
-\date{\small Reproduction pipeline \pipelineversion{}
-      and Gnuastro \gnuastroversion\\on \today, \currenttime}

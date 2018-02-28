@@ -21,6 +21,7 @@
 %% paper, while keeping modularity in the preambles.
 \input{tex/pipeline.tex}
 \input{tex/preamble-style.tex}
+\input{tex/preamble-header.tex}
 \input{tex/preamble-biblatex.tex}
 \input{tex/preamble-pgfplots.tex}
 \input{tex/preamble-necessary.tex}
@@ -37,9 +38,8 @@
 %% Start writing.
 \begin{document}
 
-%% Write the title, authors and date.
+%% Abstract, keywords and reproduction pipeline notice.
 \includeabstract{
-  %% -------- Delete this ---------
 
   You have completed the reproduction pipeline and are ready to configure
   and implement it for your own research. This template reproduction
@@ -51,10 +51,23 @@
   reproducible. If this pipeline proves useful in your research, please
   cite \citet{ai15}.
 
-  %% ------------------------------
+  \vspace{0.25cm}
+
+  \textsl{Keywords}: Add some keywords for your research here.
+
+  \textsl{Reproducible paper}: Generated from reproduction pipeline
+  \pipelineversion{} and Gnuastro \gnuastroversion. Pipeline available at:
+  \url{https://link-to.the/git/repo-of-your-pipeline}.
 }
 
-%% -------- Delete this ---------
+%% To add the first page's headers.
+\thispagestyle{firststyle}
+
+
+
+
+
+%% Start of the main body of text.
 \section{Congratulations!}
 Congratulations on running the reproduction pipeline! You can now follow
 the checklist in the \texttt{README.md} file to customize this pipeline to
@@ -124,6 +137,9 @@ new co-authors (who don't want to be distracted by these issues in their
 first time reading).
 
 
+
+
+
 \section{Notice and citations}
 To encourage other scientists to publish similarly reproducible papers,
 please add a notice close to the start of your paper or in the end of the
@@ -137,9 +153,13 @@ cite the first paper that used the first version of this pipeline:
 After publication, don't forget to upload all the necessary data, software
 source code and the reproduction pipeline to a long-lasting host like
 Zenodo (\url{https://zenodo.org}).
-%% ------------------------------
 
 
 
+
+
+%% Tell BibLaTeX to put the bibliography list here.
 \printbibliography
+
+%% Finish LaTeX
 \end{document}

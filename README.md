@@ -468,8 +468,11 @@ been explained here), please let us know to correct it.
      are only for the initial/test run, not for any real analysis. The
      respective files to remove and parts to fix are discussed here.
 
-     - `paper.tex`: Delete the main body of text that is marked within
-       comments.
+     - `paper.tex`: Delete the main body and abstract of text and
+       generally.
+
+     - `tex/preamble-header.tex`: Correct/add the titles, headers and
+       authors list of the paper.
 
      - `Makefile`: Delete the two occurrences of `delete-me` in the
        `foreach` loops.
