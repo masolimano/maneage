@@ -1,12 +1,10 @@
 \documentclass[10pt, twocolumn]{article}
 
 %% This is a convenience variable if you are using PGFPlots to build plots
-%% within LaTeX. If you want to import PDF files for plots directly (and
-%% not build them with TikZ in LaTeX), then comment the next line. To use
-%% PDF files, they have to be in a `tikz' directory. To MAKE PDF files with
-%% TikZ and PGFPlots, it is assumed that the texfile containing the source
-%% are in a `tex' subdirectory relative to the directory which latex is run
-%% in.
+%% within LaTeX. If you want to import PDF files for figures directly, you
+%% can use the standard `\includegraphics' command. See the definition of
+%% `\includetikz' in `tex/preamble-pgfplots.tex' for where the files are
+%% assumed to be if you use `\includetikz' when `\makepdf' is not defined.
 \newcommand{\makepdf}{}
 
 %% When defined (value is irrelevant), `\highlightchanges' will cause text
