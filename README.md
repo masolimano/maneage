@@ -18,8 +18,7 @@ by making it easy to start a project in this framework. As shown below, it
 is very easy to customize this template pipeline for any particular
 research/job and expand it as it starts and evolves. It can be run with no
 modification (as described in `README`) as a demonstration and customized
-by editing the existing rules and adding new rules as well as adding new
-Makefiles as the research/project grows.
+for use in any project as fully described below.
 
 This file will continue with a discussion of why Make is a suitable (maybe
 perfect) language/framework for a research reproduction pipeline and how to
