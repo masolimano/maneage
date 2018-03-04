@@ -2,12 +2,13 @@ Introduction
 ============
 
 This description is for *creators* of the reproduction pipeline. See
-`README` on instructions for running it.
+`README` for instructions on running it.
 
 This project contains a **fully working template** for a high-level
-research reproduction pipeline as defined in the link below. If this page
-is inaccessible at the time of reading, please see the end of this file
-which contains a portion of the introduction in this webpage. Some
+research reproduction pipeline, or reproducible paper, as defined in the
+link below. If the page below is not accessible at the time of reading,
+please see the appendix at the end of this file for a portion of its
+introduction. Some
 [slides](http://akhlaghi.org/pdf/reproduction-pipeline.pdf) are also
 available to help demonstrate the concept implemented here.
 
@@ -15,22 +16,27 @@ available to help demonstrate the concept implemented here.
 
 This template is created with the aim of supporting reproducible research
 by making it easy to start a project in this framework. As shown below, it
-is very easy to customize this template pipeline for any particular
-research/job and expand it as it starts and evolves. It can be run with no
-modification (as described in `README`) as a demonstration and customized
-for use in any project as fully described below.
+is very easy to customize this template reproducible paper pipeline for any
+particular research/job and expand it as it starts and evolves. It can be
+run with no modification (as described in `README`) as a demonstration and
+customized for use in any project as fully described below.
 
-This file will continue with a discussion of why Make is a suitable (maybe
-perfect) language/framework for a research reproduction pipeline and how to
-master Make easily (and freely). An introduction is then given to the
-general architecture of the pipeline. It is followed by a checklist of
-steps that are necessary to start customizing this pipeline for your
-research. The main body finishes with some tips and guidelines on how to
-manage or extend the pipeline as your research grows based on our
-experiences with it so far. As discussed above, in the appendix, a short
-introduction on the necessity of reproducible science is given. Please
-share your thoughts and suggestions on this pipeline so we can implement
-them and make it even more easier to use and more robust/generic.
+This file will continue with a discussion of why Make was chosen as the
+high-level language/framework for this research reproduction pipeline and
+how to master Make easily (and freely). The general architecture of the
+pipeline is then discussed to help navigating the files and their
+contents. We continue with a checklist of steps that are necessary to start
+customizing this pipeline for your particular research. The main body
+finishes with some tips and guidelines on how to manage or extend the
+pipeline as your research grows based on our experiences with it so far. As
+discussed above, in the appendix, a short introduction on the necessity of
+reproducible science is given.
+
+Please don't forget to share your thoughts, suggestions and criticisms on
+this pipeline. Maintaining and designing this pipeline is itself a separate
+project, so please join us if you are interested. Once it is mature enough,
+we will describe it in a paper (written by all contributors) for a formal
+introduction to the community.
 
 
 
@@ -41,38 +47,48 @@ Why Make?
 
 When batch processing is necessary (no manual intervention, as in a
 reproduction pipeline), shell scripts are usually the first solution that
-comes to mind. However, the problem with scripts for a scientific
-reproduction pipeline is the complexity and non-linearity. A script will
-start from the top/start every time it is run. So if you have gone through
-90% of a research project and want to run the remaining 10% that you have
-newly added, you have to run the whole script from the start again and wait
-until you see the effects of the last few steps (for the possible errors,
-or better solutions and etc). It is possible to manually ignore/comment
-parts of a script to only do a special part. However, such checks/comments
-will only add to the complexity of the script and they are prone to very
-serious bugs in the end (when trying to reproduce from scratch). Such bugs
-are very hard to notice during the work and frustrating to find in the end.
+come to mind. However, the inherent complexity and non-linearity of
+progress in a scientific project (where experimentation is key) make it
+hard to manage the script(s) as the project evolves. For example, a script
+will start from the top/start every time it is run. So if you have already
+completed 90% of a research project and want to run the remaining 10% that
+you have newly added, you have to run the whole script from the start
+again. Only then will you see the effects of the last new steps (to find
+possible errors, or better solutions and etc).
+
+It is possible to manually ignore/comment parts of a script to only do a
+special part. However, such checks/comments will only add to the complexity
+of the script and will discourage you to play-with/change an already
+completed part of the project when an idea suddenly comes up. It is also
+prone to very serious bugs in the end (when trying to reproduce from
+scratch). Such bugs are very hard to notice during the work and frustrating
+to find in the end.
 
 The Make paradigm, on the other hand, starts from the end: the final
 *target*. It builds a dependency tree internally, and finds where it should
 start each time the pipeline is run. Therefore, in the scenario above, a
 researcher that has just added the final 10% of steps of her research to
-her Makefile, will only have run those extra steps. As commonly happens in
-a research context, in Make, it is also trivial to change the processing of
-any intermediate (already written) *rule* (or step) in the middle of an
-already written analysis: the next time Make is run, only rules affected by
-the changes/additions will be re-run, not the whole analysis.
+her Makefile, will only have to run those extra steps. With Make, it is
+also trivial to change the processing of any intermediate (already written)
+*rule* (or step) in the middle of an already written analysis: the next
+time Make is run, only rules that are affected by the changes/additions
+will be re-run, not the whole analysis/pipeline.
 
 This greatly speeds up the processing (enabling creative changes), while
 keeping all the dependencies clearly documented (as part of the Make
 language), and most importantly, enabling full reproducibility from scratch
 with no changes in the pipeline code that was working during the
-research. Since the dependencies are also clearly demarcated, Make can
-identify independent steps and run them in parallel (further speeding up
-the process). Make was designed for this purpose and it is how huge
-projects like all Unix-like operating systems (including GNU/Linux or Mac
-OS operating systems) and their core components are built. Therefore, Make
-is a highly mature paradigm/system with robust and highly efficient
+research. This will allow robust results and let the scientists get to what
+they do best: experiment and be critical to the methods/analysis without
+having to waste energy and time on technical problems that come up as a
+result of that experimentation in scripts.
+
+Since the dependencies are clearly demarcated in Make, it can identify
+independent steps and run them in parallel. This further speeds up the
+processing. Make was designed for this purpose. It is how huge projects
+like all Unix-like operating systems (including GNU/Linux or Mac OS
+operating systems) and their core components are built. Therefore, Make is
+a highly mature paradigm/system with robust and highly efficient
 implementations in various operating systems perfectly suited for a complex
 non-linear research project.
 
@@ -80,7 +96,7 @@ Make is a small language with the aim of defining *rules* containing
 *targets*, *prerequisites* and *recipes*. It comes with some nice features
 like functions or automatic-variables to greatly facilitate the management
 of text (filenames for example) or any of those constructs. For a more
-detailed (yet still general) introduction see Wikipedia:
+detailed (yet still general) introduction see the article on Wikipedia:
 
   https://en.wikipedia.org/wiki/Make_(software)
 
@@ -104,8 +120,8 @@ and which are general in all implementations. So the first few chapters
 regarding the generalities are useful for all implementations.
 
 The first link below points to the GNU Make manual in various formats and
-in the second, you can get it in PDF (which may be easier to read in the
-first time).
+in the second, you can download it in PDF (which may be easier for a first
+time reading).
 
   https://www.gnu.org/software/make/manual/
 
@@ -113,18 +129,21 @@ first time).
 
 If you use GNU Make, you also have the whole GNU Make manual on the
 command-line with the following command (you can come out of the "Info"
-environment by pressing `q`). If you don't know Info, we strongly recommend
-running `$ info info` anywhere on your command-line to learn it easily in
-less than an hour. Info greatly simplifies your access (without taking your
-hands off the keyboard!) to many manuals that are installed on your system,
-allowing you to be more efficient.
+environment by pressing `q`).
 
 ```shell
   $ info make
 ```
 
-If you use the Emacs text editor, you will find the Info version of the
-Make manual there also.
+If you aren't familiar with the Info documentation format, we strongly
+recommend running `$ info info` and reading along. In less than an hour,
+you will become highly proficient in it (it is very simple and has a great
+manual for itself). Info greatly simplifies your access (without taking
+your hands off the keyboard!) to many manuals that are installed on your
+system, allowing you to be much more efficient as you work. If you use the
+GNU Emacs text editor (or any of its variants), you also have access to all
+Info manuals while you are writing your projects (again, without taking
+your hands off the keyboard!).
 
 
 
