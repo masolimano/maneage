@@ -24,13 +24,14 @@ customized for use in any project as fully described below.
 This file will continue with a discussion of why Make was chosen as the
 high-level language/framework for this research reproduction pipeline and
 how to master Make easily (and freely). The general architecture of the
-pipeline is then discussed to help navigating the files and their
-contents. We continue with a checklist of steps that are necessary to start
-customizing this pipeline for your particular research. The main body
-finishes with some tips and guidelines on how to manage or extend the
-pipeline as your research grows based on our experiences with it so far. As
-discussed above, in the appendix, a short introduction on the necessity of
-reproducible science is given.
+pipeline is then discussed to help you navigate the files and their
+contents and build your project into it easily. This file continues with a
+checklist of steps that are necessary to start customizing this pipeline
+for your particular research. Finally, we conclude with some tips and
+guidelines on how to manage or extend the pipeline as your research grows
+based on our experiences with it so far. As discussed above, in the
+appendix, a short introduction on the necessity of reproducible science is
+given.
 
 Please don't forget to share your thoughts, suggestions and criticisms on
 this pipeline. Maintaining and designing this pipeline is itself a separate
