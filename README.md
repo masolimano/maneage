@@ -21,17 +21,16 @@ particular research/job and expand it as it starts and evolves. It can be
 run with no modification (as described in `README`) as a demonstration and
 customized for use in any project as fully described below.
 
-This file will continue with a discussion of why Make was chosen as the
-high-level language/framework for this research reproduction pipeline and
-how to master Make easily (and freely). The general architecture of the
-pipeline is then discussed to help you navigate the files and their
-contents and build your project into it easily. This file continues with a
-checklist of steps that are necessary to start customizing this pipeline
-for your particular research. Finally, we conclude with some tips and
+Below, we start with a discussion of why Make was chosen as the high-level
+language/framework for this research reproduction pipeline and how to learn
+and master Make easily (and freely). The general architecture and design of
+the pipeline is then discussed to help you navigate the files and their
+contents. This is followed by a checklist for the easy/fast customization
+of this pipeline to your exciting research. We conclude with some tips and
 guidelines on how to manage or extend the pipeline as your research grows
-based on our experiences with it so far. As discussed above, in the
-appendix, a short introduction on the necessity of reproducible science is
-given.
+based on our experiences with it so far. As discussed above, this file ends
+with a short introduction on the necessity of reproducible science in the
+appendix.
 
 Please don't forget to share your thoughts, suggestions and criticisms on
 this pipeline. Maintaining and designing this pipeline is itself a separate
