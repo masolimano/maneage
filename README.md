@@ -19,10 +19,11 @@ by making it easy to start a project in this framework. As shown below, it
 is very easy to customize this template reproducible paper pipeline for any
 particular research/job and expand it as it starts and evolves. It can be
 run with no modification (as described in `README`) as a demonstration and
-customized for use in any project as fully described below. An example
-[final
-PDF](https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf)
-is also available.
+customized for use in any project as fully described below. The [final
+reproducible paper
+output](https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf)
+of this pipeline is also present in [a separate
+repository](https://gitlab.com/makhlaghi/reproducible-paper-output).
 
 Below, we start with a discussion of why Make was chosen as the high-level
 language/framework for this research reproduction pipeline and how to learn
@@ -760,7 +761,7 @@ us. In this way, we can add it here for the benefit of others.
       or you can just delete it if it is too large or un-necessary (it was
       just for convenience, and fully reproducible after all). This
       pipeline's output is available for demonstration in the separate
-      (reproducible-paper-output)[https://gitlab.com/makhlaghi/reproducible-paper-output]
+      [reproducible-paper-output](https://gitlab.com/makhlaghi/reproducible-paper-output)
       repository.
 
 
