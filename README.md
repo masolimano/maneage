@@ -386,9 +386,9 @@ been explained here), please let us know to correct it.
      easiest way to start is to clone this repository as shown below:
 
      ```shell
-     $ git clone https://gitlab.com/makhlaghi/reproduction-pipeline-template.git
-     $ mv reproduction-pipeline-template your-project-name
-     $ cd your-project-name
+     $ git clone https://gitlab.com/makhlaghi/reproducible-paper.git
+     $ mv reproducible-paper my-project-name
+     $ cd my-project-name
      ```
 
  - **Copyright**, **name** and **date**: Go over the following files and
