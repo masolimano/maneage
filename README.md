@@ -549,8 +549,8 @@ been explained here), please let us know to correct it.
 
 
 
-Tips on expanding this template (designing your pipeline)
-=========================================================
+Usage tips: designing your pipeline/workflow
+============================================
 
 The following is a list of design points, tips, or recommendations that
 have been learned after some experience with this pipeline. Please don't
@@ -716,7 +716,7 @@ us. In this way, we can add it here for the benefit of others.
 
    - *Keep your input data*: The input data is also critical to the
       pipeline, so like the above for software, make sure you have a backup
-      of them
+      of them.
 
  - **Version control**: It is important (and extremely useful) to have the
    history of your pipeline under version control. So try to make commits
@@ -738,6 +738,25 @@ us. In this way, we can add it here for the benefit of others.
       can make a `v1` tag. Subsequently when you first start reporting the
       results to your colleagues, you can tag the commit as `v2`. Afterwards
       when you submit to a paper, it can be tagged `v3` and so on.
+
+   - *Pipeline outputs*: During your research, it is possible to checkout a
+      specific commit and reproduce its results. However, the processing
+      can be time consuming. Therefore, it is useful to also keep track of
+      the final outputs of your pipeline (at minimum, the paper's PDF) in
+      important points of history.  However, keeping a snapshot of these
+      (most probably large volume) outputs in the main history of the
+      pipeline can unreasonably bloat it. It is thus recommended to make a
+      separate Git repo to keep those files and keep this pipeline's volume
+      as small as possible. For example if your main pipeline is called
+      `my-exciting-project`, the name of the outputs pipeline can be
+      `my-exciting-project-outputs`. This enables easy sharing of the
+      output files with your co-authors (with necessary permissions) and
+      not having to bloat your email archive with extra attachments (you
+      can just share the link to the online repo in your
+      communications). After the research is published, you can also
+      release the outputs pipeline, or you can just delete it if it is too
+      large or un-necessary (it was just for convenience, and fully
+      reproducible after all).
 
 
 
