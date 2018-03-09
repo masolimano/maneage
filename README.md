@@ -6,7 +6,7 @@ This description is for *creators* of the reproduction pipeline. See
 
 This project contains a **fully working template** for a high-level
 research reproduction pipeline, or reproducible paper, as defined in the
-link below. If the page below is not accessible at the time of reading,
+link below. If the link below is not accessible at the time of reading,
 please see the appendix at the end of this file for a portion of its
 introduction. Some
 [slides](http://akhlaghi.org/pdf/reproduction-pipeline.pdf) are also
@@ -19,7 +19,10 @@ by making it easy to start a project in this framework. As shown below, it
 is very easy to customize this template reproducible paper pipeline for any
 particular research/job and expand it as it starts and evolves. It can be
 run with no modification (as described in `README`) as a demonstration and
-customized for use in any project as fully described below.
+customized for use in any project as fully described below. An example
+(final
+PDF)[https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf]
+is also available.
 
 Below, we start with a discussion of why Make was chosen as the high-level
 language/framework for this research reproduction pipeline and how to learn
@@ -749,14 +752,16 @@ us. In this way, we can add it here for the benefit of others.
       separate Git repo to keep those files and keep this pipeline's volume
       as small as possible. For example if your main pipeline is called
       `my-exciting-project`, the name of the outputs pipeline can be
-      `my-exciting-project-outputs`. This enables easy sharing of the
-      output files with your co-authors (with necessary permissions) and
-      not having to bloat your email archive with extra attachments (you
-      can just share the link to the online repo in your
-      communications). After the research is published, you can also
-      release the outputs pipeline, or you can just delete it if it is too
-      large or un-necessary (it was just for convenience, and fully
-      reproducible after all).
+      `my-exciting-project-output`. This enables easy sharing of the output
+      files with your co-authors (with necessary permissions) and not
+      having to bloat your email archive with extra attachments (you can
+      just share the link to the online repo in your communications). After
+      the research is published, you can also release the outputs pipeline,
+      or you can just delete it if it is too large or un-necessary (it was
+      just for convenience, and fully reproducible after all). This
+      pipeline's output is available for demonstration in the separate
+      (reproducible-paper-output)[https://gitlab.com/makhlaghi/reproducible-paper-output]
+      repository.
 
 
 
