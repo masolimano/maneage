@@ -20,8 +20,8 @@ is very easy to customize this template reproducible paper pipeline for any
 particular research/job and expand it as it starts and evolves. It can be
 run with no modification (as described in `README`) as a demonstration and
 customized for use in any project as fully described below. An example
-(final
-PDF)[https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf]
+[final
+PDF](https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf)
 is also available.
 
 Below, we start with a discussion of why Make was chosen as the high-level
