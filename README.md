@@ -32,10 +32,10 @@ the pipeline is then discussed to help you navigate the files and their
 contents. This is followed by a checklist for the easy/fast customization
 of this pipeline to your exciting research. We continue with some tips and
 guidelines on how to manage or extend the pipeline as your research grows
-based on our experiences with it so far. This file ends with a description
-of possible future improvements that are planned for the pipeline (but not
-yet implemented). As discussed above, we end with a short introduction on
-the necessity of reproducible science in the appendix.
+based on our experiences with it so far. The main body concludes with a
+description of possible future improvements that are planned for the
+pipeline (but not yet implemented). As discussed above, we end with a short
+introduction on the necessity of reproducible science in the appendix.
 
 Please don't forget to share your thoughts, suggestions and criticisms on
 this pipeline. Maintaining and designing this pipeline is itself a separate
@@ -808,8 +808,11 @@ future.
     much better solution than binary containers like
     [docker](https://www.docker.com/) which are essentially just a black
     box and only usable on the given CPU architecture. The initial running
-    of Nix or Guix and setting up the environment can also be included in
-    the `Makefile' of this pipeline to be fully automatic.
+    of Nix or Guix and setting up the environment can also be included in a
+    `Makefile` of this pipeline to be fully automatic. The software
+    tarballs (to be used by Nix or Guix) can also be uploaded/archived, as
+    we do now, and they can be instructed to get the tarballs for building
+    the environment from there.
 
 
 
