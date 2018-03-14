@@ -30,11 +30,12 @@ language/framework for this research reproduction pipeline and how to learn
 and master Make easily (and freely). The general architecture and design of
 the pipeline is then discussed to help you navigate the files and their
 contents. This is followed by a checklist for the easy/fast customization
-of this pipeline to your exciting research. We conclude with some tips and
+of this pipeline to your exciting research. We continue with some tips and
 guidelines on how to manage or extend the pipeline as your research grows
-based on our experiences with it so far. As discussed above, this file ends
-with a short introduction on the necessity of reproducible science in the
-appendix.
+based on our experiences with it so far. This file ends with a description
+of possible future improvements that are planned for the pipeline (but not
+yet implemented). As discussed above, we end with a short introduction on
+the necessity of reproducible science in the appendix.
 
 Please don't forget to share your thoughts, suggestions and criticisms on
 this pipeline. Maintaining and designing this pipeline is itself a separate
@@ -763,6 +764,52 @@ us. In this way, we can add it here for the benefit of others.
       pipeline's output is available for demonstration in the separate
       [reproducible-paper-output](https://gitlab.com/makhlaghi/reproducible-paper-output)
       repository.
+
+
+
+
+
+
+
+
+
+
+Future improvements
+===================
+
+This is an evolving project and as time goes on, it will evolve and become
+more robust. Here are the list of features that we plan to add in the
+future.
+
+ - *Containers*: It is important to have better/full control of the
+    environment of the reproduction pipeline. Our current reproducible
+    paper pipeline simply assumes that the necessary software are already
+    installed on the host system. So it ignores details of how they are
+    built or the versions of their dependencies (which is not good). As in
+    [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774) or
+    [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746), the best we
+    can do is distribute the tarballs of the necessary software. The
+    solution here is based on [an interesting
+    tutorial](https://mozillafoundation.github.io/2017-fellows-sf/re-papers/index.html)
+    by the Mozilla science lab to build reproducible papers. It suggests
+    using the [Nix package manager](https://nixos.org/nix/about.html) to
+    build the necessary software for the pipeline and run the pipeline in
+    its completely closed environment. This is a great solution because
+    using Nix or [Guix](https://www.gnu.org/software/guix/) (which is based
+    on Nix, but uses the [Scheme
+    language](https://en.wikipedia.org/wiki/Scheme_(programming_language)),
+    not a custom language for the management) will allow a fully working
+    closed environment on the host system which contains the instructions
+    on how to build the environment. It also allows separate versions of a
+    software to co-exist, so it is not necessary to change important
+    programs (that have been updated for example) to run a particular
+    reproduction pipeline. The fact that with Nix or Guix, the instructions
+    to build the dependencies is also inherently included, makes them a
+    much better solution than binary containers like
+    [docker](https://www.docker.com/) which are essentially just a black
+    box and only usable on the given CPU architecture. The initial running
+    of Nix or Guix and setting up the environment can also be included in
+    the `Makefile' of this pipeline to be fully automatic.
 
 
 
