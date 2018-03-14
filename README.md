@@ -788,8 +788,8 @@ future.
     built or the versions of their dependencies (which is not good). As in
     [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774) or
     [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746), the best we
-    can do is distribute the tarballs of the necessary software. The
-    solution here is based on [an interesting
+    can currently do is distribute the tarballs of the necessary
+    software. The solution here is based on [an interesting
     tutorial](https://mozillafoundation.github.io/2017-fellows-sf/re-papers/index.html)
     by the Mozilla science lab to build reproducible papers. It suggests
     using the [Nix package manager](https://nixos.org/nix/about.html) to
@@ -800,19 +800,21 @@ future.
     language](https://en.wikipedia.org/wiki/Scheme_(programming_language)),
     not a custom language for the management) will allow a fully working
     closed environment on the host system which contains the instructions
-    on how to build the environment. It also allows separate versions of a
-    software to co-exist, so it is not necessary to change important
-    programs (that have been updated for example) to run a particular
-    reproduction pipeline. The fact that with Nix or Guix, the instructions
-    to build the dependencies is also inherently included, makes them a
-    much better solution than binary containers like
-    [docker](https://www.docker.com/) which are essentially just a black
-    box and only usable on the given CPU architecture. The initial running
-    of Nix or Guix and setting up the environment can also be included in a
-    `Makefile` of this pipeline to be fully automatic. The software
+    on how to build the environment. These package managers can also
+    co-exist with the package manager of the host's operating system and
+    they allow separate versions of a software to be present. Thus it is
+    not necessary to change existing programs on the host system (that have
+    been updated for example) to run a particular reproduction
+    pipeline. The availability of the instructions to build the programs
+    and environment with Nix or Guix, makes them a better solution than
+    binary containers like [docker](https://www.docker.com/) which are
+    essentially just a binary (not human readable) black box and only
+    usable on the given CPU architecture. The initial running of Nix or
+    Guix and setting up of the environment can also be included in a
+    `Makefile` of this pipeline, and thus be fully automatic. The software
     tarballs (to be used by Nix or Guix) can also be uploaded/archived, as
-    we do now, and they can be instructed to get the tarballs for building
-    the environment from there.
+    we do now. These package managers can then be instructed to get the
+    tarballs for building the environment from there.
 
 
 
