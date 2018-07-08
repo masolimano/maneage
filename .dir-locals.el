@@ -9,6 +9,10 @@
 ;;
 ;; For more information see (info "(emacs) Directory Variables")
 
+;; Open `.mk' files in Makefile mode
+(add-to-list 'auto-mode-alist '("\\.mk$" . makefile-mode))
+
+;; Basic settings.
 ((nil
   (indent-tabs-mode . nil) ;; No tabs as indentation
   (fill-column . 75))      ;; 75-character wide lines
