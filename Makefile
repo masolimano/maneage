@@ -41,6 +41,19 @@ all: reproduce/build paper.pdf
 
 
 
+# Use Bash as the shell
+# ---------------------
+#
+# Some systems don't default to Bash as the shell they use to execute
+# the recipes or run Make's `$(shell)' function. So to be sure the
+# scripts are executed in a similar manner on all systems, we'll set
+# the default shell for this pipeline to be Bash.
+SHELL := /bin/bash
+
+
+
+
+
 # Include specific Makefiles
 # --------------------------
 #
