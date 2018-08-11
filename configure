@@ -49,7 +49,7 @@ glconf=$cdir/gnuastro/gnuastro-local.conf
 echo "---------------------"
 echo "Checking dependencies"
 echo "---------------------"
-for prog in cat sed make awk grep flock astnoisechisel pdflatex biber; do
+for prog in bash cat sed make awk grep flock astnoisechisel pdflatex biber; do
     if type $prog > /dev/null; then
         echo "  '$prog' was found."
     else
@@ -57,9 +57,9 @@ for prog in cat sed make awk grep flock astnoisechisel pdflatex biber; do
         echo "ERROR: '$prog' not found in search path."
         if [ $prog = "flock" ]; then
             echo
-            echo "'flock' is available on GNU/Linux operating system"
-            echo "repositories, please install it through your package"
-            echo "manager. For other OSs, you can install the "
+            echo "'flock' (file-lock, used for managing parallel operations)"
+            echo "is available on GNU/Linux OSs through your package manager,"
+            echo "please install it. For other OSs, you can install the "
             echo "implementation at: https://github.com/discoteq/flock"
         fi
         exit 1

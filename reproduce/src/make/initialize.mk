@@ -59,7 +59,7 @@ pconfdir    = reproduce/config/pipeline
 # it won't appear in the prerequisites and the pipeline will try to build
 # the other directories in the top root directory (`/'). To solve this
 # problem, when `BDIR' isn't defined, we'll define it with a place-holder
-# name ((only so it won't evaluate to blank space). Note that this
+# name (only so it won't evaluate to blank space). Note that this
 # directory will never be built.
 ifeq ($(BDIR),)
 configure-run = no
