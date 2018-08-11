@@ -8,9 +8,8 @@ This project contains a **fully working template** for a high-level
 research reproduction pipeline, or reproducible paper, as defined in the
 link below. If the link below is not accessible at the time of reading,
 please see the appendix at the end of this file for a portion of its
-introduction. Some
-[slides](http://akhlaghi.org/pdf/reproducible-paper.pdf) are also
-available to help demonstrate the concept implemented here.
+introduction. Some [slides](http://akhlaghi.org/pdf/reproducible-paper.pdf)
+are also available to help demonstrate the concept implemented here.
 
   http://akhlaghi.org/reproducible-science.html
 

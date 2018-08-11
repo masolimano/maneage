@@ -9,16 +9,15 @@
 ;;
 ;; For more information see (info "(emacs) Directory Variables")
 
-;; Open `.mk' files in Makefile mode
-(add-to-list 'auto-mode-alist '("\\.mk$" . makefile-mode))
-
 ;; Basic settings.
-((nil
-  (indent-tabs-mode . nil) ;; No tabs as indentation
-  (fill-column . 75))      ;; 75-character wide lines
- (c-mode
+((c-mode		   ;; C files
   (c-basic-offset . 2)     ;; 2 spaces of indentation
   (c-file-style . "gnu"))  ;; GNU style for braces
- (makefile-mode
+
+ (makefile-mode		   ;; Makefiles
   (indent-tabs-mode . t))  ;; Real TABs are important in makefiles
+
+(nil                       ;; All other files.
+  (indent-tabs-mode . nil) ;; No tabs as indentation
+  (fill-column . 75))      ;; 75-character wide lines
  )
