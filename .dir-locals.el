@@ -9,15 +9,18 @@
 ;;
 ;; For more information see (info "(emacs) Directory Variables")
 
-;; Basic settings.
-((c-mode		   ;; C files
+(
+ ;; C files.
+ (c-mode
   (c-basic-offset . 2)     ;; 2 spaces of indentation
   (c-file-style . "gnu"))  ;; GNU style for braces
 
- (makefile-mode		   ;; Makefiles
+ ;; Makefiles.
+ (makefile-mode
   (indent-tabs-mode . t))  ;; Real TABs are important in makefiles
 
-(nil                       ;; All other files.
+ ;; All other files (this has to be in the end).
+ (nil
   (indent-tabs-mode . nil) ;; No tabs as indentation
   (fill-column . 75))      ;; 75-character wide lines
- )
+)
