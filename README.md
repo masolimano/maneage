@@ -396,7 +396,8 @@ been explained here), please let us know to correct it.
      find the files by searching for the placeholder email
      `your@email.address` (which you should change) with the command below
      (you can ignore this file, `README.md`, and any in the `tex/`
-     directory). When making new files, always remember to add a similar
+     directory). Don't forget to add your name after the copyright year
+     also. When making new files, always remember to add a similar
      copyright statement at the top of the file and also ask your
      colleagues to do so when they edit a file. This is very important.
 
