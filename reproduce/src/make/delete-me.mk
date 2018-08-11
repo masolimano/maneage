@@ -37,8 +37,7 @@ $(dm): $(pconfdir)/delete-me-num.mk | $(dmdir)
 	rm -f $(tikzdir)/delete-me.pdf
 
         # Generate the table of random values.
-	awk 'BEGIN { for (i = 1; i <= $(delete-me-num); i++)          \
-                       print i, rand(); }' > $@
+	awk 'BEGIN {for(i=1;i<=$(delete-me-num);i+=0.5) print i, i*i; }' > $@
 
 
 

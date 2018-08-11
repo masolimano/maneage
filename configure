@@ -267,7 +267,7 @@ rm -f $ptconf $ptconf"~"
 # step(s) to take.
 echo
 if [ $ready = 1 ]; then
-    echo "This reproduction pipeline has been configured for this system."
+    echo "The reproduction pipeline has been configured for this system."
     echo "Please run the following command to start the pipeline:"
 else
     echo "AFTER MANUALLY EDITING THE FILE(S) ABOVE, please run the following"
