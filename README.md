@@ -407,12 +407,11 @@ been explained here), please let us know to correct it.
  - **Title**, **short description** and **author** in source files: In this
      raw skeleton, the title or short description of your project should be
      added in the following two files: `Makefile` (the first line), and
-     `tex/preamble-style.tex` (the last few lines, along with the names of
-     you and your colleagues). In both cases, the texts you should replace
-     are all in capital letters to make them easier to identify. Of course,
-     if you use a different LaTeX method of managing the title and authors,
-     please feel free to use your own methods, just find a way to keep the
-     pipeline version in a nicely visible place.
+     `tex/preamble-header.tex` (the last two groups of lines, along with
+     the names of you and your colleagues). In both cases, the texts you
+     should replace are all in capital letters to make them easier to
+     identify. Of course, if you use a different LaTeX method of managing
+     the title and authors, please feel free to use your own methods.
 
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
      dependency of the pipeline and without it, the pipeline will complain
@@ -483,25 +482,12 @@ been explained here), please let us know to correct it.
      necessary for your research to the pipeline based on the example
      above.
 
- - **Paper title and authors**: The final paper's title, authors and other
-     information are defined in the last two sections of the
-     `tex/preamble-style.tex` file (section that are written in
-     ONLY-CAPITAL characters). Correct these for your project or use any
-     other LaTeX title and author management package that you prefer
-     instead. As you add more packages to the preambles, it is recommended
-     to follow this convention of having five empty lines between each group
-     of package importing and configuration along with comments for each
-     package. This will greatly help you in readability later.
-
  - **Delete dummy parts**: The template pipeline contains some parts that
      are only for the initial/test run, not for any real analysis. The
      respective files to remove and parts to fix are discussed here.
 
-     - `paper.tex`: Delete the main body and abstract of text and
-       generally.
-
-     - `tex/preamble-header.tex`: Correct/add the titles, headers and
-       authors list of the paper.
+     - `paper.tex`: Delete the text of the abstract and the paper's main
+       body.
 
      - `Makefile`: Delete the two occurrences of `delete-me` in the
        `foreach` loops.
