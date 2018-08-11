@@ -3,6 +3,7 @@
 # Original author:
 #     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
+#     Your name <your@email.address>
 # Copyright (C) 2018, Mohammad Akhlaghi.
 #
 # This script is free software: you can redistribute it and/or modify it

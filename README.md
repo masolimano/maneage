@@ -391,11 +391,17 @@ been explained here), please let us know to correct it.
      $ cd my-project-name
      ```
 
- - **Copyright**, **name** and **date**: Go over the following files and
-     add your name and email to the copyright notice: `configure`,
-     `Makefile` and `reproduce/src/make/*.mk`. When making new files,
-     always remember to add a similar copyright statement at the top of the
-     file.
+ - **Copyright**, **name** and **date**: Go over the existing scripting
+     files and add your name and email to the copyright notice. You can
+     find the files by searching for the placeholder email
+     `your@email.address` (which you should change) with the command below
+     (you can ignore this file and any in the `tex/` directory. When making
+     new files, always remember to add a similar copyright statement at the
+     top of the file. This is important.
+
+     ```shell
+     $ grep -r your@email.address ./*
+     ```
 
  - **Title**, **short description** and **author** in source files: In this
      raw skeleton, the title or short description of your project should be
