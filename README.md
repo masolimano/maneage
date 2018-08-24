@@ -522,8 +522,9 @@ advanced in later stages of your work.
        body. Only keep a place holder text to later start writing your own
        contents.
 
-     - `Makefile`: Delete the two occurrences of `delete-me` in the
-       `foreach` loops.
+     - `Makefile`: Delete the two lines containing `delete-me` in the
+       `foreach` loops. Just make sure the other lines that end in `\` are
+       immediately after each other.
 
      - Delete all `delete-me*` files in the following directories:
 
@@ -552,12 +553,11 @@ advanced in later stages of your work.
      facility](https://en.wikipedia.org/wiki/Comparison_of_source_code_hosting_facilities)
      you prefer to keep an online copy of your project's version controlled
      history. We recommend [GitLab](https://gitlab.com) because it allows
-     hosting of unlimited number of private repositories (necessary in many
-     cases prior to publishing a result) for free and because you can host
+     any number of private repositories for free and because you can host
      GitLab on your own server. Create an account in your favorite service
-     (if you don't already have one) and define a new project there. It
-     will give you a link that you can put in place of `XXX` in the command
-     below.
+     (if you don't already have one), and define a new project there. It
+     will give you a link (ending in `.git`) that you can put in place of
+     `XXX` in the command below.
 
      ```shell
      git remote add origin XXX
