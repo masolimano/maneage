@@ -398,10 +398,27 @@ advanced in later stages of your work.
      research, while keeping up to date with improvements in the pipeline.
 
      ```shell
-     $ git clone --origin pipeline-origin https://gitlab.com/makhlaghi/reproducible-paper.git
-     $ mv reproducible-paper my-project-name
-     $ cd my-project-name
-     $ git checkout -b master
+     $ git clone https://gitlab.com/makhlaghi/reproducible-paper.git
+     $ mv reproducible-paper my-project-name      # Your own directory name.
+     $ cd my-project-name                         # Go into the directory
+     $ git remote rename origin pipeline-origin   # Rename the pipeline's remote.
+     $ git checkout -b master                     # Create, enter master branch.
+     ```
+
+ - **Test the pipeline**: Before making any changes, it is important to
+     test the pipeline and seeing if everything works. If there is any
+     problem in the `./configure` or `make` steps, please contact us to fix
+     the problem before continuing. After `make` is finished, open
+     `paper.pdf` and if it looks fine, you are ready to start customizing
+     the pipeline for your project. But before that, clean all the extra
+     pipeline outputs with `make clean` as shown below.
+
+     ```shell
+     $ ./configure           # Prepare the directory structure.
+     $ make                  # Run the pipeline.
+
+     # Open 'paper.pdf' and see if everything is ok.
+     $ make clean            # Remove all pipeline outputs.
      ```
 
  - **Copyright**, **name** and **date**: Go over the existing scripting
