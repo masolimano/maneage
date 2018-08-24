@@ -382,13 +382,26 @@ to see if everything works correctly before expanding it. If you notice
 anything missing or any in-correct part (probably a change that has not
 been explained here), please let us know to correct it.
 
- - **Get this repository** (if you don't already have it): Arguably the
-     easiest way to start is to clone this repository as shown below:
+As described above, the concept of a reproduction pipeline heavily relies
+on [version
+control](https://en.wikipedia.org/wiki/Version_control). Currently this
+pipline uses Git as its main version control system. If you are not already
+familiar with Git, please read the first three chapters of the [ProGit
+book](https://git-scm.com/book/en/v2) which provides a wonderful practical
+understanding of the basics. You can read later chapters as you get more
+advanced in later stages of your work.
+
+ - **Get this repository and its history** (if you don't already have it):
+     Arguably the easiest way to start is to clone this repository as shown
+     below. The main branch of this pipeline is called `pipeline`. This
+     allows you to use the common branch name `master` for your own
+     research, while keeping up to date with improvements in the pipeline.
 
      ```shell
-     $ git clone https://gitlab.com/makhlaghi/reproducible-paper.git
+     $ git clone --origin pipeline-origin https://gitlab.com/makhlaghi/reproducible-paper.git
      $ mv reproducible-paper my-project-name
      $ cd my-project-name
+     $ git checkout -b master
      ```
 
  - **Copyright**, **name** and **date**: Go over the existing scripting
@@ -496,49 +509,57 @@ been explained here), please let us know to correct it.
      - Delete the following files: `README.md`, all `delete-me*` files (in
        `reproduce/config/pipeline`, `reproduce/src/make`, and `tex`).
 
- - **Initiate a new Git repo**: You probably don't want to mix the history
-     of this template reproduction pipeline with your own reproduction
-     pipeline. You have already made some small changes in the previous
-     step, so let's re-initiate history before continuing. But before doing
-     that, keep the output of `git describe` in a place and write it in
-     your first commit message to document what point in this pipeline's
-     history you started from. Since the pipeline is highly integrated with
-     your particular research, it may not be easy to merge the changes
-     later. Having the commit information that you started from, will allow
-     you to check and manually apply any changes that don't interfere with
-     your implemented pipeline. After this step, you can commit your
-     changes into your newly initiated history as you like.
+ - **Your first commit**: You have already made some small and basic
+     changes in the steps above and you are in the `master` branch. So, you
+     can officially make your first commit in your project's history. But
+     before that you need to make sure that there are no problems in the
+     pipeline (this is a good habit to always re-build the system before a
+     commit to be sure it works as expected).
 
      ```shell
-     $ git describe          # The point in this history you started from.
-     $ git clean -fxd        # Remove any possibly created extra files.
-     $ rm -rf .git           # Completely remove this history.
-     $ git init              # Initiate a new history.
-     $ git add --all         # Stage everything that is here.
-     $ git commit            # Your first commit (mention the first output).
+     $ make clean            # Clean already built pipeline outputs.
+     $ make                  # Build the pipeline to ensure everything is fine.
+     $ git add --all         # Stage all the changes.
+     $ git commit            # Your first commit, add a nice description.
      $ git tag -a v0         # Tag this as the zero-th version of your pipeline.
      ```
 
- - **Notice on reproducibility**: Add a notice somewhere prominent in the
-     first page within your paper, informing the reader that your research
-     is fully reproducible. For example in the end of the abstract, or
-     under the keywords with a title like "reproducible paper". This will
-     encourage them to publish their own works in this manner also and also
-     will help spread the word.
+ - **Remote repository**: You can use any [hosting
+     facility](https://en.wikipedia.org/wiki/Comparison_of_source_code_hosting_facilities)
+     you prefer to keep an online copy of your project's version controlled
+     history. We recommend [GitLab](https://gitlab.com) because it allows
+     hosting of unlimited number of private repositories (necessary in many
+     cases prior to publishing a result) for free and because you can host
+     GitLab on your own server. Create an account in your favorite service
+     (if you don't already have one) and define a new project there. It
+     will give you a link that you can put in place of `XXX` in the command
+     below.
+
+     ```shell
+     git remote add origin XXX
+     git push -u origin --all
+     git push -u origin --tags
+     ```
 
  - **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. You can use the "published works" section in
-     the introduction as some fully working models to learn from.
+     the introduction as some fully working models to learn from. Also,
+     don't hesitate to contact us if you have any questions.
+
+ - **Pre-publication: add notice on reproducibility**: Add a notice
+     somewhere prominent in the first page within your paper, informing the
+     reader that your research is fully reproducible. For example in the
+     end of the abstract, or under the keywords with a title like
+     "reproducible paper". This will encourage them to publish their own
+     works in this manner also and also will help spread the word.
 
  - **Feedback**: As you use the pipeline you will notice many things that
      if implemented from the start would have been very useful for your
-     work. This can be in the actual file structure of the pipeline or in
-     useful implementation and usage tips like below. In any case, since
-     this concept is still evolving, please share your thoughts and
-     suggestions, so we can add them here for everyone's benefit.
-
-
+     work. This can be in the actual scripting and architecture of the
+     pipeline or in useful implementation and usage tips, like those
+     below. In any case, please share your thoughts and suggestions with
+     us, so we can add them here for everyone's benefit.
 
 
 
