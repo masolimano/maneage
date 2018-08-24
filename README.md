@@ -400,18 +400,19 @@ advanced in later stages of your work.
      ```shell
      $ git clone https://gitlab.com/makhlaghi/reproducible-paper.git
      $ mv reproducible-paper my-project-name      # Your own directory name.
-     $ cd my-project-name                         # Go into the directory
+     $ cd my-project-name                         # Go into the cloned directory.
      $ git remote rename origin pipeline-origin   # Rename the pipeline's remote.
      $ git checkout -b master                     # Create, enter master branch.
      ```
 
  - **Test the pipeline**: Before making any changes, it is important to
-     test the pipeline and seeing if everything works. If there is any
-     problem in the `./configure` or `make` steps, please contact us to fix
-     the problem before continuing. After `make` is finished, open
-     `paper.pdf` and if it looks fine, you are ready to start customizing
-     the pipeline for your project. But before that, clean all the extra
-     pipeline outputs with `make clean` as shown below.
+     test the pipeline and see if everything works properly with the
+     commands below. If there is any problem in the `./configure` or `make`
+     steps, please contact us to fix the problem before continuing. After
+     `make` is finished, open `paper.pdf` and if it looks fine, you are
+     ready to start customizing the pipeline for your project. But before
+     that, clean all the extra pipeline outputs with `make clean` as shown
+     below.
 
      ```shell
      $ ./configure           # Prepare the directory structure.
@@ -518,13 +519,19 @@ advanced in later stages of your work.
      respective files to remove and parts to fix are discussed here.
 
      - `paper.tex`: Delete the text of the abstract and the paper's main
-       body.
+       body. Only keep a place holder text to later start writing your own
+       contents.
 
      - `Makefile`: Delete the two occurrences of `delete-me` in the
        `foreach` loops.
 
-     - Delete the following files: `README.md`, all `delete-me*` files (in
-       `reproduce/config/pipeline`, `reproduce/src/make`, and `tex`).
+     - Delete all `delete-me*` files in the following directories:
+
+       ```shell
+       $ rm tex/delete-me*
+       $ rm reproduce/src/make/delete-me*
+       $ rm reproduce/config/pipeline/delete-me*
+       ```
 
  - **Your first commit**: You have already made some small and basic
      changes in the steps above and you are in the `master` branch. So, you
@@ -536,7 +543,7 @@ advanced in later stages of your work.
      ```shell
      $ make clean            # Clean already built pipeline outputs.
      $ make                  # Build the pipeline to ensure everything is fine.
-     $ git add --all         # Stage all the changes.
+     $ git add -u            # Stage all the changes.
      $ git commit            # Your first commit, add a nice description.
      $ git tag -a v0         # Tag this as the zero-th version of your pipeline.
      ```
