@@ -545,19 +545,20 @@ advanced in later stages of your work.
      $ make clean            # Clean already built pipeline outputs.
      $ make                  # Build the pipeline to ensure everything is fine.
      $ git add -u            # Stage all the changes.
+     $ git status            # Make sure everything is fine.
      $ git commit            # Your first commit, add a nice description.
      $ git tag -a v0         # Tag this as the zero-th version of your pipeline.
      ```
 
- - **Remote repository**: You can use any [hosting
+ - **Setup the remote**: You can use any [hosting
      facility](https://en.wikipedia.org/wiki/Comparison_of_source_code_hosting_facilities)
-     you prefer to keep an online copy of your project's version controlled
-     history. We recommend [GitLab](https://gitlab.com) because it allows
-     any number of private repositories for free and because you can host
-     GitLab on your own server. Create an account in your favorite service
-     (if you don't already have one), and define a new project there. It
-     will give you a link (ending in `.git`) that you can put in place of
-     `XXX` in the command below.
+     that supports Git to keep an online copy of your project's version
+     controlled history. We recommend [GitLab](https://gitlab.com) because
+     it allows any number of private repositories for free and because you
+     can host GitLab on your own server. Create an account in your favorite
+     hosting facility (if you don't already have one), and define a new
+     project there. It will give you a link (ending in `.git`) that you can
+     put in place of `XXX` in the command below.
 
      ```shell
      git remote add origin XXX
@@ -568,8 +569,10 @@ advanced in later stages of your work.
  - **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. You can use the "published works" section in
-     the introduction as some fully working models to learn from. Also,
-     don't hesitate to contact us if you have any questions.
+     the introduction (above) as some fully working models to learn
+     from. Also, don't hesitate to contact us if you have any
+     questions. Any time you are ready to push your commits to the remote
+     repository, you can simply use `git push`.
 
  - **Pre-publication: add notice on reproducibility**: Add a notice
      somewhere prominent in the first page within your paper, informing the
