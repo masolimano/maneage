@@ -40,10 +40,10 @@ $(texbdir)/paper.bbl: tex/references.tex                         \
 
         # We'll run LaTeX first to generate the `.bcf' file (necessary for
         # `biber') and then run `biber' to generate the `.bbl' file.
-	p=$$(pwd);                                               \
-	export TEXINPUTS=$$p:$$TEXINPUTS;                        \
-	cd $(texbdir);                                           \
-        pdflatex -shell-escape -halt-on-error $$p/paper.tex;     \
+	p=$$(pwd);
+	export TEXINPUTS=$$p:$$TEXINPUTS;
+	cd $(texbdir);
+	pdflatex -shell-escape -halt-on-error $$p/paper.tex;
 	biber paper
 
 
@@ -61,9 +61,13 @@ $(texbdir)/paper.bbl: tex/references.tex                         \
 paper.pdf: tex/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
 	   | $(tikzdir) $(texbdir)
 
-        # Make the report.
-	p=$$(pwd);                                               \
-	export TEXINPUTS=$$p:$$TEXINPUTS;                        \
-	cd $(texbdir);                                           \
-        pdflatex -shell-escape -halt-on-error $$p/paper.tex
+        # Go into the top TeX build directory and make the paper.
+	p=$$(pwd)
+	export TEXINPUTS=$$p:$$TEXINPUTS
+	cd $(texbdir)
+	pdflatex -shell-escape -halt-on-error $$p/paper.tex
+
+        # Come back to the top pipeline directory and copy the built PDF
+        # file here.
+	cd $$p
 	cp $(texbdir)/$@ $@

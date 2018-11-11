@@ -8,6 +8,9 @@
 mmap_*
 *.auxlock
 
+.local
+Makefile
+.gnuastro
 LOCAL_tmp.mk
 LOCAL_old.mk
 reproduce/build

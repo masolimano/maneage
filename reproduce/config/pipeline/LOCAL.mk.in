@@ -22,17 +22,17 @@
 
 
 
-# Input data
-# ----------
+# (OPTIONAL) Dependencies directory
+# ---------------------------------
 #
-# This is where the input data (with the same file-name standard as the
-# online webpage) are stored. If this directory doesn't exist, or it
-# doesn't contain the files (with the correct file-name formats), it will
-# be created and the images will be downloaded. See
-# `reproduce/config/pipeline/web.mk', for the URLs containing the expected
-# inputs for each survey.
-SURVEY = reproduce/SURVEY
-
+# To ensure an identical build environment, the pipeline will use its own
+# build of the programs it needs. Therefore the tarball of the relevant
+# programs are necessary for this pipeline. If a tarball isn't present in
+# the specified directory, it will be downloaded by the pipeline. Therefore
+# an internet connection will be mandatory.
+#
+# Important note: Keep atleast one blank space before and after `='.
+DEPENDENCIES-DIR = /optional/path/to/directory/containing/tarballs
 
 
 
@@ -47,7 +47,9 @@ SURVEY = reproduce/SURVEY
 # intermediate/derivative files. Also to make synchronization and backups
 # more easy: the contents of the build directory do not need to be backed
 # up since they can be reproduced and they can be large.
-BDIR = reproduce/BDIR
+#
+# IMPORTANT NOTE: Keep atleast one blank space before and after `='.
+BDIR = /path/of/directory/for/building
 
 
 
@@ -76,9 +78,11 @@ MINMAPSIZE = 1000000000
 # Downloader program
 # ------------------
 #
-# The downloder program (and its output option name) that will be used if
-# any of the necessary datasets aren't already available on the
-# system. This is usually set at an early stage of the configuration system
+# The downloder program (and its output option name, for example `wget -O'
+# or `curl -o') that will be used if any of the necessary datasets aren't
+# already available on the system.
+#
+# This is usually set at an early stage of the configuration system
 # automatically before the file is opened for editing by the user. It is
 # thus recommended to not modify it manually.
 DOWNLOADER = @downloader@

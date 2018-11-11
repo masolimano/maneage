@@ -28,27 +28,12 @@
 #
 # The final paper (in PDF format) is the main target of this whole
 # reproduction pipeline. So as defined in the Make paradigm, we are
-# defining it here. But since we also want easy access to the build
-# directory during processing (before the PDF is build), that is placed as
-# the first prerequisite.
+# defining it here.
 #
-# Note that if you don't have LaTeX to build the PDF or generally are just
+# Note that if you don't have LaTeX to build the PDF, or generally are just
 # interested in the processing, you can skip create the final PDF creation
 # with `pdf-build-final' of `reproduce/config/pipeline/pdf-build.mk'.
-all: reproduce/build paper.pdf
-
-
-
-
-
-# Use Bash as the shell
-# ---------------------
-#
-# Some systems don't default to Bash as the shell they use to execute
-# the recipes or run Make's `$(shell)' function. So to be sure the
-# scripts are executed in a similar manner on all systems, we'll set
-# the default shell for this pipeline to be Bash.
-SHELL := /bin/bash
+all: paper.pdf
 
 
 

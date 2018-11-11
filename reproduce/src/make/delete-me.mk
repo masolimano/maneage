@@ -63,10 +63,10 @@ $(mtexdir)/delete-me.tex: $(dm)
         # Here, we are first using AWK to find the minimum and maximum
         # values, then using it again to read each separately to use in the
         # macro definition.
-	mm=$$(awk 'BEGIN{min=99999; max=-min}                     \
-                   {if($$2>max) max=$$2; if($$2<min) min=$$2;}    \
-                   END{print min, max}' $(dm));                   \
-	v=$$(echo "$$mm" | awk '{printf "%.3f", $$1}');           \
-	echo "\newcommand{\deletememin}{$$v}"             >> $@;  \
-	v=$$(echo "$$mm" | awk '{printf "%.3f", $$2}');           \
+	mm=$$(awk 'BEGIN{min=99999; max=-min}
+	           {if($$2>max) max=$$2; if($$2<min) min=$$2;}
+	           END{print min, max}' $(dm));
+	v=$$(echo "$$mm" | awk '{printf "%.3f", $$1}');
+	echo "\newcommand{\deletememin}{$$v}"             >> $@;
+	v=$$(echo "$$mm" | awk '{printf "%.3f", $$2}');
 	echo "\newcommand{\deletememax}{$$v}"             >> $@

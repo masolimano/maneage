@@ -228,54 +228,69 @@ Reproduction pipeline architecture
 In order to adopt this pipeline to your research, it is important to first
 understand its architecture so you can navigate your way in the directories
 and understand how to implement your research project within its
-framework. In short, when the user runs `make` to start the processing, the
-first file that is read is the top-level `Makefile`. Therefore, we'll start
-our navigation with this file. This file is heavily commented so hopefully
-the descriptions in each comment will be enough to understand the general
-details. As you read this section, please also look at the contents of the
-mentioned files and directories to fully understand what is being said.
+framework. But before reading this theoretical discussion, please run the
+pipeline without any change, just to see how it works.
 
-Before starting to look into the top Makefile, it is important to recall
+In order to obtain a reproducible result it is important to have an
+identical environment (for example same versions the programs that it will
+use). This also has the added advantage that in your separate research
+projects, you can use different versions of a single software and they
+won't interfere. Therefore, the pipeline builds its own dependencies during
+the `./configure` step. Building of the dependencies is managed by
+`reproduce/src/make/dependencies.mk`. So later, if you add a new
+program/library for your processing, don't forget to include a rule on how
+to build it, in this file.
+
+When you run `.local/bin/make` to start the processing, the first file that
+is read is the top-level `Makefile`. Therefore, we'll start our
+navigation/discussion with this file. This file is relatively short and
+heavily commented so hopefully the descriptions in each comment will be
+enough to understand the general details. As you read this section, please
+also look at the contents of the mentioned files and directories to fully
+understand what is being said.
+
+Before starting to look into the top `Makefile`, it is important to recall
 that Make defines dependencies by files. Therefore, the input and output of
 every step must be a file. Also recall that Make will use the modification
-date of the prerequisite and target files to see if the a target must be
-re-built or not. Therefore during the processing _many_ intermediate files
+date of the prerequisite and target files to see if the target must be
+re-built or not. Therefore during the processing, _many_ intermediate files
 will be created (see the tips section below on a good strategy to deal with
-large/huge files). Therefore, in configuration time, the user can define a
-top-level build directory variable (or `$(BDIR)`) to host all the
-intermediate files. This directory doesn't need to be version controlled or
-even synchronized or backed-up in other servers: its contents are all
-products of the pipeline after all, and can be easily re-created any
-time. As you define targets, it is thus important to place them all under
-sub-directories of `$(BDIR)`.
+large/huge files).
+
+To keep the source and (intermediate) built files separate, at
+configuration time, the user _must_ define a top-level build directory
+variable (or `$(BDIR)`) to host all the intermediate files. This directory
+doesn't need to be version controlled or even synchronized, or backed-up in
+other servers: its contents are all products of the pipeline, and can be
+easily re-created any time. As you define targets for your new rules, it is
+thus important to place them all under sub-directories of `$(BDIR)`.
 
 Let's start reviewing the processing with the top Makefile. Please open and
-inspect it as we go along here. The first step is to define the ultimate
-target (`paper.pdf`). You shouldn't modify this line. The rule to build
-`paper.pdf` is in another Makefile that will be imported into this top
-Makefile later. Don't forget that Make goes over all the process once (to
-define dependencies and etc) and then starts its execution. So it is fine
-to define the rule to build `paper.pdf` at a later stage (this is the
-beauty of Make after all).
+inspect it as we go along here. The first step (un-commented line) defines
+the ultimate target (`paper.pdf`). You shouldn't modify this line. The rule
+to build `paper.pdf` is in another Makefile that will be imported into this
+top Makefile later. Don't forget that Make first scans the Makefile(s) once
+completely (to define dependencies and etc) and starts its execution after
+that. So it is fine to define the rule to build `paper.pdf` at a later
+stage (this is one beauty of Make!).
 
-Having defined the top target, we will import all the necessary
-Makefiles. As you see in `Makefile`, first we include all
-`reproduce/config/pipeline/*.mk`. The configuration of each logical step of
-the pipeline is placed here as a separate file. These Makefiles must only
-contain raw Make variables (pipeline configurations). By raw we mean that
-the Make variables in these files must not depend on any other variables
-because we don't want to assume any order in reading them. It is very
-important to *not* define any rule or other Make construct in any of these
-_configuration-Makefiles_ (see the next paragraph for Makefiles with
-rules). This will enable you to set the respective files in this directory
-as a prerequisite to any target that depends on their variable
-values. Therefore, if you change any of the values, all targets that depend
-on those values will be re-built.
+Having defined the top target, we will include all the necessary
+Makefiles. First we include all `reproduce/config/pipeline/*.mk`. The
+configuration of each logical step of the pipeline is placed here as a
+separate file. These Makefiles must only contain raw Make variables
+(pipeline configurations). By raw we mean that the Make variables in these
+files must not depend on any other variables because we don't want to
+assume any order in reading them. It is very important to *not* define any
+rule or other Make construct in any of these _configuration-Makefiles_ (see
+the next paragraph for Makefiles with rules). This will enable you to set
+the respective files in this directory as a prerequisite to any target that
+depends on their variable values. Therefore, if you change any of the
+values, all targets that depend on those values will be re-built.
 
 Once all the raw variables have been imported into the top Makefile, we are
 ready to import the Makefiles containing the details of the processing
 steps (Makefiles containing rules, let's call these
-_workhorse-Makefiles_). But *order is important* in this phase because the
+_workhorse-Makefiles_). But in this phase *order is important*, because the
 prerequisites of most rules will be other rules that will be defined at a
 lower level (not a fixed name like `paper.pdf`). The lower-level rules must
 be imported into Make before the higher-level ones. Hence, we can't use a
@@ -284,47 +299,52 @@ these Makefiles are defined in `reproduce/src/make`, therefore, the top
 Makefile uses the `foreach` function to read them in a specific order.
 
 The main body of this pipeline is thus going to be managed within the
-workhorse-Makefiles of `reproduce/src/make`. If you set clear-to-understand
-names for these workhorse-Makefiles and follow the convention of the top
-Makefile that you only include one workhorse-Makefile per line, the
-`foreach` loop of the top Makefile that imports them will become very easy
-to read and understand by eye. This will let you know which step you are
-taking before or after another without much thought (in a few months
-especially). Projects will scale up very fast. Thus if you don't start and
-continue with a clean and robust management strategy, in the end it will
-become very dirty and hard to manage/understand (even for yourself). As a
-general rule of thumb, break your rules into as many logically-similar but
-independent steps as possible.
+workhorse-Makefiles that are in `reproduce/src/make`. If you set
+clear-to-understand names for these workhorse-Makefiles and follow the
+convention of the top Makefile that you only include one workhorse-Makefile
+per line, the `foreach` loop of the top Makefile that imports them will
+become very easy to read and understand by eye. This will let you know
+generally which step you are taking before or after another. Projects will
+scale up very fast. Thus if you don't start and continue with a clean and
+robust convention like this, in the end it will become very dirty and hard
+to manage/understand (even for yourself). As a general rule of thumb, break
+your rules into as many logically-similar but independent steps as
+possible.
 
-All processing steps ultimately (usually after many rules) end up in some
-number, image, figure, or table that must be included in the paper. After
-all, if you don't want to report the value of a processing, why would you
-do it in the first place? Therefore if the targets in a workhorse-Makefile
-aren't directly a prerequisite of other workhorse-Makefile targets, they
-should be a pre-requisite of an intermediate LaTeX macro file in
-`$(BDIR)/tex/macros` (the highest-level target of that workhorse-Makefile).
+All processing steps are assumed to ultimately (usually after many rules)
+end up in some number, image, figure, or table that are to be included in
+the paper. The writing of the values into the final report is managed
+through separate LaTeX files that only contain macros (a name given to a
+number/string to be used in the LaTEX source, which will be replaced when
+compiling it to the final PDF). So usually the last target in a Makefile is
+a `.tex` file (with the same base-name as the Makefile, but in
+`$(BDIR)/tex/macros`). This intermediate TeX file rule will only contain
+commands to fill the TeX file up with values/names that were done in that
+Makefile. As a result, if the targets in a workhorse-Makefile aren't
+directly a prerequisite of other workhorse-Makefile targets, they should be
+a pre-requisite of that intermediate LaTeX macro file.
 
-The last part of the top-level Makefile is the rule to build
-`tex/pipeline.tex`. This file is the connection between the processing
-steps of the pipeline and the creation of the final PDF. In
-`reproduce/src/make/paper.mk`, you will notice that `paper.pdf` (final
-target of the whole reproduction pipeline) depends on
-`tex/pipeline.tex`. This file is thus the connection of these two very
-high-level different phases of the reproduction pipeline. Therefore, to
-keep the over-all management clean, the rule to create this bridge between
-the processing and paper-writing phases is defined in the top-level
-Makefile.
+In `reproduce/src/make/paper.mk` contains the rule to build `paper.pdf`
+(final target of the whole reproduction pipeline). If look in it, you will
+notice that it depends on `tex/pipeline.tex`. Therefore, last part of the
+top-level `Makefile` is the rule to build
+`tex/pipeline.tex`. `tex/pipeline.tex` is the connection between the
+processing steps of the pipeline, and the creation of the final
+PDF. Therefore, to keep the over-all management clean, the rule to create
+this bridge between the two phases is defined in the top-level `Makefile`.
 
-But `tex/pipeline.tex` is only a merging/concatenation of LaTeX macros
-defined as the output of each high-level processing step. In some cases you
-want tables and images to also be included in the final PDF. To keep these
+As you see in the top-level `Makefile`, `tex/pipeline.tex` is only a
+merging/concatenation of LaTeX macros defined as the output of each
+high-level processing step (the separate work-horse Makefiles that you
+included).
+
+One of the LaTeX macros created by `reproduce/src/make/initialize.mk` is
+`\bdir`. It is the location of the build directory. In some cases you want
+tables and images to also be included in the final PDF. To keep these
 necessary LaTeX inputs, you can define other directories under
-`$(BDIR)/tex` in the relevant workhorse-Makefile. One of the LaTeX macros
-that `reproduce/src/make/initialize.mk` creates is the location of the
-build directory, so you can easily guide LaTeX to look into the proper
-directory through the `\bdir` macro. If the target of the rule that creates
-these other LaTeX inputs isn't a prerequisite of other rules, add it as a
-pre-requisite of `tex/pipeline.tex`.
+`$(BDIR)/tex` in the relevant workhorse-Makefile. You can then easily guide
+LaTeX to look into the proper directory to import an image for example
+through the `\bdir` macro.
 
 During the research, it often happens that you want to test a step that is
 not a prerequisite of any higher-level operation. In such cases, you can
@@ -351,18 +371,16 @@ mind are listed below.
    workhorse-Makefiles in the top-level `Makefile`.
 
  - Do not use any constant numbers (or important names like filter names)
-   in the workhorse-Makefiles. Define such constants as logically-grouped
-   separate configuration-Makefiles in `reproduce/config/pipeline`. Then
-   set the respective configuration-Makefiles file as a pre-requisite to
-   any rule that uses the variable defined in it.
+   in the workhorse-Makefiles or paper's LaTeX source. Define such
+   constants as logically-grouped, separate configuration-Makefiles in
+   `reproduce/config/pipeline`. Then set the respective
+   configuration-Makefiles file as a pre-requisite to any rule that uses
+   the variable defined in it.
 
- - To be executed, any target should either be a prerequisite of another
-   rule (possibly in another Makefile), or a file that is directly imported
-   into LaTeX as fixed macros for inclusion in text or LaTeX settings (in
-   `$(BDIR)/tex/macros`), images, plots or tables (in other `$(BDIR)/tex`
-   sub-directories). In any cases, through any number of intermediate
-   prerequisites, all processing steps should end in (be a prerequisite of)
-   `tex/pipeline.tex`.
+ - Through any number of intermediate prerequisites, all processing steps
+   should end in (be a prerequisite of)
+   `tex/pipeline.tex`. `tex/pipeline.tex` is the bridge between the
+   processing steps and PDF-building steps.
 
 
 
@@ -415,11 +433,11 @@ advanced in later stages of your work.
      below.
 
      ```shell
-     $ ./configure           # Prepare the directory structure.
+     $ ./configure           # Set top directories and build dependencies.
      $ make                  # Run the pipeline.
 
      # Open 'paper.pdf' and see if everything is ok.
-     $ make clean            # Remove all pipeline outputs.
+     $ make distclean        # Remove all pipeline outputs.
      ```
 
  - **Copyright**, **name** and **date**: Go over the existing scripting
@@ -446,35 +464,27 @@ advanced in later stages of your work.
      the title and authors, please feel free to use your own methods.
 
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
-     dependency of the pipeline and without it, the pipeline will complain
-     and abort. The main reason for this is to demonstrate how critically
-     important it is to version your software. If you don't want to install
-     Gnuastro please follow the instructions in the list below. If you have
-     installed Gnuastro and tried the pipeline, but don't need Gnuastro in
-     your pipeline, also follow the list below. If you do want to use
-     Gnuastro in your pipeline, be sure to un-comment the `onlyversion`
-     option in `reproduce/config/gnuastro/gnuastro.conf` file and set it to
-     your version of Gnuastro. This will force you to keep the pipeline in
-     match with the version of Gnuastro you are using all the time and also
-     allow commits to be exactly reproducible also (for example if you
-     update to a new version of Gnuastro during your research project). If
-     you will be using Gnuastro, you can also remove the "marks" (comments)
-     put in the relevant files of the list below to make them more
-     readable.
+     dependency of the pipeline which will be built and used. The main
+     reason for this is to demonstrate how critically important it is to
+     version your software. If you do want to use Gnuastro in your
+     pipeline, be sure to un-comment the `onlyversion` option in
+     `reproduce/config/gnuastro/gnuastro.conf` file and set it to your
+     version of Gnuastro. This will force you to keep the pipeline in match
+     with the version of Gnuastro you are using all the time and also allow
+     commits to be exactly reproducible also (for example if you update to
+     a new version of Gnuastro during your research project). If you will
+     be using Gnuastro, you can also remove the "marks" (comments) put in
+     the relevant files of the list below to make them more readable.
 
-   - Delete the description about Gnuastro in `README`.
    - Delete marked part(s) in `configure`.
    - Delete marked parts in `reproduce/src/make/initialize.mk`.
    - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style.tex`.
 
  - **Other dependencies**: If there are any more of the dependencies that
      you don't use (or others that you need), then remove (or add) them in
-     the respective parts of `configure`. It is commented thoroughly and
-     reading over the comments should guide you on what to add/remove and
-     where. Note that it is always good to have an option to download the
-     necessary datasets in case the user doesn't have them. But in case
-     your pipeline doesn't need any downloads, you can also remove the
-     sections of `configure` that are for `flock` and the downloader.
+     the respective parts of `reproduce/src/make/dependencies.mk`. It is
+     commented thoroughly and reading over the comments should guide you on
+     what to add/remove and where.
 
  - **`README`**: Go through this top-level instruction file and make it fit
      to your pipeline: update the text and etc. Don't forget that your
@@ -483,25 +493,27 @@ advanced in later stages of your work.
      work. Therefore, also check and update `README` one last time when you
      are ready to publish your work (and its reproduction pipeline).
 
- - **First input dataset**: The user manages the top-level directory of the
-     input data through the variables set in
+ - **Input dataset**: The user manages the top-level directory of the input
+     data through the variables set in
      `reproduce/config/pipeline/LOCAL.mk.in` (the user actually edits a
      `LOCAL.mk` file that is created by `configure` from the `.mk.in` file,
-     but the `.mk` file is not under version control). So open this file
-     and replace `SURVEY` in the variable name and value with the name of
-     your input survey or dataset (all in capital letters), for example if
-     you are working on data from the XDF survey, replace `SURVEY` with
-     `XDF`. Don't change anything else in the value, just the the all-caps
-     name. Afterwards, change any occurrence of `SURVEY` in the whole
-     pipeline with the new name. You can find the occurrences with a simple
-     command like the ones shown below. We follow the Make convention here
-     that all `ONLY-CAPITAL` variables are those directly set by the user
-     and all `small-caps` variables are set by the pipeline designer. All
-     variables that also depend on this survey have a `survey` in their
-     name. Hence, also correct all these occurrences to your new name in
-     small-caps. Of course, ignore those occurrences that are irrelevant,
-     like those in this file. Note that in the raw version of this template
-     no target depends on these files, so they are ignored. Afterwards, set
+     but the `.mk` file is not under version control). Datasets are usually
+     large and the users might already have their copy don't need to
+     download them). So you can define a variable (all in capital letters)
+     in `reproduce/config/pipeline/LOCAL.mk.in`. For example if you are
+     working on data from the XDF survey, use `XDF`. You can use this
+     variable to identify the location of the raw inputs on the running
+     system. Here, we'll assume its name is `SURVEY`. Afterwards, change
+     any occurrence of `SURVEY` in the whole pipeline with the new
+     name. You can find the occurrences with a simple command like the ones
+     shown below. We follow the Make convention here that all
+     `ONLY-CAPITAL` variables are those directly set by the user and all
+     `small-caps` variables are set by the pipeline designer. All variables
+     that also depend on this survey have a `survey` in their name. Hence,
+     also correct all these occurrences to your new name in small-caps. Of
+     course, ignore/delete those occurrences that are irrelevant, like
+     those in this file. Note that in the raw version of this template no
+     target depends on these files, so they are ignored. Afterwards, set
      the webpage and correct the filenames in
      `reproduce/src/make/download.mk` if necessary.
 
@@ -824,38 +836,30 @@ future.
 
  - *Containers*: It is important to have better/full control of the
     environment of the reproduction pipeline. Our current reproducible
-    paper pipeline simply assumes that the necessary software are already
-    installed on the host system. So it ignores details of how they are
-    built or the versions of their dependencies (which is not good). As in
-    [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774) or
-    [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746), the best we
-    can currently do is distribute the tarballs of the necessary
-    software. The solution here is based on [an interesting
+    paper pipeline builds the higher-level programs (for example GNU Bash,
+    GNU Make, GNU AWK and etc) it needs and sets `PATH` to prefer its own
+    builds. It currently doesn't build and use its own version of
+    lower-level tools (like the C library and compiler). We plan to add the
+    build steps of these low level tools so the system's `PATH' can be
+    completely ignored within the pipeline and we are in full control of
+    the whole build process. Another solution is based on [an interesting
     tutorial](https://mozillafoundation.github.io/2017-fellows-sf/re-papers/index.html)
     by the Mozilla science lab to build reproducible papers. It suggests
     using the [Nix package manager](https://nixos.org/nix/about.html) to
     build the necessary software for the pipeline and run the pipeline in
-    its completely closed environment. This is a great solution because
-    using Nix or [Guix](https://www.gnu.org/software/guix/) (which is based
-    on Nix, but uses the [Scheme
+    its completely closed environment. This is an interesting solution
+    because using Nix or [Guix](https://www.gnu.org/software/guix/) (which
+    is based on Nix, but uses the [Scheme
     language](https://en.wikipedia.org/wiki/Scheme_(programming_language)),
     not a custom language for the management) will allow a fully working
     closed environment on the host system which contains the instructions
-    on how to build the environment. These package managers can also
-    co-exist with the package manager of the host's operating system and
-    they allow separate versions of a software to be present. Thus it is
-    not necessary to change existing programs on the host system (that have
-    been updated for example) to run a particular reproduction
-    pipeline. The availability of the instructions to build the programs
-    and environment with Nix or Guix, makes them a better solution than
-    binary containers like [docker](https://www.docker.com/) which are
-    essentially just a binary (not human readable) black box and only
-    usable on the given CPU architecture. The initial running of Nix or
-    Guix and setting up of the environment can also be included in a
-    `Makefile` of this pipeline, and thus be fully automatic. The software
-    tarballs (to be used by Nix or Guix) can also be uploaded/archived, as
-    we do now. These package managers can then be instructed to get the
-    tarballs for building the environment from there.
+    on how to build the environment. The availability of the instructions
+    to build the programs and environment with Nix or Guix, makes them a
+    better solution than binary containers like
+    [docker](https://www.docker.com/) which are essentially just a binary
+    (not human readable) black box and only usable on the given CPU
+    architecture. However, one limitation of using these is their own
+    installation (which usually requires root access).
 
 
 

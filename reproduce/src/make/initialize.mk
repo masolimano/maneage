@@ -47,36 +47,24 @@ pconfdir    = reproduce/config/pipeline
 
 
 
-# Sanity check
-# ------------
+# High level environment
+# ----------------------
 #
-# We need to make sure that the `./configure' command has already been
-# run. The output of `./configure' is the `$(pconfdir)/LOCAL.mk' file and
-# this is the non-time-stamp prerequisite of $(BDIR), see below.
+# We want the full recipe to be executed in one call to the shell. Also we
+# want Make to run the specific version of Bash that we have installed
+# during `./configure' time.
 #
-# There is one problem however: if the user hasn't run `./configure' yet,
-# then `BDIR' isn't defined (will just evaluate to blank space). Therefore
-# it won't appear in the prerequisites and the pipeline will try to build
-# the other directories in the top root directory (`/'). To solve this
-# problem, when `BDIR' isn't defined, we'll define it with a place-holder
-# name (only so it won't evaluate to blank space). Note that this
-# directory will never be built.
-ifeq ($(BDIR),)
-configure-run = no
-BDIR = reproduce/BDIR
-else
-configure-run = yes
-endif
-$(pconfdir)/LOCAL.mk:
-	@echo
-	@echo "================================================================"
-	@echo "For the pipeline's local settings, please run this command first"
-	@echo "(P.S. this local configuration is only necessary one time)"
-	@echo
-	@echo "    $$ ./configure"
-	@echo "================================================================"
-	@echo
-	@exit 1
+# Regarding the directories, this pipeline builds its major dependencies
+# itself and doesn't use the local system's default tools. With these
+# environment variables, we are setting it to prefer the software we have
+# build here.
+.ONESHELL:
+.SHELLFLAGS      = -ec
+SHELL           := .local/bin/bash
+PATH            := .local/bin:$(PATH)
+LDFLAGS         := -L.local/lib $(LDFLAGS)
+CPPFLAGS        := -I.local/include $(CPPFLAGS)
+LD_LIBRARY_PATH := .local/lib:$(LD_LIBRARY_PATH)
 
 
 
@@ -103,28 +91,8 @@ $(pconfdir)/LOCAL.mk:
 # are looking for in this pipeline.
 .SUFFIXES:
 $(tikzdir): | $(texbdir); mkdir $@
-$(BDIR): | $(pconfdir)/LOCAL.mk; mkdir $@
 $(texdir) $(lockdir): | $(BDIR); mkdir $@
 $(mtexdir) $(texbdir): | $(texdir); mkdir $@
-
-
-
-
-# Symbolic link to build directory
-# --------------------------------
-#
-# Besides $(BDIR), we are also making a symbolic link to it for easy
-# access. Recall that it is recommended that the actual build directory be
-# in a completely separate part of the file system (a place that may easily
-# be completely deleted).
-#
-# Note that $(BDIR) might not be an absolute path and this will complicate
-# the symbolic link creation. To be generic, we'll first call `readlink' to
-# make sure we have an absolute address, then we'll make a symbolic link to
-# that.
-reproduce/build: | $(BDIR)
-	absbdir=$$(readlink -f $(BDIR));                        \
-	ln -s $$absbdir $@
 
 
 
@@ -134,21 +102,21 @@ reproduce/build: | $(BDIR)
 # ------------------------------
 #
 # About `.PHONY': these are targets that must be built even if a file with
-# their name exists. Most don't correspond to a file, but those that do are
-# included here ensure that the file is always built in every run: for
-# example the pipeline versions may change within two separate runs, so we
-# want it to be rebuilt every time.
+# their name exists.
+#
+# Only `$(mtexdir)/initialize.tex' corresponds to a file. This is because
+# we want to ensure that the file is always built in every run: it contains
+# the pipeline version which may change between two separate runs, even
+# when no file actually differs.
 .PHONY: all clean distclean clean-mmap $(mtexdir)/initialize.tex
-distclean: clean; rm -f $(pconfdir)/LOCAL.mk
 # --------- Delete for no Gnuastro ---------
 clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
 # ------------------------------------------
 clean: clean-mmap
-ifeq ($(configure-run),yes)
 	rm -rf $(BDIR)
-endif
 	rm -f reproduce/build *.pdf *.log *.out *.aux *.auxlock
-
+distclean: clean
+	rm -f Makefile $(pconfdir)/LOCAL.mk .gnuastro
 
 
 
@@ -163,12 +131,12 @@ endif
 $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Version of the pipeline.
-	@v=$$(git describe --dirty --always);                      \
+	@v=$$(git describe --dirty --always);
 	echo "\newcommand{\pipelineversion}{$$v}"  > $@
 
 # --------- Delete for no Gnuastro ---------
         # Version of Gnuastro.
-	@v=$$(astnoisechisel --version | awk 'NR==1{print $$NF}'); \
+	@v=$$(astnoisechisel --version | awk 'NR==1{print $$NF}');
 	echo "\newcommand{\gnuastroversion}{$$v}" >> $@
 # ------------------------------------------
 

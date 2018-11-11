@@ -25,11 +25,23 @@
 
 
 
+# Script settings
+# ---------------
+# Stop the script if there are any errors.
+set -e
+
+
+
+
+
 # Important internal locations
 # ----------------------------
 #
 # These are defined to help make this script more readable.
+topdir=$(pwd)
+installedlink=.local
 cdir=reproduce/config
+
 pdir=$cdir/pipeline
 pconf=$pdir/LOCAL.mk
 ptconf=$pdir/LOCAL_tmp.mk
@@ -40,31 +52,22 @@ glconf=$cdir/gnuastro/gnuastro-local.conf
 
 
 
-# Check mandatory dependencies
-# ----------------------------
+# Inform the user
+# ---------------
 #
-# The list of program names you need for this pipeline is in the `for' loop
-# below. In case you don't need Gnuastro, then remove `astnoisechisel' from
-# the list.
-echo "---------------------"
-echo "Checking dependencies"
-echo "---------------------"
-for prog in bash cat sed make awk grep flock astnoisechisel pdflatex biber; do
-    if type $prog > /dev/null; then
-        echo "  '$prog' was found."
-    else
-        echo
-        echo "ERROR: '$prog' not found in search path."
-        if [ $prog = "flock" ]; then
-            echo
-            echo "'flock' (file-lock, used for managing parallel operations)"
-            echo "is available on GNU/Linux OSs through your package manager,"
-            echo "please install it. For other OSs, you can install the "
-            echo "implementation at: https://github.com/discoteq/flock"
-        fi
-        exit 1
-    fi
-done
+# Print some basic information so the user gets a feeling of what is going
+# on and is prepared on what will happen next.
+echo
+echo "-----------------------------------------"
+echo "Reproduction pipeline local configuration"
+echo "-----------------------------------------"
+echo
+echo "Local configuration includes things like top-level directories,"
+echo "or processing steps."
+echo
+echo "It is STRONGLY recommended to read the comments, and set the best "
+echo "values for your system (where necessary)."
+echo
 
 
 
@@ -85,47 +88,17 @@ if type curl > /dev/null; then
 elif type wget > /dev/null; then
     downloader="wget -O";
 else
-    echo
     echo "======="
     echo "Warning"
     echo "======="
-    echo "Couldn't find any of the 'curl' or 'wget' programs. They are used for"
-    echo "downloading necessary data if they aren't already present in the"
-    echo "specified directories. Therefore the pipeline will crash if the"
-    echo "necessary data are not already present on the system."
+    echo "Couldn't find any of the 'curl' or 'wget' programs. They are used"
+    echo "for downloading necessary programs and data if they aren't already"
+    echo "present in the specified directories. Therefore the pipeline will"
+    echo "crash if the necessary files are not already present on the system."
     echo "======="
     echo
     downloader="no-downloader-found"
-    print_downloader_notice=0
 fi;
-if [ $print_downloader_notice = 1 ]; then
-    prog=$(echo "$downloader" | awk '{print $1}')
-    echo "  '$prog' will be used for downloading files if necessary."
-fi
-
-
-
-
-
-# If `LOCAL.mk' already exists
-# ----------------------------
-#
-# `LOCAL.mk' is the top-most local configuration for the pipeline. If it
-# already exists when this script is run, we'll copy it to a `LOCAL.mk.old'
-# file as backup. For example the user might have ran `./configure' by
-# mistake.
-if [ -f $pconf ]; then
-    if mv $pconf $poconf; then
-        echo
-        echo "======="
-        echo "WARNING"
-        echo "======="
-        echo "  Existing configuration moved to '$poconf'."
-        echo
-    else
-        exit 1
-    fi
-fi
 
 
 
@@ -136,71 +109,60 @@ fi
 #
 # We'll start writing of the local configuration file with the values that
 # have been found so far.
-sed -e 's|@downloader[@]|'"$downloader"'|g'           \
-    $pconf.in > $ptconf
+sed -e 's|@downloader[@]|'"$downloader"'|g' $pconf.in > $ptconf
 
 
 
 
 
-# Inform the user
-# ---------------
+# Remove possibly existing configuration file?
+# --------------------------------------------
 #
-# Print some basic information so the user gets a feeling of what is going
-# on and is prepared on what will happen next.
-echo
-echo "-----------------------------------------"
-echo "Reproduction pipeline local configuration"
-echo "-----------------------------------------"
-echo
-echo "Local settings include things like top-level directories,"
-echo "or processing steps."
-echo
-echo "Pressing 'y' will open the local settings file in an editor"
-echo "so you can modify the default values if you want. Each"
-echo "variable is thoroughly described in the comments (lines"
-echo "starting with a '#') above it."
-echo
-echo "It is strongly recommended to inspect/edit/set the best "
-echo "values for your system (where necessary)."
-echo
-while [ "$userread" != "y" -a "$userread" != "n" ]
-do
-    read -p"Edit the default local configuration (y/n)? " userread
-done
+# `LOCAL.mk' is the top-most local configuration for the pipeline. If it
+# already exists when this script is run, we'll make a copy of it as backup
+# (for example the user might have ran `./configure' by mistake).
+if [ -f $pconf ]; then
 
+    # If it already exits, see what the user wants to do.
+    while [ "$userread" != "y" -a "$userread" != "n" ]
+    do
+        read -p"A configuration already exists, re-configure (y/n)? " userread
+    done
 
-
-
-
-# Let user to edit local settings
-# -------------------------------
-#
-# We'll open a text editor so the user can read the comments of the
-# necessary local settings and set the top directories manually.
-if [ $userread = "y" ]; then
-
-    # Open a text editor to set the given directories
-    if   emacs $ptconf; then ready=1
-    elif gedit $ptconf; then ready=1
-    elif vi    $ptconf; then ready=1
+    # Move the configuration if requested.
+    if [ $userread = "y" ]; then
+        if mv $pconf $poconf; then
+            echo "-- Existing configuration moved to '$poconf'."
+        fi
     else
-        echo
-        echo "================="
-        echo "IMPORTANT WARNING"
-        echo "================="
-        echo "No common text editor was found on this system."
-        echo "Please set the values in the following files manually:"
-        echo "  - $pconf"
-        # --------- Delete for no Gnuastro ---------
-        echo "  - $glconf"
-        # ------------------------------------------
-        echo "================="
-        echo
-        ready=0
+        echo "-- Using existing configuration file."
     fi
-else
-    ready=1
+    echo
+fi
+
+
+
+
+
+# Let user edit local settings
+# ----------------------------
+#
+# If the configuration file exists at this stage, the user didn't want to
+# change it. So, we'll open a text editor for the user to read the comments
+# of the necessary local settings and set the top directories manually.
+if ! [ -f $pconf ]; then
+
+    if [ x"$EDITOR" = "x" ]; then
+        userread=$EDITOR
+    else
+        userread=not-an-editor
+    fi
+
+    while ! $userread $ptconf > /dev/null 2>&1
+    do
+        read -p"Your favorite text editor: " userread
+    done
+    echo
 fi
 
 
@@ -252,9 +214,88 @@ echo " minmapsize $mm"                                          >> $glconf
 #
 # Make the final file that will be used and delete the temporary file along
 # with a possible file ending with `~' that is put there by some editors.
-create_file_with_notice $pconf
-cat $ptconf >> $pconf
+if ! [ -f $pconf ]; then
+    create_file_with_notice $pconf
+    cat $ptconf >> $pconf
+fi
 rm -f $ptconf $ptconf"~"
+
+
+
+
+# Read the necessary directories and build the top build directory as well
+# as the symbolic link to it.
+lbdir=reproduce/build
+rm -f $lbdir
+
+bdir=$(awk '/BDIR =/             {print $3}' $pconf)
+ddir=$(awk '/DEPENDENCIES-DIR =/ {print $3}' $pconf)
+if ! [ -d $bdir ]; then mkdir $bdir; fi
+absolutebdir=$(readlink -f $bdir)
+ln -s $absolutebdir $lbdir
+
+depdir=$absolutebdir/dependencies
+if ! [ -d $depdir ];  then mkdir $depdir; fi
+
+tardir=$depdir/tarballs
+if ! [ -d $tardir ];  then mkdir $tardir; fi
+
+instdir=$depdir/installed
+if ! [ -d $instdir ]; then mkdir $instdir; fi
+
+rm -f $installedlink
+ln -s $instdir $installedlink
+
+echo "Build directory ready: $absolutebdir";
+echo "... 'reproduce/build' is a symbolic link to it (for easy access).";
+echo
+
+
+
+
+
+# Notice on build Make and Bash, build top directories
+# ----------------------------------------------------
+tsec=10
+echo;
+echo;
+echo "----------------";
+echo "Necessary reproduction pipeline dependencies will be built in $tsec sec."
+echo
+echo "NOTE: the built software will NOT BE INSTALLED on your system, they"
+echo "are only for local usage by this reproduction pipeline."
+echo
+sleep $tsec
+export USE_LOCAL_BASH=no
+bindir=$bdir/dependencies/installed/bin
+make -j2 -f reproduce/src/make/dependencies.mk $bindir/bash $bindir/make
+
+
+
+
+
+# Build the final symbolic links
+cd $topdir
+rm -f Makefile
+ln -s $(pwd)/reproduce/src/make/Top-Makefile Makefile
+# --------- Delete for no Gnuastro ---------
+rm -f .gnuastro
+ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
+# ------------------------------------------
+
+
+
+
+
+# Build all the necsesary dependencies
+# ------------------------------------
+#
+# We will be making all the dependencies before running the top-level
+# Makefile. To make the job easier, we'll do it in a Makefile, not a
+# script. Bash and Make were the tools we need to run Makefiles, so we had
+# to build them in this script. But after this, we can rely on Makefiles.
+export USE_LOCAL_BASH=yes
+.local/bin/make -f reproduce/src/make/dependencies.mk -j8
 
 
 
@@ -266,16 +307,13 @@ rm -f $ptconf $ptconf"~"
 # The configuration is now complete, we can inform the user on the next
 # step(s) to take.
 echo
-if [ $ready = 1 ]; then
-    echo "The reproduction pipeline has been configured for this system."
-    echo "Please run the following command to start the pipeline:"
-else
-    echo "AFTER MANUALLY EDITING THE FILE(S) ABOVE, please run the following"
-    echo "commands to run the pipeline."
-fi
-echo "(Replace '8' with the number of CPU threads available)"
+echo "------"
+echo "The reproduction pipeline and its environment are SUCCESSFULLY configured."
+echo "Please run the following command to start."
 echo
-echo "    make -j8"
+echo "(Replace '8' with the number of CPU threads)"
+echo
+echo "    ./local/bin/make -j8"
 echo
 echo "To change the configuration later, please re-run './configure',"
 echo "DO NOT manually edit the relevant files."
