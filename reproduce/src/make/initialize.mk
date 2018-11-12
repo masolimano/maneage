@@ -53,7 +53,8 @@ pconfdir    = reproduce/config/pipeline
 # Before defining the local sub-environment here, we'll need to save the
 # system's environment for some scenarios (for example after `clean'ing the
 # built programs).
-sys-rm := $(shell which rm)
+sys-path := $(PATH)
+sys-rm   := $(shell which rm)
 
 
 
@@ -70,11 +71,11 @@ sys-rm := $(shell which rm)
 # build here.
 .ONESHELL:
 .SHELLFLAGS      = -ec
+LD_LIBRARY_PATH := .local/lib
+PATH            := .local/bin
+LDFLAGS         := -L.local/lib
 SHELL           := .local/bin/bash
-PATH            := .local/bin:$(PATH)
-LDFLAGS         := -L.local/lib $(LDFLAGS)
-CPPFLAGS        := -I.local/include $(CPPFLAGS)
-LD_LIBRARY_PATH := .local/lib:$(LD_LIBRARY_PATH)
+CPPFLAGS        := -I.local/include
 
 
 
