@@ -97,20 +97,23 @@ $(tarballs): $(tdir)/%:
 	               | awk '{print $$1}' )
 
           # Set the top download link of the requested tarball.
+	  prefix=""
 	  if   [ $$n = bash        ]; then w=http://ftp.gnu.org/gnu/bash
-	  elif [ $$n = cfitsio     ]; then w=WWWWWWWWWWWWWWWW
-	  elif [ $$n = coreutils   ]; then w=WWWWWWWWWWWWWWWW
-	  elif [ $$n = gawk        ]; then w=WWWWWWWWWWWWWWWW
-	  elif [ $$n = ghostscript ]; then w=WWWWWWWWWWWWWWWW
+	  elif [ $$n = cfitsio     ]; then w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
+	  elif [ $$n = coreutils   ]; then w=http://ftp.gnu.org/gnu/coreutils
+	  elif [ $$n = gawk        ]; then w=http://ftp.gnu.org/gnu/gawk
+	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs925
 	  elif [ $$n = gnuastro    ]; then w=http://akhlaghi.org
-	  elif [ $$n = grep        ]; then w=WWWWWWWWWWWWWWWW
-	  elif [ $$n = gsl         ]; then w=WWWWWWWWWWWWWWWW
-	  elif [ $$n = jpegsrc     ]; then w=WWWWWWWWWWWWWWWW
-	  elif [ $$n = libtool     ]; then w=WWWWWWWWWWWWWWWW
-	  elif [ $$n = libgit      ]; then w=WWWWWWWWWWWWWWWW
-	  elif [ $$n = sed         ]; then w=WWWWWWWWWWWWWWWW
+	  elif [ $$n = grep        ]; then w=http://ftp.gnu.org/gnu/grep
+	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
+	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
+	  elif [ $$n = libtool     ]; then w=ftp://ftp.gnu.org/gnu/libtool
+	  elif [ $$n = libgit      ]; then
+            w=https://github.com/libgit2/libgit2/archive/v0.27.7.tar.gz
+	    prefix=v
+	  elif [ $$n = sed         ]; then w=http://ftp.gnu.org/gnu/sed
 	  elif [ $$n = make        ]; then w=http://akhlaghi.org
-	  elif [ $$n = wcslib      ]; then w=WWWWWWWWWWWWWWWW
+	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -119,7 +122,7 @@ $(tarballs): $(tdir)/%:
 	  fi
 
           # Download the requested tarball.
-	  $(DOWNLOADER) $@ $$w/$*
+	  $(DOWNLOADER) $@ $$w/$$prefix$*
 	fi
 
 
