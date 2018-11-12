@@ -185,7 +185,7 @@ cbuild = cd $(ddir); rm -rf $(2); tar xf $(tdir)/$(1); cd $(2);      \
 $(ildir)/libcfitsio.a: $(tdir)/cfitsio$(cfitsio-version).tar.gz         \
                        $(ildir)/libcurl.a                               \
                        $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), gsl-$(gsl-version), static, \
+	$(call gbuild,$(subst $(tdir),,$<), cfitsio, static,            \
                       --enable-sse2 --enable-reentrant)
 
 $(ildir)/libcurl.a: $(tdir)/curl-$(curl-version).tar.gz \
