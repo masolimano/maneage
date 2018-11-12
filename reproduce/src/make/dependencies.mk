@@ -45,7 +45,7 @@ ildir = $(BDIR)/dependencies/installed/lib
 
 # Define the top-level programs to build (installed in `.local/bin', so for
 # Coreutils, only one of its executables is enough).
-top-level-programs = ls gawk gs grep libtool sed astnoisechisel
+top-level-programs = ls gawk gs grep libtool sed git astnoisechisel
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # This Makefile will be called to also build Bash locally. So when we don't
@@ -74,18 +74,23 @@ LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
 # All the necessary tarballs are defined and prepared with this rule.
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                 \
 	                cfitsio$(cfitsio-version).tar.gz            \
+                        cmake-$(cmake-version).tar.gz               \
                         coreutils-$(coreutils-version).tar.xz       \
+                        curl-$(curl-version).tar.gz                 \
 	                gawk-$(gawk-version).tar.gz                 \
 	                ghostscript-$(ghostscript-version).tar.gz   \
-	                gnuastro-$(gnuastro-version).tar.gz         \
+	                git-$(git-version).tar.xz                   \
+	                gnuastro-$(gnuastro-version).tar.lz         \
 	                grep-$(grep-version).tar.xz                 \
 	                gsl-$(gsl-version).tar.gz                   \
 	                jpegsrc.$(libjpeg-version).tar.gz           \
+                        tiff-$(libtiff-version).tar.gz              \
 	                libtool-$(libtool-version).tar.gz           \
                         libgit2-$(libgit2-version).tar.gz           \
 	                sed-$(sed-version).tar.xz                   \
 	                make-$(make-version).tar.gz                 \
 	                wcslib-$(wcslib-version).tar.bz2            \
+                        zlib-$(zlib-version).tar.gz                 \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -97,23 +102,28 @@ $(tarballs): $(tdir)/%:
 	               | awk '{print $$1}' )
 
           # Set the top download link of the requested tarball.
-	  prefix=""
+	  mergenames=1
 	  if   [ $$n = bash        ]; then w=http://ftp.gnu.org/gnu/bash
 	  elif [ $$n = cfitsio     ]; then w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
+	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = coreutils   ]; then w=http://ftp.gnu.org/gnu/coreutils
+	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = gawk        ]; then w=http://ftp.gnu.org/gnu/gawk
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs925
-	  elif [ $$n = gnuastro    ]; then w=http://akhlaghi.org
+	  elif [ $$n = git         ]; then w=https://mirrors.edge.kernel.org/pub/software/scm/git
+	  elif [ $$n = gnuastro    ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = grep        ]; then w=http://ftp.gnu.org/gnu/grep
 	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = libtool     ]; then w=ftp://ftp.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
-            w=https://github.com/libgit2/libgit2/archive/v0.27.7.tar.gz
-	    prefix=v
+	    mergenames=0
+	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
+	  elif [ $$n = make        ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = sed         ]; then w=http://ftp.gnu.org/gnu/sed
-	  elif [ $$n = make        ]; then w=http://akhlaghi.org
+	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
+	  elif [ $$n = zlib        ]; then w=https://www.zlib.net
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -121,74 +131,111 @@ $(tarballs): $(tdir)/%:
 	    exit 1
 	  fi
 
-          # Download the requested tarball.
-	  $(DOWNLOADER) $@ $$w/$$prefix$*
+          # Download the requested tarball. Note that some packages may not
+          # follow our naming convention (where the package name is merged
+          # with its version number). In such cases, `w' will be the full
+          # address, not just the top directory address. But since we are
+          # storing all the tarballs in one directory, we want it to have
+          # the same naming convention, so we'll download it to a temporary
+          # name, then rename that.
+	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"
+	  else                           tarballurl=$$w
+	  fi
+	  echo "Downloading $$tarballurl"
+	  if [ $$mergenames = 1 ]; then
+	    $(DOWNLOADER) $@ $$tarballurl
+	  else
+	    $(DOWNLOADER) $@_tmp $$tarballurl
+	    mv $@_tmp $@
+	  fi
 	fi
 
 
 
 
 
-# Customized build
-# ----------------
-#
-# Programs that need some customization on their build.
-# For CFITSIO we'll need to intervene manually to remove the check on
-# libcurl (which can be real trouble in this controlled environment).
-$(ildir)/libcfitsio.a: $(ibdir)/ls                              \
-                          $(tdir)/cfitsio$(cfitsio-version).tar.gz
-        # Same as before
-	cd $(ddir)
-	tar xf $(tdir)/cfitsio$(cfitsio-version).tar.gz
-	cd cfitsio
-
-        # Remove the part that checks for the CURL library, so it assumes
-        # that the CURL library wasn't found.
-	awk 'NR<4785 || NR>4847' configure > new_configure
-	mv new_configure configure
-	chmod +x configure
-
-        # Do the standard configuring and building
-	./configure CFLAGS=--static --disable-shared --prefix=$(idir)
-	make; make install;
-	cd ..; rm -rf cfitsio
-
-
-# Why not shared: Gnuastro's configure can't link with it in static mode.
-$(ildir)/libgit2.a: $(tdir)/libgit2-$(libgit2-version).tar.gz
-	cd $(ddir)
-	tar xf $(tdir)/libgit2-$(libgit2-version).tar.gz
-	cd libgit2-$(libgit2-version)
-	mkdir build
-	cd build
-	export CFLAGS="--static $$CFLAGS"
-	cmake .. -DUSE_SSH=OFF -DUSE_OPENSSL=OFF -DBUILD_SHARED_LIBS=OFF \
-                 -DBUILD_CLAR=OFF -DTHREADSAFE=ON
-	cmake --build .
-	cmake .. -DCMAKE_INSTALL_PREFIX=$(idir)
-	cmake --build . --target install
-	cd ../..
-	rm -rf libgit2-$(libgit2-version)
-
-
-
-
-
-# GNU Build system programs
-# -------------------------
-#
-# Programs that use the basic GNU build system.
-gbuild = cd $(ddir); tar xf $(tdir)/$(1); cd $(2);               \
-         if [ $(3)x = staticx ]; then                            \
-         opts="CFLAGS=--static --disable-shared";                \
-         fi;                                                     \
-         ./configure $$opts $(4) --prefix=$(idir); make $(5);    \
-         check="$(6)"; if [ x"$$check" != x ]; then $$check; fi; \
+# Build system rules
+# ------------------
+gbuild = cd $(ddir); rm -rf $(2); tar xf $(tdir)/$(1); cd $(2);      \
+         if [ $(3)x = staticx ]; then                                \
+         opts="CFLAGS=--static --disable-shared";                    \
+         fi;                                                         \
+         ./configure $$opts $(4) --prefix=$(idir); make $(5);        \
+         check="$(6)"; if [ x"$$check" != x ]; then $$check; fi;     \
          make install; cd ..; rm -rf $(2)
 
+
+cbuild = cd $(ddir); rm -rf $(2); tar xf $(tdir)/$(1); cd $(2);      \
+	 rm -rf my-build; mkdir my-build; cd my-build; opts="";      \
+	 if [ $(3)x = staticx ]; then                                \
+	   export CFLAGS="--static $$CFLAGS";                        \
+	   opts="-DBUILD_SHARED_LIBS=OFF";                           \
+	 fi;                                                         \
+	 cmake .. $$opts $(4);                                       \
+	 cmake --build .;                                            \
+	 cmake .. -DCMAKE_INSTALL_PREFIX=$(idir);                    \
+	 cmake --build . --target install; cd ../..; rm -rf $(2)
+
+
+
+
+
+# Libraries
+# ---------
+$(ildir)/libcfitsio.a: $(tdir)/cfitsio$(cfitsio-version).tar.gz         \
+                       $(ildir)/libcurl.a                               \
+                       $(ibdir)/ls
+	$(call gbuild,$(subst $(tdir),,$<), gsl-$(gsl-version), static, \
+                      --enable-sse2 --enable-reentrant)
+
+$(ildir)/libcurl.a: $(tdir)/curl-$(curl-version).tar.gz \
+                    $(ildir)/libz.a                     \
+                    $(ibdir)/ls
+	$(call gbuild,$(subst $(tdir),,$<), curl-$(curl-version), static, \
+                      --without-brotli)
+
+$(ildir)/libgit2.a: $(tdir)/libgit2-$(libgit2-version).tar.gz             \
+                    $(ildir)/libcurl.a                                    \
+                    $(ibdir)/cmake
+	$(call cbuild,$(subst $(tdir),,$<), libgit2-$(libgit2-version),   \
+	              static, -DUSE_SSH=OFF -DUSE_OPENSSL=OFF             \
+                      -DBUILD_CLAR=OFF -DTHREADSAFE=ON, )
+
+$(ildir)/libgsl.a: $(tdir)/gsl-$(gsl-version).tar.gz \
+                   $(ibdir)/ls
+	$(call gbuild,$(subst $(tdir),,$<), gsl-$(gsl-version), static)
+
+$(ildir)/libjpeg.a: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
+	$(call gbuild,$(subst $(tdir),,$<), jpeg-9b, static)
+
+$(ildir)/libtiff.a: $(tdir)/tiff-$(libtiff-version).tar.gz \
+                   $(ibdir)/ls
+	$(call gbuild,$(subst $(tdir),,$<), tiff-$(libtiff-version), static)
+
+$(ildir)/libwcs.a: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
+	           $(ildir)/libcfitsio.a
+	$(call gbuild,$(subst $(tdir),,$<), wcslib-$(wcslib-version),     \
+                      static, LIBS="-pthread -lcurl -lm" --without-pgplot \
+                         --disable-fortran)
+
+# Zlib's `./configure' doesn't use Autoconf's configure script, it just
+# accepts a direct `--static' option.
+$(ildir)/libz.a: $(tdir)/zlib-$(zlib-version).tar.gz
+	$(call gbuild,$(subst $(tdir),,$<), zlib-$(zlib-version), , \
+                      --static)
+
+
+
+
+
+# Programs
+# --------
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz
 	$(call gbuild,$(subst $(tdir),,$<), bash-$(bash-version), static)
 
+$(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
+                $(ibdir)/ls
+	$(call cbuild,$(subst $(tdir),,$<), cmake-$(cmake-version))
 
 # Unfortunately GNU Make needs dynamic linking in two instances: when
 # loading objects (dynamically linked libraries), or when using the
@@ -198,59 +245,41 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz
 $(ibdir)/make: $(tdir)/make-$(make-version).tar.gz
 	$(call gbuild,$(subst $(tdir),,$<), make-$(make-version))
 
-
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz
 	$(call gbuild,$(subst $(tdir),,$<), coreutils-$(coreutils-version), \
                       static)
-
 
 $(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.gz \
                $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir),,$<), gawk-$(gawk-version), static)
 
-
 $(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
               $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir),,$<), sed-$(sed-version), static)
-
 
 $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
                $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir),,$<), grep-$(grep-version), static)
 
-
 $(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.gz \
                   $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir),,$<), libtool-$(libtool-version), static)
-
-
-$(ildir)/libgsl.a: $(tdir)/gsl-$(gsl-version).tar.gz \
-                   $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), gsl-$(gsl-version), static)
-
-
-$(ildir)/libwcs.a: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
-	           $(ildir)/libcfitsio.a
-	$(call gbuild,$(subst $(tdir),,$<), wcslib-$(wcslib-version), , \
-                      LIBS="-pthread -lcurl -lm" --without-pgplot       \
-                         --disable-fortran)
-
 
 $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz \
              $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir),,$<), ghostscript-$(ghostscript-version))
 
+$(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
+             $(ibdir)/ls
+	$(call gbuild,$(subst $(tdir),,$<), git-$(git-version), static)
 
-$(ildir)/libjpeg.a: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
-	$(call gbuild,$(subst $(tdir),,$<), jpeg-9b, static)
-
-
-$(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.gz \
+$(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ildir)/libgsl.a                           \
                          $(ildir)/libcfitsio.a                       \
                          $(ildir)/libwcs.a                           \
                          $(ibdir)/gs                                 \
                          $(ildir)/libjpeg.a                          \
+                         $(ildir)/libtiff.a                          \
                          $(ildir)/libgit2.a                          \
 
 	$(call gbuild,$(subst $(tdir),,$<), gnuastro-$(gnuastro-version), \

@@ -22,21 +22,6 @@
 
 
 
-# (OPTIONAL) Dependencies directory
-# ---------------------------------
-#
-# To ensure an identical build environment, the pipeline will use its own
-# build of the programs it needs. Therefore the tarball of the relevant
-# programs are necessary for this pipeline. If a tarball isn't present in
-# the specified directory, it will be downloaded by the pipeline. Therefore
-# an internet connection will be mandatory.
-#
-# Important note: Keep atleast one blank space before and after `='.
-DEPENDENCIES-DIR = /optional/path/to/directory/containing/tarballs
-
-
-
-
 # Build directory
 # ---------------
 #
@@ -55,8 +40,24 @@ BDIR = /path/of/directory/for/building
 
 
 
-# Memory mapping minimum size
-# ---------------------------
+# (OPTIONAL) Dependencies directory
+# ---------------------------------
+#
+# To ensure an identical build environment, the pipeline will use its own
+# build of the programs it needs. Therefore the tarball of the relevant
+# programs are necessary for this pipeline. If a tarball isn't present in
+# the specified directory, it will be downloaded by the pipeline. Therefore
+# an internet connection will be mandatory.
+#
+# Important note: Keep atleast one blank space before and after `='.
+DEPENDENCIES-DIR = /optional/path/to/directory/containing/tarballs
+
+
+
+
+
+# (OPTIONAL) Memory mapping minimum size
+# --------------------------------------
 #
 # Some programs (for example Gnuastro) can deal with cases where the local
 # system doesn't have enough memory (RAM) to keep large files there. For
@@ -75,8 +76,8 @@ MINMAPSIZE = 1000000000
 
 
 
-# Downloader program
-# ------------------
+# (OPTIONAL) Downloader program
+# -----------------------------
 #
 # The downloder program (and its output option name, for example `wget -O'
 # or `curl -o') that will be used if any of the necessary datasets aren't

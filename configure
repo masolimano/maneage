@@ -76,25 +76,29 @@ echo
 # Identify the downloader tool
 # ----------------------------
 #
-# If cURL is already present, that will be used, otherwise, we'll use
-# Wget. Since the options specifying the output filename are different
-# between the two, we'll also specify the output option within the
-# `downloader' variable. So it is important to first give the output
-# filename after calling `DOWNLOADER' within the Makefiles, and finish the
-# command with the web address.
+# We use Wget for the downloading. As of November 12th, cURL couldn't
+# download Ghostscript's source from its standard address, but Wget
+# could. Until November 12th, we would check for cURL or Wget, so we
+# defined this check system here (explained in the next paragraph of this
+# comment). For now its redundant, but if the fix for cURL is found later,
+# we can add it back (or add other downloaders). So we'll keep it.
+#
+# Since the options specifying the output filename are different between
+# the two, we'll also specify the output option within the `downloader'
+# variable. So it is important to first give the output filename after
+# calling `DOWNLOADER' within the Makefiles, and finish the command with
+# the web address.
 print_downloader_notice=1
-if type curl > /dev/null; then
-    downloader="curl -o"
-elif type wget > /dev/null; then
+if type wget > /dev/null; then
     downloader="wget -O";
 else
     echo "======="
     echo "Warning"
     echo "======="
-    echo "Couldn't find any of the 'curl' or 'wget' programs. They are used"
-    echo "for downloading necessary programs and data if they aren't already"
-    echo "present in the specified directories. Therefore the pipeline will"
-    echo "crash if the necessary files are not already present on the system."
+    echo "Couldn't find GNU Wget. It is used for downloading necessary "
+    echo "programs and data if they aren't already present in the specified "
+    echo "directories. Therefore the pipeline will crash if the necessary "
+    echo "files are not already present on the system."
     echo "======="
     echo
     downloader="no-downloader-found"
@@ -256,7 +260,7 @@ echo
 
 # Notice on build Make and Bash, build top directories
 # ----------------------------------------------------
-tsec=10
+tsec=0
 echo;
 echo;
 echo "----------------";
@@ -268,7 +272,7 @@ echo
 sleep $tsec
 export USE_LOCAL_BASH=no
 bindir=$bdir/dependencies/installed/bin
-make -j2 -f reproduce/src/make/dependencies.mk $bindir/bash $bindir/make
+make -f reproduce/src/make/dependencies.mk $bindir/bash $bindir/make -j2
 
 
 
@@ -313,7 +317,7 @@ echo "Please run the following command to start."
 echo
 echo "(Replace '8' with the number of CPU threads)"
 echo
-echo "    ./local/bin/make -j8"
+echo "    .local/bin/make -j8"
 echo
 echo "To change the configuration later, please re-run './configure',"
 echo "DO NOT manually edit the relevant files."

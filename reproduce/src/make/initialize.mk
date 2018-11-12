@@ -47,6 +47,16 @@ pconfdir    = reproduce/config/pipeline
 
 
 
+# System's environment
+# --------------------
+#
+# Before defining the local sub-environment here, we'll need to save the
+# system's environment for some scenarios (for example after `clean'ing the
+# built programs).
+sys-rm := $(shell which rm)
+
+
+
 # High level environment
 # ----------------------
 #
@@ -113,10 +123,23 @@ $(mtexdir) $(texbdir): | $(texdir); mkdir $@
 clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
 # ------------------------------------------
 clean: clean-mmap
-	rm -rf $(BDIR)
-	rm -f reproduce/build *.pdf *.log *.out *.aux *.auxlock
+        # Delete the top-level PDF file.
+	rm -f *.pdf
+
+        # Delete all the built outputs except the dependency
+        # programs. We'll use Bash's extended options builtin (`shopt') to
+        # enable "extended glob" (for listing of files). It allows extended
+        # features like ignoring the listing of a file with `!()' that we
+        # are using afterwards.
+	shopt -s extglob
+	rm -rf $(BDIR)/!(dependencies)
 distclean: clean
-	rm -f Makefile $(pconfdir)/LOCAL.mk .gnuastro
+        # We'll be deleting the built environent programs and just need the
+        # `rm' program. So for this recipe, we'll use the host system's
+        # `rm', not our own.
+	$(sys-rm) -rf $(BDIR) reproduce/build
+	$(sys-rm) -f Makefile $(pconfdir)/LOCAL.mk .gnuastro .local
+
 
 
 
