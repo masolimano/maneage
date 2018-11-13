@@ -466,15 +466,9 @@ advanced in later stages of your work.
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
      dependency of the pipeline which will be built and used. The main
      reason for this is to demonstrate how critically important it is to
-     version your software. If you do want to use Gnuastro in your
-     pipeline, be sure to un-comment the `onlyversion` option in
-     `reproduce/config/gnuastro/gnuastro.conf` file and set it to your
-     version of Gnuastro. This will force you to keep the pipeline in match
-     with the version of Gnuastro you are using all the time and also allow
-     commits to be exactly reproducible also (for example if you update to
-     a new version of Gnuastro during your research project). If you will
-     be using Gnuastro, you can also remove the "marks" (comments) put in
-     the relevant files of the list below to make them more readable.
+     version your software. If you will be using Gnuastro, you can also
+     remove the "marks" (comments) put in the relevant files of the list
+     below to make them more readable.
 
    - Delete marked part(s) in `configure`.
    - Delete marked parts in `reproduce/src/make/initialize.mk`.

@@ -145,6 +145,22 @@ distclean: clean
 
 
 
+# Check the version of programs which write their version
+# -------------------------------------------------------
+vercheck = prog="$(strip $(1))";                                          \
+	   ver="$(strip $(2))";                                           \
+	   name="$(strip $(3))";                                          \
+	   macro="$(strip $(4))";                                         \
+	   v=$$($$prog --version | awk '/'$$ver'/{print "y"}');           \
+	   if [ x$$v != xy ]; then                                        \
+	     echo; echo "PIPELINE ERROR: Not running $$name $$ver"; echo; \
+	     exit 1;                                                      \
+	   fi;                                                            \
+	   echo "\newcommand{\\$$macro}{$$ver}" >> $@
+
+
+
+
 # Pipeline initialization results
 # -------------------------------
 #
@@ -154,15 +170,22 @@ distclean: clean
 # actually exists, it is also aded as a `.PHONY' target above.
 $(mtexdir)/initialize.tex: | $(mtexdir)
 
-        # Version of the pipeline.
+        # Version of the pipeline and build directory (for LaTeX inputs).
 	@v=$$(git describe --dirty --always);
 	echo "\newcommand{\pipelineversion}{$$v}"  > $@
-
-# --------- Delete for no Gnuastro ---------
-        # Version of Gnuastro.
-	@v=$$(astnoisechisel --version | awk 'NR==1{print $$NF}');
-	echo "\newcommand{\gnuastroversion}{$$v}" >> $@
-# ------------------------------------------
-
-        # Location of the build directory (for LaTeX inputs).
 	@echo "\newcommand{\bdir}{$(BDIR)}"       >> $@
+
+        # Versions of programs (same order as `dependency-versions.mk').
+	$(call vercheck, bash, $(bash-version), GNU Bash, bashversion)
+	$(call vercheck, cmake, $(cmake-version), CMake, cmakeversion)
+	$(call vercheck, ls, $(coreutils-version), GNU Coreutils,       \
+                         coreutilsversion)
+	$(call vercheck, awk, $(gawk-version), GNU AWK, gawkversion)
+	$(call vercheck, gs, $(ghostscript-version), GPL Ghostscript,   \
+	                 ghostscriptversion)
+	$(call vercheck, git, $(git-version), Git, gitversion)
+	$(call vercheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
+                         gnuastroversion)
+	$(call vercheck, grep, $(grep-version), GNU Grep, grepversion)
+	$(call vercheck, make, $(make-version), GNU Make, makeversion)
+	$(call vercheck, sed, $(sed-version), GNU SED, sedversion)
