@@ -147,16 +147,28 @@ distclean: clean
 
 # Check the version of programs which write their version
 # -------------------------------------------------------
-vercheck = prog="$(strip $(1))";                                          \
-	   ver="$(strip $(2))";                                           \
-	   name="$(strip $(3))";                                          \
-	   macro="$(strip $(4))";                                         \
-	   v=$$($$prog --version | awk '/'$$ver'/{print "y"}');           \
-	   if [ x$$v != xy ]; then                                        \
-	     echo; echo "PIPELINE ERROR: Not running $$name $$ver"; echo; \
-	     exit 1;                                                      \
-	   fi;                                                            \
-	   echo "\newcommand{\\$$macro}{$$ver}" >> $@
+pvcheck = prog="$(strip $(1))";                                          \
+	  ver="$(strip $(2))";                                           \
+	  name="$(strip $(3))";                                          \
+	  macro="$(strip $(4))";                                         \
+	  v=$$($$prog --version | awk '/'$$ver'/{print "y"}');           \
+	  if [ x$$v != xy ]; then                                        \
+	    echo; echo "PIPELINE ERROR: Not running $$name $$ver"; echo; \
+	    exit 1;                                                      \
+	  fi;                                                            \
+	  echo "\newcommand{\\$$macro}{$$ver}" >> $@
+
+lvcheck = idir=$(BDIR)/dependencies/installed/include;                   \
+	  f="$$idir/$(strip $(1))";                                      \
+	  ver="$(strip $(2))";                                           \
+	  name="$(strip $(3))";                                          \
+	  macro="$(strip $(4))";                                         \
+	  v=$$(awk '$$1=="\#define" && /'$$ver'/ {print "y"}' $$f);      \
+	  if [ x$$v != xy ]; then                                        \
+	    echo; echo "PIPELINE ERROR: Not linking with $$name $$ver";  \
+	    echo; exit 1;                                                \
+	  fi;                                                            \
+	  echo "\newcommand{\\$$macro}{$$ver}" >> $@
 
 
 
@@ -175,17 +187,33 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\pipelineversion}{$$v}"  > $@
 	@echo "\newcommand{\bdir}{$(BDIR)}"       >> $@
 
-        # Versions of programs (same order as `dependency-versions.mk').
-	$(call vercheck, bash, $(bash-version), GNU Bash, bashversion)
-	$(call vercheck, cmake, $(cmake-version), CMake, cmakeversion)
-	$(call vercheck, ls, $(coreutils-version), GNU Coreutils,       \
+        # Versions of programs (same order as 'dependency-versions.mk').
+	$(call pvcheck, bash, $(bash-version), GNU Bash, bashversion)
+	$(call pvcheck, cmake, $(cmake-version), CMake, cmakeversion)
+	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
                          coreutilsversion)
-	$(call vercheck, awk, $(gawk-version), GNU AWK, gawkversion)
-	$(call vercheck, gs, $(ghostscript-version), GPL Ghostscript,   \
-	                 ghostscriptversion)
-	$(call vercheck, git, $(git-version), Git, gitversion)
-	$(call vercheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
+	$(call pvcheck, awk, $(gawk-version), GNU AWK, gawkversion)
+	$(call pvcheck, gs, $(ghostscript-version), GPL Ghostscript,   \
+	                    ghostscriptversion)
+	$(call pvcheck, git, $(git-version), Git, gitversion)
+	$(call pvcheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
                          gnuastroversion)
-	$(call vercheck, grep, $(grep-version), GNU Grep, grepversion)
-	$(call vercheck, make, $(make-version), GNU Make, makeversion)
-	$(call vercheck, sed, $(sed-version), GNU SED, sedversion)
+	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
+	$(call pvcheck, libtool, $(libtool-version), GNU Libtool,      \
+	                libtoolversion)
+	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
+	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
+
+        # Versions of libraries.
+	$(call lvcheck, fitsio.h, $(cfitsio-version), CFITSIO, cfitsioversion)
+        ########## Curl library not yet checked.
+	$(call lvcheck, gsl/gsl_version.h, $(gsl-version),  \
+	                GNU Scientific Library (GSL), gslversion)
+        ########## libjpeg not  yet checked.
+	$(call lvcheck, git2/version.h, $(libgit2-version), Libgit2, \
+	                libgitwoversion)
+	$(call lvcheck, tiffvers.h, $(libtiff-version), Libtiff, \
+	                libtiffversion)
+	$(call lvcheck, wcslib/wcsconfig.h, $(wcslib-version), WCSLIB, \
+	                wcslibversion)
+	$(call lvcheck, zlib.h, $(zlib-version), zlib, zlibversion)

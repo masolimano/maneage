@@ -72,25 +72,31 @@ LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
 # --------
 #
 # All the necessary tarballs are defined and prepared with this rule.
-tarballs = $(foreach t, bash-$(bash-version).tar.gz                 \
-	                cfitsio$(cfitsio-version).tar.gz            \
-                        cmake-$(cmake-version).tar.gz               \
-                        coreutils-$(coreutils-version).tar.xz       \
-                        curl-$(curl-version).tar.gz                 \
-	                gawk-$(gawk-version).tar.gz                 \
-	                ghostscript-$(ghostscript-version).tar.gz   \
-	                git-$(git-version).tar.xz                   \
-	                gnuastro-$(gnuastro-version).tar.lz         \
-	                grep-$(grep-version).tar.xz                 \
-	                gsl-$(gsl-version).tar.gz                   \
-	                jpegsrc.$(libjpeg-version).tar.gz           \
-                        tiff-$(libtiff-version).tar.gz              \
-	                libtool-$(libtool-version).tar.gz           \
-                        libgit2-$(libgit2-version).tar.gz           \
-	                sed-$(sed-version).tar.xz                   \
-	                make-$(make-version).tar.gz                 \
-	                wcslib-$(wcslib-version).tar.bz2            \
-                        zlib-$(zlib-version).tar.gz                 \
+#
+# Note that we want the tarballs to follow the convention of NAME-VERSION
+# before the `tar.XX' prefix. For those programs that don't follow this
+# convention, but include the name/version in their tarball names with
+# another format, we'll do the modification before the download so the
+# downloaded file has our desired format.
+tarballs = $(foreach t, bash-$(bash-version).tar.gz                   \
+	                cfitsio-$(cfitsio-version).tar.gz             \
+                        cmake-$(cmake-version).tar.gz                 \
+                        coreutils-$(coreutils-version).tar.xz         \
+                        curl-$(curl-version).tar.gz                   \
+	                gawk-$(gawk-version).tar.gz                   \
+	                ghostscript-$(ghostscript-version).tar.gz     \
+	                git-$(git-version).tar.xz                     \
+	                gnuastro-$(gnuastro-version).tar.lz           \
+	                grep-$(grep-version).tar.xz                   \
+	                gsl-$(gsl-version).tar.gz                     \
+	                jpegsrc.$(libjpeg-version).tar.gz             \
+                        tiff-$(libtiff-version).tar.gz                \
+	                libtool-$(libtool-version).tar.gz             \
+                        libgit2-$(libgit2-version).tar.gz             \
+	                sed-$(sed-version).tar.xz                     \
+	                make-$(make-version).tar.gz                   \
+	                wcslib-$(wcslib-version).tar.bz2              \
+                        zlib-$(zlib-version).tar.gz                   \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -98,13 +104,21 @@ $(tarballs): $(tdir)/%:
 	else
           # Remove all numbers, `-' and `.' from the tarball name so we can
           # search more easily only with the program name.
-	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'         \
+	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
 	               | awk '{print $$1}' )
 
           # Set the top download link of the requested tarball.
 	  mergenames=1
 	  if   [ $$n = bash        ]; then w=http://ftp.gnu.org/gnu/bash
-	  elif [ $$n = cfitsio     ]; then w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
+	  elif [ $$n = cfitsio     ]; then
+	    mergenames=0
+	    v=$$(echo $(cfitsio-version) | sed -e's/\.//'             \
+	              | awk '{l=length($1);                           \
+	                      printf (l==4 ? "%d\n"                   \
+	                              : (l==3 ? "%d0\n"               \
+	                                 : (l==2 ? "%d00\n"           \
+                                            : "%d000\n") ), $$1)}')
+	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = coreutils   ]; then w=http://ftp.gnu.org/gnu/coreutils
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
@@ -142,12 +156,7 @@ $(tarballs): $(tdir)/%:
 	  else                           tarballurl=$$w
 	  fi
 	  echo "Downloading $$tarballurl"
-	  if [ $$mergenames = 1 ]; then
-	    $(DOWNLOADER) $@ $$tarballurl
-	  else
-	    $(DOWNLOADER) $@_tmp $$tarballurl
-	    mv $@_tmp $@
-	  fi
+	  $(DOWNLOADER) $@ $$tarballurl
 	fi
 
 
@@ -182,7 +191,7 @@ cbuild = cd $(ddir); rm -rf $(2); tar xf $(tdir)/$(1); cd $(2);      \
 
 # Libraries
 # ---------
-$(ildir)/libcfitsio.a: $(tdir)/cfitsio$(cfitsio-version).tar.gz         \
+$(ildir)/libcfitsio.a: $(tdir)/cfitsio-$(cfitsio-version).tar.gz         \
                        $(ildir)/libcurl.a                               \
                        $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir),,$<), cfitsio, static,            \
