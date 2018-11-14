@@ -525,8 +525,9 @@ advanced in later stages of your work.
      respective files to remove and parts to fix are discussed here.
 
      - `paper.tex`: Delete the text of the abstract and the paper's main
-       body. Only keep a place holder text to later start writing your own
-       contents.
+       body, *except* the "Acknowledgements" section. This reproduction
+       pipeline was designed by funding from many grants, so its necessary
+       to acknowledge them in your final research.
 
      - `Makefile`: Delete the two lines containing `delete-me` in the
        `foreach` loops. Just make sure the other lines that end in `\` are
@@ -548,7 +549,7 @@ advanced in later stages of your work.
      commit to be sure it works as expected).
 
      ```shell
-     $ make clean            # Clean already built pipeline outputs.
+     $ make clean            # Delete outputs ('make distclean' for all outputs)
      $ make                  # Build the pipeline to ensure everything is fine.
      $ git add -u            # Stage all the changes.
      $ git status            # Make sure everything is fine.
