@@ -10,8 +10,10 @@ git-version         = 2.19.1
 gnuastro-version    = 0.7.60-4c9eb
 grep-version        = 3.1
 libtool-version     = 2.4.6
+lzip-version        = 1.20
 make-version        = 4.2.90
 sed-version         = 4.5
+tar-version         = 1.30
 
 # Libraries
 cfitsio-version     = 3.45

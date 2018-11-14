@@ -47,7 +47,11 @@ idir  = $(BDIR)/dependencies/installed
 ibdir = $(BDIR)/dependencies/installed/bin
 ildir = $(BDIR)/dependencies/installed/lib
 
-top-level-programs = bash make
+# As we build more programs, we want to use our own pipeline's built
+# programs, not the systems.
+PATH := $(ibdir):$(PATH)
+
+top-level-programs = bash
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -61,56 +65,62 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 # is not recognized by some versions of Make (even older GNU Makes). So
 # we'll have to make sure the recipe doesn't break into multiple shell
 # calls (so we can preserve the variables).
-tarballs = $(foreach t, bash-$(bash-version).tar.gz                       \
-	                make-$(make-version).tar.gz                       \
+tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
+                        lzip-$(lzip-version).tar.gz                         \
+	                make-$(make-version).tar.gz                         \
+	                tar-$(tar-version).tar.gz                           \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
-	if [ -f $(DEPENDENCIES-DIR)/$* ]; then                            \
-	  cp $(DEPENDENCIES-DIR)/$* $@;                                   \
-	else                                                              \
-	  n=$$(echo $* | sed -e's/[0-9\-]/ /g'                            \
-	                     -e's/\./ /g'                                 \
-	               | awk '{print $$1}' );                             \
-	                                                                  \
-	  mergenames=1;                                                   \
-	  if   [ $$n = bash        ]; then w=http://ftp.gnu.org/gnu/bash; \
-	  elif [ $$n = make        ]; then w=http://akhlaghi.org/src;     \
-	  else                                                            \
-	    echo; echo; echo;                                             \
-	    echo "'$$n' not recognized as a dependency name to download." \
-	    echo; echo; echo;                                             \
-	    exit 1;                                                       \
-	  fi;                                                             \
-	                                                                  \
-	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*";             \
-	  else                           tarballurl=$$w;                  \
-	  fi;                                                             \
-	  echo "Downloading $$tarballurl";                                \
-	  $(DOWNLOADER) $@ $$tarballurl;                                  \
+	if [ -f $(DEPENDENCIES-DIR)/$* ]; then                              \
+	  cp $(DEPENDENCIES-DIR)/$* $@;                                     \
+	else                                                                \
+	  n=$$(echo $* | sed -e's/[0-9\-]/ /g'                              \
+	                     -e's/\./ /g'                                   \
+	               | awk '{print $$1}' );                               \
+	                                                                    \
+	  mergenames=1;                                                     \
+	  if   [ $$n = bash ]; then w=http://ftp.gnu.org/gnu/bash;          \
+	  elif [ $$n = lzip ]; then w=http://download.savannah.gnu.org/releases/lzip; \
+	  elif [ $$n = make ]; then w=http://akhlaghi.org/src;              \
+	  elif [ $$n = tar  ]; then w=http://ftp.gnu.org/gnu/tar;           \
+	  else                                                              \
+	    echo; echo; echo;                                               \
+	    echo "'$$n' not a dependency name (for downloading)."           \
+	    echo; echo; echo;                                               \
+	    exit 1;                                                         \
+	  fi;                                                               \
+	                                                                    \
+	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*";               \
+	  else                           tarballurl=$$w;                    \
+	  fi;                                                               \
+	  echo "Downloading $$tarballurl";                                  \
+	  $(DOWNLOADER) $@ $$tarballurl;                                    \
 	fi
 
 
 
 
 
-# GNU Bash
-# --------
-#
-# Everything is standard and we can make it statically.
-$(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz
-	$(call gbuild,$(subst $(tdir),,$<), bash-$(bash-version), static)
+# Basic programs (sorted alphabetically), see prerequisites for which one
+# will be built first.
+$(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
+	       $(ibdir)/make
+	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version), static)
 
+$(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
+	$(call gbuild,$(subst $(tdir)/,,$<), lzip-$(lzip-version), static)
 
-
-
-
-# GNU Make
-# --------
-#
 # Unfortunately GNU Make needs dynamic linking in two instances: when
 # loading objects (dynamically linked libraries), or when using the
 # `getpwnam' function (for tilde expansion). The first can be disabled with
 # `--disable-load', but unfortunately I don't know any way to fix the
 # second. So, we'll have to build it dynamically for now.
-$(ibdir)/make: $(tdir)/make-$(make-version).tar.gz
-	$(call gbuild,$(subst $(tdir),,$<), make-$(make-version), , , ,)
+$(ibdir)/make: $(tdir)/make-$(make-version).tar.gz \
+               $(ibdir)/tar
+	$(call gbuild,$(subst $(tdir)/,,$<), make-$(make-version), , , ,)
+
+# When built statically, tar gives a segmentation fault on unpacking
+# Bash. So we'll build it dynamically.
+$(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
+              $(ibdir)/lzip
+	$(call gbuild,$(subst $(tdir)/,,$<), tar-$(tar-version))

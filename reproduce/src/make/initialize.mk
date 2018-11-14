@@ -191,8 +191,9 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
         # Versions of programs (same order as 'dependency-versions.mk').
 	$(call pvcheck, bash, $(bash-version), GNU Bash, bashversion)
 	$(call pvcheck, cmake, $(cmake-version), CMake, cmakeversion)
+	$(call pvcheck, curl, $(curl-version), cURL, curlversion)
 	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
-                         coreutilsversion)
+	                coreutilsversion)
 	$(call pvcheck, awk, $(gawk-version), GNU AWK, gawkversion)
 	$(call pvcheck, gs, $(ghostscript-version), GPL Ghostscript,   \
 	                    ghostscriptversion)
@@ -202,12 +203,13 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
 	$(call pvcheck, libtool, $(libtool-version), GNU Libtool,      \
 	                libtoolversion)
+	$(call pvcheck, lzip, $(lzip-version), Lzip, lzipversion)
 	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
+	$(call pvcheck, tar, $(tar-version), GNU Tar, tarversion)
 
         # Versions of libraries.
 	$(call lvcheck, fitsio.h, $(cfitsio-version), CFITSIO, cfitsioversion)
-        ########## Curl library not yet checked.
 	$(call lvcheck, gsl/gsl_version.h, $(gsl-version),  \
 	                GNU Scientific Library (GSL), gslversion)
         ########## libjpeg not  yet checked.

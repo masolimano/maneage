@@ -110,17 +110,19 @@ function absolute_dir() {
 #
 # Print some basic information so the user gets a feeling of what is going
 # on and is prepared on what will happen next.
-echo
-echo "-----------------------------------------"
-echo "Reproduction pipeline local configuration"
-echo "-----------------------------------------"
-echo
-echo "Local configuration includes things like top-level directories,"
-echo "or processing steps."
-echo
-echo "It is STRONGLY recommended to read the comments, and set the best "
-echo "values for your system (where necessary)."
-echo
+cat <<EOF
+
+-----------------------------------------
+Reproduction pipeline local configuration
+-----------------------------------------
+
+Local configuration includes things like top-level directories, or
+processing steps.
+
+It is STRONGLY recommended to read the comments, and set the best values
+for your system (where necessary).
+
+EOF
 
 
 
@@ -172,18 +174,25 @@ fi
 # calling `DOWNLOADER' within the Makefiles, and finish the command with
 # the web address.
 if [ $rewritepconfig = yes ]; then
-    if type wget > /dev/null; then
+    if type wget > /dev/null 2>/dev/null; then
         downloader="wget -O";
     else
-        echo "======="
-        echo "Warning"
-        echo "======="
-        echo "Couldn't find GNU Wget. It is used for downloading necessary "
-        echo "programs and data if they aren't already present in the specified "
-        echo "directories. Therefore the pipeline will crash if the necessary "
-        echo "files are not already present on the system."
-        echo "======="
-        echo
+        cat <<EOF
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Couldn't find GNU Wget. It is used for downloading necessary programs and
+data if they aren't already present in the specified directories. Therefore
+the pipeline will crash if the necessary files are not already present on
+the system.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+EOF
         downloader="no-downloader-found"
     fi;
 fi

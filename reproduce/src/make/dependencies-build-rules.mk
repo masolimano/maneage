@@ -71,7 +71,7 @@ cbuild = if [ $(3)x = staticx ]; then                                   \
 	   opts="-DBUILD_SHARED_LIBS=OFF";                              \
 	 fi;                                                            \
 	 cd $(ddir) && rm -rf $(2) && tar xf $(tdir)/$(1) && cd $(2) && \
-	 rm -rf my-build && mkdir my-build && cd my-build && opts="" && \
+	 rm -rf my-build && mkdir my-build && cd my-build &&            \
 	 cmake .. $$opts $(4) &&                                        \
 	 cmake --build . &&                                             \
 	 cmake .. -DCMAKE_INSTALL_PREFIX=$(idir) &&                     \

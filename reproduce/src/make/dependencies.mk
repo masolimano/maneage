@@ -151,46 +151,42 @@ $(tarballs): $(tdir)/%:
 
 # Libraries
 # ---------
-$(ildir)/libcfitsio.a: $(tdir)/cfitsio-$(cfitsio-version).tar.gz         \
-                       $(ildir)/libcurl.a                               \
+$(ildir)/libcfitsio.a: $(tdir)/cfitsio-$(cfitsio-version).tar.gz           \
+                       $(ildir)/libcurl.a                                  \
                        $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), cfitsio, static,            \
+	$(call gbuild,$(subst $(tdir)/,,$<), cfitsio, static,              \
                       --enable-sse2 --enable-reentrant)
 
-$(ildir)/libcurl.a: $(tdir)/curl-$(curl-version).tar.gz \
-                    $(ildir)/libz.a                     \
-                    $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), curl-$(curl-version), static, \
-                      --without-brotli)
 
-$(ildir)/libgit2.a: $(tdir)/libgit2-$(libgit2-version).tar.gz             \
-                    $(ildir)/libcurl.a                                    \
+$(ildir)/libgit2.a: $(tdir)/libgit2-$(libgit2-version).tar.gz              \
+                    $(ildir)/libcurl.a                                     \
                     $(ibdir)/cmake
-	$(call cbuild,$(subst $(tdir),,$<), libgit2-$(libgit2-version),   \
-	              static, -DUSE_SSH=OFF -DUSE_OPENSSL=OFF             \
-                      -DBUILD_CLAR=OFF -DTHREADSAFE=ON, )
+	$(call cbuild,$(subst $(tdir)/,,$<), libgit2-$(libgit2-version),   \
+	              static, -DUSE_SSH=OFF -DUSE_OPENSSL=OFF              \
+	              -DBUILD_CLAR=OFF -DTHREADSAFE=ON)
 
-$(ildir)/libgsl.a: $(tdir)/gsl-$(gsl-version).tar.gz \
+$(ildir)/libgsl.a: $(tdir)/gsl-$(gsl-version).tar.gz                       \
                    $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), gsl-$(gsl-version), static)
+	$(call gbuild,$(subst $(tdir)/,,$<), gsl-$(gsl-version), static)
 
 $(ildir)/libjpeg.a: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
-	$(call gbuild,$(subst $(tdir),,$<), jpeg-9b, static)
+	$(call gbuild,$(subst $(tdir)/,,$<), jpeg-9b, static)
 
-$(ildir)/libtiff.a: $(tdir)/tiff-$(libtiff-version).tar.gz \
+$(ildir)/libtiff.a: $(tdir)/tiff-$(libtiff-version).tar.gz                 \
                    $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), tiff-$(libtiff-version), static)
+	$(call gbuild,$(subst $(tdir)/,,$<), tiff-$(libtiff-version),      \
+	              static)
 
-$(ildir)/libwcs.a: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
+$(ildir)/libwcs.a: $(tdir)/wcslib-$(wcslib-version).tar.bz2                \
 	           $(ildir)/libcfitsio.a
-	$(call gbuild,$(subst $(tdir),,$<), wcslib-$(wcslib-version),     \
-                      static, LIBS="-pthread -lcurl -lm" --without-pgplot \
+	$(call gbuild,$(subst $(tdir)/,,$<), wcslib-$(wcslib-version),     \
+                      static, LIBS="-pthread -lcurl -lm" --without-pgplot  \
                          --disable-fortran)
 
 # Zlib's `./configure' doesn't use Autoconf's configure script, it just
 # accepts a direct `--static' option.
 $(ildir)/libz.a: $(tdir)/zlib-$(zlib-version).tar.gz
-	$(call gbuild,$(subst $(tdir),,$<), zlib-$(zlib-version), , \
+	$(call gbuild,$(subst $(tdir)/,,$<), zlib-$(zlib-version), ,       \
                       --static)
 
 
@@ -199,37 +195,43 @@ $(ildir)/libz.a: $(tdir)/zlib-$(zlib-version).tar.gz
 
 # Programs
 # --------
-$(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
+$(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz                        \
                 $(ibdir)/ls
-	$(call cbuild,$(subst $(tdir),,$<), cmake-$(cmake-version))
+	$(call cbuild,$(subst $(tdir)/,,$<), cmake-$(cmake-version))
+
+$(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz                           \
+               $(ildir)/libz.a                                               \
+               $(ibdir)/ls
+	$(call gbuild,$(subst $(tdir)/,,$<), curl-$(curl-version), static,   \
+                      --without-brotli)
 
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz
-	$(call gbuild,$(subst $(tdir),,$<), coreutils-$(coreutils-version), \
+	$(call gbuild,$(subst $(tdir)/,,$<), coreutils-$(coreutils-version), \
                       static)
 
 $(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.gz \
                $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), gawk-$(gawk-version), static)
+	$(call gbuild,$(subst $(tdir)/,,$<), gawk-$(gawk-version), static)
 
 $(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
               $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), sed-$(sed-version), static)
+	$(call gbuild,$(subst $(tdir)/,,$<), sed-$(sed-version), static)
 
 $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
                $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), grep-$(grep-version), static)
+	$(call gbuild,$(subst $(tdir)/,,$<), grep-$(grep-version), static)
 
 $(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.gz \
                   $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), libtool-$(libtool-version), static)
+	$(call gbuild,$(subst $(tdir)/,,$<), libtool-$(libtool-version), static)
 
 $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz \
              $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), ghostscript-$(ghostscript-version))
+	$(call gbuild,$(subst $(tdir)/,,$<), ghostscript-$(ghostscript-version))
 
 $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
              $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir),,$<), git-$(git-version), static)
+	$(call gbuild,$(subst $(tdir)/,,$<), git-$(git-version), static)
 
 $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ildir)/libgsl.a                           \
@@ -240,5 +242,5 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ildir)/libtiff.a                          \
                          $(ildir)/libgit2.a                          \
 
-	$(call gbuild,$(subst $(tdir),,$<), gnuastro-$(gnuastro-version), \
+	$(call gbuild,$(subst $(tdir)/,,$<), gnuastro-$(gnuastro-version), \
                       static, , -j8, make check -j8)
