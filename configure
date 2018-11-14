@@ -271,6 +271,7 @@ EOF
         ddir=$tmpddir
         echo " -- Using '$ddir'"
     fi
+    echo
 fi
 
 
@@ -399,12 +400,21 @@ ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
 # Build basic dependencies
 # ------------------------
 tsec=10
-echo "----------------"
-echo "Necessary reproduction pipeline dependencies will be built in $tsec sec."
-echo
-echo "NOTE: the built software will NOT BE INSTALLED on your system, they"
-echo "are only for local usage by this reproduction pipeline (in '$bdir/dependencies/installed')"
-echo
+cat <<EOF
+
+-------------------------
+Building dependencies ...
+-------------------------
+
+Necessary dependency programs and libraries will be built in $tsec sec.
+
+NOTE: the built software will NOT BE INSTALLED on your system (no root
+access is required). They are only for local usage by this reproduction
+pipeline. They will be installed in:
+
+$bdir/dependencies/installed
+
+EOF
 sleep $tsec
 make -f reproduce/src/make/dependencies-basic.mk #-j2
 

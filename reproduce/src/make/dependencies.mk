@@ -31,6 +31,7 @@
 
 # Top level environment
 include reproduce/config/pipeline/LOCAL.mk
+include reproduce/src/make/dependencies-build-rules.mk
 include reproduce/config/pipeline/dependency-versions.mk
 
 ddir  = $(BDIR)/dependencies
@@ -143,32 +144,6 @@ $(tarballs): $(tdir)/%:
 	  echo "Downloading $$tarballurl"
 	  $(DOWNLOADER) $@ $$tarballurl
 	fi
-
-
-
-
-
-# Build system rules
-# ------------------
-gbuild = cd $(ddir); rm -rf $(2); tar xf $(tdir)/$(1); cd $(2);      \
-         if [ $(3)x = staticx ]; then                                \
-         opts="CFLAGS=--static --disable-shared";                    \
-         fi;                                                         \
-         ./configure $$opts $(4) --prefix=$(idir); make $(5);        \
-         check="$(6)"; if [ x"$$check" != x ]; then $$check; fi;     \
-         make install; cd ..; rm -rf $(2)
-
-
-cbuild = cd $(ddir); rm -rf $(2); tar xf $(tdir)/$(1); cd $(2);      \
-	 rm -rf my-build; mkdir my-build; cd my-build; opts="";      \
-	 if [ $(3)x = staticx ]; then                                \
-	   export CFLAGS="--static $$CFLAGS";                        \
-	   opts="-DBUILD_SHARED_LIBS=OFF";                           \
-	 fi;                                                         \
-	 cmake .. $$opts $(4);                                       \
-	 cmake --build .;                                            \
-	 cmake .. -DCMAKE_INSTALL_PREFIX=$(idir);                    \
-	 cmake --build . --target install; cd ../..; rm -rf $(2)
 
 
 

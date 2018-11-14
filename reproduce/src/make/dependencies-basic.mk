@@ -38,6 +38,7 @@
 
 # Top level environment
 include reproduce/config/pipeline/LOCAL.mk
+include reproduce/src/make/dependencies-build-rules.mk
 include reproduce/config/pipeline/dependency-versions.mk
 
 ddir  = $(BDIR)/dependencies
@@ -67,7 +68,8 @@ $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then                            \
 	  cp $(DEPENDENCIES-DIR)/$* $@;                                   \
 	else                                                              \
-	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'               \
+	  n=$$(echo $* | sed -e's/[0-9\-]/ /g'                            \
+	                     -e's/\./ /g'                                 \
 	               | awk '{print $$1}' );                             \
 	                                                                  \
 	  mergenames=1;                                                   \
@@ -86,20 +88,6 @@ $(tarballs): $(tdir)/%:
 	  echo "Downloading $$tarballurl";                                \
 	  $(DOWNLOADER) $@ $$tarballurl;                                  \
 	fi
-
-
-
-
-
-# Build system rules
-# ------------------
-gbuild = cd $(ddir); rm -rf $(2); tar xf $(tdir)/$(1); cd $(2);      \
-         if [ $(3)x = staticx ]; then                                \
-         opts="CFLAGS=--static --disable-shared";                    \
-         fi;                                                         \
-         ./configure $$opts $(4) --prefix=$(idir); make $(5);        \
-         check="$(6)"; if [ x"$$check" != x ]; then $$check; fi;     \
-         make install; cd ..; rm -rf $(2)
 
 
 
@@ -125,4 +113,4 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz
 # `--disable-load', but unfortunately I don't know any way to fix the
 # second. So, we'll have to build it dynamically for now.
 $(ibdir)/make: $(tdir)/make-$(make-version).tar.gz
-	$(call gbuild,$(subst $(tdir),,$<), make-$(make-version))
+	$(call gbuild,$(subst $(tdir),,$<), make-$(make-version), , , ,)

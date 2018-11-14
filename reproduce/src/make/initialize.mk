@@ -139,7 +139,8 @@ distclean: clean
         # `rm' program. So for this recipe, we'll use the host system's
         # `rm', not our own.
 	$(sys-rm) -rf $(BDIR) reproduce/build
-	$(sys-rm) -f Makefile $(pconfdir)/LOCAL.mk .gnuastro .local
+	$(sys-rm) -f Makefile .gnuastro .local
+	$(sys-rm) -f $(pconfdir)/LOCAL.mk $(gconfdir)/gnuastro-local.conf
 
 
 
