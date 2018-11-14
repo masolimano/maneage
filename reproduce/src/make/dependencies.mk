@@ -6,10 +6,6 @@
 # This Makefile will be run by the initial `./configure' script. It is not
 # included into the reproduction pipe after that.
 #
-# This Makefile also builds GNU Bash and GNU Make. Therefore this is the
-# only Makefile in the reproduction pipeline where you MUST NOT assume that
-# GNU Bash or GNU Make are to be used.
-#
 # ------------------------------------------------------------------------
 #
 # Original author:
@@ -48,17 +44,10 @@ ildir = $(BDIR)/dependencies/installed/lib
 top-level-programs = ls gawk gs grep libtool sed git astnoisechisel
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
-# This Makefile will be called to also build Bash locally. So when we don't
-# have it yet, we'll have to use the system's bash.
-ifeq ($(USE_LOCAL_BASH),yes)
-SHELL := $(ibdir)/bash
-else
-SHELL := /bin/sh
-endif
-
 # Other basic environment settings.
 .ONESHELL:
-.SHELLFLAGS      = -ec
+.SHELLFLAGS     := -ec
+SHELL           := $(ibdir)/bash
 PATH            := $(ibdir):$(PATH)
 LDFLAGS         := -L$(ildir) $(LDFLAGS)
 CPPFLAGS        := -I$(idir)/include $(CPPFLAGS)
@@ -78,8 +67,7 @@ LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, bash-$(bash-version).tar.gz                   \
-	                cfitsio-$(cfitsio-version).tar.gz             \
+tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         cmake-$(cmake-version).tar.gz                 \
                         coreutils-$(coreutils-version).tar.xz         \
                         curl-$(curl-version).tar.gz                   \
@@ -94,7 +82,6 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                   \
 	                libtool-$(libtool-version).tar.gz             \
                         libgit2-$(libgit2-version).tar.gz             \
 	                sed-$(sed-version).tar.xz                     \
-	                make-$(make-version).tar.gz                   \
 	                wcslib-$(wcslib-version).tar.bz2              \
                         zlib-$(zlib-version).tar.gz                   \
                       , $(tdir)/$(t) )
@@ -109,8 +96,7 @@ $(tarballs): $(tdir)/%:
 
           # Set the top download link of the requested tarball.
 	  mergenames=1
-	  if   [ $$n = bash        ]; then w=http://ftp.gnu.org/gnu/bash
-	  elif [ $$n = cfitsio     ]; then
+	  if [ $$n = cfitsio     ]; then
 	    mergenames=0
 	    v=$$(echo $(cfitsio-version) | sed -e's/\.//'             \
 	              | awk '{l=length($1);                           \
@@ -133,7 +119,6 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
-	  elif [ $$n = make        ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = sed         ]; then w=http://ftp.gnu.org/gnu/sed
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
@@ -239,20 +224,9 @@ $(ildir)/libz.a: $(tdir)/zlib-$(zlib-version).tar.gz
 
 # Programs
 # --------
-$(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz
-	$(call gbuild,$(subst $(tdir),,$<), bash-$(bash-version), static)
-
 $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
                 $(ibdir)/ls
 	$(call cbuild,$(subst $(tdir),,$<), cmake-$(cmake-version))
-
-# Unfortunately GNU Make needs dynamic linking in two instances: when
-# loading objects (dynamically linked libraries), or when using the
-# `getpwnam' function (for tilde expansion). The first can be disabled with
-# `--disable-load', but unfortunately I don't know any way to fix the
-# second. So, we'll have to build it dynamically for now.
-$(ibdir)/make: $(tdir)/make-$(make-version).tar.gz
-	$(call gbuild,$(subst $(tdir),,$<), make-$(make-version))
 
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz
 	$(call gbuild,$(subst $(tdir),,$<), coreutils-$(coreutils-version), \

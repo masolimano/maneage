@@ -40,6 +40,7 @@ set -e
 # These are defined to help make this script more readable.
 topdir=$(pwd)
 installedlink=.local
+lbdir=reproduce/build
 cdir=reproduce/config
 
 pdir=$cdir/pipeline
@@ -47,6 +48,58 @@ pconf=$pdir/LOCAL.mk
 ptconf=$pdir/LOCAL_tmp.mk
 poconf=$pdir/LOCAL_old.mk
 glconf=$cdir/gnuastro/gnuastro-local.conf
+
+
+
+
+
+# Delete final target of configuration
+# ------------------------------------
+#
+# Without the top-level `Makefile' the user can't run `make' in this
+# directory. But we only want to make it available when we know everything
+# else is set up. So we'll delete it at the start of this configuration and
+# reset the link in the absolute end.
+rm -f Makefile
+
+
+
+
+
+# Notice for top of generated files
+# ---------------------------------
+#
+# In case someone opens the files output from the configuration scripts in
+# a text editor and wants to edit them, it is important to let them know
+# that their changes are not going to be permenant.
+function create_file_with_notice() {
+    if echo "# IMPORTANT: file can be RE-WRITTEN after './configure'"  > $1
+    then
+        echo "#"                                                      >> $1
+        echo "# This file was created during the reproduction"        >> $1
+        echo "# pipeline's configuration ('./configure'). Therefore," >> $1
+        echo "# it is not under version control and any manual "      >> $1
+        echo "# changes to it will be over-written if the pipeline "  >> $1
+        echo "# is re-configured."                                    >> $1
+        echo "#"                                                      >> $1
+    else
+        echo; echo "Can't write to $1"; echo;
+        exit 1
+    fi
+}
+
+
+
+
+
+# Get absolute address
+# --------------------
+#
+# Since the build directory will go into a symbolic link, we want it to be
+# an absolute address. With this function we can make sure of that.
+function absolute_dir() {
+    echo "$(cd "$(dirname "$inbdir")" && pwd )/$(basename "$inbdir")"
+}
 
 
 
@@ -73,6 +126,36 @@ echo
 
 
 
+# What to do with possibly existing configuration file
+# ----------------------------------------------------
+#
+# `LOCAL.mk' is the top-most local configuration for the pipeline. If it
+# already exists when this script is run, we'll make a copy of it as backup
+# (for example the user might have ran `./configure' by mistake).
+rewritepconfig=yes
+rewritegconfig=yes
+if [ -f $pconf ] || [ -f $glconf ]; then
+
+    # If it already exits, see what the user wants to do.
+    echo "Atleast one local configuration file already exists."
+    echo
+    while [ "$userread" != "y" -a "$userread" != "n" ]
+    do
+        read -p"Re-write existing configuration file(s) (y/n)? " userread
+    done
+
+    # Set `rewriteconfig'.
+    if [ $userread = "n" ]; then
+        if [ -f $pconf  ]; then rewritepconfig=no; fi
+        if [ -f $glconf ]; then rewritegconfig=no; fi
+    fi
+    echo
+fi
+
+
+
+
+
 # Identify the downloader tool
 # ----------------------------
 #
@@ -88,157 +171,211 @@ echo
 # variable. So it is important to first give the output filename after
 # calling `DOWNLOADER' within the Makefiles, and finish the command with
 # the web address.
-print_downloader_notice=1
-if type wget > /dev/null; then
-    downloader="wget -O";
-else
-    echo "======="
-    echo "Warning"
-    echo "======="
-    echo "Couldn't find GNU Wget. It is used for downloading necessary "
-    echo "programs and data if they aren't already present in the specified "
-    echo "directories. Therefore the pipeline will crash if the necessary "
-    echo "files are not already present on the system."
-    echo "======="
-    echo
-    downloader="no-downloader-found"
-fi;
+if [ $rewritepconfig = yes ]; then
+    if type wget > /dev/null; then
+        downloader="wget -O";
+    else
+        echo "======="
+        echo "Warning"
+        echo "======="
+        echo "Couldn't find GNU Wget. It is used for downloading necessary "
+        echo "programs and data if they aren't already present in the specified "
+        echo "directories. Therefore the pipeline will crash if the necessary "
+        echo "files are not already present on the system."
+        echo "======="
+        echo
+        downloader="no-downloader-found"
+    fi;
+fi
 
 
 
 
 
-# Write values obtained so far
-# ----------------------------
-#
-# We'll start writing of the local configuration file with the values that
-# have been found so far.
-sed -e 's|@downloader[@]|'"$downloader"'|g' $pconf.in > $ptconf
+# Build directory
+# ---------------
+if [ $rewritepconfig = yes ]; then
+    cat <<EOF
 
+===============
+Build directory
+===============
 
+The "source" (this directory) and "build" directories are treated
+separately. This greatly helps in managing the many intermediate files that
+are created during the build. The intermediate build files don't need to be
+archived or backed up: you can always re-build them with this reproduction
+pipeline. The build directory also needs a relatively large amount of free
+space (atleast serveral Giga-bytes).
 
+'$lbdir' (a symbolic link to the build directory) will also be created
+during this configuration. It can help encourage you to set the actual
+build directory in a very different address from this one (one that can be
+deleted and has large volume), while having easy access to it from here.
 
-
-# Remove possibly existing configuration file?
-# --------------------------------------------
-#
-# `LOCAL.mk' is the top-most local configuration for the pipeline. If it
-# already exists when this script is run, we'll make a copy of it as backup
-# (for example the user might have ran `./configure' by mistake).
-if [ -f $pconf ]; then
-
-    # If it already exits, see what the user wants to do.
-    while [ "$userread" != "y" -a "$userread" != "n" ]
+EOF
+    bdir=""
+    junkname=pure-junk-974adfkj38
+    while [ x$bdir == x ]
     do
-        read -p"A configuration already exists, re-configure (y/n)? " userread
-    done
+        # Ask the user.
+        read -p"Please enter the top build directory: " inbdir
 
-    # Move the configuration if requested.
-    if [ $userread = "y" ]; then
-        if mv $pconf $poconf; then
-            echo "-- Existing configuration moved to '$poconf'."
+        # If it exists, see if we can write in it. If not, try making it.
+        if [ -d $inbdir ]; then
+            if mkdir $inbdir/$junkname 2> /dev/null; then
+                bdir=$(absolute_dir $inbdir)
+                echo " -- Build directory: '$bdir'"
+                rm -rf $inbdir/$junkname
+            else
+                echo " -- Can't write in '$inbdir'"
+            fi
+        else
+            if mkdir $inbdir 2> /dev/null; then
+                bdir=$(absolute_dir $inbdir)
+                echo " -- Build directory set to (the newly created): '$bdir'"
+            else
+                echo " -- Can't create '$inbdir'"
+            fi
         fi
-    else
-        echo "-- Using existing configuration file."
-    fi
-    echo
-fi
-
-
-
-
-
-# Let user edit local settings
-# ----------------------------
-#
-# If the configuration file exists at this stage, the user didn't want to
-# change it. So, we'll open a text editor for the user to read the comments
-# of the necessary local settings and set the top directories manually.
-if ! [ -f $pconf ]; then
-
-    if [ x"$EDITOR" = "x" ]; then
-        userread=$EDITOR
-    else
-        userread=not-an-editor
-    fi
-
-    while ! $userread $ptconf > /dev/null 2>&1
-    do
-        read -p"Your favorite text editor: " userread
     done
-    echo
 fi
 
 
 
 
 
-# Notice for top of files
-# -----------------------
-#
-# In case someone opens the files output from the configuration scripts in
-# a text editor and wants to edit them, it is important to let them know
-# that their changes are not going to be permenant.
-function create_file_with_notice() {
-    if echo "# IMPORTANT: file will be RE-WRITTEN after './configure'" > $1
-    then
-        echo "#"                                                      >> $1
-        echo "# This file was created during the reproduction"        >> $1
-        echo "# pipeline's configuration ('./configure'). Therefore," >> $1
-        echo "# it is not under version control and any manual "      >> $1
-        echo "# changes to it will be over-written if the pipeline "  >> $1
-        echo "# is re-configured."                                    >> $1
-        echo "#"                                                      >> $1
-    else
-        exit 1
+# Dependency tarball directory
+# ----------------------------
+if [ $rewritepconfig = yes ]; then
+    junkddir="/optional/path"
+    ddir=$junkddir
+    cat <<EOF
+
+---------------------------------------
+(OPTIONAL) Dependency tarball directory
+---------------------------------------
+
+To ensure an identical build environment, the pipeline will use its own
+build of the programs it needs. Therefore the tarball of the relevant
+programs are necessary for this pipeline. If a tarball isn't present in the
+specified directory, *IT WILL BE DOWNLOADED* by the pipeline.
+
+Therefore, if you don't specify any directory here, or it doesn't contain
+the tarball of a dependency, it is necessary to have an internet
+connection. The pipeline will download the tarballs it needs automatically.
+
+EOF
+    read -p"(OPTIONAL) Directory of dependency tarballs ($ddir): " tmpddir
+    if [ x"$tmpddir" != x ]; then
+        ddir=$tmpddir
+        echo " -- Using '$ddir'"
     fi
-}
+fi
+
+
+
+
+
+# Memory mapping minimum size
+# ---------------------------
+if [ $rewritegconfig = yes ]; then
+    defaultminmapsize=1000000000
+    minmapsize=$defaultminmapsize
+    cat <<EOF
+
+---------------------------
+Minimum memory mapping size
+---------------------------
+
+Some programs (for example Gnuastro) can deal with cases where the local
+system doesn't have enough memory (RAM) to keep large files. For example,
+they will create memory-mapped (mmap) files on the HDD or SSD and
+read/write to/from them instead of RAM. This will ofcourse, slow down the
+processing, but atleast the program won't crash.
+
+Since the memory requirements of different systems are different and it has
+no effect on the software's final result, the minimum size of an allocated
+array to warrant a mapping to HDD/SSD instead of RAM must also be defined
+here. This value will be used in the programs that support this feature.
+
+EOF
+
+    read -p"Minimum memory mapping size in bytes (default: $minmapsize): " \
+         tmpminmapsize
+    if [ x"$tmpminmapsize" != x ]; then
+        minmapsize=$tmpminmapsize
+        echo " -- Using '$minmapsize'"
+    fi
+fi
+
+
+
+
+
+# Write the parameters into the local configuration file.
+if [ $rewritepconfig = yes ]; then
+    create_file_with_notice $pconf
+    sed -e's|@bdir[@]|'"$bdir"'|'              \
+        -e's|@ddir[@]|'"$ddir"'|'              \
+        -e's|@downloader[@]|'"$downloader"'|'  \
+        $pconf.in >> $pconf
+else
+    # Read the values from existing configuration file.
+    inbdir=$(awk     '$1=="BDIR"             {print $NF}' $pconf)
+    ddir=$(awk       '$1=="DEPENDENCIES-DIR" {print $NF}' $pconf)
+    downloader=$(awk '$1=="DOWNLOADER"       {print $NF}' $pconf)
+
+    # Make sure `bdir' is an absolute path and it exists.
+    bdir=$(absolute_dir $inbdir)
+    if ! [ -d $bdir ]; then mkdir $bdir; fi
+fi
 
 
 
 
 
 # --------- Delete for no Gnuastro ---------
+# Get the version of Gnuastro that must be used.
+depverfile=reproduce/config/pipeline/dependency-versions.mk
+gversion=$(awk '$1=="gnuastro-version" {print $NF}' $depverfile)
+
 # Gnuastro's local configuration settings
-#
-# The `minmapsize' parameter has been set by the user, so we can read it
-# and add it to Gnuastro's local configuration file.
-create_file_with_notice $glconf
-mm=$(awk '$1=="MINMAPSIZE"{print $3}' $ptconf)
-echo "# Minimum number of bytes to use HDD/SSD instead of RAM." >> $glconf
-echo " minmapsize $mm"                                          >> $glconf
+if [ $rewritegconfig = yes ]; then
+    create_file_with_notice $glconf
+    echo "# Minimum number of bytes to use HDD/SSD instead of RAM." >> $glconf
+    echo " minmapsize $minmapsize"                                  >> $glconf
+    echo                                                            >> $glconf
+    echo "# Version of Gnuastro that must be used."                 >> $glconf
+    echo " onlyversion $gversion"                                   >> $glconf
+else
+    ingversion=$(awk '$1=="onlyversion" {print $NF}' $glconf)
+    if [ x$ingversion != x$gversion ]; then
+        echo "______________________________________________________"
+        echo "!!!!!!!!!!!!!!!!!!CONFIGURATION ERROR!!!!!!!!!!!!!!!!!"
+        echo
+        echo "Gnuastro's version in '$glconf' ($ingversion) doesn't match the tarball version that this pipeline was designed to use in '$depverfile' ($gversion). Please re-run after removing the former file:"
+        echo
+        echo "   $ rm $glconf"
+        echo "   $ ./configure"
+        echo
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo
+        exit 1
+    fi
+fi
 # ------------------------------------------
 
 
 
 
 
-# Final pipeline local settings
-# -----------------------------
-#
-# Make the final file that will be used and delete the temporary file along
-# with a possible file ending with `~' that is put there by some editors.
-if ! [ -f $pconf ]; then
-    create_file_with_notice $pconf
-    cat $ptconf >> $pconf
-fi
-rm -f $ptconf $ptconf"~"
-
-
-
-
-# Read the necessary directories and build the top build directory as well
-# as the symbolic link to it.
-lbdir=reproduce/build
+# Setup the top-level directories
+# -------------------------------
 rm -f $lbdir
+ln -s $bdir $lbdir
 
-bdir=$(awk '/BDIR =/             {print $3}' $pconf)
-ddir=$(awk '/DEPENDENCIES-DIR =/ {print $3}' $pconf)
-if ! [ -d $bdir ]; then mkdir $bdir; fi
-absolutebdir=$(readlink -f $bdir)
-ln -s $absolutebdir $lbdir
-
-depdir=$absolutebdir/dependencies
+depdir=$bdir/dependencies
 if ! [ -d $depdir ];  then mkdir $depdir; fi
 
 tardir=$depdir/tarballs
@@ -250,38 +387,6 @@ if ! [ -d $instdir ]; then mkdir $instdir; fi
 rm -f $installedlink
 ln -s $instdir $installedlink
 
-echo "Build directory ready: $absolutebdir";
-echo "... 'reproduce/build' is a symbolic link to it (for easy access).";
-echo
-
-
-
-
-
-# Notice on build Make and Bash, build top directories
-# ----------------------------------------------------
-tsec=0
-echo;
-echo;
-echo "----------------";
-echo "Necessary reproduction pipeline dependencies will be built in $tsec sec."
-echo
-echo "NOTE: the built software will NOT BE INSTALLED on your system, they"
-echo "are only for local usage by this reproduction pipeline."
-echo
-sleep $tsec
-export USE_LOCAL_BASH=no
-bindir=$bdir/dependencies/installed/bin
-make -f reproduce/src/make/dependencies.mk $bindir/bash $bindir/make -j2
-
-
-
-
-
-# Build the final symbolic links
-cd $topdir
-rm -f Makefile
-ln -s $(pwd)/reproduce/src/make/Top-Makefile Makefile
 # --------- Delete for no Gnuastro ---------
 rm -f .gnuastro
 ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
@@ -291,15 +396,30 @@ ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
 
 
 
-# Build all the necsesary dependencies
-# ------------------------------------
+# Build basic dependencies
+# ------------------------
+tsec=10
+echo "----------------"
+echo "Necessary reproduction pipeline dependencies will be built in $tsec sec."
+echo
+echo "NOTE: the built software will NOT BE INSTALLED on your system, they"
+echo "are only for local usage by this reproduction pipeline (in '$bdir/dependencies/installed')"
+echo
+sleep $tsec
+make -f reproduce/src/make/dependencies-basic.mk #-j2
+
+
+
+
+
+# Rest of dependencies
+# --------------------
 #
 # We will be making all the dependencies before running the top-level
 # Makefile. To make the job easier, we'll do it in a Makefile, not a
 # script. Bash and Make were the tools we need to run Makefiles, so we had
 # to build them in this script. But after this, we can rely on Makefiles.
-export USE_LOCAL_BASH=yes
-.local/bin/make -f reproduce/src/make/dependencies.mk -j8
+.local/bin/make -f reproduce/src/make/dependencies.mk #-j8
 
 
 
@@ -311,10 +431,10 @@ export USE_LOCAL_BASH=yes
 # The configuration is now complete, we can inform the user on the next
 # step(s) to take.
 echo
-echo "------"
+echo "----------------"
 echo "The reproduction pipeline and its environment are SUCCESSFULLY configured."
-echo "Please run the following command to start."
 echo
+echo "Please run the following command to start."
 echo "(Replace '8' with the number of CPU threads)"
 echo
 echo "    .local/bin/make -j8"
@@ -322,3 +442,14 @@ echo
 echo "To change the configuration later, please re-run './configure',"
 echo "DO NOT manually edit the relevant files."
 echo
+
+
+
+
+
+# Final target: the Makefile
+# --------------------------
+#
+# To see why this is the last step of the configuration, see above (when we
+# delete the top-level Makefile at the start of this script).
+ln -s $(pwd)/reproduce/src/make/Top-Makefile Makefile
