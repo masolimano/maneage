@@ -2,6 +2,8 @@
 
 # Programs
 bash-version        = 4.4.18
+binutils-version    = 2.31.1
+bzip2-version       = 1.0.6
 cmake-version       = 3.12.4
 coreutils-version   = 8.30
 gawk-version        = 4.2.1
@@ -9,11 +11,13 @@ ghostscript-version = 9.25
 git-version         = 2.19.1
 gnuastro-version    = 0.7.62-13b0
 grep-version        = 3.1
+gzip-version        = 1.9.10-051e
 libtool-version     = 2.4.6
 lzip-version        = 1.20
 make-version        = 4.2.90
 sed-version         = 4.5
 tar-version         = 1.30
+xz-version          = 5.2.4
 
 # Libraries
 cfitsio-version     = 3.45

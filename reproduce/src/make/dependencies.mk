@@ -72,7 +72,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         cmake-$(cmake-version).tar.gz                 \
                         coreutils-$(coreutils-version).tar.xz         \
                         curl-$(curl-version).tar.gz                   \
-	                gawk-$(gawk-version).tar.gz                   \
+	                gawk-$(gawk-version).tar.lz                   \
 	                ghostscript-$(ghostscript-version).tar.gz     \
 	                git-$(git-version).tar.xz                     \
 	                gnuastro-$(gnuastro-version).tar.lz           \
@@ -80,11 +80,10 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
 	                gsl-$(gsl-version).tar.gz                     \
 	                jpegsrc.$(libjpeg-version).tar.gz             \
                         tiff-$(libtiff-version).tar.gz                \
-	                libtool-$(libtool-version).tar.gz             \
+	                libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
 	                sed-$(sed-version).tar.xz                     \
 	                wcslib-$(wcslib-version).tar.bz2              \
-                        zlib-$(zlib-version).tar.gz                   \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -123,7 +122,6 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = sed         ]; then w=http://ftp.gnu.org/gnu/sed
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
-	  elif [ $$n = zlib        ]; then w=https://www.zlib.net
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -152,15 +150,15 @@ $(tarballs): $(tdir)/%:
 # Libraries
 # ---------
 $(ildir)/libcfitsio.a: $(tdir)/cfitsio-$(cfitsio-version).tar.gz           \
-                       $(ildir)/libcurl.a                                  \
+                       $(ibdir)/curl                                       \
                        $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir)/,,$<), cfitsio, static,              \
                       --enable-sse2 --enable-reentrant)
 
 
 $(ildir)/libgit2.a: $(tdir)/libgit2-$(libgit2-version).tar.gz              \
-                    $(ildir)/libcurl.a                                     \
-                    $(ibdir)/cmake
+                    $(ibdir)/cmake                                         \
+                    $(ibdir)/curl
 	$(call cbuild,$(subst $(tdir)/,,$<), libgit2-$(libgit2-version),   \
 	              static, -DUSE_SSH=OFF -DUSE_OPENSSL=OFF              \
 	              -DBUILD_CLAR=OFF -DTHREADSAFE=ON)
@@ -179,15 +177,13 @@ $(ildir)/libtiff.a: $(tdir)/tiff-$(libtiff-version).tar.gz                 \
 
 $(ildir)/libwcs.a: $(tdir)/wcslib-$(wcslib-version).tar.bz2                \
 	           $(ildir)/libcfitsio.a
-	$(call gbuild,$(subst $(tdir)/,,$<), wcslib-$(wcslib-version),     \
-                      static, LIBS="-pthread -lcurl -lm" --without-pgplot  \
-                         --disable-fortran)
-
-# Zlib's `./configure' doesn't use Autoconf's configure script, it just
-# accepts a direct `--static' option.
-$(ildir)/libz.a: $(tdir)/zlib-$(zlib-version).tar.gz
-	$(call gbuild,$(subst $(tdir)/,,$<), zlib-$(zlib-version), ,       \
-                      --static)
+        # Unfortunately WCSLIB forces the building of shared libraries. So
+        # we'll allow it to finish, then remove the shared libraries
+        # afterwards.
+	$(call gbuild,$(subst $(tdir)/,,$<), wcslib-$(wcslib-version), ,   \
+                      LIBS="-pthread -lcurl -lm" --without-pgplot          \
+                      --disable-fortran)
+	rm -f $(ildir)/libwcs.so*
 
 
 
@@ -209,7 +205,7 @@ $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz
 	$(call gbuild,$(subst $(tdir)/,,$<), coreutils-$(coreutils-version), \
                       static)
 
-$(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.gz \
+$(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
                $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir)/,,$<), gawk-$(gawk-version), static)
 
@@ -221,7 +217,7 @@ $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
                $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir)/,,$<), grep-$(grep-version), static)
 
-$(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.gz \
+$(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.xz \
                   $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir)/,,$<), libtool-$(libtool-version), static)
 

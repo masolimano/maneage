@@ -48,15 +48,15 @@
 #  4: Extra configuration options.
 #  5: Extra options/arguments to pass to Make.
 #  6: Step to run between `make' and `make install': usually `make check'.
-gbuild = if [ $(3)x = staticx ]; then export LDFLAGS="$$LDFLAGS -static"; fi;\
-	 check="$(6)";                                                       \
-	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi;        \
-	 cd $(ddir) && rm -rf $(2) && tar xf $(tdir)/$(1) && cd $(2) &&      \
-	 ./configure $(4) --prefix=$(idir) &&                                \
-	 make $(5) &&                                                        \
-	 $$check &&                                                          \
-	 make install&&                                                      \
-	 cd ..&& rm -rf $(2)
+gbuild = if [ $(3)x = staticx ]; then export LDFLAGS="$$LDFLAGS -static"; fi; \
+	 check="$(6)";                                                        \
+	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi;         \
+	 cd $(ddir) && rm -rf $(2) && tar xf $(tdir)/$(1) && cd $(2) &&       \
+	 ./configure $(4) --prefix=$(idir) &&                                 \
+	 make $(5) &&                                                         \
+	 $$check &&                                                           \
+	 make install&&                                                       \
+	 cd .. && rm -rf $(2)
 
 
 
@@ -64,15 +64,16 @@ gbuild = if [ $(3)x = staticx ]; then export LDFLAGS="$$LDFLAGS -static"; fi;\
 
 # CMake
 # -----
-cbuild = if [ $(3)x = staticx ]; then                                        \
-	   export LDFLAGS="$$LDFLAGS -static";                               \
-	   opts="-DBUILD_SHARED_LIBS=OFF";                                   \
-	 fi;                                                                 \
-	 cd $(ddir) && rm -rf $(2) && tar xf $(tdir)/$(1) && cd $(2) &&      \
-	 rm -rf my-build && mkdir my-build && cd my-build &&                 \
-	 cmake .. $$opts $(4) &&                                             \
-	 cmake --build . &&                                                  \
-	 cmake .. -DCMAKE_INSTALL_PREFIX=$(idir) &&                          \
-	 cmake --build . --target install &&                                 \
-	 cd ../.. &&                                                         \
+cbuild = if [ $(3)x = staticx ]; then                                         \
+	   export LDFLAGS="$$LDFLAGS -static";                                \
+	   opts="-DBUILD_SHARED_LIBS=OFF";                                    \
+	 fi;                                                                  \
+	 cd $(ddir) && rm -rf $(2) && tar xf $(tdir)/$(1) && cd $(2) &&       \
+	 rm -rf pipeline-build && mkdir pipeline-build &&                     \
+	 cd pipeline-build &&                                                 \
+	 cmake .. $$opts $(4) &&                                              \
+	 cmake --build . &&                                                   \
+	 cmake .. -DCMAKE_INSTALL_PREFIX=$(idir) &&                           \
+	 cmake --build . --target install &&                                  \
+	 cd ../.. &&                                                          \
 	 rm -rf $(2)

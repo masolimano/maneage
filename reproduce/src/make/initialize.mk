@@ -152,7 +152,7 @@ pvcheck = prog="$(strip $(1))";                                          \
 	  ver="$(strip $(2))";                                           \
 	  name="$(strip $(3))";                                          \
 	  macro="$(strip $(4))";                                         \
-	  v=$$($$prog --version | awk '/'$$ver'/{print "y"}');           \
+	  v=$$($$prog --version | awk '/'$$ver'/{print "y"; exit 0}');   \
 	  if [ x$$v != xy ]; then                                        \
 	    echo; echo "PIPELINE ERROR: Not running $$name $$ver"; echo; \
 	    exit 1;                                                      \
@@ -164,7 +164,7 @@ lvcheck = idir=$(BDIR)/dependencies/installed/include;                   \
 	  ver="$(strip $(2))";                                           \
 	  name="$(strip $(3))";                                          \
 	  macro="$(strip $(4))";                                         \
-	  v=$$(awk '$$1=="\#define" && /'$$ver'/ {print "y"}' $$f);      \
+	  v=$$(awk '$$1=="\#define" && /'$$ver'/{print "y";exit 0}' $$f);\
 	  if [ x$$v != xy ]; then                                        \
 	    echo; echo "PIPELINE ERROR: Not linking with $$name $$ver";  \
 	    echo; exit 1;                                                \
@@ -190,6 +190,7 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Versions of programs (same order as 'dependency-versions.mk').
 	$(call pvcheck, bash, $(bash-version), GNU Bash, bashversion)
+	$(call pvcheck, nm, $(binutils-version), GNU Binutils, binutilsversion)
 	$(call pvcheck, cmake, $(cmake-version), CMake, cmakeversion)
 	$(call pvcheck, curl, $(curl-version), cURL, curlversion)
 	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
@@ -207,6 +208,19 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
 	$(call pvcheck, tar, $(tar-version), GNU Tar, tarversion)
+	$(call pvcheck, xz, $(xz-version), XZ Utils, xzversion)
+
+        # Bzip2 prints its version in standard error, not standard output!
+	echo "here0"
+	echo "" | bzip2 --version &> $@_bzip2_ver;
+	v=$$(awk 'NR==1 && /'$(bzip2-version)'/{print "y"; exit 0}'        \
+	         $@_bzip2_ver);                                            \
+	if [ x$$v != xy ]; then                                            \
+	  echo; echo "PIPELINE ERROR: Not running Bzip2 $(bzip2-version)"; \
+	  echo; exit 1;                                                    \
+	fi;                                                                \
+	echo "\newcommand{\\bziptwoversion}{$(bzip2-version)}" >> $@
+
 
         # Versions of libraries.
 	$(call lvcheck, fitsio.h, $(cfitsio-version), CFITSIO, cfitsioversion)

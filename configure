@@ -456,7 +456,7 @@ echo
 echo "Please run the following command to start."
 echo "(Replace '8' with the number of CPU threads)"
 echo
-echo "    .local/bin/make -j8"
+echo "    ./.local/bin/make -j8"
 echo
 echo "To change the configuration later, please re-run './configure',"
 echo "DO NOT manually edit the relevant files."
