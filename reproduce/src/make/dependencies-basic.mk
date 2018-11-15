@@ -105,7 +105,8 @@ $(tarballs): $(tdir)/%:
 # will be built first.
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 	       $(ibdir)/make
-	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version), static)
+	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version), , \
+               --enable-static-link)
 
 $(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
 	$(call gbuild,$(subst $(tdir)/,,$<), lzip-$(lzip-version), static)

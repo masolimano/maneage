@@ -421,7 +421,7 @@ NOTE: the built software will NOT BE INSTALLED on your system (no root
 access is required). They are only for local usage by this reproduction
 pipeline. They will be installed in:
 
-$bdir/dependencies/installed
+  $bdir/dependencies/installed
 
 EOF
 sleep $tsec
