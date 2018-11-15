@@ -112,10 +112,10 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = make     ]; then w=http://akhlaghi.org/src;          \
 	  elif [ $$n = tar      ]; then w=http://ftp.gnu.org/gnu/tar;       \
 	  elif [ $$n = xz       ]; then w=http://tukaani.org/xz;            \
-	  elif [ $$n = zlib     ]; then w=http://www.zlib.net               \
+	  elif [ $$n = zlib     ]; then w=http://www.zlib.net;              \
 	  else                                                              \
 	    echo; echo; echo;                                               \
-	    echo "'$$n' not a dependency name (for downloading)."           \
+	    echo "'$$n' not a basic dependency name (for downloading)."     \
 	    echo; echo; echo;                                               \
 	    exit 1;                                                         \
 	  fi;                                                               \
