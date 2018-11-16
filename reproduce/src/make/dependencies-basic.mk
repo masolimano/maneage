@@ -134,8 +134,16 @@ $(tarballs): $(tdir)/%:
 # GNU Lzip: For a static build, the `-static' flag should be given to
 # LDFLAGS on the command-line (not from the environment).
 $(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
+	echo; echo $(static_build); echo;
+ifeq ($(static_build),yes)
 	$(call gbuild,$(subst $(tdir)/,,$<), lzip-$(lzip-version), , \
-                      LDFLAGS="-static")
+	              LDFLAGS="-static")
+else
+	$(call gbuild,$(subst $(tdir)/,,$<), lzip-$(lzip-version))
+endif
+
+
+
 
 
 # GNU Gzip.
@@ -144,22 +152,45 @@ $(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.lz  \
 	$(call gbuild,$(subst $(tdir)/,,$<), gzip-$(gzip-version), static)
 
 
+
+
+
 # Zlib: its `./configure' doesn't use Autoconf's configure script, it just
 # accepts a direct `--static' option.
 $(ildir)/libz.a: $(tdir)/zlib-$(zlib-version).tar.gz
+ifeq ($(static_build),yes)
 	$(call gbuild,$(subst $(tdir)/,,$<), zlib-$(zlib-version), ,   \
                       --static)
+else
+	$(call gbuild,$(subst $(tdir)/,,$<), zlib-$(zlib-version))
+endif
+
+
+
+
 
 # XZ Utils
 $(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz
 	$(call gbuild,$(subst $(tdir)/,,$<), xz-$(xz-version), static)
 
+
+
+
+
 # Bzip2: Bzip2 doesn't have a configure script.
 $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	 tdir=bzip2-$(bzip2-version);                                  \
+	 if [ $(static_build) = yes ]; then                            \
+	   makecommand="make LDFLAGS=-static";                         \
+	 else                                                          \
+	   makecommand="make";                                         \
+	 fi;                                                           \
 	 cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir &&      \
-	 make LDFLAGS=-static && make install PREFIX=$(idir) &&        \
+	 $$makecommand && make install PREFIX=$(idir) &&               \
 	 cd .. && rm -rf $$tdir
+
+
+
 
 
 # GNU Binutils:
@@ -168,6 +199,10 @@ $(ibdir)/nm: $(tdir)/binutils-$(binutils-version).tar.lz \
              $(ildir)/libz.a
 	$(call gbuild,$(subst $(tdir)/,,$<), binutils-$(binutils-version), \
                       static)
+
+
+
+
 
 # GNU Tar: When built statically, tar gives a segmentation fault on
 # unpacking Bash. So we'll build it dynamically.
@@ -179,6 +214,10 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
               $(ibdir)/nm
 	$(call gbuild,$(subst $(tdir)/,,$<), tar-$(tar-version))
 
+
+
+
+
 # GNU Make: Unfortunately it needs dynamic linking in two instances: when
 # loading objects (dynamically linked libraries), or when using the
 # `getpwnam' function (for tilde expansion). The first can be disabled with
@@ -188,8 +227,16 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
                $(ibdir)/tar
 	$(call gbuild,$(subst $(tdir)/,,$<), make-$(make-version))
 
+
+
+
+
 # GNU Bash
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 	       $(ibdir)/make
+ifeq ($(static_build),yes)
 	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version), , \
                --enable-static-link)
+else
+	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version))
+endif
