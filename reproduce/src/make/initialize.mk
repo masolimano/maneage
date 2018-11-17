@@ -55,7 +55,7 @@ pconfdir    = reproduce/config/pipeline
 # built programs).
 sys-path := $(PATH)
 sys-rm   := $(shell which rm)
-
+curdir   := $(shell echo $$(pwd))
 
 
 # High level environment
@@ -71,11 +71,11 @@ sys-rm   := $(shell which rm)
 # build here.
 .ONESHELL:
 .SHELLFLAGS      = -ec
-LD_LIBRARY_PATH := .local/lib
-PATH            := .local/bin
-LDFLAGS         := -L.local/lib
 SHELL           := .local/bin/bash
-CPPFLAGS        := -I.local/include
+LD_LIBRARY_PATH := $(curdir)/.local/lib
+LDFLAGS         := -L$(curdir)/.local/lib
+CPPFLAGS        := -I$(curdir)/.local/include
+PATH            := $(curdir)/.local/bin:$(shell ls -d $$(pwd)/.local/texlive/2018/bin/*)
 
 
 
@@ -211,7 +211,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, xz, $(xz-version), XZ Utils, xzversion)
 
         # Bzip2 prints its version in standard error, not standard output!
-	echo "here0"
 	echo "" | bzip2 --version &> $@_bzip2_ver;
 	v=$$(awk 'NR==1 && /'$(bzip2-version)'/{print "y"; exit 0}'        \
 	         $@_bzip2_ver);                                            \

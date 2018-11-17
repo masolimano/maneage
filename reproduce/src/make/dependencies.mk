@@ -42,7 +42,7 @@ ildir = $(BDIR)/dependencies/installed/lib
 
 # Define the top-level programs to build (installed in `.local/bin', so for
 # Coreutils, only one of its executables is enough).
-top-level-programs = ls gawk gs grep libtool sed git astnoisechisel
+top-level-programs = ls gawk gs grep libtool sed git tex astnoisechisel
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings.
@@ -239,4 +239,24 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ildir)/libgit2.a                          \
 
 	$(call gbuild,$(subst $(tdir)/,,$<), gnuastro-$(gnuastro-version), \
-                      static, , -j8, make check -j8)
+	              static, --enable-static=yes --enable-shared=no, -j8, \
+	              make check -j8)
+
+$(ibdir)/tex:
+
+        # First we'll download the tarball. Note that since the most recent
+        # installer is downloaded by day, the installer's version is hard
+        # to configure at this stage.
+	#wget -O$(tdir)/install-tl-unx.tar.gz                         \
+	#     http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+
+        # Unpack, enter the directory and run the installer.
+	topdir=$$(pwd)
+	cd $(ddir)
+	tar xf $(tdir)/install-tl-unx.tar.gz
+	cd install-tl-*
+	sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
+	    $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
+	./install-tl --profile=texlive.conf
+	cd ..
+	rm -rf install-tl-*

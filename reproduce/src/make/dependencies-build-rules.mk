@@ -48,7 +48,7 @@
 #  4: Extra configuration options.
 #  5: Extra options/arguments to pass to Make.
 #  6: Step to run between `make' and `make install': usually `make check'.
-gbuild = if [ x$(static_build) = xyes ] && $(3)x = staticx ]; then            \
+gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	   export LDFLAGS="$$LDFLAGS -static";                                \
 	 fi;                                                                  \
 	 check="$(6)";                                                        \

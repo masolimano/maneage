@@ -39,7 +39,7 @@ $(texbdir)/paper.bbl: tex/references.tex                         \
                       | $(tikzdir) $(texbdir) tex/pipeline.tex
 
         # To find LaTeX (which currently isn't internally installed).
-	PATH=$(sys-path)
+	#PATH=$(sys-path)
 
         # We'll run LaTeX first to generate the `.bcf' file (necessary for
         # `biber') and then run `biber' to generate the `.bbl' file.
@@ -65,7 +65,7 @@ paper.pdf: tex/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
 	   | $(tikzdir) $(texbdir)
 
         # To find LaTeX (which currently isn't internally installed).
-	PATH=$(sys-path)
+	#PATH=$(sys-path)
 
         # Go into the top TeX build directory and make the paper.
 	p=$$(pwd)
