@@ -413,7 +413,7 @@ cprog=$ddir/static-test.c
 echo "#include <stdio.h>"          > $cprog
 echo "int main(void) {return 0;}" >> $cprog
 if [ x$CC = x ]; then CC=gcc; fi;
-if $CC $cprog -o$oprog -static -ljunk &> /dev/null; then
+if $CC $cprog -o$oprog -static &> /dev/null; then
     export static_build="yes"
 else
     export static_build="no"
