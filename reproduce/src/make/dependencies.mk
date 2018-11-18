@@ -32,6 +32,7 @@
 # Top level environment
 include reproduce/config/pipeline/LOCAL.mk
 include reproduce/src/make/dependencies-build-rules.mk
+include reproduce/config/pipeline/dependency-texlive.mk
 include reproduce/config/pipeline/dependency-versions.mk
 
 ddir  = $(BDIR)/dependencies
@@ -42,7 +43,7 @@ ildir = $(BDIR)/dependencies/installed/lib
 
 # Define the top-level programs to build (installed in `.local/bin', so for
 # Coreutils, only one of its executables is enough).
-top-level-programs = ls gawk gs grep libtool sed git tex astnoisechisel
+top-level-programs = ls gawk gs grep libtool sed git latex astnoisechisel
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings.
@@ -226,7 +227,7 @@ $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz \
 	$(call gbuild,$(subst $(tdir)/,,$<), ghostscript-$(ghostscript-version))
 
 $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
-             $(ibdir)/ls
+              $(ibdir)/ls
 	$(call gbuild,$(subst $(tdir)/,,$<), git-$(git-version), static)
 
 $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
@@ -242,21 +243,74 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
 	              static, --enable-static=yes --enable-shared=no, -j8, \
 	              make check -j8)
 
-$(ibdir)/tex:
+$(ibdir)/latex: reproduce/config/pipeline/dependency-texlive.mk
 
-        # First we'll download the tarball. Note that since the most recent
-        # installer is downloaded by day, the installer's version is hard
-        # to configure at this stage.
-	#wget -O$(tdir)/install-tl-unx.tar.gz                         \
-	#     http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
-
-        # Unpack, enter the directory and run the installer.
+        # We'll need the current directory later down.
 	topdir=$$(pwd)
-	cd $(ddir)
-	tar xf $(tdir)/install-tl-unx.tar.gz
-	cd install-tl-*
-	sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
-	    $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
-	./install-tl --profile=texlive.conf
-	cd ..
-	rm -rf install-tl-*
+
+        # First, if necessary, we'll download the tarball. Note that since
+        # a new version of the installer is created every day, the
+        # installer's version is hard to configure at this stage and is
+        # mostly irrelevant.
+	if $(ibdir)/tlmgr --version &> /dev/null; then
+	  echo "TeX Live manager ('tlmgr') is already installed."
+	else
+	  if wget -O$(tdir)/install-tl-unx.tar.gz \
+	     http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+	  then
+            # Unpack, enter the directory, and do a basic installation.
+	    cd $(ddir)
+	    rm -rf install-tl-*
+	    tar xf $(tdir)/install-tl-unx.tar.gz
+	    cd install-tl-*
+	    sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
+	        $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
+	    ./install-tl --profile=texlive.conf
+	    cd ..
+	    rm -rf install-tl-*
+
+	    # Put a symbolic link of the TeX Live executables in
+	    # `ibdir'. For `latex' do a copy, because it is the target of
+	    # this rule and it won't cause problems.
+	    ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
+	    rm $@
+	    cp $(idir)/texlive/20*/bin/*/latex $@
+	  else
+	    echo "Not able to download TeX Live installer" > $@
+	  fi
+	fi
+
+        # In scenarios like having no internet on the first run, its
+        # possible to get to this point without actually having `tlmgr'
+        # ready for usage. Since the pipeline can still do its processing
+        # without building the final PDF, we don't want to stop the build.
+	if $(ibdir)/tlmgr --version &> /dev/null; then
+
+          # Install all the extra necessary packages. If LaTeX complains
+          # about not finding a package, simply run the following command
+          # to find which package its in, then add it to the
+          # `texlive-packages' variable.
+          #
+          #     tlmgr info XXXXXX.sty
+	  tlmgr install $(texlive-packages)
+
+          # Make a symbolic link of all the TeX Live executables in the bin
+          # directory so we don't have to modify `PATH'.
+	  ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
+
+          # Get all the necessary versions.
+	  tv=$(ddir)/texlive-versions.tex
+	  texlive=$$(pdflatex --version | awk 'NR==1' | sed 's/.*(\(.*\))/\1/' \
+	                      | awk '{print $$NF}');
+	  echo "\newcommand{\\texliveversion}{$$texlive}" > $$tv
+
+          # LaTeX Package versions.
+	  tlmgr info $(texlive-packages) --only-installed | awk                \
+	        '$$1=="package:" {version=0;                                   \
+	                          if($$NF=="tex-gyre") name="texgyre";         \
+	                          else                 name=$$NF}              \
+	         $$1=="cat-version:" {version=$$NF}                            \
+	         $$1=="cat-date:" {if(version==0) version=$$2;                 \
+	                           printf("\\newcommand{\\tex%sversion}{%s}\n",\
+	                                  name, version)}' >> $$tv
+	fi

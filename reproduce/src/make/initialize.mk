@@ -72,10 +72,10 @@ curdir   := $(shell echo $$(pwd))
 .ONESHELL:
 .SHELLFLAGS      = -ec
 SHELL           := .local/bin/bash
+PATH            := $(curdir)/.local/bin
 LD_LIBRARY_PATH := $(curdir)/.local/lib
 LDFLAGS         := -L$(curdir)/.local/lib
 CPPFLAGS        := -I$(curdir)/.local/include
-PATH            := $(curdir)/.local/bin:$(shell ls -d $$(pwd)/.local/texlive/2018/bin/*)
 
 
 
@@ -208,6 +208,7 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
 	$(call pvcheck, tar, $(tar-version), GNU Tar, tarversion)
+	$(call pvcheck, which, $(which-version), GNU Which, whichversion)
 	$(call pvcheck, xz, $(xz-version), XZ Utils, xzversion)
 
         # Bzip2 prints its version in standard error, not standard output!
@@ -233,3 +234,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call lvcheck, wcslib/wcsconfig.h, $(wcslib-version), WCSLIB, \
 	                wcslibversion)
 	$(call lvcheck, zlib.h, $(zlib-version), zlib, zlibversion)
+
+        # TeX versions
+	cat $(BDIR)/dependencies/texlive-versions.tex >> $@

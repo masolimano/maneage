@@ -92,6 +92,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         lzip-$(lzip-version).tar.gz                         \
 	                make-$(make-version).tar.lz                         \
 	                tar-$(tar-version).tar.gz                           \
+                        which-$(which-version).tar.gz                       \
                         xz-$(xz-version).tar.gz                             \
                         zlib-$(zlib-version).tar.gz                         \
                       , $(tdir)/$(t) )
@@ -111,6 +112,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = lzip     ]; then w=http://download.savannah.gnu.org/releases/lzip; \
 	  elif [ $$n = make     ]; then w=http://akhlaghi.org/src;          \
 	  elif [ $$n = tar      ]; then w=http://ftp.gnu.org/gnu/tar;       \
+	  elif [ $$n = which    ]; then w=http://ftp.gnu.org/gnu/which;     \
 	  elif [ $$n = xz       ]; then w=http://tukaani.org/xz;            \
 	  elif [ $$n = zlib     ]; then w=http://www.zlib.net;              \
 	  else                                                              \
@@ -218,6 +220,14 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 
 
 
+# GNU Which:
+$(ibdir)/which: $(tdir)/which-$(which-version).tar.gz
+	$(call gbuild,$(subst $(tdir)/,,$<), which-$(which-version), static)
+
+
+
+
+
 # GNU Make: Unfortunately it needs dynamic linking in two instances: when
 # loading objects (dynamically linked libraries), or when using the
 # `getpwnam' function (for tilde expansion). The first can be disabled with
@@ -233,6 +243,7 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
 
 # GNU Bash
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
+	       $(ibdir)/which                      \
 	       $(ibdir)/make
 ifeq ($(static_build),yes)
 	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version), , \

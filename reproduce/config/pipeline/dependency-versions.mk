@@ -17,6 +17,7 @@ lzip-version        = 1.20
 make-version        = 4.2.90
 sed-version         = 4.5
 tar-version         = 1.30
+which-version       = 2.21
 xz-version          = 5.2.4
 
 # Libraries

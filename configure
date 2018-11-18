@@ -145,6 +145,7 @@ if [ -f $pconf ] || [ -f $glconf ]; then
     do
         read -p"Re-write existing configuration file(s) (y/n)? " userread
     done
+    userread=n
 
     # Set `rewriteconfig'.
     if [ $userread = "n" ]; then
@@ -408,8 +409,8 @@ ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
 
 # See if the C compiler can build static libraries
 # ------------------------------------------------
-oprog=$ddir/static-test
-cprog=$ddir/static-test.c
+oprog=$depdir/static-test
+cprog=$depdir/static-test.c
 echo "#include <stdio.h>"          > $cprog
 echo "int main(void) {return 0;}" >> $cprog
 if [ x$CC = x ]; then CC=gcc; fi;
@@ -452,7 +453,7 @@ fi
 
 # Inform the user that the build process is starting
 # -------------------------------------------------
-tsec=0
+tsec=10
 cat <<EOF
 
 -------------------------
