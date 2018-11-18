@@ -18,11 +18,20 @@ by making it easy to start a project in this framework. As shown below, it
 is very easy to customize this template reproducible paper pipeline for any
 particular research/job and expand it as it starts and evolves. It can be
 run with no modification (as described in `README`) as a demonstration and
-customized for use in any project as fully described below. The [final
-reproducible paper
+customized for use in any project as fully described below.
+
+The pipeline will download and build all the necessary libraries and
+programs for working in a closed environment (highly independent of the
+host operating system) with fixed versions of the necessary
+dependencies. The tarballs for building the local environment are also
+collected in a [separate
+repository](https://gitlab.com/makhlaghi/reproducible-paper-dependencies). The
+[final reproducible paper
 output](https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf)
 of this pipeline is also present in [a separate
-repository](https://gitlab.com/makhlaghi/reproducible-paper-output).
+repository](https://gitlab.com/makhlaghi/reproducible-paper-output). Notice
+the last paragraph of the Acknowledgements where all the dependencies are
+mentioned with their versions.
 
 Below, we start with a discussion of why Make was chosen as the high-level
 language/framework for this research reproduction pipeline and how to learn

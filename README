@@ -10,12 +10,20 @@ pipeline, please see the link below:
 Running the pipeline
 ====================
 
-1. Necessary dependency: LaTeX.
+1. Necessary dependencies:
 
-   Other than LaTeX, this pipeline just needs some basic building tools
-   that are already present if you have ever build a software from source
-   (Tar, C compiler, and Make). The pipeline will build its own
-   dependencies when you run `./configure'.
+   1.1: Basic software building tools like C compiler, Make, and other
+        tools found on most Unix-like systems (GNU/Linux, BSD, Mac OS, and
+        others). All necessary dependencies will be built from source by
+        the `./configure' script (next step).
+
+   1.2: Tarball of dependencies. If they are already present (in a
+        directory given at configuration time), they will be
+        used. Otherwise, *GNU Wget* will be used to download any necessary
+        tarball. The necessary tarballs are also collected in the link
+        below for easy download:
+
+          https://gitlab.com/makhlaghi/reproducible-paper-dependencies
 
 2. Configure the environment (top-level directories in particular) and
    build all the necessary software for use in the next step. It is

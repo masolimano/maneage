@@ -267,7 +267,7 @@ $(ibdir)/latex: reproduce/config/pipeline/dependency-texlive.mk
 	        $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
 	    ./install-tl --profile=texlive.conf
 	    cd ..
-	    rm -rf install-tl-*
+	    rm -rf install-tl-* $(tdir)/install-tl-unx.tar.gz
 
 	    # Put a symbolic link of the TeX Live executables in
 	    # `ibdir'. For `latex' do a copy, because it is the target of
