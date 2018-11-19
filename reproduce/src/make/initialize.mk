@@ -40,9 +40,10 @@ lockdir     = $(BDIR)/locks
 texbdir     = $(texdir)/build
 tikzdir     = $(texbdir)/tikz
 mtexdir     = $(texdir)/macros
-gconfdir    = reproduce/config/gnuastro
 pconfdir    = reproduce/config/pipeline
-
+# --------- Delete for no Gnuastro ---------
+gconfdir    = reproduce/config/gnuastro
+# ------------------------------------------
 
 
 
@@ -199,8 +200,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, gs, $(ghostscript-version), GPL Ghostscript,   \
 	                    ghostscriptversion)
 	$(call pvcheck, git, $(git-version), Git, gitversion)
-	$(call pvcheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
-                         gnuastroversion)
 	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
 	$(call pvcheck, libtool, $(libtool-version), GNU Libtool,      \
 	                libtoolversion)
@@ -210,6 +209,11 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, tar, $(tar-version), GNU Tar, tarversion)
 	$(call pvcheck, which, $(which-version), GNU Which, whichversion)
 	$(call pvcheck, xz, $(xz-version), XZ Utils, xzversion)
+
+        # --------- Delete for no Gnuastro ---------
+	$(call pvcheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
+                         gnuastroversion)
+        # ------------------------------------------
 
         # Bzip2 prints its version in standard error, not standard output!
 	echo "" | bzip2 --version &> $@_bzip2_ver;

@@ -448,18 +448,20 @@ advanced in later stages of your work.
  - **Test the pipeline**: Before making any changes, it is important to
      test the pipeline and see if everything works properly with the
      commands below. If there is any problem in the `./configure` or `make`
-     steps, please contact us to fix the problem before continuing. After
-     `make` is finished, open `paper.pdf` and if it looks fine, you are
-     ready to start customizing the pipeline for your project. But before
-     that, clean all the extra pipeline outputs with `make clean` as shown
-     below.
+     steps, please contact us to fix the problem before continuing. Since
+     the building of dependencies in `./configure` can take long, you can
+     take the next few steps (editing the files) while its working (they
+     don't affect the configuration). After `make` is finished, open
+     `paper.pdf` and if it looks fine, you are ready to start customizing
+     the pipeline for your project. But before that, clean all the extra
+     pipeline outputs with `make clean` as shown below.
 
      ```shell
      $ ./configure           # Set top directories and build dependencies.
      $ make                  # Run the pipeline.
 
      # Open 'paper.pdf' and see if everything is ok.
-     $ make distclean        # Remove all pipeline outputs.
+     $ make clean            # Delete high-level outputs.
      ```
 
  - **Copyright**, **name** and **date**: Go over the existing scripting
@@ -478,12 +480,12 @@ advanced in later stages of your work.
 
  - **Title**, **short description** and **author** in source files: In this
      raw skeleton, the title or short description of your project should be
-     added in the following two files: `Makefile` (the first line), and
-     `tex/preamble-header.tex` (the last two groups of lines, along with
-     the names of you and your colleagues). In both cases, the texts you
-     should replace are all in capital letters to make them easier to
-     identify. Of course, if you use a different LaTeX method of managing
-     the title and authors, please feel free to use your own methods.
+     added in the following two files: `reproduce/src/make/Top-Makefile`
+     (the first line), and `tex/preamble-header.tex`. In both cases, the
+     texts you should replace are all in capital letters to make them
+     easier to identify. Of course, if you use a different LaTeX method of
+     managing the title and authors, please feel free to use your own
+     methods after finishing this checklist and doing your first commit.
 
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
      dependency of the pipeline which will be built and used. The main
@@ -493,6 +495,7 @@ advanced in later stages of your work.
      below to make them more readable.
 
    - Delete marked part(s) in `configure`.
+   - Delete `astnoisechisel` from the value of `top-level-programs` in `reproduce/src/make/dependencies.mk`. You can keep the rule to build `astnoisechisel`, since its not in the `top-level-programs` list, it (and all its dependencies) will be ignored.
    - Delete marked parts in `reproduce/src/make/initialize.mk`.
    - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style.tex`.
 
@@ -509,8 +512,8 @@ advanced in later stages of your work.
      work. Therefore, also check and update `README` one last time when you
      are ready to publish your work (and its reproduction pipeline).
 
- - **Input dataset**: The user manages the top-level directory of the input
-     data through the variables set in
+ - **Input dataset (can be done later)**: The user manages the top-level
+     directory of the input data through the variables set in
      `reproduce/config/pipeline/LOCAL.mk.in` (the user actually edits a
      `LOCAL.mk` file that is created by `configure` from the `.mk.in` file,
      but the `.mk` file is not under version control). Datasets are usually
@@ -538,13 +541,14 @@ advanced in later stages of your work.
      $ grep -r survey ./
      ```
 
- - **Other input datasets**: Add any other input datasets that may be
-     necessary for your research to the pipeline based on the example
-     above.
+ - **Other input datasets (can be done later)**: Add any other input
+     datasets that may be necessary for your research to the pipeline based
+     on the example above.
 
- - **Delete dummy parts**: The template pipeline contains some parts that
-     are only for the initial/test run, not for any real analysis. The
-     respective files to remove and parts to fix are discussed here.
+ - **Delete dummy parts (can be done later)**: The template pipeline
+     contains some parts that are only for the initial/test run, not for
+     any real analysis. The respective files to remove and parts to fix are
+     discussed here.
 
      - `paper.tex`: Delete the text of the abstract and the paper's main
        body, *except* the "Acknowledgements" section. This reproduction
@@ -571,12 +575,12 @@ advanced in later stages of your work.
      commit to be sure it works as expected).
 
      ```shell
-     $ make clean            # Delete outputs ('make distclean' for all outputs)
-     $ make                  # Build the pipeline to ensure everything is fine.
-     $ git add -u            # Stage all the changes.
-     $ git status            # Make sure everything is fine.
-     $ git commit            # Your first commit, add a nice description.
-     $ git tag -a v0         # Tag this as the zero-th version of your pipeline.
+     $ ./.local/bin/make clean # Delete outputs ('make distclean' for everything)
+     $ ./.local/bin/make       # Build the pipeline to ensure everything is fine.
+     $ git add -u              # Stage all the changes.
+     $ git status              # Make sure everything is fine.
+     $ git commit              # Your first commit, add a nice description.
+     $ git tag -a v0           # Tag this as the zero-th version of your pipeline.
      ```
 
  - **Setup the remote**: You can use any [hosting
