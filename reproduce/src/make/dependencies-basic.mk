@@ -86,7 +86,6 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 # However, downloading from this link is slow (because its just a link). So
 # its easier to just keep a with the others.
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
-                        binutils-$(binutils-version).tar.lz                 \
                         bzip2-$(bzip2-version).tar.gz                       \
 	                gzip-$(gzip-version).tar.gz                         \
                         lzip-$(lzip-version).tar.gz                         \
@@ -94,7 +93,6 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
 	                tar-$(tar-version).tar.gz                           \
                         which-$(which-version).tar.gz                       \
                         xz-$(xz-version).tar.gz                             \
-                        zlib-$(zlib-version).tar.gz                         \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then                              \
@@ -106,7 +104,6 @@ $(tarballs): $(tdir)/%:
 	                                                                    \
 	  mergenames=1;                                                     \
 	  if   [ $$n = bash     ]; then w=http://ftp.gnu.org/gnu/bash;      \
-	  elif [ $$n = binutils ]; then w=http://ftp.gnu.org/gnu/binutils;  \
 	  elif [ $$n = bzip     ]; then w=http://akhlaghi.org/src;          \
 	  elif [ $$n = gzip     ]; then w=http://akhlaghi.org/src;          \
 	  elif [ $$n = lzip     ]; then w=http://download.savannah.gnu.org/releases/lzip; \
@@ -114,7 +111,6 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = tar      ]; then w=http://ftp.gnu.org/gnu/tar;       \
 	  elif [ $$n = which    ]; then w=http://ftp.gnu.org/gnu/which;     \
 	  elif [ $$n = xz       ]; then w=http://tukaani.org/xz;            \
-	  elif [ $$n = zlib     ]; then w=http://www.zlib.net;              \
 	  else                                                              \
 	    echo; echo; echo;                                               \
 	    echo "'$$n' not a basic dependency name (for downloading)."     \
@@ -135,7 +131,7 @@ $(tarballs): $(tdir)/%:
 
 # GNU Gzip.
 $(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz
-	$(call gbuild,$(subst $(tdir)/,,$<), gzip-$(gzip-version), static)
+	$(call gbuild, $<, gzip-$(gzip-version), static)
 
 
 
@@ -145,24 +141,9 @@ $(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz
 # LDFLAGS on the command-line (not from the environment).
 $(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
 ifeq ($(static_build),yes)
-	$(call gbuild,$(subst $(tdir)/,,$<), lzip-$(lzip-version), , \
-	              LDFLAGS="-static")
+	$(call gbuild, $<, lzip-$(lzip-version), , LDFLAGS="-static")
 else
-	$(call gbuild,$(subst $(tdir)/,,$<), lzip-$(lzip-version))
-endif
-
-
-
-
-
-# Zlib: its `./configure' doesn't use Autoconf's configure script, it just
-# accepts a direct `--static' option.
-$(ildir)/libz.a: $(tdir)/zlib-$(zlib-version).tar.gz
-ifeq ($(static_build),yes)
-	$(call gbuild,$(subst $(tdir)/,,$<), zlib-$(zlib-version), ,   \
-                      --static)
-else
-	$(call gbuild,$(subst $(tdir)/,,$<), zlib-$(zlib-version))
+	$(call gbuild, $<, lzip-$(lzip-version))
 endif
 
 
@@ -171,7 +152,7 @@ endif
 
 # XZ Utils
 $(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz
-	$(call gbuild,$(subst $(tdir)/,,$<), xz-$(xz-version), static)
+	$(call gbuild, $<, xz-$(xz-version), static)
 
 
 
@@ -200,18 +181,7 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 	      $(ibdir)/lzip                     \
 	      $(ibdir)/gzip                     \
 	      $(ibdir)/xz
-	$(call gbuild,$(subst $(tdir)/,,$<), tar-$(tar-version))
-
-
-
-
-
-# GNU Binutils:
-$(ibdir)/nm: $(tdir)/binutils-$(binutils-version).tar.lz \
-	     $(ibdir)/tar                                \
-             $(ildir)/libz.a
-	$(call gbuild,$(subst $(tdir)/,,$<), binutils-$(binutils-version), \
-                      static)
+	$(call gbuild, $<, tar-$(tar-version))
 
 
 
@@ -219,9 +189,8 @@ $(ibdir)/nm: $(tdir)/binutils-$(binutils-version).tar.lz \
 
 # GNU Which:
 $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
-	        $(ibdir)/tar                          \
-	        $(ibdir)/nm
-	$(call gbuild,$(subst $(tdir)/,,$<), which-$(which-version), static)
+	        $(ibdir)/tar
+	$(call gbuild, $<, which-$(which-version), static)
 
 
 
@@ -233,9 +202,8 @@ $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
 # `--disable-load', but unfortunately I don't know any way to fix the
 # second. So, we'll have to build it dynamically for now.
 $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
-               $(ibdir)/tar                        \
-               $(ibdir)/nm
-	$(call gbuild,$(subst $(tdir)/,,$<), make-$(make-version))
+               $(ibdir)/tar
+	$(call gbuild, $<, make-$(make-version))
 
 
 
@@ -246,8 +214,7 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 	       $(ibdir)/which                      \
 	       $(ibdir)/make
 ifeq ($(static_build),yes)
-	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version), , \
-               --enable-static-link)
+	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link)
 else
 	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version))
 endif

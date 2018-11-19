@@ -35,15 +35,16 @@ include reproduce/src/make/dependencies-build-rules.mk
 include reproduce/config/pipeline/dependency-texlive.mk
 include reproduce/config/pipeline/dependency-versions.mk
 
-ddir  = $(BDIR)/dependencies
-tdir  = $(BDIR)/dependencies/tarballs
-idir  = $(BDIR)/dependencies/installed
-ibdir = $(BDIR)/dependencies/installed/bin
-ildir = $(BDIR)/dependencies/installed/lib
+ddir   = $(BDIR)/dependencies
+tdir   = $(BDIR)/dependencies/tarballs
+idir   = $(BDIR)/dependencies/installed
+ibdir  = $(BDIR)/dependencies/installed/bin
+ildir  = $(BDIR)/dependencies/installed/lib
+ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin', so for
 # Coreutils, only one of its executables is enough).
-top-level-programs = ls gawk gs grep libtool sed git latex astnoisechisel
+top-level-programs = ls gawk gs grep libtool sed git astnoisechisel texlive-ready
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings.
@@ -85,6 +86,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         libgit2-$(libgit2-version).tar.gz             \
 	                sed-$(sed-version).tar.xz                     \
 	                wcslib-$(wcslib-version).tar.bz2              \
+                        zlib-$(zlib-version).tar.gz                   \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -123,6 +125,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = sed         ]; then w=http://ftp.gnu.org/gnu/sed
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
+	  elif [ $$n = zlib        ]; then w=http://www.zlib.net
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -150,41 +153,66 @@ $(tarballs): $(tdir)/%:
 
 # Libraries
 # ---------
-$(ildir)/libcfitsio.a: $(tdir)/cfitsio-$(cfitsio-version).tar.gz           \
-                       $(ibdir)/curl                                       \
-                       $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), cfitsio, static,              \
-                      --enable-sse2 --enable-reentrant)
+#
+# We would prefer to build static libraries, but some compilers like LLVM
+# don't have static capabilities, so they'll only build dynamic/shared
+# libraries. Therefore, we can't use the easy `.a' suffix for static
+# libraries as targets and there are different conventions for shared
+# library names.
+#
+# For the actual build, the same compiler that built the library will build
+# the programs, so exact knowledge of the suffix is ultimately irrelevant
+# for us here. So, we'll make an `$(ildir)/built' directory and make a
+# simple plain text file in it with the basic library name (an no prefix)
+# and create/write into it when the library is successfully built.
+$(ilidir): | $(ildir); mkdir -p $@
+$(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz              \
+                   $(ibdir)/curl                                          \
+                   $(ibdir)/ls | $(ilidir)
+	$(call gbuild, $<,cfitsio, static, --enable-sse2 --enable-reentrant) \
+	&& echo "CFITSIO is built" > $@
 
 
-$(ildir)/libgit2.a: $(tdir)/libgit2-$(libgit2-version).tar.gz              \
-                    $(ibdir)/cmake                                         \
-                    $(ibdir)/curl
-	$(call cbuild,$(subst $(tdir)/,,$<), libgit2-$(libgit2-version),   \
-	              static, -DUSE_SSH=OFF -DUSE_OPENSSL=OFF              \
-	              -DBUILD_CLAR=OFF -DTHREADSAFE=ON)
+$(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz              \
+                   $(ibdir)/cmake                                         \
+                   $(ibdir)/curl | $(ilidir)
+	$(call cbuild, $<, libgit2-$(libgit2-version), static,            \
+	              -DUSE_SSH=OFF -DUSE_OPENSSL=OFF -DBUILD_CLAR=OFF    \
+	              -DTHREADSAFE=ON)                                    \
+	&& echo "Libgit2 is built" > $@
 
-$(ildir)/libgsl.a: $(tdir)/gsl-$(gsl-version).tar.gz                       \
-                   $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), gsl-$(gsl-version), static)
+$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz                          \
+               $(ibdir)/ls | $(ilidir)
+	$(call gbuild, $<, gsl-$(gsl-version), static)                    \
+	&& echo "GNU Scientific Library is built" > $@
 
-$(ildir)/libjpeg.a: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
-	$(call gbuild,$(subst $(tdir)/,,$<), jpeg-9b, static)
+$(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz | $(ilidir)
+	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
 
-$(ildir)/libtiff.a: $(tdir)/tiff-$(libtiff-version).tar.gz                 \
-                   $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), tiff-$(libtiff-version),      \
-	              static)
+$(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz                 \
+                   $(ibdir)/ls | $(ilidir)
+	$(call gbuild, $<, tiff-$(libtiff-version), static)               \
+	&& echo "Libtiff is built" > $@
 
-$(ildir)/libwcs.a: $(tdir)/wcslib-$(wcslib-version).tar.bz2                \
-	           $(ildir)/libcfitsio.a
+$(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2                \
+	          $(ilidir)/cfitsio | $(ilidir)
         # Unfortunately WCSLIB forces the building of shared libraries. So
         # we'll allow it to finish, then remove the shared libraries
         # afterwards.
-	$(call gbuild,$(subst $(tdir)/,,$<), wcslib-$(wcslib-version), ,   \
-                      LIBS="-pthread -lcurl -lm" --without-pgplot          \
-                      --disable-fortran)
-	rm -f $(ildir)/libwcs.so*
+	$(call gbuild, $<, wcslib-$(wcslib-version), ,                     \
+	              LIBS="-pthread -lcurl -lm" --without-pgplot          \
+	              --disable-fortran)                                   \
+	&& echo "WCSLIB is built" > $@
+
+# Zlib: its `./configure' doesn't use Autoconf's configure script, it just
+# accepts a direct `--static' option.
+$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz | $(ilidir)
+ifeq ($(static_build),yes)
+	$(call gbuild, $<, zlib-$(zlib-version), , --static) \
+	&& echo "Zlib is built" > $@
+else
+	$(call gbuild, $<, zlib-$(zlib-version)) && echo "Zlib is built" > $@
+endif
 
 
 
@@ -192,58 +220,69 @@ $(ildir)/libwcs.a: $(tdir)/wcslib-$(wcslib-version).tar.bz2                \
 
 # Programs
 # --------
+#
+# CMake can be built with its custom `./bootstrap' script.
 $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz                        \
                 $(ibdir)/ls
-	$(call cbuild,$(subst $(tdir)/,,$<), cmake-$(cmake-version))
+	cd $(ddir) && rm -rf cmake-$(cmake-version) &&                       \
+	tar xf $< && cd cmake-$(cmake-version) &&                            \
+	./bootstrap --prefix=$(idir) && make && make install &&              \
+	cd ..&& rm -rf cmake-$(cmake-version)
 
 $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz                           \
-               $(ildir)/libz.a                                               \
+               $(ilidir)/zlib                                                \
                $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), curl-$(curl-version), static,   \
-                      --without-brotli)
+	$(call gbuild, $<, curl-$(curl-version), static, --without-brotli)
 
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz
-	$(call gbuild,$(subst $(tdir)/,,$<), coreutils-$(coreutils-version), \
-                      static)
+	$(call gbuild, $<, coreutils-$(coreutils-version), static)
 
 $(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
                $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), gawk-$(gawk-version), static)
+	$(call gbuild, $<, gawk-$(gawk-version), static)
 
 $(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
               $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), sed-$(sed-version), static)
+	$(call gbuild, $<, sed-$(sed-version), static)
 
 $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
                $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), grep-$(grep-version), static)
+	$(call gbuild, $<, grep-$(grep-version), static)
 
 $(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.xz \
                   $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), libtool-$(libtool-version), static)
+	$(call gbuild, $<, libtool-$(libtool-version), static)
 
 $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz \
              $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), ghostscript-$(ghostscript-version))
+	$(call gbuild, $<, ghostscript-$(ghostscript-version))
 
 $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
               $(ibdir)/ls
-	$(call gbuild,$(subst $(tdir)/,,$<), git-$(git-version), static)
+	$(call gbuild, $<, git-$(git-version), static)
 
 $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
-                         $(ildir)/libgsl.a                           \
-                         $(ildir)/libcfitsio.a                       \
-                         $(ildir)/libwcs.a                           \
                          $(ibdir)/gs                                 \
-                         $(ildir)/libjpeg.a                          \
-                         $(ildir)/libtiff.a                          \
-                         $(ildir)/libgit2.a                          \
+                         $(ilidir)/gsl                               \
+                         $(ilidir)/wcslib                            \
+                         $(ilidir)/libjpeg                           \
+                         $(ilidir)/libtiff                           \
+                         $(ilidir)/libgit2
+ifeq ($(static_build),yes)
+	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
+	               --enable-static=yes --enable-shared=no, -j8,  \
+	               make check -j8)
+else
+	$(call gbuild, $<, gnuastro-$(gnuastro-version), , , -j8,    \
+	               make check -j8)
+endif
 
-	$(call gbuild,$(subst $(tdir)/,,$<), gnuastro-$(gnuastro-version), \
-	              static, --enable-static=yes --enable-shared=no, -j8, \
-	              make check -j8)
-
-$(ibdir)/latex: reproduce/config/pipeline/dependency-texlive.mk
+# Since we want to avoid complicating the PATH, we are putting a symbolic
+# link of all the TeX Live executables in $(ibdir). Therefore, since the
+# symbolic link is hard to track for Make (as a target), we'll make a
+# simple ASCII file called `texlive-ready' when it is complete and use that
+# as a target.
+$(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk
 
         # We'll need the current directory later down.
 	topdir=$$(pwd)
@@ -273,10 +312,6 @@ $(ibdir)/latex: reproduce/config/pipeline/dependency-texlive.mk
 	    # `ibdir'. For `latex' do a copy, because it is the target of
 	    # this rule and it won't cause problems.
 	    ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
-	    rm $@
-	    cp $(idir)/texlive/20*/bin/*/latex $@
-	  else
-	    echo "Not able to download TeX Live installer" > $@
 	  fi
 	fi
 
@@ -314,3 +349,8 @@ $(ibdir)/latex: reproduce/config/pipeline/dependency-texlive.mk
 	                           printf("\\newcommand{\\tex%sversion}{%s}\n",\
 	                                  name, version)}' >> $$tv
 	fi
+
+        # Write the target if TeX live was actually installed.
+	if [ -f $(idir)/texlive/20*/bin/*/latex ]; then
+	  echo "TeX Live is installed." > $@
+	fi;

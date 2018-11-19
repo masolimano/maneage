@@ -191,7 +191,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Versions of programs (same order as 'dependency-versions.mk').
 	$(call pvcheck, bash, $(bash-version), GNU Bash, bashversion)
-	$(call pvcheck, nm, $(binutils-version), GNU Binutils, binutilsversion)
 	$(call pvcheck, cmake, $(cmake-version), CMake, cmakeversion)
 	$(call pvcheck, curl, $(curl-version), cURL, curlversion)
 	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \

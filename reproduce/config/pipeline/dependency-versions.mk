@@ -2,7 +2,6 @@
 
 # Programs
 bash-version        = 4.4.18
-binutils-version    = 2.31.1
 bzip2-version       = 1.0.6
 cmake-version       = 3.12.4
 coreutils-version   = 8.30

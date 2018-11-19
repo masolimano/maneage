@@ -134,6 +134,7 @@ EOF
 # `LOCAL.mk' is the top-most local configuration for the pipeline. If it
 # already exists when this script is run, we'll make a copy of it as backup
 # (for example the user might have ran `./configure' by mistake).
+printnotice=yes
 rewritepconfig=yes
 rewritegconfig=yes
 if [ -f $pconf ] || [ -f $glconf ]; then
@@ -149,6 +150,7 @@ if [ -f $pconf ] || [ -f $glconf ]; then
 
     # Set `rewriteconfig'.
     if [ $userread = "n" ]; then
+        printnotice=no
         if [ -f $pconf  ]; then rewritepconfig=no; fi
         if [ -f $glconf ]; then rewritegconfig=no; fi
     fi
@@ -420,7 +422,7 @@ else
     export static_build="no"
 fi
 rm -f $oprog $cprog
-if [ $static_build = "no" ]; then
+if [ $printnotice = yes ] && [ $static_build = "no" ]; then
     cat <<EOF
 _________________________________________________________________________
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!      WARNING      !!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -453,8 +455,9 @@ fi
 
 # Inform the user that the build process is starting
 # -------------------------------------------------
-tsec=10
-cat <<EOF
+if [ $printnotice = yes ]; then
+    tsec=10
+    cat <<EOF
 
 -------------------------
 Building dependencies ...
@@ -469,7 +472,8 @@ pipeline. They will be installed in:
   $bdir/dependencies/installed
 
 EOF
-sleep $tsec
+    sleep $tsec
+fi
 
 
 
@@ -478,7 +482,7 @@ sleep $tsec
 # Build Basic dependencies
 # ------------------------
 make -f reproduce/src/make/dependencies-basic.mk \
-     static_build=$static_build #-j2
+     static_build=$static_build #-j8
 
 
 
