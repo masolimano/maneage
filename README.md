@@ -2,7 +2,8 @@ Introduction
 ============
 
 This description is for *creators* of the reproduction pipeline. See
-`README` for instructions on running it.
+`README` for instructions on running it (in short, just download/clone it,
+then run `./configure` and `./.local/bin/make -j8`).
 
 This project contains a **fully working template** for a high-level
 research reproduction pipeline, or reproducible paper, as defined in the
@@ -238,7 +239,8 @@ In order to adopt this pipeline to your research, it is important to first
 understand its architecture so you can navigate your way in the directories
 and understand how to implement your research project within its
 framework. But before reading this theoretical discussion, please run the
-pipeline without any change, just to see how it works.
+pipeline (described in `README`: first run `./configure`, then
+`./.local/bin/make -j8`) without any change, just to see how it works.
 
 In order to obtain a reproducible result it is important to have an
 identical environment (for example same versions the programs that it will
@@ -246,17 +248,25 @@ use). This also has the added advantage that in your separate research
 projects, you can use different versions of a single software and they
 won't interfere. Therefore, the pipeline builds its own dependencies during
 the `./configure` step. Building of the dependencies is managed by
-`reproduce/src/make/dependencies.mk`. So later, if you add a new
-program/library for your processing, don't forget to include a rule on how
-to build it, in this file.
+`reproduce/src/make/dependencies-basic.mk` and
+`reproduce/src/make/dependencies.mk`. These Makefiles are called by the
+`./configure` script. The first is intended for downloading and building
+the most basic tools like GNU Bash, GNU Make, and GNU Tar. Therefore it
+must only contain very basic and portable Make and shell features. The
+second is called after the first, thus enabling usage of the modern and
+advanced features of GNU Bash and GNU Make, similar to the rest of the
+pipeline. Later, if you add a new program/library for your research, you
+will need to include a rule on how to download and build it (in
+`reproduce/src/make/dependencies.mk`).
 
-When you run `.local/bin/make` to start the processing, the first file that
-is read is the top-level `Makefile`. Therefore, we'll start our
-navigation/discussion with this file. This file is relatively short and
-heavily commented so hopefully the descriptions in each comment will be
-enough to understand the general details. As you read this section, please
-also look at the contents of the mentioned files and directories to fully
-understand what is being said.
+After configuring, the `.local/bin/make` command will start the processing
+with the custom version of Make that was locally installed during
+configuration. The first file that is read is the top-level
+`Makefile`. Therefore, we'll start our navigation/discussion with this
+file. This file is relatively short and heavily commented so hopefully the
+descriptions in each comment will be enough to understand the general
+details. As you read this section, please also look at the contents of the
+mentioned files and directories to fully understand what is going on.
 
 Before starting to look into the top `Makefile`, it is important to recall
 that Make defines dependencies by files. Therefore, the input and output of
@@ -283,18 +293,21 @@ completely (to define dependencies and etc) and starts its execution after
 that. So it is fine to define the rule to build `paper.pdf` at a later
 stage (this is one beauty of Make!).
 
-Having defined the top target, we will include all the necessary
-Makefiles. First we include all `reproduce/config/pipeline/*.mk`. The
-configuration of each logical step of the pipeline is placed here as a
-separate file. These Makefiles must only contain raw Make variables
-(pipeline configurations). By raw we mean that the Make variables in these
-files must not depend on any other variables because we don't want to
-assume any order in reading them. It is very important to *not* define any
-rule or other Make construct in any of these _configuration-Makefiles_ (see
-the next paragraph for Makefiles with rules). This will enable you to set
-the respective files in this directory as a prerequisite to any target that
-depends on their variable values. Therefore, if you change any of the
-values, all targets that depend on those values will be re-built.
+Having defined the top target, our next step is to include all the other
+necessary Makefiles. First we include all Makefiles that satisfy this
+wildcard: `reproduce/config/pipeline/*.mk`. These Makefiles don't actually
+have any rules, they just have values for various free parameters
+throughout the pipeline. Open a few of them to see for your self. These
+Makefiles must only contain raw Make variables (pipeline
+configurations). By raw we mean that the Make variables in these files must
+not depend on variables in any other Makefile. This is because we don't
+want to assume any order in reading them. It is very important to *not*
+define any rule or other Make construct in any of these
+_configuration-Makefiles_ (see the next paragraph for Makefiles with
+rules). This will enable you to set the respective Makefiles in this
+directory as a prerequisite to any target that depends on their variable
+values. Therefore, if you change any of their values, all targets that
+depend on those values will be re-built.
 
 Once all the raw variables have been imported into the top Makefile, we are
 ready to import the Makefiles containing the details of the processing

@@ -88,7 +88,7 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         binutils-$(binutils-version).tar.lz                 \
                         bzip2-$(bzip2-version).tar.gz                       \
-	                gzip-$(gzip-version).tar.lz                         \
+	                gzip-$(gzip-version).tar.gz                         \
                         lzip-$(lzip-version).tar.gz                         \
 	                make-$(make-version).tar.lz                         \
 	                tar-$(tar-version).tar.gz                           \
@@ -133,25 +133,23 @@ $(tarballs): $(tdir)/%:
 
 
 
+# GNU Gzip.
+$(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz
+	$(call gbuild,$(subst $(tdir)/,,$<), gzip-$(gzip-version), static)
+
+
+
+
+
 # GNU Lzip: For a static build, the `-static' flag should be given to
 # LDFLAGS on the command-line (not from the environment).
 $(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
-	echo; echo $(static_build); echo;
 ifeq ($(static_build),yes)
 	$(call gbuild,$(subst $(tdir)/,,$<), lzip-$(lzip-version), , \
 	              LDFLAGS="-static")
 else
 	$(call gbuild,$(subst $(tdir)/,,$<), lzip-$(lzip-version))
 endif
-
-
-
-
-
-# GNU Gzip.
-$(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.lz  \
-	       $(ibdir)/lzip
-	$(call gbuild,$(subst $(tdir)/,,$<), gzip-$(gzip-version), static)
 
 
 
@@ -195,9 +193,22 @@ $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 
 
 
+# GNU Tar: When built statically, tar gives a segmentation fault on
+# unpacking Bash. So we'll build it dynamically.
+$(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
+	      $(ibdir)/bzip2                    \
+	      $(ibdir)/lzip                     \
+	      $(ibdir)/gzip                     \
+	      $(ibdir)/xz
+	$(call gbuild,$(subst $(tdir)/,,$<), tar-$(tar-version))
+
+
+
+
+
 # GNU Binutils:
 $(ibdir)/nm: $(tdir)/binutils-$(binutils-version).tar.lz \
-	     $(ibdir)/lzip                               \
+	     $(ibdir)/tar                                \
              $(ildir)/libz.a
 	$(call gbuild,$(subst $(tdir)/,,$<), binutils-$(binutils-version), \
                       static)
@@ -206,22 +217,10 @@ $(ibdir)/nm: $(tdir)/binutils-$(binutils-version).tar.lz \
 
 
 
-# GNU Tar: When built statically, tar gives a segmentation fault on
-# unpacking Bash. So we'll build it dynamically.
-$(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
-	      $(ibdir)/bzip2                    \
-	      $(ibdir)/gzip                     \
-	      $(ibdir)/lzip                     \
-	      $(ibdir)/xz                       \
-              $(ibdir)/nm
-	$(call gbuild,$(subst $(tdir)/,,$<), tar-$(tar-version))
-
-
-
-
-
 # GNU Which:
-$(ibdir)/which: $(tdir)/which-$(which-version).tar.gz
+$(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
+	        $(ibdir)/tar                          \
+	        $(ibdir)/nm
 	$(call gbuild,$(subst $(tdir)/,,$<), which-$(which-version), static)
 
 
@@ -234,7 +233,8 @@ $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz
 # `--disable-load', but unfortunately I don't know any way to fix the
 # second. So, we'll have to build it dynamically for now.
 $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
-               $(ibdir)/tar
+               $(ibdir)/tar                        \
+               $(ibdir)/nm
 	$(call gbuild,$(subst $(tdir)/,,$<), make-$(make-version))
 
 

@@ -27,14 +27,15 @@ Running the pipeline
 
 2. Configure the environment (top-level directories in particular) and
    build all the necessary software for use in the next step. It is
-   recommended to modify the directories. Please read the comments (lines
-   starting with an `#') in the file that is opened by `./configure' and
-   set the directories accordingly.
+   recommended to modify the directories. Please read the description of
+   each necessary input clearly and set the best value. Note that the
+   configure scripts also downloads, builds and locally installs many
+   programs (pipeline dependencies). So it may take a while to complete.
 
      $ ./configure
 
-3. Run the following command to reproduce all the analysis and build the
-   final `paper.pdf' on 8 threads. If your CPU has a different number of
-   threads, change the number.
+3. Run the following command (local build of Make) to reproduce all the
+   analysis and build the final `paper.pdf' on *8* threads. If your CPU has
+   a different number of threads, change the number.
 
-     $ .local/bin/make -j8
+     $ ./.local/bin/make -j8
