@@ -44,7 +44,7 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin', so for
 # Coreutils, only one of its executables is enough).
-top-level-programs = ls gawk gs grep libtool sed git astnoisechisel texlive-ready
+top-level-programs = ls gawk gs grep sed git astnoisechisel texlive-ready
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings.
@@ -82,7 +82,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
 	                gsl-$(gsl-version).tar.gz                     \
 	                jpegsrc.$(libjpeg-version).tar.gz             \
                         tiff-$(libtiff-version).tar.gz                \
-	                libtool-$(libtool-version).tar.xz             \
+                        libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
 	                sed-$(sed-version).tar.xz                     \
 	                wcslib-$(wcslib-version).tar.bz2              \
@@ -265,6 +265,7 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ibdir)/gs                                 \
                          $(ilidir)/gsl                               \
                          $(ilidir)/wcslib                            \
+                         $(ibdir)/libtool                            \
                          $(ilidir)/libjpeg                           \
                          $(ilidir)/libtiff                           \
                          $(ilidir)/libgit2
