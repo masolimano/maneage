@@ -93,19 +93,30 @@ tex/pipeline.tex: $(foreach f, initialize          \
                              , $(mtexdir)/$(f).tex)
 
         # If no PDF is requested, or if LaTeX isn't available, don't
-        # continue to building LaTeX.
-	@if ! latex --version &> /dev/null || [ x$(pdf-build-final) = x ]; then
+        # continue to building the final PDF. Otherwise, merge all the TeX
+        # macros into one for building the PDF.
+	@if [ -f .local/bin/pdflatex ] && [ x"$(pdf-build-final)" != x ]; then
+	  cat $(mtexdir)/*.tex > $@
+	else
 	  echo
 	  echo "-----"
-	  echo "The processing has COMPLETED SUCCESSFULLY! But we won't be"
-	  echo "building the final LaTeX-built PDF."
+	  echo "The processing has COMPLETED SUCCESSFULLY! But the final "
+	  echo "LaTeX-built PDF paper will not be built."
 	  echo
-	  echo "To do so, make sure you have LaTeX within the pipeline and"
-	  echo "give a value to the 'pdf-build-final' variable. It is defined"
-	  echo "in 'reproduce/config/pipeline/pdf-build.mk'."
+	  if [ x$(more-on-building-pdf) = x1 ]; then
+	    echo "To do so, make sure you have LaTeX within the pipeline (you"
+	    echo "can check by running './.local/bin/latex --version'), _AND_"
+	    echo "make sure that the 'pdf-build-final' variable has a value."
+	    echo "'pdf-build-final' is defined in: "
+	    echo     "'reproduce/config/pipeline/pdf-build.mk'."
+	    echo
+	    echo "If you don't have LaTeX within the pipeline, please re-run"
+	    echo "'./configure' when you have internet access. To speed it up,"
+	    echo "you can keep the previous configuration files (answer 'n'"
+	    echo "when it asks about re-writing previous configuration files)."
+	  else
+	    echo "For more, run './.local/bin/make more-on-building-pdf=1'"
+	  fi
 	  echo
-	  exit 1
+	  echo "" > $@
 	fi
-
-        # Merge all the TeX macros that are prepared for building the PDF.
-	@cat $(mtexdir)/*.tex > $@

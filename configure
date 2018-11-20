@@ -182,7 +182,6 @@ if [ $rewritepconfig = yes ]; then
     else
         cat <<EOF
 
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -193,7 +192,6 @@ the pipeline will crash if the necessary files are not already present on
 the system.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
 EOF
         downloader="no-downloader-found"
@@ -482,7 +480,7 @@ fi
 # Build Basic dependencies
 # ------------------------
 make -f reproduce/src/make/dependencies-basic.mk \
-     static_build=$static_build #-j8
+     static_build=$static_build -j8
 
 
 
@@ -497,37 +495,83 @@ make -f reproduce/src/make/dependencies-basic.mk \
 # to build them in this script. But after this, we can rely on Makefiles.
 numthreads=$($instdir/bin/nproc)
 ./.local/bin/make -f reproduce/src/make/dependencies.mk \
-                  static_build=$static_build #-j$numthreads
+                  static_build=$static_build -j$numthreads
 
 
 
 
 
-# Print a final notice
-# --------------------
+# Make sure TeX Live installed successfully
+# -----------------------------------------
 #
-# The configuration is now complete, we can inform the user on the next
-# step(s) to take.
-echo
-echo "----------------"
-echo "The reproduction pipeline and its environment are SUCCESSFULLY configured."
-echo
-echo "Please run the following command to start."
-echo "(Replace '8' with the number of CPU threads)"
-echo
-echo "    ./.local/bin/make -j8"
-echo
-echo "To change the configuration later, please re-run './configure',"
-echo "DO NOT manually edit the relevant files."
-echo
+# TeX Live is managed over the internet, so if there isn't any, or it
+# suddenly gets cut, it can't be built. However, when TeX Live isn't
+# installed, the pipeline and can do all its processing independent of
+# it. It will just stop at the stage when all the processing is complete
+# and it is only necessary to build the PDF.  So we don't want to stop the
+# pipeline if its not present.
+if ! [ -f  $instdir/bin/texlive-ready ]; then
+    $instdir/bin/texlive-ready-tlmgr
+    rm -rf $instdir/texlive
+    cat <<EOF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+TeX Live couldn't be installed during the configuration (probably because
+there was no internet). TeX Live is only necessary in making the final PDF
+(which is only done after all the analysis has been complete). It is not
+used at all during the analysis.
+
+Therefore, if you don't need the final PDF, and just want to do the
+analysis, you can safely ignore this warning and continue.
+
+If you later have internet access and would like to add TeX live to your
+pipeline, please delete the respective files, then re-run configure as
+shown below. Within configure, answer 'n' (for "no") when asked to re-write
+the configuration files.
+
+    rm .local/bin/texlive-ready-*
+    ./configure
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+fi
 
 
 
 
 
-# Final target: the Makefile
+# Final step: the Makefile
 # --------------------------
 #
 # To see why this is the last step of the configuration, see above (when we
 # delete the top-level Makefile at the start of this script).
 ln -s $(pwd)/reproduce/src/make/Top-Makefile Makefile
+
+
+
+
+
+# Final notice
+# ------------
+#
+# The configuration is now complete, we can inform the user on the next
+# step(s) to take.
+cat <<EOF
+
+----------------
+The reproduction pipeline and its environment are configured with no errors.
+
+Please run the following command to start.
+(Replace '8' with the number of CPU threads)
+
+    ./.local/bin/make -j8
+
+To change the configuration later, please re-run './configure',
+DO NOT manually edit the relevant files.
+
+EOF

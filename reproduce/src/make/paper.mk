@@ -37,14 +37,19 @@
 # PDF.
 $(texbdir)/paper.bbl: tex/references.tex                         \
                       | $(tikzdir) $(texbdir) tex/pipeline.tex
+        # If `tex/pipeline.tex' is empty, then the PDF must not be built.
+	@macros=$$(cat tex/pipeline.tex)
+	if [ x"$$macros" != x ]; then
 
-        # We'll run LaTeX first to generate the `.bcf' file (necessary for
-        # `biber') and then run `biber' to generate the `.bbl' file.
-	p=$$(pwd);
-	export TEXINPUTS=$$p:$$TEXINPUTS;
-	cd $(texbdir);
-	pdflatex -shell-escape -halt-on-error $$p/paper.tex;
-	biber paper
+          # We'll run LaTeX first to generate the `.bcf' file (necessary
+          # for `biber') and then run `biber' to generate the `.bbl' file.
+	  p=$$(pwd);
+	  export TEXINPUTS=$$p:$$TEXINPUTS;
+	  cd $(texbdir);
+	  pdflatex -shell-escape -halt-on-error $$p/paper.tex;
+	  biber paper
+
+	fi
 
 
 
@@ -61,13 +66,19 @@ $(texbdir)/paper.bbl: tex/references.tex                         \
 paper.pdf: tex/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
 	   | $(tikzdir) $(texbdir)
 
-        # Go into the top TeX build directory and make the paper.
-	p=$$(pwd)
-	export TEXINPUTS=$$p:$$TEXINPUTS
-	cd $(texbdir)
-	pdflatex -shell-escape -halt-on-error $$p/paper.tex
+        # If `tex/pipeline.tex' is empty, then the PDF must not be built.
+	@macros=$$(cat tex/pipeline.tex)
+	if [ x"$$macros" != x ]; then
 
-        # Come back to the top pipeline directory and copy the built PDF
-        # file here.
-	cd $$p
-	cp $(texbdir)/$@ $@
+          # Go into the top TeX build directory and make the paper.
+	  p=$$(pwd)
+	  export TEXINPUTS=$$p:$$TEXINPUTS
+	  cd $(texbdir)
+	  pdflatex -shell-escape -halt-on-error $$p/paper.tex
+
+          # Come back to the top pipeline directory and copy the built PDF
+          # file here.
+	  cd $$p
+	  cp $(texbdir)/$@ $@
+
+	fi

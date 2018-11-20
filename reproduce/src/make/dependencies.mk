@@ -270,56 +270,70 @@ endif
 
 
 # Since we want to avoid complicating the PATH, we are putting a symbolic
-# link of all the TeX Live executables in $(ibdir). Therefore, since the
-# symbolic link is hard to track for Make (as a target), we'll make a
-# simple ASCII file called `texlive-ready' when it is complete and use that
-# as a target.
-$(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk
+# link of all the TeX Live executables in $(ibdir). But symbolic links are
+# hard to track for Make (as a target). So we'll make a simple ASCII file
+# called `texlive-ready' when it is complete and use that as a target.
+$(ibdir)/texlive-ready-tlmgr: reproduce/config/pipeline/texlive.conf
 
-        # We'll need the current directory later down.
-	topdir=$$(pwd)
-
-        # First, if necessary, we'll download the tarball. Note that since
-        # a new version of the installer is created every day, the
-        # installer's version is hard to configure at this stage and is
-        # mostly irrelevant.
-	if $(ibdir)/tlmgr --version &> /dev/null; then
-	  echo "TeX Live manager ('tlmgr') is already installed."
-	else
-	  if wget -O$(tdir)/install-tl-unx.tar.gz \
+        # To work with TeX live installation, we'll need the internet.
+	if ping -c1 ctan.org; then
+          # Download the TeX Live installation tarball.
+	  $(DOWNLOADER) $(tdir)/install-tl-unx.tar.gz \
 	     http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
-	  then
-            # Unpack, enter the directory, and do a basic installation.
-	    cd $(ddir)
-	    rm -rf install-tl-*
-	    tar xf $(tdir)/install-tl-unx.tar.gz
-	    cd install-tl-*
-	    sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
-	        $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
-	    ./install-tl --profile=texlive.conf
-	    cd ..
-	    rm -rf install-tl-* $(tdir)/install-tl-unx.tar.gz
 
-	    # Put a symbolic link of the TeX Live executables in
-	    # `ibdir'. For `latex' do a copy, because it is the target of
-	    # this rule and it won't cause problems.
-	    ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
-	  fi
+          # Unpack, enter the directory, and install based on the given
+          # configuration (prerequisite of this rule).
+	  topdir=$$(pwd)
+	  cd $(ddir)
+	  rm -rf install-tl-*
+	  tar xf $(tdir)/install-tl-unx.tar.gz
+	  cd install-tl-*
+	  sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
+	      $$topdir/$< > texlive.conf
+	  ./install-tl --profile=texlive.conf
+
+          # Put a symbolic link of the TeX Live executables in `ibdir'. The
+          # main problem is that the year and build system (for example
+          # `x86_64-linux') are also in the directory names, making it hard
+          # to be generic. We are using wildcards here, but only in this
+          # Makefile, not in any other.
+	  ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
+
+          # Clean up and build the final target.
+	  cd .. && rm -rf install-tl-* $(tdir)/install-tl-unx.tar.gz
+	  echo "TeX Live is ready." > $@
 	fi
 
-        # In scenarios like having no internet on the first run, its
-        # possible to get to this point without actually having `tlmgr'
-        # ready for usage. Since the pipeline can still do its processing
-        # without building the final PDF, we don't want to stop the build.
-	if $(ibdir)/tlmgr --version &> /dev/null; then
+
+
+
+
+# To keep things modular and simple, we'll break up the installation of TeX
+# Live itself (only very basic TeX and LaTeX) and the installation of its
+# necessary packages into two packages.
+$(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk \
+	                $(ibdir)/texlive-ready-tlmgr
+
+        # To work with TeX live installation, we'll need the internet.
+	res=$(cat $(ibdir)/texlive-ready-tlmgr)
+	if ping -c1 ctan.org                                            \
+	   && [ -f $(ibdir)/texlive-ready-tlmgr ]                       \
+           && [ x$$res != x"NOT" ]; then
+          # The current directory is necessary later.
+	  topdir=$$(pwd)
 
           # Install all the extra necessary packages. If LaTeX complains
-          # about not finding a package, simply run the following command
-          # to find which package its in, then add it to the
-          # `texlive-packages' variable.
+          # about not finding a command/file/what-ever/XXXXXX, simply run
+          # the following command to find which package its in, then add it
+          # to the `texlive-packages' variable of the first prerequisite.
           #
-          #     tlmgr info XXXXXX.sty
+          #     ./.local/bin/tlmgr info XXXXXX
+          #
+          # We are putting a notice, because if there is no internet,
+          # `tlmgr' just hangs waiting.
+	  echo; echo; echo "Downloading necessary TeX packages..."; echo;
 	  tlmgr install $(texlive-packages)
+	  echo "returned: $$?"; echo; echo;
 
           # Make a symbolic link of all the TeX Live executables in the bin
           # directory so we don't have to modify `PATH'.
@@ -333,16 +347,14 @@ $(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk
 
           # LaTeX Package versions.
 	  tlmgr info $(texlive-packages) --only-installed | awk                \
-	        '$$1=="package:" {version=0;                                   \
-	                          if($$NF=="tex-gyre") name="texgyre";         \
-	                          else                 name=$$NF}              \
-	         $$1=="cat-version:" {version=$$NF}                            \
-	         $$1=="cat-date:" {if(version==0) version=$$2;                 \
-	                           printf("\\newcommand{\\tex%sversion}{%s}\n",\
-	                                  name, version)}' >> $$tv
-	fi
+	       '$$1=="package:" {version=0;                                    \
+	                         if($$NF=="tex-gyre") name="texgyre";          \
+	                         else                 name=$$NF}               \
+	        $$1=="cat-version:" {version=$$NF}                             \
+	        $$1=="cat-date:" {if(version==0) version=$$2;                  \
+	                          printf("\\newcommand{\\tex%sversion}{%s}\n", \
+	                          name, version)}' >> $$tv
 
-        # Write the target if TeX live was actually installed.
-	if [ -f $(idir)/texlive/20*/bin/*/latex ]; then
-	  echo "TeX Live is installed." > $@
-	fi;
+          # Write the target if TeX live was actually installed.
+	  echo "TeX Live's packages are also ready." > $@
+	fi
