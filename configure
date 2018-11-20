@@ -495,7 +495,7 @@ make -f reproduce/src/make/dependencies-basic.mk \
 # Makefile. To make the job easier, we'll do it in a Makefile, not a
 # script. Bash and Make were the tools we need to run Makefiles, so we had
 # to build them in this script. But after this, we can rely on Makefiles.
-numthreads=$(./$instdir/bin/nproc)
+numthreads=$($instdir/bin/nproc)
 ./.local/bin/make -f reproduce/src/make/dependencies.mk \
                   static_build=$static_build #-j$numthreads
 
