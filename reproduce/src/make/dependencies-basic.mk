@@ -217,7 +217,7 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link)
 else
-	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version))
+	$(call gbuild, $<, bash-$(bash-version))
 endif
 
 

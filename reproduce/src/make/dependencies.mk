@@ -46,14 +46,17 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 top-level-programs = gawk gs grep sed git astnoisechisel texlive-ready
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
-# Other basic environment settings.
+# Other basic environment settings: We are only including the host
+# operating system's PATH environment variable (after our own!) for the
+# compiler and linker. For the library binaries and headers, we are only
+# using our internally built libraries.
 .ONESHELL:
 .SHELLFLAGS     := -ec
 SHELL           := $(ibdir)/bash
 PATH            := $(ibdir):$(PATH)
-LDFLAGS         := -L$(ildir) $(LDFLAGS)
-CPPFLAGS        := -I$(idir)/include $(CPPFLAGS)
-LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
+LDFLAGS         := -L$(ildir)
+CPPFLAGS        := -I$(idir)/include
+LD_LIBRARY_PATH := $(ildir)
 
 
 
