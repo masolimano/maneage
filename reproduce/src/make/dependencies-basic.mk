@@ -56,7 +56,7 @@ LDFLAGS         := -L$(ildir) $(LDFLAGS)
 CPPFLAGS        := -I$(idir)/include $(CPPFLAGS)
 LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
 
-top-level-programs = bash
+top-level-programs = bash which ls
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -87,6 +87,7 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 # its easier to just keep a with the others.
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         bzip2-$(bzip2-version).tar.gz                       \
+                        coreutils-$(coreutils-version).tar.xz               \
 	                gzip-$(gzip-version).tar.gz                         \
                         lzip-$(lzip-version).tar.gz                         \
 	                make-$(make-version).tar.lz                         \
@@ -103,14 +104,15 @@ $(tarballs): $(tdir)/%:
 	               | awk '{print $$1}' );                               \
 	                                                                    \
 	  mergenames=1;                                                     \
-	  if   [ $$n = bash     ]; then w=http://ftp.gnu.org/gnu/bash;      \
-	  elif [ $$n = bzip     ]; then w=http://akhlaghi.org/src;          \
-	  elif [ $$n = gzip     ]; then w=http://akhlaghi.org/src;          \
-	  elif [ $$n = lzip     ]; then w=http://download.savannah.gnu.org/releases/lzip; \
-	  elif [ $$n = make     ]; then w=http://akhlaghi.org/src;          \
-	  elif [ $$n = tar      ]; then w=http://ftp.gnu.org/gnu/tar;       \
-	  elif [ $$n = which    ]; then w=http://ftp.gnu.org/gnu/which;     \
-	  elif [ $$n = xz       ]; then w=http://tukaani.org/xz;            \
+	  if   [ $$n = bash      ]; then w=http://ftp.gnu.org/gnu/bash;     \
+	  elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
+	  elif [ $$n = gzip      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
+	  elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar;      \
+	  elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which;    \
+	  elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
 	  else                                                              \
 	    echo; echo; echo;                                               \
 	    echo "'$$n' not a basic dependency name (for downloading)."     \
@@ -187,15 +189,6 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 
 
 
-# GNU Which:
-$(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
-	        $(ibdir)/tar
-	$(call gbuild, $<, which-$(which-version), static)
-
-
-
-
-
 # GNU Make: Unfortunately it needs dynamic linking in two instances: when
 # loading objects (dynamically linked libraries), or when using the
 # `getpwnam' function (for tilde expansion). The first can be disabled with
@@ -209,12 +202,29 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
 
 
 
+# GNU Which:
+$(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
+	        $(ibdir)/make
+	$(call gbuild, $<, which-$(which-version), static)
+
+
+
+
+
 # GNU Bash
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
-	       $(ibdir)/which                      \
 	       $(ibdir)/make
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link)
 else
 	$(call gbuild,$(subst $(tdir)/,,$<), bash-$(bash-version))
 endif
+
+
+
+
+
+# GNU Coreutils
+$(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
+             $(ibdir)/make
+	$(call gbuild, $<, coreutils-$(coreutils-version), static)

@@ -42,9 +42,8 @@ ibdir  = $(BDIR)/dependencies/installed/bin
 ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
-# Define the top-level programs to build (installed in `.local/bin', so for
-# Coreutils, only one of its executables is enough).
-top-level-programs = ls gawk gs grep sed git astnoisechisel texlive-ready
+# Define the top-level programs to build (installed in `.local/bin').
+top-level-programs = gawk gs grep sed git astnoisechisel texlive-ready
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings.
@@ -72,7 +71,6 @@ LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
 # downloaded file has our desired format.
 tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         cmake-$(cmake-version).tar.gz                 \
-                        coreutils-$(coreutils-version).tar.xz         \
                         curl-$(curl-version).tar.gz                   \
 	                gawk-$(gawk-version).tar.lz                   \
 	                ghostscript-$(ghostscript-version).tar.gz     \
@@ -109,7 +107,6 @@ $(tarballs): $(tdir)/%:
                                             : "%d000\n") ), $$1)}')
 	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
-	  elif [ $$n = coreutils   ]; then w=http://ftp.gnu.org/gnu/coreutils
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = gawk        ]; then w=http://ftp.gnu.org/gnu/gawk
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs925
@@ -167,8 +164,7 @@ $(tarballs): $(tdir)/%:
 # and create/write into it when the library is successfully built.
 $(ilidir): | $(ildir); mkdir -p $@
 $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz              \
-                   $(ibdir)/curl                                          \
-                   $(ibdir)/ls | $(ilidir)
+                   $(ibdir)/curl | $(ilidir)
 	$(call gbuild, $<,cfitsio, static, --enable-sse2 --enable-reentrant) \
 	&& echo "CFITSIO is built" > $@
 
@@ -181,16 +177,14 @@ $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz              \
 	              -DTHREADSAFE=ON)                                    \
 	&& echo "Libgit2 is built" > $@
 
-$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz                          \
-               $(ibdir)/ls | $(ilidir)
+$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz | $(ilidir)
 	$(call gbuild, $<, gsl-$(gsl-version), static)                    \
 	&& echo "GNU Scientific Library is built" > $@
 
 $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz | $(ilidir)
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
 
-$(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz                 \
-                   $(ibdir)/ls | $(ilidir)
+$(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz | $(ilidir)
 	$(call gbuild, $<, tiff-$(libtiff-version), static)               \
 	&& echo "Libtiff is built" > $@
 
@@ -222,43 +216,33 @@ endif
 # --------
 #
 # CMake can be built with its custom `./bootstrap' script.
-$(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz                        \
-                $(ibdir)/ls
+$(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz
 	cd $(ddir) && rm -rf cmake-$(cmake-version) &&                       \
 	tar xf $< && cd cmake-$(cmake-version) &&                            \
 	./bootstrap --prefix=$(idir) && make && make install &&              \
 	cd ..&& rm -rf cmake-$(cmake-version)
 
 $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz                           \
-               $(ilidir)/zlib                                                \
-               $(ibdir)/ls
+               $(ilidir)/zlib
 	$(call gbuild, $<, curl-$(curl-version), static, --without-brotli)
 
-$(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz
-	$(call gbuild, $<, coreutils-$(coreutils-version), static)
-
-$(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
-               $(ibdir)/ls
+$(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz
 	$(call gbuild, $<, gawk-$(gawk-version), static)
 
-$(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
-              $(ibdir)/ls
+$(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz
 	$(call gbuild, $<, sed-$(sed-version), static)
 
-$(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
-               $(ibdir)/ls
+$(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz
 	$(call gbuild, $<, grep-$(grep-version), static)
 
-$(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.xz \
-                  $(ibdir)/ls
+$(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.xz
 	$(call gbuild, $<, libtool-$(libtool-version), static)
 
-$(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz \
-             $(ibdir)/ls
+$(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 	$(call gbuild, $<, ghostscript-$(ghostscript-version))
 
 $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
-              $(ibdir)/ls
+              $(ilidir)/zlib
 	$(call gbuild, $<, git-$(git-version), static)
 
 $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
@@ -277,6 +261,10 @@ else
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), , , -j8,    \
 	               make check -j8)
 endif
+
+
+
+
 
 # Since we want to avoid complicating the PATH, we are putting a symbolic
 # link of all the TeX Live executables in $(ibdir). Therefore, since the

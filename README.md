@@ -490,12 +490,14 @@ advanced in later stages of your work.
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
      dependency of the pipeline which will be built and used. The main
      reason for this is to demonstrate how critically important it is to
-     version your software. If you will be using Gnuastro, you can also
-     remove the "marks" (comments) put in the relevant files of the list
-     below to make them more readable.
+     version your scientific tools. If you don't need Gnuastro for your
+     research, you can simply remove the parts enclosed in marked parts in
+     the relevant files. The marks are comments, which you can find by
+     searching for "Gnuastro". If you will be using Gnuastro, you can
+     remove the commented marks and keep the
 
    - Delete marked part(s) in `configure`.
-   - Delete `astnoisechisel` from the value of `top-level-programs` in `reproduce/src/make/dependencies.mk`. You can keep the rule to build `astnoisechisel`, since its not in the `top-level-programs` list, it (and all its dependencies) will be ignored.
+   - Delete `astnoisechisel` from the value of `top-level-programs` in `reproduce/src/make/dependencies.mk`. You can keep the rule to build `astnoisechisel`, since its not in the `top-level-programs` list, it (and all the dependencies that are only needed by Gnuastro) will be ignored.
    - Delete marked parts in `reproduce/src/make/initialize.mk`.
    - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style.tex`.
 
