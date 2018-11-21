@@ -333,7 +333,6 @@ $(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk \
           # `tlmgr' just hangs waiting.
 	  echo; echo; echo "Downloading necessary TeX packages..."; echo;
 	  tlmgr install $(texlive-packages)
-	  echo "returned: $$?"; echo; echo;
 
           # Make a symbolic link of all the TeX Live executables in the bin
           # directory so we don't have to modify `PATH'.

@@ -47,7 +47,9 @@ pdir=$cdir/pipeline
 pconf=$pdir/LOCAL.mk
 ptconf=$pdir/LOCAL_tmp.mk
 poconf=$pdir/LOCAL_old.mk
+# --------- Delete for no Gnuastro ---------
 glconf=$cdir/gnuastro/gnuastro-local.conf
+# ------------------------------------------
 
 
 

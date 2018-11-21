@@ -1,23 +1,45 @@
-Reproduction pipeline for XXXXXXX
+Reproduction pipeline for paper XXXXXXX
+=======================================
+
+This is the reproduction pipeline for the paper titled "**XXXXXX**",
+XXXXXXXX et al. YYYY (**IN PREPARATION**). By _reproduction pipeline_ it is
+meant that the full instructions on build the necessary software packages
+used in the analysis, and using them is provided in a human *and* computer
+readable format, such that the simple commands below will *exactly*
+reproduce what we have published (you just need Git, Wget, and minimal
+Unix-based environment).
+
+```shell
+$ git clone https://gitlab.com/makhlaghi/muse-ultra-diffuse-emitters.git
+$ ./configure
+$ ./.local/bin/make -j8
+```
 
 For a general introduction to reproducible science as implemented in this
-pipeline, please see the link below:
-
-  http://akhlaghi.org/reproducible-science.html
+pipeline, please see the [principles of reproducible
+science](http://akhlaghi.org/reproducible-science.html), and a
+[reproducible paper
+template](https://gitlab.com/makhlaghi/reproducible-paper) that is based on
+it.
 
 
 
 Running the pipeline
-====================
+--------------------
+
+This pipeline was designed to have as few dependencies as possible.
 
 1. Necessary dependencies:
 
-   1.1: Basic software building tools like C compiler, Make, and other
+   1.1: Minimal software building tools like C compiler, Make, and other
         tools found on most Unix-like systems (GNU/Linux, BSD, Mac OS, and
         others). All necessary dependencies will be built from source by
         the `./configure' script (next step).
 
-   1.2: Tarball of dependencies. If they are already present (in a
+   1.2: Git to be able to manage the full version controlled history of
+        this project, including an initial "clone" to download it.
+
+   1.3: Tarball of dependencies. If they are already present (in a
         directory given at configuration time), they will be
         used. Otherwise, *GNU Wget* will be used to download any necessary
         tarball. The necessary tarballs are also collected in the link
@@ -27,15 +49,22 @@ Running the pipeline
 
 2. Configure the environment (top-level directories in particular) and
    build all the necessary software for use in the next step. It is
-   recommended to modify the directories. Please read the description of
-   each necessary input clearly and set the best value. Note that the
-   configure scripts also downloads, builds and locally installs many
-   programs (pipeline dependencies). So it may take a while to complete.
+   recommended to set directories outside the current directory. Please
+   read the description of each necessary input clearly and set the best
+   value. Note that the configure script also downloads, builds and locally
+   installs many programs (pipeline dependencies). So it may take a while
+   to complete.
 
+     ```shell
      $ ./configure
+     ```
 
 3. Run the following command (local build of Make) to reproduce all the
-   analysis and build the final `paper.pdf' on *8* threads. If your CPU has
-   a different number of threads, change the number.
+   analysis and build the final `paper.pdf` on *8* threads. If your CPU has
+   a different number of threads, change the number (you can see the number
+   of threads available to your operating system by running
+   `./.local/bin/nproc`)
 
+     ```shell
      $ ./.local/bin/make -j8
+     ```

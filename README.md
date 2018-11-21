@@ -451,6 +451,8 @@ advanced in later stages of your work.
      $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from this pipeline.
      $ git remote rename origin pipeline-origin   # Rename the pipeline's remote.
      $ git checkout -b master                     # Create, enter master branch.
+     $ mv README.md README-pipeline.md            # No longer main README.
+     $ mv README    README.md                     # Project's main README.
      ```
 
  - **Test the pipeline**: Before making any changes, it is important to
@@ -465,18 +467,18 @@ advanced in later stages of your work.
      pipeline outputs with `make clean` as shown below.
 
      ```shell
-     $ ./configure           # Set top directories and build dependencies.
-     $ make                  # Run the pipeline.
+     $ ./configure              # Set top directories and build dependencies.
+     $ ./.local/bin/make        # Run the pipeline.
 
      # Open 'paper.pdf' and see if everything is ok.
-     $ make clean            # Delete high-level outputs.
+     $ ./.local/bin/make clean  # Delete high-level outputs.
      ```
 
  - **Copyright**, **name** and **date**: Go over the existing scripting
      files and add your name and email to the copyright notice. You can
      find the files by searching for the placeholder email
      `your@email.address` (which you should change) with the command below
-     (you can ignore this file, `README.md`, and any in the `tex/`
+     (you can ignore this file, `README-pipeline.md`, and any in the `tex/`
      directory). Don't forget to add your name after the copyright year
      also. When making new files, always remember to add a similar
      copyright statement at the top of the file and also ask your
@@ -500,9 +502,10 @@ advanced in later stages of your work.
      reason for this is to demonstrate how critically important it is to
      version your scientific tools. If you don't need Gnuastro for your
      research, you can simply remove the parts enclosed in marked parts in
-     the relevant files. The marks are comments, which you can find by
-     searching for "Gnuastro". If you will be using Gnuastro, you can
-     remove the commented marks and keep the
+     the relevant files of the list below. The marks are comments, which
+     you can find by searching for "Gnuastro". If you will be using
+     Gnuastro, then remove the commented marks and keep the code within
+     them.
 
    - Delete marked part(s) in `configure`.
    - Delete `astnoisechisel` from the value of `top-level-programs` in `reproduce/src/make/dependencies.mk`. You can keep the rule to build `astnoisechisel`, since its not in the `top-level-programs` list, it (and all the dependencies that are only needed by Gnuastro) will be ignored.
@@ -515,12 +518,14 @@ advanced in later stages of your work.
      commented thoroughly and reading over the comments should guide you on
      what to add/remove and where.
 
- - **`README`**: Go through this top-level instruction file and make it fit
-     to your pipeline: update the text and etc. Don't forget that your
-     colleagues or anyone else, will first be drawn to read this file, so
-     make it as easy as possible for them to understand your
-     work. Therefore, also check and update `README` one last time when you
-     are ready to publish your work (and its reproduction pipeline).
+ - **`README.md`**: (initially called `README`) Go through this top-level
+     instruction file and make it fit to your pipeline: update the text to
+     give a short description of your research project/paper and etc. Don't
+     forget that your colleagues or anyone else, will first be drawn to
+     read this file, so make it as easy as possible for them to understand
+     your work. Therefore, also check and update `README.md` one last time
+     when you are ready to publish your work (and its reproduction
+     pipeline).
 
  - **Input dataset (can be done later)**: The user manages the top-level
      directory of the input data through the variables set in
@@ -585,12 +590,13 @@ advanced in later stages of your work.
      commit to be sure it works as expected).
 
      ```shell
-     $ ./.local/bin/make clean # Delete outputs ('make distclean' for everything)
-     $ ./.local/bin/make       # Build the pipeline to ensure everything is fine.
-     $ git add -u              # Stage all the changes.
-     $ git status              # Make sure everything is fine.
-     $ git commit              # Your first commit, add a nice description.
-     $ git tag -a v0           # Tag this as the zero-th version of your pipeline.
+     $ ./.local/bin/make clean    # Delete outputs ('make distclean' for everything)
+     $ ./.local/bin/make          # Build the pipeline to ensure everything is fine.
+     $ git add -u                 # Stage all the changes.
+     $ git add README-pipeline.md # Keep this pipeline description.
+     $ git status                 # Make sure everything is fine.
+     $ git commit                 # Your first commit, add a nice description.
+     $ git tag -a v0              # Tag this as the zero-th version of your pipeline.
      ```
 
  - **Setup the remote**: You can use any [hosting
