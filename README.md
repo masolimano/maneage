@@ -624,21 +624,23 @@ advanced in later stages of your work.
      below. In any case, please share your thoughts and suggestions with
      us, so we can add them here for everyone's benefit.
 
- - **Keep pipeline up-to-date**: Thanks to your feedback and the feedback
-     of other users, this pipeline is going to become more and more mature
-     and robust. Bugs will be fixed and new/improved features will be
-     added. So every once and a while, you can run the commands below to
-     fetch new work that is done in this pipeline. If the changes are
-     useful for your work, you can merge them with your own customized
-     pipeline to benefit from them. Just pay **close attention** to
-     resolving possible **conflicts** (updated general pipeline settings
-     that you had customized) in the merge.
+ - **Keep pipeline up-to-date**: In time, this pipeline is going to become
+     more and more mature and robust (thanks to your feedback and the
+     feedback of other users). Bugs will be fixed and new/improved features
+     will be added. So every once and a while, you can run the commands
+     below to pull new work that is done in this pipeline. If the changes
+     are useful for your work, you can merge them with your own customized
+     pipeline to benefit from them. Just pay **very close attention** to
+     resolving possible **conflicts** which might happen in the merge
+     (updated general pipeline settings that you have customized).
 
      ```shell
-     $ git fetch pipeline-origin           # Get recent work in this pipeline.
-     $ git log master..pipeline-origin/pipeline --reverse  # Inspect new work.
-     $ git checkout master                 # Go to top branch.
-     $ git merge pipeline-origin/pipeline  # Import all the work into master.
+     $ git checkout pipeline
+     $ git pull pipeline-origin pipeline   # Get recent work in this pipeline.
+     $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
+     $ git log --oneline --graph --decorate --all # General view of branches.
+     $ git checkout master                 # Go to your top working branch.
+     $ git merge pipeline                  # Import all the work into master.
      ```
 
  - **Pre-publication: add notice on reproducibility**: Add a notice
