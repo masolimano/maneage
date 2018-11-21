@@ -114,10 +114,15 @@ detailed (yet still general) introduction see the article on Wikipedia:
 
   https://en.wikipedia.org/wiki/Make_(software)
 
-Many implementations of Make exist and all should be usable with this
-pipeline. This pipeline has been created and tested mainly with GNU Make
-which is the most common implementation. But if you see parts specific to
-GNU Make, please inform us to correct it.
+Make is a +40 year old software that is still evolving, therefore many
+implementations of Make exist. The only difference in them is some extra
+features over the [standard
+definition](https://pubs.opengroup.org/onlinepubs/009695399/utilities/make.html)
+(which is shared in all of them). This pipeline has been created for GNU
+Make which is the most common, most actively developed, and most advanced
+implementation. Just note that this pipeline downloads, builds, internally
+installs, and uses its own dependencies (including GNU Make), so you don't
+have to have it installed before you try it out.
 
 
 
@@ -126,9 +131,10 @@ GNU Make, please inform us to correct it.
 How can I learn Make?
 ---------------------
 
-The best place to learn Make from scratch is the GNU Make manual. It is an
-excellent and non-technical (in its first chapters) book to help get
-started. It is freely available and always up to date with the current
+The GNU Make book/manual (links below) is arguably the best place to learn
+Make. It is an excellent and non-technical book to help get started (it is
+only non-technical in its first few chapters to get you started easily). It
+is freely available and always up to date with the current GNU Make
 release. It also clearly explains which features are specific to GNU Make
 and which are general in all implementations. So the first few chapters
 regarding the generalities are useful for all implementations.
