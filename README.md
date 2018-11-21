@@ -447,6 +447,8 @@ advanced in later stages of your work.
      $ git clone https://gitlab.com/makhlaghi/reproducible-paper.git
      $ mv reproducible-paper my-project-name      # Your own directory name.
      $ cd my-project-name                         # Go into the cloned directory.
+     $ git tag | xargs git tag -d                 # Delete all pipeline tags.
+     $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from this pipeline.
      $ git remote rename origin pipeline-origin   # Rename the pipeline's remote.
      $ git checkout -b master                     # Create, enter master branch.
      ```
@@ -615,19 +617,36 @@ advanced in later stages of your work.
      questions. Any time you are ready to push your commits to the remote
      repository, you can simply use `git push`.
 
- - **Pre-publication: add notice on reproducibility**: Add a notice
-     somewhere prominent in the first page within your paper, informing the
-     reader that your research is fully reproducible. For example in the
-     end of the abstract, or under the keywords with a title like
-     "reproducible paper". This will encourage them to publish their own
-     works in this manner also and also will help spread the word.
-
  - **Feedback**: As you use the pipeline you will notice many things that
      if implemented from the start would have been very useful for your
      work. This can be in the actual scripting and architecture of the
      pipeline or in useful implementation and usage tips, like those
      below. In any case, please share your thoughts and suggestions with
      us, so we can add them here for everyone's benefit.
+
+ - **Keep pipeline up-to-date**: Thanks to your feedback and the feedback
+     of other users, this pipeline is going to become more and more mature
+     and robust. Bugs will be fixed and new/improved features will be
+     added. So every once and a while, you can run the commands below to
+     fetch new work that is done in this pipeline. If the changes are
+     useful for your work, you can merge them with your own customized
+     pipeline to benefit from them. Just pay **close attention** to
+     resolving possible **conflicts** (updated general pipeline settings
+     that you had customized) in the merge.
+
+     ```shell
+     $ git fetch pipeline-origin           # Get recent work in this pipeline.
+     $ git log master..pipeline-origin/pipeline --reverse  # Inspect new work.
+     $ git checkout master                 # Go to top branch.
+     $ git merge pipeline-origin/pipeline  # Import all the work into master.
+     ```
+
+ - **Pre-publication: add notice on reproducibility**: Add a notice
+     somewhere prominent in the first page within your paper, informing the
+     reader that your research is fully reproducible. For example in the
+     end of the abstract, or under the keywords with a title like
+     "reproducible paper". This will encourage them to publish their own
+     works in this manner also and also will help spread the word.
 
 
 
