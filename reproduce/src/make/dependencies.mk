@@ -112,7 +112,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = gawk        ]; then w=http://ftp.gnu.org/gnu/gawk
-	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs925
+	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=https://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = grep        ]; then w=http://ftp.gnu.org/gnu/grep
