@@ -49,7 +49,7 @@ This pipeline was designed to have as few dependencies as possible.
         below for easy download. [[TO PIPELINE DESIGNERS: it is STRONGLY
         RECOMMENDED to keep a backup of all the necessary software tarballs
         you need for the project (possibly in another Git repository). If
-        you do have such a link, add it here. If not, remove teh
+        you do have such a link, add it here. If not, remove the
         placeholder and the previous sentence. Also, don't forget to remove
         this note.]]
 
@@ -60,7 +60,7 @@ This pipeline was designed to have as few dependencies as possible.
    recommended to set directories outside the current directory. Please
    read the description of each necessary input clearly and set the best
    value. Note that the configure script also downloads, builds and locally
-   installs (only for this pipeline, no root previlages necessary) many
+   installs (only for this pipeline, no root privileges necessary) many
    programs (pipeline dependencies). So it may take a while to complete.
 
      ```shell

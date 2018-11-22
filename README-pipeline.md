@@ -27,7 +27,7 @@ repository](https://gitlab.com/makhlaghi/reproducible-paper-dependencies). The
 output](https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf)
 of this pipeline is also present in [a separate
 repository](https://gitlab.com/makhlaghi/reproducible-paper-output). Notice
-the last paragraph of the Acknowledgements where all the dependencies are
+the last paragraph of the Acknowledgments where all the dependencies are
 mentioned with their versions.
 
 Below, we start with a discussion of why Make was chosen as the high-level
@@ -339,7 +339,7 @@ All processing steps are assumed to ultimately (usually after many rules)
 end up in some number, image, figure, or table that are to be included in
 the paper. The writing of the values into the final report is managed
 through separate LaTeX files that only contain macros (a name given to a
-number/string to be used in the LaTEX source, which will be replaced when
+number/string to be used in the LaTeX source, which will be replaced when
 compiling it to the final PDF). So usually the last target in a Makefile is
 a `.tex` file (with the same base-name as the Makefile, but in
 `$(BDIR)/tex/macros`). This intermediate TeX file rule will only contain
@@ -427,7 +427,7 @@ been explained here), please let us know to correct it.
 As described above, the concept of a reproduction pipeline heavily relies
 on [version
 control](https://en.wikipedia.org/wiki/Version_control). Currently this
-pipline uses Git as its main version control system. If you are not already
+pipeline uses Git as its main version control system. If you are not already
 familiar with Git, please read the first three chapters of the [ProGit
 book](https://git-scm.com/book/en/v2) which provides a wonderful practical
 understanding of the basics. You can read later chapters as you get more
@@ -565,7 +565,7 @@ advanced in later stages of your work.
      discussed here.
 
      - `paper.tex`: Delete the text of the abstract and the paper's main
-       body, *except* the "Acknowledgements" section. This reproduction
+       body, *except* the "Acknowledgments" section. This reproduction
        pipeline was designed by funding from many grants, so its necessary
        to acknowledge them in your final research.
 
@@ -959,3 +959,4 @@ that is not reproducible (due to incomplete information by the author) is
 not scientific: the readers have to have faith in the subjective experience
 of the authors in the very important choice of configuration values and
 order of operations: this is contrary to the scientific spirit.
+LocalWords:  README md et al Gitlab ApJS BDIR un pdf mk foreach
