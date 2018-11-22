@@ -583,13 +583,13 @@ advanced in later stages of your work.
 
  - **`README.md`**: Correct all the `XXXXX` place holders (name of your
      project, your own name, address of pipeline's online/remote
-     repository). Read over the text and update it where necessary to fit
-     your project. Don't forget that this is the first file that is
-     displayed on your online repository and also your colleagues will
-     first be drawn to read this file. Therefore, make it as easy as
-     possible for them to start with. Also check and update this file one
-     last time when you are ready to publish your work (and its
-     reproduction pipeline).
+     repository, link to download dependencies and etc). Generally, read
+     over the text and update it where necessary to fit your project. Don't
+     forget that this is the first file that is displayed on your online
+     repository and also your colleagues will first be drawn to read this
+     file. Therefore, make it as easy as possible for them to start
+     with. Also check and update this file one last time when you are ready
+     to publish your work (and its reproduction pipeline).
 
  - **Your first commit**: You have already made some small and basic
      changes in the steps above and you are in the `master` branch. So, you

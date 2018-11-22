@@ -46,9 +46,15 @@ This pipeline was designed to have as few dependencies as possible.
         a directory given at configuration time), they will be
         used. Otherwise, *GNU Wget* will be used to download any necessary
         tarball. The necessary tarballs are also collected in the link
-        below for easy download:
+        below for easy download.
 
-          https://gitlab.com/makhlaghi/reproducible-paper-dependencies
+          https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+        [TO PIPELINE DESIGNERS: IT IS <<<STRONGLY RECOMMENDED>>> TO KEEP A
+         BACKUP OF ALL THE NECESSARY TARBALLS YOU NEED FOR THE PROJECT
+         (POSSIBLY IN ANOTHER GIT REPOSITORY). IF YOU DO MAKE ONE, PUT ITS
+         URL IN THE PLACEHOLDER URL ABOVE. IF NOT, REMOVE THE PLACE HOLDER
+         AND THE LAST LINE OF THE PRAGRAPH ABOVE IT.]
 
 2. Configure the environment (top-level directories in particular) and
    build all the necessary software for use in the next step. It is
