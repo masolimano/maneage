@@ -959,4 +959,3 @@ that is not reproducible (due to incomplete information by the author) is
 not scientific: the readers have to have faith in the subjective experience
 of the authors in the very important choice of configuration values and
 order of operations: this is contrary to the scientific spirit.
-LocalWords:  README md et al Gitlab ApJS BDIR un pdf mk foreach
