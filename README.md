@@ -474,6 +474,20 @@ advanced in later stages of your work.
      $ .local/bin/make clean    # Delete high-level outputs.
      ```
 
+ - **Setup the remote**: You can use any [hosting
+     facility](https://en.wikipedia.org/wiki/Comparison_of_source_code_hosting_facilities)
+     that supports Git to keep an online copy of your project's version
+     controlled history. We recommend [GitLab](https://gitlab.com) because
+     it allows any number of private repositories for free and because you
+     can host GitLab on your own server. Create an account in your favorite
+     hosting facility (if you don't already have one), and define a new
+     project there. It will give you a link (ending in `.git`) that you can
+     put in place of `XXXXXXXXXX` in the command below.
+
+     ```shell
+     git remote add origin XXXXXXXXXX
+     ```
+
  - **Copyright**, **name** and **date**: Go over the existing scripting
      files and add your name and email to the copyright notice. You can
      find the files by searching for the placeholder email
@@ -517,15 +531,6 @@ advanced in later stages of your work.
      the respective parts of `reproduce/src/make/dependencies.mk`. It is
      commented thoroughly and reading over the comments should guide you on
      what to add/remove and where.
-
- - **`README.md`**: (initially called `README`) Go through this top-level
-     instruction file and make it fit to your pipeline: update the text to
-     give a short description of your research project/paper and etc. Don't
-     forget that your colleagues or anyone else, will first be drawn to
-     read this file, so make it as easy as possible for them to understand
-     your work. Therefore, also check and update `README.md` one last time
-     when you are ready to publish your work (and its reproduction
-     pipeline).
 
  - **Input dataset (can be done later)**: The user manages the top-level
      directory of the input data through the variables set in
@@ -582,6 +587,16 @@ advanced in later stages of your work.
        $ rm reproduce/config/pipeline/delete-me*
        ```
 
+ - **`README.md`**: (initially called `README`) Correct all the `XXXXX`
+     place holders (name of your project, your own name, address of
+     pipeline's online/remote repository). Go over the text and update it
+     where necessary to fit your project. Don't forget that this is the
+     first file that is displayed on your online repository and also your
+     colleagues will first be drawn to read this file. Therefore, make it
+     as easy as possible for them to start with. Also check and update this
+     file one last time when you are ready to publish your work (and its
+     reproduction pipeline).
+
  - **Your first commit**: You have already made some small and basic
      changes in the steps above and you are in the `master` branch. So, you
      can officially make your first commit in your project's history. But
@@ -599,18 +614,10 @@ advanced in later stages of your work.
      $ git tag -a v0              # Tag this as the zero-th version of your pipeline.
      ```
 
- - **Setup the remote**: You can use any [hosting
-     facility](https://en.wikipedia.org/wiki/Comparison_of_source_code_hosting_facilities)
-     that supports Git to keep an online copy of your project's version
-     controlled history. We recommend [GitLab](https://gitlab.com) because
-     it allows any number of private repositories for free and because you
-     can host GitLab on your own server. Create an account in your favorite
-     hosting facility (if you don't already have one), and define a new
-     project there. It will give you a link (ending in `.git`) that you can
-     put in place of `XXX` in the command below.
+ - **Push to the remote**: Push your first commit and its tag to the remote
+     repository with these commands:
 
      ```shell
-     git remote add origin XXX
      git push -u origin --all
      git push -u origin --tags
      ```

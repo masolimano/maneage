@@ -18,7 +18,7 @@ manually (there is a button to download a compressed tarball of the
 project).
 
 ```shell
-$ git clone https://gitlab.com/makhlaghi/reproducible-paper.git
+$ git clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 $ ./configure
 $ .local/bin/make -j8
 ```
