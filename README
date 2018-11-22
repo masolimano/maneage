@@ -12,7 +12,7 @@ Unix-based environment).
 ```shell
 $ git clone https://gitlab.com/makhlaghi/muse-ultra-diffuse-emitters.git
 $ ./configure
-$ ./.local/bin/make -j8
+$ .local/bin/make -j8
 ```
 
 For a general introduction to reproducible science as implemented in this
@@ -66,5 +66,5 @@ This pipeline was designed to have as few dependencies as possible.
    `./.local/bin/nproc`)
 
      ```shell
-     $ ./.local/bin/make -j8
+     $ .local/bin/make -j8
      ```

@@ -570,7 +570,7 @@ The reproduction pipeline and its environment are configured with no errors.
 Please run the following command to start.
 (Replace '8' with the number of CPU threads)
 
-    ./.local/bin/make -j8
+    .local/bin/make -j8
 
 To change the configuration later, please re-run './configure',
 DO NOT manually edit the relevant files.

@@ -3,7 +3,7 @@ Introduction
 
 This description is for *creators* of the reproduction pipeline. See
 `README` for instructions on running it (in short, just download/clone it,
-then run `./configure` and `./.local/bin/make -j8`).
+then run `./configure` and `.local/bin/make -j8`).
 
 This project contains a **fully working template** for a high-level
 research reproduction pipeline, or reproducible paper, as defined in the
@@ -246,7 +246,7 @@ understand its architecture so you can navigate your way in the directories
 and understand how to implement your research project within its
 framework. But before reading this theoretical discussion, please run the
 pipeline (described in `README`: first run `./configure`, then
-`./.local/bin/make -j8`) without any change, just to see how it works.
+`.local/bin/make -j8`) without any change, just to see how it works.
 
 In order to obtain a reproducible result it is important to have an
 identical environment (for example same versions the programs that it will
@@ -468,10 +468,10 @@ advanced in later stages of your work.
 
      ```shell
      $ ./configure              # Set top directories and build dependencies.
-     $ ./.local/bin/make        # Run the pipeline.
+     $ .local/bin/make          # Run the pipeline.
 
      # Open 'paper.pdf' and see if everything is ok.
-     $ ./.local/bin/make clean  # Delete high-level outputs.
+     $ .local/bin/make clean    # Delete high-level outputs.
      ```
 
  - **Copyright**, **name** and **date**: Go over the existing scripting
@@ -590,8 +590,8 @@ advanced in later stages of your work.
      commit to be sure it works as expected).
 
      ```shell
-     $ ./.local/bin/make clean    # Delete outputs ('make distclean' for everything)
-     $ ./.local/bin/make          # Build the pipeline to ensure everything is fine.
+     $ .local/bin/make clean      # Delete outputs ('make distclean' for everything)
+     $ .local/bin/make            # Build the pipeline to ensure everything is fine.
      $ git add -u                 # Stage all the changes.
      $ git add README-pipeline.md # Keep this pipeline description.
      $ git status                 # Make sure everything is fine.
