@@ -531,14 +531,20 @@ advanced in later stages of your work.
      through the `reproduce/config/pipeline/INPUTS.mk` file. It is best to
      gather all the information regarding all the input datasets into this
      one central file. To ensure that the proper dataset is being
-     downloaded and used by the pipeline, its best to also get an MD5
-     checksum (https://en.wikipedia.org/wiki/MD5) of the file and include
-     that in thsi file so you can check it in the pipeline. The preparation
-     of the input datasets is done in
+     downloaded and used by the pipeline, it is also recommended get an
+     [MD5 checksum](https://en.wikipedia.org/wiki/MD5) of the file and
+     include that in `INPUTS.mk` so you can check it in the pipeline. The
+     preparation of the input datasets is done in
      `reproduce/src/make/download.mk`. Have a look there to see how these
      values are to be used. This information about the input datasets is
      also used in the initial `configure` script (to inform the users), so
-     also modify that file.
+     also modify that file. You can find all occurrences of the template
+     dataset with the command below and replace it with your input's
+     dataset.
+
+     ```shell
+     $ grep -ir wfpc2 ./*
+     ```
 
  - **Delete dummy parts (can be done later)**: The template pipeline
      contains some parts that are only for the initial/test run, mainly as
