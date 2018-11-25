@@ -282,11 +282,6 @@ volume and its 128-bit MD5 checksum in parenthesis.
     standard webpage as a demonstration of this file format.
     URL: $wfpc2url/$wfpc2name
 
-  $uitname ($uitsize, $uitmd5):
-    A 512x512 Astro1 Ultraviolet Imaging Telescope image used in the FITS
-    standard webpage as a demonstration of this file format.
-    URL: $uiturl/$uitname
-
 NOTE: This directory, or the datasets above, are optional. If it doesn't
 exist, the files will be downloaded in the build directory and used.
 
