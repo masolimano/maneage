@@ -47,10 +47,10 @@ $(dm): $(pconfdir)/delete-me-num.mk | $(dmdir)
 #
 # For an example image, we'll make a PDF copy of the WFPC II image to
 # display in the paper.
-wfpc2dir = $(texdir)/delete-me-wfpc2
-$(wfpc2dir): | $(texdir); mkdir $@
-wfpc2 = $(wfpc2dir)/wfpc2.pdf
-$(wfpc2): $(indir)/$(WFPC2IMAGE) | $(wfpc2dir)
+dddemodir = $(texdir)/delete-me-demo
+$(dddemodir): | $(texdir); mkdir $@
+demopdf = $(dddemodir)/wfpc2.pdf
+$(demopdf): $(dddemodir)/%.pdf: $(indir)/%.fits | $(dddemodir)
 
         # When the plotted values are re-made, it is necessary to also
         # delete the TiKZ externalized files so the plot is also re-made.
@@ -67,8 +67,8 @@ $(wfpc2): $(indir)/$(WFPC2IMAGE) | $(wfpc2dir)
 # ------------------------
 #
 # For an example plot, we'll show the pixel value histogram also.
-wfpc2hist = $(wfpc2dir)/wfpc2-hist.txt
-$(wfpc2hist): $(indir)/$(WFPC2IMAGE) | $(wfpc2dir)
+histogram = $(dddemodir)/wfpc2-hist.txt
+$(histogram): $(dddemodir)/%-hist.txt: $(indir)/%.fits | $(dddemodir)
 
         # When the plotted values are re-made, it is necessary to also
         # delete the TiKZ externalized files so the plot is also re-made.
@@ -86,11 +86,9 @@ $(wfpc2hist): $(indir)/$(WFPC2IMAGE) | $(wfpc2dir)
 #
 # This is just as a demonstration on how to get analysic configuration
 # parameters from variables defined in `reproduce/config/pipeline'.
-wfpc2stats = $(wfpc2dir)/wfpc2-stats.txt
-$(wfpc2stats): $(indir)/$(WFPC2IMAGE) $(pconfdir)/delete-me-wfpc2-quant.mk \
-              | $(wfpc2dir)
-	aststatistics $< -h0 --mean --median                        \
-	              --quantile=$(delete-me-wfpc2-quantile) > $@
+stats = $(dddemodir)/wfpc2-stats.txt
+$(stats): $(dddemodir)/%-stats.txt: $(indir)/%.fits | $(dddemodir)
+	aststatistics $< -h0 --mean --median > $@
 
 
 
@@ -103,7 +101,7 @@ $(wfpc2stats): $(indir)/$(WFPC2IMAGE) $(pconfdir)/delete-me-wfpc2-quant.mk \
 #
 # NOTE: In LaTeX you cannot use any non-alphabetic character in a variable
 # name.
-$(mtexdir)/delete-me.tex: $(dm) $(wfpc2) $(wfpc2hist) $(wfpc2stats)
+$(mtexdir)/delete-me.tex: $(dm) $(demopdf) $(histogram) $(stats)
 
         # Write the number of random values used.
 	echo "\newcommand{\deletemenum}{$(delete-me-num)}" > $@
@@ -125,11 +123,7 @@ $(mtexdir)/delete-me.tex: $(dm) $(wfpc2) $(wfpc2hist) $(wfpc2stats)
 	echo "\newcommand{\deletememax}{$$v}"             >> $@
 
         # Write the statistics of the WFPC2 image as a macro.
-	q=$(delete-me-wfpc2-quantile)
-	echo "\newcommand{\deletemewfpcquantile}{$$q}"            >> $@
-	mean=$$(awk     '{printf("%.2f", $$1)}' $(wfpc2stats))
+	mean=$$(awk     '{printf("%.2f", $$1)}' $(stats))
 	echo "\newcommand{\deletemewfpctwomean}{$$mean}"          >> $@
-	median=$$(awk   '{printf("%.2f", $$2)}' $(wfpc2stats))
+	median=$$(awk   '{printf("%.2f", $$2)}' $(stats))
 	echo "\newcommand{\deletemewfpctwomedian}{$$median}"      >> $@
-	quantile=$$(awk '{printf("%.2f", $$3)}' $(wfpc2stats))
-	echo "\newcommand{\deletemewfpctwoquantile}{$$quantile}"  >> $@

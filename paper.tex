@@ -85,14 +85,14 @@ or
 in this way, will let you focus clearly on your science and not have to
 worry about fixing this or that number/name in the text.
 
-Figure \ref{deleteme} shows a simple plot as a demonstration of creating
+Figure \ref{delete-me} shows a simple plot as a demonstration of creating
 plots within \LaTeX{} (using the {\small PGFP}lots package). The minimum
 value in this distribution is $\deletememin$, and $\deletememax$ is the
 maximum. Take a look into the \LaTeX{} source and you'll see these numbers
 are actually macros that were calculated from the same dataset (they will
 change if the dataset, or function that produced it, changes).
 
-The individual {\small PDF} file of Figure \ref{deleteme} is available
+The individual {\small PDF} file of Figure \ref{delete-me} is available
 under the \texttt{tex/build/tikz/} directory of your build directory. You
 can use this PDF file in other contexts (for example in slides showing your
 progress or after publishing the work). If you want to directly use the
@@ -103,11 +103,11 @@ progress or after publishing the work). If you want to directly use the
 \begin{figure}[t]
   \includetikz{delete-me}
 
-  \captionof{figure}{\label{deleteme} A very basic $X^2$ plot for
+  \captionof{figure}{\label{delete-me} A very basic $X^2$ plot for
     demonstration.}
 \end{figure}
 
-Figure \ref{deleteme-wfpc2} is another demonstration of showing images
+Figure \ref{delete-me-demo} is another demonstration of showing images
 (datasets) using PGFPlots. It shows a small crop of an image from the
 Wide-Field Planetary Camera 2, on board the Hubble Space Telescope from
 1993 to 2009. This cropped image is one of the sample FITS files from the
@@ -116,13 +116,11 @@ webpage\footnote{\url{https://fits.gsfc.nasa.gov/fits_samples.html}}. Just
 as another basic reporting of measurements on this dataset within the paper
 without using numbers in the \LaTeX{} source, the mean is
 $\deletemewfpctwomean$ and the median is $\deletemewfpctwomedian$. The
-skewness in the histogram of Figure \ref{deleteme-wfpc2}(b) explains this
-difference between the mean and median. Also, the value of quantile
-$\deletemewfpcquantile$ (set in the pipeline configuration file
-\texttt{delete-me-wfpc2-quant.mk}) is $\deletemewfpctwoquantile$. The
-dataset was prepared for demonstration here with Gnuastro's
-\textsf{Convert\-Type} program and the histogram and basic statstics were
-generated with Gnuastro's \textsf{Statistics} program.
+skewness in the histogram of Figure \ref{delete-me-demo}(b) explains this
+difference between the mean and median. The dataset was prepared for
+demonstration here with Gnuastro's \textsf{Convert\-Type} program and the
+histogram and basic statstics were generated with Gnuastro's
+\textsf{Statistics} program.
 
 {\small PGFP}lots\footnote{\url{https://ctan.org/pkg/pgfplots}} is a great
 tool to build the plots within \LaTeX{} and removes the necessity to add
@@ -156,9 +154,9 @@ new co-authors (who don't want to be distracted by these issues in their
 first time reading).
 
 \begin{figure}[t]
-  \includetikz{delete-me-wfpc2}
+  \includetikz{delete-me-demo}
 
-  \captionof{figure}{\label{deleteme-wfpc2} (a) An example image of the
+  \captionof{figure}{\label{delete-me-demo} (a) An example image of the
     Wide-Field Planetary Camera 2, on board the Hubble Space Telescope from
     1993 to 2009. This is one of the sample images from the FITS standard
     webpage, kept as examples for this file format. (b) Histogram of pixel
