@@ -286,78 +286,81 @@ other servers: its contents are all products of the pipeline, and can be
 easily re-created any time. As you define targets for your new rules, it is
 thus important to place them all under sub-directories of `$(BDIR)`.
 
-Let's start reviewing the processing with the top Makefile. Please open and
-inspect it as we go along here. The first step (un-commented line) defines
-the ultimate target (`paper.pdf`). You shouldn't modify this line. The rule
-to build `paper.pdf` is in another Makefile that will be imported into this
-top Makefile later. Don't forget that Make first scans the Makefile(s) once
-completely (to define dependencies and etc) and starts its execution after
-that. So it is fine to define the rule to build `paper.pdf` at a later
-stage (this is one beauty of Make!).
+In this architecture, we have two types of Makefiles that are loaded into
+one: _configuration-Makefiles_ (only independent variables/configurations)
+and _workhorse-Makefiles_ (Makefiles that actually contain rules).
 
-Having defined the top target, our next step is to include all the other
-necessary Makefiles. First we include all Makefiles that satisfy this
-wildcard: `reproduce/config/pipeline/*.mk`. These Makefiles don't actually
-have any rules, they just have values for various free parameters
-throughout the pipeline. Open a few of them to see for your self. These
+The configuration-Makefiles are those that satisfy this wildcard:
+`reproduce/config/pipeline/*.mk`. These Makefiles don't actually have any
+rules, they just have values for various free parameters throughout the
+analysis/processing. Open a few of them to see for your self. These
 Makefiles must only contain raw Make variables (pipeline
 configurations). By raw we mean that the Make variables in these files must
-not depend on variables in any other Makefile. This is because we don't
-want to assume any order in reading them. It is very important to *not*
-define any rule or other Make construct in any of these
-_configuration-Makefiles_ (see the next paragraph for Makefiles with
-rules). This will enable you to set the respective Makefiles in this
-directory as a prerequisite to any target that depends on their variable
-values. Therefore, if you change any of their values, all targets that
-depend on those values will be re-built.
+not depend on variables in any other configuration-Makefile. This is
+because we don't want to assume any order in reading them. It is very
+important to *not* define any rule or other Make construct in any of these
+configuration-Makefiles. This will enable you to set the respective
+Makefiles in this directory as a prerequisite to any target that depends on
+their variable values. Therefore, if you change any of their values, all
+targets that depend on those values will be re-built.
 
-Once all the raw variables have been imported into the top Makefile, we are
-ready to import the Makefiles containing the details of the processing
-steps (Makefiles containing rules, let's call these
-_workhorse-Makefiles_). But in this phase *order is important*, because the
-prerequisites of most rules will be other rules that will be defined at a
-lower level (not a fixed name like `paper.pdf`). The lower-level rules must
-be imported into Make before the higher-level ones. Hence, we can't use a
-simple wildcard like when we imported configuration-Makefiles above. All
-these Makefiles are defined in `reproduce/src/make`, therefore, the top
-Makefile uses the `foreach` function to read them in a specific order.
-
-The main body of this pipeline is thus going to be managed within the
-workhorse-Makefiles that are in `reproduce/src/make`. If you set
-clear-to-understand names for these workhorse-Makefiles and follow the
-convention of the top Makefile that you only include one workhorse-Makefile
-per line, the `foreach` loop of the top Makefile that imports them will
-become very easy to read and understand by eye. This will let you know
-generally which step you are taking before or after another. Projects will
-scale up very fast. Thus if you don't start and continue with a clean and
-robust convention like this, in the end it will become very dirty and hard
-to manage/understand (even for yourself). As a general rule of thumb, break
-your rules into as many logically-similar but independent steps as
-possible.
+The workhorse-Makefiles are those within the `reproduce/src/make`
+directory. They contain the details of the processing steps (Makefiles
+containing rules). But in this phase *order is important*, because the
+prerequisites of most rules will be the targets of other rules that will be
+defined prior to them (not a fixed name like `paper.pdf`). The lower-level
+rules must be imported into Make before the higher-level ones. Hence, we
+can't use a simple wildcard like when we imported configuration-Makefiles
+above.
 
 All processing steps are assumed to ultimately (usually after many rules)
 end up in some number, image, figure, or table that are to be included in
-the paper. The writing of the values into the final report is managed
-through separate LaTeX files that only contain macros (a name given to a
-number/string to be used in the LaTeX source, which will be replaced when
-compiling it to the final PDF). So usually the last target in a Makefile is
-a `.tex` file (with the same base-name as the Makefile, but in
-`$(BDIR)/tex/macros`). This intermediate TeX file rule will only contain
-commands to fill the TeX file up with values/names that were done in that
-Makefile. As a result, if the targets in a workhorse-Makefile aren't
-directly a prerequisite of other workhorse-Makefile targets, they should be
-a pre-requisite of that intermediate LaTeX macro file.
+the paper. The writing of these results into the final report/paper is
+managed through separate LaTeX files that only contain macros (a name given
+to a number/string to be used in the LaTeX source, which will be replaced
+when compiling it to the final PDF). So usually the last target in a
+workhorse-Makefile is a `.tex` file (with the same base-name as the
+Makefile, but in `$(BDIR)/tex/macros`). As a result, if the targets in a
+workhorse-Makefile aren't directly a prerequisite of other
+workhorse-Makefile targets, they should be a pre-requisite of that
+intermediate LaTeX macro file. Otherwise, they will be ignored by Make.
 
-In `reproduce/src/make/paper.mk` contains the rule to build `paper.pdf`
-(final target of the whole reproduction pipeline). If look in it, you will
-notice that it depends on `tex/pipeline.tex`. Therefore, last part of the
-top-level `Makefile` is the rule to build
-`tex/pipeline.tex`. `tex/pipeline.tex` is the connection between the
-processing steps of the pipeline, and the creation of the final
-PDF. Therefore, to keep the over-all management clean, the rule to create
-this bridge between the two phases is defined in the top-level `Makefile`.
+Let's see how this design is implemented. When the `./configure` finishes,
+it makes a `Makefile` in the top directory. This Makefile is just a
+symbolic link to `reproduce/src/make/top.mk`. Please open and inspect it as
+we go along here. The first step (un-commented line) defines the ultimate
+target (`paper.pdf`). You shouldn't modify this line. The rule to build
+`paper.pdf` is in `reproduce/src/make/paper.mk` that will be imported into
+this top Makefile later.
 
-As you see in the top-level `Makefile`, `tex/pipeline.tex` is only a
+Having defined the top target, our next step is to include all the other
+necessary Makefiles. But order matters in the importing of
+workhorse-Makefiles and each must also have a TeX macro file with the same
+base name (without a suffix). Therefore, the next step in the top-level
+Makefile is to define a `makesrc` variable to keep the base names (without
+a `.mk` suffix) of the workhorse-Makefiles that must be imported, in the
+proper order. Having defined `makesrc`, in the next step, we'll just import
+all the configuration-Makefiles with a wildcard and all workhorse-Makefiles
+using a Make `foreach` loop to preserve the order. This finishes the
+general view of the pipeline's implementation.
+
+In short, to keep things modular, readable and managable, follow these
+recommendations: 1) Set clear-to-understand names for the
+configuration-Makefiles, and workhorse-Makefiles, 2) Only import other
+Makefiles from top Makefile. These will let you know/remember generally
+which step you are taking before or after another. Projects will scale up
+very fast. Thus if you don't start and continue with a clean and robust
+convention like this, in the end it will become very dirty and hard to
+manage/understand (even for yourself). As a general rule of thumb, break
+your rules into as many logically-similar but independent steps as
+possible.
+
+The `reproduce/src/make/paper.mk` Makefile must be the final Makefile that
+is included. It ends with the rule to build `paper.pdf` (final target of
+the whole reproduction pipeline). If look in it, you will notice that it
+starts with a rule to create `tex/pipeline.tex`. `tex/pipeline.tex` is the
+connection between the processing/analysis steps of the pipeline, and the
+steps to build the final PDF. As you see, `tex/pipeline.tex` is only a
 merging/concatenation of LaTeX macros defined as the output of each
 high-level processing step (the separate work-horse Makefiles that you
 included).
@@ -372,11 +375,12 @@ through the `\bdir` macro.
 
 During the research, it often happens that you want to test a step that is
 not a prerequisite of any higher-level operation. In such cases, you can
-(temporarily) define the target of that rule as a prerequisite of
-`tex/pipeline.tex`. If your test gives a promising result and you want to
-include it in your research, set it as prerequisites to other rules and
-remove it from the list of prerequisites for `tex/pipeline.tex`. In fact,
-this is how a project is designed to grow in this framework.
+(temporarily) define that processing as a rule in the most relevant
+workhorse-Makefile and set its target as a prerequisite of its TeX
+macro. If your test gives a promising result and you want to include it in
+your research, set it as prerequisites to other rules and remove it from
+the list of prerequisites for TeX macro file. In fact, this is how a
+project is designed to grow in this framework.
 
 
 
@@ -391,8 +395,8 @@ mind are listed below.
  - Define new `reproduce/src/make/XXXXXX.mk` workhorse-Makefile(s) with
    good and human-friendly name(s) replacing `XXXXXX`.
 
- - Add `XXXXXX`, as a new line, to the loop which includes the
-   workhorse-Makefiles in the top-level `Makefile`.
+ - Add `XXXXXX`, as a new line, to the values in `makesrc` of the top-level
+   `Makefile`.
 
  - Do not use any constant numbers (or important names like filter names)
    in the workhorse-Makefiles or paper's LaTeX source. Define such
@@ -402,9 +406,9 @@ mind are listed below.
    the variable defined in it.
 
  - Through any number of intermediate prerequisites, all processing steps
-   should end in (be a prerequisite of)
-   `tex/pipeline.tex`. `tex/pipeline.tex` is the bridge between the
-   processing steps and PDF-building steps.
+   should end in (be a prerequisite of) `tex/pipeline.tex` (defined in
+   `reproduce/src/make/paper.mk`). `tex/pipeline.tex` is the bridge between
+   the processing steps and PDF-building steps.
 
 
 
@@ -498,12 +502,12 @@ advanced in later stages of your work.
 
  - **Title**, **short description** and **author** in source files: In this
      raw skeleton, the title or short description of your project should be
-     added in the following two files: `reproduce/src/make/Top-Makefile`
-     (the first line), and `tex/preamble-header.tex`. In both cases, the
-     texts you should replace are all in capital letters to make them
-     easier to identify. Of course, if you use a different LaTeX method of
-     managing the title and authors, please feel free to use your own
-     methods after finishing this checklist and doing your first commit.
+     added in the following two files: `reproduce/src/make/top.mk` (the
+     first line), and `tex/preamble-header.tex`. In both cases, the texts
+     you should replace are all in capital letters to make them easier to
+     identify. Of course, if you use a different LaTeX method of managing
+     the title and authors, please feel free to use your own methods after
+     finishing this checklist and doing your first commit.
 
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
      dependency of the pipeline which will be built and used. The main

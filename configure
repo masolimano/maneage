@@ -634,7 +634,7 @@ fi
 #
 # To see why this is the last step of the configuration, see above (when we
 # delete the top-level Makefile at the start of this script).
-ln -s $(pwd)/reproduce/src/make/Top-Makefile Makefile
+ln -s $(pwd)/reproduce/src/make/top.mk Makefile
 
 
 
