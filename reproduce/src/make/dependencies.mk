@@ -43,7 +43,7 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = gawk gs grep sed git astnoisechisel texlive-ready
+top-level-programs = gawk gs grep sed git flock astnoisechisel texlive-ready
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings: We are only including the host
@@ -75,6 +75,7 @@ LD_LIBRARY_PATH := $(ildir)
 tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         cmake-$(cmake-version).tar.gz                 \
                         curl-$(curl-version).tar.gz                   \
+	                flock-$(flock-version).tar.xz                 \
 	                gawk-$(gawk-version).tar.lz                   \
 	                ghostscript-$(ghostscript-version).tar.gz     \
 	                git-$(git-version).tar.xz                     \
@@ -111,6 +112,7 @@ $(tarballs): $(tdir)/%:
 	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
+	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
 	  elif [ $$n = gawk        ]; then w=http://ftp.gnu.org/gnu/gawk
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=https://mirrors.edge.kernel.org/pub/software/scm/git
@@ -243,6 +245,9 @@ $(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.xz
 
 $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 	$(call gbuild, $<, ghostscript-$(ghostscript-version))
+
+$(ibdir)/flock: $(tdir)/flock-$(flock-version).tar.xz
+	$(call gbuild, $<, flock-$(flock-version), static)
 
 $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
               $(ilidir)/zlib

@@ -25,20 +25,51 @@
 
 
 
-# Download SURVEY data
+# Download input data
 # --------------------
 #
-# Data from a survey (for example an imaging survey) usually have a special
-# file-name format which should be set here in the `foreach' loop. Note
-# that the `foreach' function needs the backslash (`\') at the end of the
-# line when it is broken into multiple lines.
-all-survey = $(foreach f, $(filters-survey),                                 \
-                          $(SURVEY)/a-special-format-$(f).fits               \
-                          $(SURVEY)/a-possibly-additional-$(f)-format.fits )
-$(SURVEY):; mkdir $@
-$(all-survey): $(SURVEY)/%: | $(SURVEY) $(lockdir)
-	flock $(lockdir)/download -c "$(DOWNLOADER) $@ $(web-survey)/$*"
+# The input dataset properties are defined in `$(pconfdir)/INPUTS.mk'. For
+# this template pipeline we only have one dataset to enable easy
+# processing, so all the extra checks in this rule may seem
+# redundant.
+#
+# However, in a real project, you will need more than one dataset. In that
+# case, just add them to the target list and add an `elif' statement to
+# define it in the recipe.
+#
+# Download lock file: Most systems have a single connection to the
+# internet, therefore downloading is inherently done in series. As a
+# result, when more than one dataset is necessary for download, if they are
+# done in parallel, the speed will be slower than downloading them in
+# series. We thus use the `flock' program to tie/lock the downloading
+# process with a file and make sure that only one downloading event is in
+# progress at every moment.
+$(indir):; mkdir $@
+inputdatasets = $(foreach i, $(WFPC2IMAGE), $(indir)/$(i))
+$(inputdatasets): $(indir)/%: | $(indir) $(lockdir)
 
+        # Set the necessary parameters for this input file.
+	if   [ $* = $(WFPC2IMAGE) ]; then url=$(WFPC2URL); mdf=$(WFPC2MD5);
+	else
+	echo; echo; echo "Not recognized input dataset: '$*'."
+	echo; echo; exit 1
+	fi
+
+        # Download (or make the link to) the input dataset.
+	if [ -f $(INDIR)/$* ]; then
+	  ln -s $(INDIR)/$* $@
+	else
+	  flock $(lockdir)/download $(DOWNLOADER) $@ $$url/$*
+	fi
+
+        # Check the md5 sum to see if this is the proper dataset.
+	sum=$$(md5sum $@ | awk '{print $$1}')
+	if [ $$sum != $$mdf ]; then
+	  wrongname=$(dir $@)/wrong-$(notdir $@)
+	  mv $@ $$wrongname
+	  echo; echo; echo "Wrong MD5 checksum for '$*' in $$wrongname"
+	  echo; echo; exit 1
+	fi
 
 
 
@@ -49,5 +80,5 @@ $(all-survey): $(SURVEY)/%: | $(SURVEY) $(lockdir)
 #
 # It is very important to mention the address where the data were
 # downloaded in the final report.
-$(mtexdir)/download.tex: $(pconfdir)/web.mk | $(mtexdir)
-	@echo "\\newcommand{\\websurvey}{$(web-survey)}" > $@
+$(mtexdir)/download.tex: $(pconfdir)/INPUTS.mk | $(mtexdir)
+	echo "\\newcommand{\\wfpctwourl}{$(WFPC2URL)}" > $@

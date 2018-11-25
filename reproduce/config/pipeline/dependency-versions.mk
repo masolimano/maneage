@@ -5,6 +5,7 @@ bash-version        = 4.4.18
 bzip2-version       = 1.0.6
 cmake-version       = 3.12.4
 coreutils-version   = 8.30
+flock-version       = 0.2.3
 gawk-version        = 4.2.1
 ghostscript-version = 9.26
 git-version         = 2.19.1

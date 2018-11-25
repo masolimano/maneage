@@ -34,6 +34,7 @@
 # parallel. Also, some programs may not be thread-safe, therefore it will
 # be necessary to put a lock on them. This pipeline uses the `flock'
 # program to achieve this.
+indir       = $(BDIR)/inputs
 texdir      = $(BDIR)/tex
 srcdir      = reproduce/src
 lockdir     = $(BDIR)/locks
@@ -223,6 +224,14 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	  echo; exit 1;                                                    \
 	fi;                                                                \
 	echo "\newcommand{\\bziptwoversion}{$(bzip2-version)}" >> $@
+
+        # Unfortunately we couldn't find a way to retrieve the version of
+        # the discoteq `flock' that we are using here. So we'll just repot
+        # the version we downloaded and installed.
+	echo "\newcommand{\\flockversion}{$(flock-version)}" >> $@
+
+
+
 
 
         # Versions of libraries.

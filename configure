@@ -42,6 +42,7 @@ topdir=$(pwd)
 installedlink=.local
 lbdir=reproduce/build
 cdir=reproduce/config
+optionaldir="/optional/path"
 
 pdir=$cdir/pipeline
 pconf=$pdir/LOCAL.mk
@@ -100,7 +101,7 @@ function create_file_with_notice() {
 # Since the build directory will go into a symbolic link, we want it to be
 # an absolute address. With this function we can make sure of that.
 function absolute_dir() {
-    echo "$(cd "$(dirname "$inbdir")" && pwd )/$(basename "$inbdir")"
+    echo "$(cd "$(dirname "$1")" && pwd )/$(basename "$1")"
 }
 
 
@@ -179,7 +180,8 @@ fi
 # the web address.
 if [ $rewritepconfig = yes ]; then
     if type wget > /dev/null 2>/dev/null; then
-        downloader="wget --no-use-server-timestamps -O";
+        wgetname=$(which wget)
+        downloader="$wgetname --no-use-server-timestamps -O";
     else
         cat <<EOF
 
@@ -256,11 +258,59 @@ fi
 
 
 
+# Input directory
+# ---------------
+indir=$optionaldir
+wfpc2name=$(awk '!/^#/ && $1=="WFPC2IMAGE" {print $3}' $pdir/INPUTS.mk)
+wfpc2md5=$(awk  '!/^#/ && $1=="WFPC2MD5"   {print $3}' $pdir/INPUTS.mk)
+wfpc2size=$(awk '!/^#/ && $1=="WFPC2SIZE"  {print $3}' $pdir/INPUTS.mk)
+wfpc2url=$(awk  '!/^#/ && $1=="WFPC2URL"   {print $3}' $pdir/INPUTS.mk)
+if [ $rewritepconfig = yes ]; then
+    cat <<EOF
+
+----------------------------------
+(OPTIONAL) Input dataset directory
+----------------------------------
+
+This pipeline needs the dataset(s) listed below. If you already have them,
+please specify the directory hosting them on this system. If you don't,
+they will be downloaded automatically. Each file is shown with its total
+volume and its 128-bit MD5 checksum in parenthesis.
+
+  $wfpc2name ($wfpc2size, $wfpc2md5):
+    A 100x100 Hubble Space Telescope WFPC II image used in the FITS
+    standard webpage as a demonstration of this file format.
+    URL: $wfpc2url/$wfpc2name
+
+  $uitname ($uitsize, $uitmd5):
+    A 512x512 Astro1 Ultraviolet Imaging Telescope image used in the FITS
+    standard webpage as a demonstration of this file format.
+    URL: $uiturl/$uitname
+
+NOTE: This directory, or the datasets above, are optional. If it doesn't
+exist, the files will be downloaded in the build directory and used.
+
+TIP: If you have these files in multiple directories on your system and
+don't want to download them or make duplicates, you can create symbolic
+links to them and put those symbolic links in the given top-level
+directory.
+
+EOF
+    read -p"(OPTIONAL) Input datasets directory ($indir): " inindir
+    if [ x$inindir != x ]; then
+        indir=$inindir
+        echo " -- Using '$indir'"
+    fi
+fi
+
+
+
+
+
 # Dependency tarball directory
 # ----------------------------
 if [ $rewritepconfig = yes ]; then
-    junkddir="/optional/path"
-    ddir=$junkddir
+    ddir=$optionaldir
     cat <<EOF
 
 ---------------------------------------
@@ -282,7 +332,6 @@ EOF
         ddir=$tmpddir
         echo " -- Using '$ddir'"
     fi
-    echo
 fi
 
 
@@ -292,7 +341,7 @@ fi
 # Memory mapping minimum size
 # ---------------------------
 if [ $rewritegconfig = yes ]; then
-    defaultminmapsize=1000000000
+    defaultminmapsize=10000000000
     minmapsize=$defaultminmapsize
     cat <<EOF
 
@@ -329,18 +378,57 @@ fi
 if [ $rewritepconfig = yes ]; then
     create_file_with_notice $pconf
     sed -e's|@bdir[@]|'"$bdir"'|'              \
+        -e's|@indir[@]|'"$indir"'|'            \
         -e's|@ddir[@]|'"$ddir"'|'              \
         -e's|@downloader[@]|'"$downloader"'|'  \
         $pconf.in >> $pconf
 else
     # Read the values from existing configuration file.
-    inbdir=$(awk     '$1=="BDIR"             {print $NF}' $pconf)
-    ddir=$(awk       '$1=="DEPENDENCIES-DIR" {print $NF}' $pconf)
-    downloader=$(awk '$1=="DOWNLOADER"       {print $NF}' $pconf)
+    inbdir=$(awk     '$1=="BDIR"             {print $3}' $pconf)
+    downloader=$(awk '$1=="DOWNLOADER"       {print $3}' $pconf)
+
+    # Make sure all necessary variables have a value
+    err=0
+    verr=0
+    novalue=""
+    if [ x"$inbdir"     = x ]; then novalue="BDIR, ";              fi
+    if [ x"$downloader" = x ]; then novalue="$novalue"DOWNLOADER;  fi
+    if [ x"$novalue"   != x ]; then verr=1; err=1;                 fi
 
     # Make sure `bdir' is an absolute path and it exists.
+    berr=0
+    ierr=0
     bdir=$(absolute_dir $inbdir)
-    if ! [ -d $bdir ]; then mkdir $bdir; fi
+
+    if ! [ -d $bdir  ]; then if ! mkdir $bdir; then berr=1; err=1; fi; fi
+    if [ $err = 1 ]; then
+        cat <<EOF
+
+#################################################################
+########  ERORR reading existing configuration file  ############
+#################################################################
+EOF
+        if [ $verr = 1 ]; then
+            cat <<EOF
+
+These variables have no value: $novalue.
+EOF
+        fi
+        if [ $berr = 1 ]; then
+           cat <<EOF
+
+Couldn't create the build directory '$bdir' (value to 'BDIR') in
+'$pconf'.
+EOF
+        fi
+
+        cat <<EOF
+
+Please run the configure script again (accepting to re-write existing
+configuration file) so all the values can be filled and checked.
+#################################################################
+EOF
+    fi
 fi
 
 

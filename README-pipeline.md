@@ -516,6 +516,7 @@ advanced in later stages of your work.
      them.
 
    - Delete marked part(s) in `configure`.
+   - Delete the `reproduce/config/gnuastro` directory.
    - Delete `astnoisechisel` from the value of `top-level-programs` in `reproduce/src/make/dependencies.mk`. You can keep the rule to build `astnoisechisel`, since its not in the `top-level-programs` list, it (and all the dependencies that are only needed by Gnuastro) will be ignored.
    - Delete marked parts in `reproduce/src/make/initialize.mk`.
    - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style.tex`.
@@ -526,51 +527,31 @@ advanced in later stages of your work.
      commented thoroughly and reading over the comments should guide you on
      what to add/remove and where.
 
- - **Input dataset (can be done later)**: The user manages the top-level
-     directory of the input data through the variables set in
-     `reproduce/config/pipeline/LOCAL.mk.in` (the user actually edits a
-     `LOCAL.mk` file that is created by `configure` from the `.mk.in` file,
-     but the `.mk` file is not under version control). Datasets are usually
-     large and the users might already have their copy don't need to
-     download them). So you can define a variable (all in capital letters)
-     in `reproduce/config/pipeline/LOCAL.mk.in`. For example if you are
-     working on data from the XDF survey, use `XDF`. You can use this
-     variable to identify the location of the raw inputs on the running
-     system. Here, we'll assume its name is `SURVEY`. Afterwards, change
-     any occurrence of `SURVEY` in the whole pipeline with the new
-     name. You can find the occurrences with a simple command like the ones
-     shown below. We follow the Make convention here that all
-     `ONLY-CAPITAL` variables are those directly set by the user and all
-     `small-caps` variables are set by the pipeline designer. All variables
-     that also depend on this survey have a `survey` in their name. Hence,
-     also correct all these occurrences to your new name in small-caps. Of
-     course, ignore/delete those occurrences that are irrelevant, like
-     those in this file. Note that in the raw version of this template no
-     target depends on these files, so they are ignored. Afterwards, set
-     the webpage and correct the filenames in
-     `reproduce/src/make/download.mk` if necessary.
-
-     ```shell
-     $ grep -r SURVEY ./
-     $ grep -r survey ./
-     ```
-
- - **Other input datasets (can be done later)**: Add any other input
-     datasets that may be necessary for your research to the pipeline based
-     on the example above.
+ - **Input dataset (can be done later)**: The input datasets are managed
+     through the `reproduce/config/pipeline/INPUTS.mk` file. It is best to
+     gather all the information regarding all the input datasets into this
+     one central file. To ensure that the proper dataset is being
+     downloaded and used by the pipeline, its best to also get an MD5
+     checksum (https://en.wikipedia.org/wiki/MD5) of the file and include
+     that in thsi file so you can check it in the pipeline. The preparation
+     of the input datasets is done in
+     `reproduce/src/make/download.mk`. Have a look there to see how these
+     values are to be used. This information about the input datasets is
+     also used in the initial `configure` script (to inform the users), so
+     also modify that file.
 
  - **Delete dummy parts (can be done later)**: The template pipeline
-     contains some parts that are only for the initial/test run, not for
-     any real analysis. The respective files to remove and parts to fix are
-     discussed here.
+     contains some parts that are only for the initial/test run, mainly as
+     a demonstration of important steps. They not for any real
+     analysis. You can remove these parts in the file below
 
      - `paper.tex`: Delete the text of the abstract and the paper's main
        body, *except* the "Acknowledgments" section. This reproduction
        pipeline was designed by funding from many grants, so its necessary
        to acknowledge them in your final research.
 
-     - `Makefile`: Delete the two lines containing `delete-me` in the
-       `foreach` loops. Just make sure the other lines that end in `\` are
+     - `Makefile`: Delete the lines containing `delete-me` in the `foreach`
+       loops. Just make sure the other lines that end in `\` are
        immediately after each other.
 
      - Delete all `delete-me*` files in the following directories:

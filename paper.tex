@@ -53,7 +53,9 @@
 
   \textsl{Keywords}: Add some keywords for your research here.
 
-  \textsl{Reproducible paper}: Reproduction pipeline \pipelineversion{}
+  \textsl{Reproducible paper}: All quantitave results (numbers and plots)
+  in this paper are exactly reproducible with reproduction pipeline
+  \pipelineversion{}
   (\url{https://gitlab.com/makhlaghi/reproducible-paper}).}
 
 %% To add the first page's headers.
@@ -69,8 +71,8 @@ Congratulations on running the reproduction pipeline! You can now follow
 the checklist in the \texttt{README.md} file to customize this pipeline to
 your exciting research project.
 
-Just don't forget to \emph{never} use any numbers or fixed strings (for
-example database urls like \url{\websurvey}) directly within your \LaTeX{}
+Just don't forget to \emph{never} use numbers or fixed strings (for example
+database urls like \url{\wfpctwourl}) directly within your \LaTeX{}
 source. Read them directly from your configuration files or outputs of the
 programs as part of the reproduction pipeline and import them into \LaTeX{}
 as macros through the \texttt{tex/pipeline.tex} file. See the several
@@ -83,14 +85,12 @@ or
 in this way, will let you focus clearly on your science and not have to
 worry about fixing this or that number/name in the text.
 
-Just as a demonstration of creating plots within \LaTeX{} (using the
-{\small PGFP}lots package), in Figure \ref{deleteme} we show a simple
-plot, where the Y axis is the square of the X axis. The minimum value
-in this distribution is $\deletememin$, and $\deletememax$ is the
-maximum. Take a look into the \LaTeX{} source and you'll see these
-numbers are actually macros that were calculated from the same dataset
-(they will change if the dataset, or function that produced it,
-changes).
+Figure \ref{deleteme} shows a simple plot as a demonstration of creating
+plots within \LaTeX{} (using the {\small PGFP}lots package). The minimum
+value in this distribution is $\deletememin$, and $\deletememax$ is the
+maximum. Take a look into the \LaTeX{} source and you'll see these numbers
+are actually macros that were calculated from the same dataset (they will
+change if the dataset, or function that produced it, changes).
 
 The individual {\small PDF} file of Figure \ref{deleteme} is available
 under the \texttt{tex/build/tikz/} directory of your build directory. You
@@ -100,15 +100,6 @@ progress or after publishing the work). If you want to directly use the
   KZ} decide if it should be remade or not, you can also comment the
 \texttt{makepdf} macro at the top of this \LaTeX{} source file.
 
-{\small PGFP}lots is a great tool to build the plots within \LaTeX{} and
-removes the necessity to add further dependencies (to create the plots) to
-your reproduction pipeline. High-level language libraries like Matplotlib
-do exist to also generate plots. However, bare in mind that they require
-many dependencies (Python, Numpy and etc). Installing these dependencies
-from source (after several years when the binaries are no longer available
-in common repositories), is not easy and will harm the reproducibility of
-your paper.
-
 \begin{figure}[t]
   \includetikz{delete-me}
 
@@ -116,10 +107,39 @@ your paper.
     demonstration.}
 \end{figure}
 
+Figure \ref{deleteme-wfpc2} is another demonstration of showing images
+(datasets) using PGFPlots. It shows a small crop of an image from the
+Wide-Field Planetary Camera 2, on board the Hubble Space Telescope from
+1993 to 2009. This cropped image is one of the sample FITS files from the
+FITS file standard
+webpage\footnote{\url{https://fits.gsfc.nasa.gov/fits_samples.html}}. Just
+as another basic reporting of measurements on this dataset within the paper
+without using numbers in the \LaTeX{} source, the mean is
+$\deletemewfpctwomean$ and the median is $\deletemewfpctwomedian$. The
+skewness in the histogram of Figure \ref{deleteme-wfpc2}(b) explains this
+difference between the mean and median. Also, the value of quantile
+$\deletemewfpcquantile$ (set in the pipeline configuration file
+\texttt{delete-me-wfpc2-quant.mk}) is $\deletemewfpctwoquantile$. The
+dataset was prepared for demonstration here with Gnuastro's
+\textsf{Convert\-Type} program and the histogram and basic statstics were
+generated with Gnuastro's \textsf{Statistics} program.
+
+{\small PGFP}lots\footnote{\url{https://ctan.org/pkg/pgfplots}} is a great
+tool to build the plots within \LaTeX{} and removes the necessity to add
+further dependencies (to create the plots) to your reproduction
+pipeline. There are high-level language libraries like Matplotlib which
+also generate plots. However, the problem is that they require many
+dependencies (Python, Numpy and etc). Installing these dependencies from
+source, is not easy and will harm the reproducibility of your paper. Note
+that after several years, the binary files of these high-level libraries,
+that you easily install today, will no longer be available in common
+repositories. Therefore building the libraries from source is the only
+option to reproduce your results.
+
 Furthermore, since {\small PGFP}lots is built by \LaTeX{} it respects all
-the properties of your text (for example line width and fonts and etc), so
-the final plot blends in your paper much more nicely. It also has a
-wonderful
+the properties of your text (for example line width and fonts and
+etc). Therefore the final plot blends in your paper much more nicely. It
+also has a wonderful
 manual\footnote{\url{http://mirrors.ctan.org/graphics/pgf/contrib/pgfplots/doc/pgfplots.pdf}}.
 
 This pipeline also defines two \LaTeX{} macros that allow you to mark text
@@ -135,7 +155,15 @@ existing coauthors (who are just interested in the new parts or notes) and
 new co-authors (who don't want to be distracted by these issues in their
 first time reading).
 
+\begin{figure}[t]
+  \includetikz{delete-me-wfpc2}
 
+  \captionof{figure}{\label{deleteme-wfpc2} (a) An example image of the
+    Wide-Field Planetary Camera 2, on board the Hubble Space Telescope from
+    1993 to 2009. This is one of the sample images from the FITS standard
+    webpage, kept as examples for this file format. (b) Histogram of pixel
+    values in (a).}
+\end{figure}
 
 
 
@@ -177,12 +205,12 @@ SUNDIAL ITN, and from the Spanish Ministry of Economy and Competitiveness
 
 The following free software tools were also critical component of this
 research (in alphabetical order): Bzip2 \bziptwoversion, CFITSIO
-\cfitsioversion, CMake \cmakeversion, cURL \curlversion, Git \gitversion,
-GNU Bash \bashversion, GNU Coreutils \coreutilsversion, GNU AWK
-\gawkversion, GNU Grep \grepversion, GNU Libtool \libtoolversion, GNU Make
-\makeversion, GNU Sed \sedversion, GNU Scientific Library (GSL)
-\gslversion, GNU Tar \tarversion, GNU Which \whichversion, Lzip
-\lzipversion, GPL Ghostscript \ghostscriptversion, Libgit2
+\cfitsioversion, CMake \cmakeversion, cURL \curlversion, Discoteq flock
+\flockversion, Git \gitversion, GNU Bash \bashversion, GNU Coreutils
+\coreutilsversion, GNU AWK \gawkversion, GNU Grep \grepversion, GNU Libtool
+\libtoolversion, GNU Make \makeversion, GNU Sed \sedversion, GNU Scientific
+Library (GSL) \gslversion, GNU Tar \tarversion, GNU Which \whichversion,
+Lzip \lzipversion, GPL Ghostscript \ghostscriptversion, Libgit2
 \libgitwoversion, Libtiff \libtiffversion, WCSLIB \wcslibversion, XZ Utils
 \xzversion, and ZLib \zlibversion. The final paper was produced with \TeX{}
 Live \texliveversion, using the following packages: \TeX{} \textexversion,

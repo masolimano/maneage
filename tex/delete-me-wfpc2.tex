@@ -1,0 +1,34 @@
+\begin{tikzpicture}
+
+  %% The displayed WFPC2 image.
+  \node[anchor=south west] (img) at (0,0)
+       {\includegraphics[width=0.5\linewidth]
+         {\bdir/tex/delete-me-wfpc2/wfpc2.pdf}};
+
+  %% Its label
+  \node[anchor=south west] at (0.45\linewidth,0.45\linewidth)
+       {\textcolor{white}{a}};
+
+  %% This histogram.
+  \begin{axis}[at={(0.52\linewidth,0.1\linewidth)},
+      no markers,
+      axis on top,
+      xmode=normal,
+      ymode=normal,
+      yticklabels={},
+      scale only axis,
+      xlabel=Pixel value,
+      width=0.5\linewidth,
+      height=0.412\linewidth,
+      enlarge y limits=false,
+      enlarge x limits=false,
+      ]
+    \addplot [const plot mark mid, fill=red]
+    table [x index=0, y index=1]
+    {\bdir/tex/delete-me-wfpc2/wfpc2-hist.txt}
+    \closedcycle;
+  \end{axis}
+
+  %% The histogram's label
+  \node[anchor=south west] at (0.95\linewidth,0.45\linewidth) {b};
+\end{tikzpicture}
