@@ -51,7 +51,7 @@
 # series. We thus use the `flock' program to tie/lock the downloading
 # process with a file and make sure that only one downloading event is in
 # progress at every moment.
-$(indir):; mkdir $@
+$(indir) $(lockdir):; mkdir $@
 inputdatasets = $(foreach i, wfpc2, $(indir)/$(i).fits)
 $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 

@@ -34,10 +34,10 @@
 # parallel. Also, some programs may not be thread-safe, therefore it will
 # be necessary to put a lock on them. This pipeline uses the `flock'
 # program to achieve this.
-indir       = $(BDIR)/inputs
 texdir      = $(BDIR)/tex
 srcdir      = reproduce/src
 lockdir     = $(BDIR)/locks
+indir       = $(BDIR)/inputs
 texbdir     = $(texdir)/build
 tikzdir     = $(texbdir)/tikz
 mtexdir     = $(texdir)/macros
