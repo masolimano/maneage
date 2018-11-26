@@ -214,11 +214,26 @@ $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
 # GNU Bash
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 	       $(ibdir)/make
+
+        # Delete any possibly existing output
+	if [ -f $@ ]; then rm $@; fi;
+
+        # Build Bash.
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link)
 else
 	$(call gbuild, $<, bash-$(bash-version))
 endif
+
+        # To be generic, some systems use the `sh' command to call the
+        # shell. By convention, `sh' is just a symbolic link to the
+        # preferred shell executable. So we'll define `$(ibdir)/sh' as a
+        # symbolic link to the Bash that we just built and installed.
+        #
+        # Just to be sure that the installation step above went well,
+        # before making the link, we'll see if the file actually exists
+        # there.
+	if [ -f $@ ]; then ln -s $@ $(ibdir)/sh; fi
 
 
 
