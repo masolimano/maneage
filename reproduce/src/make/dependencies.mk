@@ -43,7 +43,7 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = gawk gs grep sed git flock astnoisechisel texlive-ready
+top-level-programs = gs git flock astnoisechisel texlive-ready
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings: We are only including the host
@@ -52,11 +52,11 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 # using our internally built libraries.
 .ONESHELL:
 .SHELLFLAGS     := -ec
-SHELL           := $(ibdir)/bash
-PATH            := $(ibdir):$(PATH)
-LDFLAGS         := -L$(ildir)
-CPPFLAGS        := -I$(idir)/include
+PATH            := $(ibdir)
 LD_LIBRARY_PATH := $(ildir)
+LDFLAGS         := -L$(ildir)
+SHELL           := $(ibdir)/bash
+CPPFLAGS        := -I$(idir)/include
 
 
 
@@ -76,17 +76,14 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         cmake-$(cmake-version).tar.gz                 \
                         curl-$(curl-version).tar.gz                   \
 	                flock-$(flock-version).tar.xz                 \
-	                gawk-$(gawk-version).tar.lz                   \
 	                ghostscript-$(ghostscript-version).tar.gz     \
 	                git-$(git-version).tar.xz                     \
 	                gnuastro-$(gnuastro-version).tar.lz           \
-	                grep-$(grep-version).tar.xz                   \
 	                gsl-$(gsl-version).tar.gz                     \
 	                jpegsrc.$(libjpeg-version).tar.gz             \
                         tiff-$(libtiff-version).tar.gz                \
                         libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
-	                sed-$(sed-version).tar.xz                     \
 	                wcslib-$(wcslib-version).tar.bz2              \
                         zlib-$(zlib-version).tar.gz                   \
                       , $(tdir)/$(t) )
@@ -113,18 +110,15 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
-	  elif [ $$n = gawk        ]; then w=http://ftp.gnu.org/gnu/gawk
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=https://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = grep        ]; then w=http://ftp.gnu.org/gnu/grep
 	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = libtool     ]; then w=ftp://ftp.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
-	  elif [ $$n = sed         ]; then w=http://ftp.gnu.org/gnu/sed
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  elif [ $$n = zlib        ]; then w=http://www.zlib.net
@@ -231,15 +225,6 @@ $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz                           \
                $(ilidir)/zlib
 	$(call gbuild, $<, curl-$(curl-version), static, --without-brotli)
 
-$(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz
-	$(call gbuild, $<, gawk-$(gawk-version), static)
-
-$(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz
-	$(call gbuild, $<, sed-$(sed-version), static)
-
-$(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz
-	$(call gbuild, $<, grep-$(grep-version), static)
-
 $(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.xz
 	$(call gbuild, $<, libtool-$(libtool-version), static)
 
@@ -251,7 +236,8 @@ $(ibdir)/flock: $(tdir)/flock-$(flock-version).tar.xz
 
 $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
               $(ilidir)/zlib
-	$(call gbuild, $<, git-$(git-version), static)
+	$(call gbuild, $<, git-$(git-version), static, \
+                       --without-tcltk --with-shell=$(ibdir)/bash)
 
 $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ibdir)/gs                                 \
@@ -281,10 +267,9 @@ endif
 $(ibdir)/texlive-ready-tlmgr: reproduce/config/pipeline/texlive.conf
 
         # To work with TeX live installation, we'll need the internet.
-	if ping -c1 ctan.org; then
-          # Download the TeX Live installation tarball.
-	  $(DOWNLOADER) $(tdir)/install-tl-unx.tar.gz \
-	     http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+	if $(DOWNLOADER) $(tdir)/install-tl-unx.tar.gz                         \
+	   http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz; \
+          then
 
           # Unpack, enter the directory, and install based on the given
           # configuration (prerequisite of this rule).
@@ -321,9 +306,8 @@ $(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk \
 
         # To work with TeX live installation, we'll need the internet.
 	res=$(cat $(ibdir)/texlive-ready-tlmgr)
-	if ping -c1 ctan.org                                            \
-	   && [ -f $(ibdir)/texlive-ready-tlmgr ]                       \
-           && [ x$$res != x"NOT" ]; then
+	if [ -f $(ibdir)/texlive-ready-tlmgr ]; then
+
           # The current directory is necessary later.
 	  topdir=$$(pwd)
 

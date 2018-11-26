@@ -49,6 +49,10 @@ idir  = $(BDIR)/dependencies/installed
 ibdir = $(BDIR)/dependencies/installed/bin
 ildir = $(BDIR)/dependencies/installed/lib
 
+# We'll need the system's PATH for making links to low-level programs we
+# won't be building ourselves.
+syspath         := $(PATH)
+
 # As we build more programs, we want to use our own pipeline's built
 # programs and libraries, not the host's.
 PATH            := $(ibdir):$(PATH)
@@ -56,7 +60,7 @@ LDFLAGS         := -L$(ildir) $(LDFLAGS)
 CPPFLAGS        := -I$(idir)/include $(CPPFLAGS)
 LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
 
-top-level-programs = bash which ls
+top-level-programs = bash which ls sed gawk grep diff find
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -88,9 +92,14 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         bzip2-$(bzip2-version).tar.gz                       \
                         coreutils-$(coreutils-version).tar.xz               \
-	                gzip-$(gzip-version).tar.gz                         \
+                        diffutils-$(diffutils-version).tar.xz               \
+                        findutils-$(findutils-version).tar.lz               \
+                        gawk-$(gawk-version).tar.lz                         \
+                        grep-$(grep-version).tar.xz                         \
+                        gzip-$(gzip-version).tar.gz                         \
                         lzip-$(lzip-version).tar.gz                         \
-	                make-$(make-version).tar.lz                         \
+                        make-$(make-version).tar.lz                         \
+                        sed-$(sed-version).tar.xz                           \
 	                tar-$(tar-version).tar.gz                           \
                         which-$(which-version).tar.gz                       \
                         xz-$(xz-version).tar.gz                             \
@@ -107,9 +116,14 @@ $(tarballs): $(tdir)/%:
 	  if   [ $$n = bash      ]; then w=http://ftp.gnu.org/gnu/bash;     \
 	  elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
+	  elif [ $$n = diffutils ]; then w=http://ftp.gnu.org/gnu/diffutils;\
+	  elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = gawk      ]; then w=http://ftp.gnu.org/gnu/gawk;     \
+	  elif [ $$n = grep      ]; then w=http://ftp.gnu.org/gnu/grep;     \
 	  elif [ $$n = gzip      ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
 	  elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed;      \
 	  elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar;      \
 	  elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which;    \
 	  elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
@@ -131,37 +145,75 @@ $(tarballs): $(tdir)/%:
 
 
 
-# GNU Gzip.
-$(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz
+# Low-level (not built) programs
+# ------------------------------
+#
+# For the time being, we aren't building a local C compiler, but we'll use
+# any C compiler that the system already has and just make a symbolic link
+# to it.
+makelink = a=$$(which $(1) 2> /dev/null); \
+	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
+$(ibdir):; mkdir $@
+$(ibdir)/low-level: | $(ibdir)
+        # We aren't building these low-levels tools yet ourselves. We'll
+        # thus just use what the host operating system has available.
+	PATH=$(syspath)
+
+        # The Assembler
+	$(call makelink,as)
+
+        # The compiler
+	$(call makelink,clang)
+	$(call makelink,gcc)
+	$(call makelink,g++)
+	$(call makelink,cc)
+
+        # The linker
+	$(call makelink,ar)
+	$(call makelink,ld)
+
+        # GNU Gettext (translate messages)
+	$(call makelink,msgfmt)
+
+        # GNU M4 (for managing building macros)
+	$(call makelink,m4)
+
+        # Needed by TeXLive specifically
+	$(call makelink,perl)
+	$(call makelink,wget)
+
+	echo "Low-level program links are setup" > $@
+
+
+
+
+
+# Compression programs
+# --------------------
+#
+# The first set of programs to be built are those that we need to unpack
+# the source code tarballs of each program. First, we'll build the
+# necessary programs, then we'll build GNU Tar.
+$(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz \
+	       $(ibdir)/low-level
 	$(call gbuild, $<, gzip-$(gzip-version), static)
-
-
-
-
 
 # GNU Lzip: For a static build, the `-static' flag should be given to
 # LDFLAGS on the command-line (not from the environment).
-$(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
+$(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz \
+               $(ibdir)/low-level
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, lzip-$(lzip-version), , LDFLAGS="-static")
 else
 	$(call gbuild, $<, lzip-$(lzip-version))
 endif
 
-
-
-
-
-# XZ Utils
-$(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz
+$(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz \
+             $(ibdir)/low-level
 	$(call gbuild, $<, xz-$(xz-version), static)
 
-
-
-
-
-# Bzip2: Bzip2 doesn't have a configure script.
-$(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
+$(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz \
+	        $(ibdir)/low-level
 	 tdir=bzip2-$(bzip2-version);                                  \
 	 if [ $(static_build) = yes ]; then                            \
 	   makecommand="make LDFLAGS=-static";                         \
@@ -171,10 +223,6 @@ $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	 cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir &&      \
 	 $$makecommand && make install PREFIX=$(idir) &&               \
 	 cd .. && rm -rf $$tdir
-
-
-
-
 
 # GNU Tar: When built statically, tar gives a segmentation fault on
 # unpacking Bash. So we'll build it dynamically.
@@ -189,9 +237,15 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 
 
 
-# GNU Make: Unfortunately it needs dynamic linking in two instances: when
-# loading objects (dynamically linked libraries), or when using the
-# `getpwnam' function (for tilde expansion). The first can be disabled with
+# GNU Make
+# --------
+#
+# GNU Make is the second layer that we'll need to build the basic
+# dependencies.
+#
+# Unfortunately it needs dynamic linking in two instances: when loading
+# objects (dynamically linked libraries), or when using the `getpwnam'
+# function (for tilde expansion). The first can be disabled with
 # `--disable-load', but unfortunately I don't know any way to fix the
 # second. So, we'll have to build it dynamically for now.
 $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
@@ -202,7 +256,33 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
 
 
 
-# GNU Which:
+# Basic command-line programs necessary in build process of the
+# higher-level dependencies: Note that during the building of those
+# programs, there is no access to the system's PATH.
+$(ibdir)/diff: $(tdir)/diffutils-$(diffutils-version).tar.xz \
+               $(ibdir)/make
+	$(call gbuild, $<, diffutils-$(diffutils-version), static)
+
+$(ibdir)/find: $(tdir)/findutils-$(findutils-version).tar.lz \
+               $(ibdir)/make
+	$(call gbuild, $<, findutils-$(findutils-version), static)
+
+$(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
+               $(ibdir)/make
+	$(call gbuild, $<, gawk-$(gawk-version), static)
+
+$(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
+               $(ibdir)/make
+	$(call gbuild, $<, grep-$(grep-version), static)
+
+$(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
+             $(ibdir)/make
+	$(call gbuild, $<, coreutils-$(coreutils-version), static)
+
+$(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
+              $(ibdir)/make
+	$(call gbuild, $<, sed-$(sed-version), static)
+
 $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
 	        $(ibdir)/make
 	$(call gbuild, $<, which-$(which-version), static)
@@ -234,12 +314,3 @@ endif
         # before making the link, we'll see if the file actually exists
         # there.
 	if [ -f $@ ]; then ln -s $@ $(ibdir)/sh; fi
-
-
-
-
-
-# GNU Coreutils
-$(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
-             $(ibdir)/make
-	$(call gbuild, $<, coreutils-$(coreutils-version), static)

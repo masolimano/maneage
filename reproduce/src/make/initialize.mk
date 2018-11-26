@@ -191,18 +191,22 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	@echo "\newcommand{\bdir}{$(BDIR)}"       >> $@
 
         # Versions of programs (same order as 'dependency-versions.mk').
+	$(call pvcheck, awk, $(gawk-version), GNU AWK, gawkversion)
 	$(call pvcheck, bash, $(bash-version), GNU Bash, bashversion)
 	$(call pvcheck, cmake, $(cmake-version), CMake, cmakeversion)
 	$(call pvcheck, curl, $(curl-version), cURL, curlversion)
-	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
-	                coreutilsversion)
-	$(call pvcheck, awk, $(gawk-version), GNU AWK, gawkversion)
+	$(call pvcheck, diff, $(diffutils-version), GNU Diffutils,     \
+	                diffutilsversion)
+	$(call pvcheck, find, $(findutils-version), GNU Findutils,       \
+	                findutilsversion)
 	$(call pvcheck, gs, $(ghostscript-version), GPL Ghostscript,   \
 	                    ghostscriptversion)
 	$(call pvcheck, git, $(git-version), Git, gitversion)
 	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
 	$(call pvcheck, libtool, $(libtool-version), GNU Libtool,      \
 	                libtoolversion)
+	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
+	                coreutilsversion)
 	$(call pvcheck, lzip, $(lzip-version), Lzip, lzipversion)
 	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
