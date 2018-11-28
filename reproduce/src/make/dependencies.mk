@@ -53,12 +53,13 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 .ONESHELL:
 .SHELLFLAGS              := -ec
 export PATH              := $(ibdir)
+export LD_RUN_PATH       := $(ildir)
 export LD_LIBRARY_PATH   := $(ildir)
 export SHELL             := $(ibdir)/bash
 export CPPFLAGS          := -I$(idir)/include
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export LDFLAGS           := -Wl,-rpath=$(ildir) -L$(ildir)
+export LDFLAGS           := -Wl,-rpath-link=$(ildir) -L$(ildir)
 
 
 

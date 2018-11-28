@@ -145,6 +145,11 @@ $(tarballs): $(tdir)/%:
 	  $(DOWNLOADER) $@ $$tarballurl;                                    \
 	fi
 
+# C compiler and linker
+# ---------------------
+#
+# --disable-multilib: ignore 32-bit installation for 64-bit systems.
+
 
 
 
