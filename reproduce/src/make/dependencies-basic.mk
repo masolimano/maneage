@@ -55,12 +55,14 @@ syspath         := $(PATH)
 
 # As we build more programs, we want to use our own pipeline's built
 # programs and libraries, not the host's.
-PATH            := $(ibdir):$(PATH)
-LDFLAGS         := -L$(ildir) $(LDFLAGS)
-CPPFLAGS        := -I$(idir)/include $(CPPFLAGS)
-LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
+export PATH              := $(ibdir):$(PATH)
+export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
+export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
+export LDFLAGS           := -L$(ildir) $(LDFLAGS)
+export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
+export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
-top-level-programs = bash which ls sed gawk grep diff find
+top-level-programs = bash which ls sed gawk grep diff find pkg-config
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -99,6 +101,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         gzip-$(gzip-version).tar.gz                         \
                         lzip-$(lzip-version).tar.gz                         \
                         make-$(make-version).tar.lz                         \
+                        pkg-config-$(pkgconfig-version).tar.gz              \
                         sed-$(sed-version).tar.xz                           \
 	                tar-$(tar-version).tar.gz                           \
                         which-$(which-version).tar.gz                       \
@@ -123,6 +126,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = gzip      ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
 	  elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = pkg       ]; then w=https://pkg-config.freedesktop.org/releases; \
 	  elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed;      \
 	  elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar;      \
 	  elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which;    \
@@ -171,6 +175,13 @@ $(ibdir)/low-level: | $(ibdir)
         # The linker
 	$(call makelink,ar)
 	$(call makelink,ld)
+	$(call makelink,nm)
+	$(call makelink,ps)
+
+        # On Mac OS, libtool is different compared to GNU Libtool. The
+        # libtool we'll build in the high-level dependencies has the
+        # executable name `glibtool'.
+	$(call makelink,libtool)
 
         # GNU Gettext (translate messages)
 	$(call makelink,msgfmt)
@@ -278,6 +289,11 @@ $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
              $(ibdir)/make
 	$(call gbuild, $<, coreutils-$(coreutils-version), static)
+
+$(ibdir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
+                     $(ibdir)/make
+	$(call gbuild, $<, pkg-config-$(pkgconfig-version), static, \
+                       --with-internal-glib)
 
 $(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
               $(ibdir)/make

@@ -42,6 +42,7 @@ texbdir     = $(texdir)/build
 tikzdir     = $(texbdir)/tikz
 mtexdir     = $(texdir)/macros
 pconfdir    = reproduce/config/pipeline
+installdir  = $(BDIR)/dependencies/installed
 # --------- Delete for no Gnuastro ---------
 gconfdir    = reproduce/config/gnuastro
 # ------------------------------------------
@@ -72,12 +73,12 @@ curdir   := $(shell echo $$(pwd))
 # environment variables, we are setting it to prefer the software we have
 # build here.
 .ONESHELL:
-.SHELLFLAGS      = -ec
-SHELL           := .local/bin/bash
-PATH            := $(curdir)/.local/bin
-LD_LIBRARY_PATH := $(curdir)/.local/lib
-LDFLAGS         := -L$(curdir)/.local/lib
-CPPFLAGS        := -I$(curdir)/.local/include
+.SHELLFLAGS            = -ec
+export PATH            := $(installdir)/bin
+export LD_LIBRARY_PATH := $(installdir)/lib
+export LDFLAGS         := -L$(installdir)/lib
+export SHELL           := $(installdir)/bin/bash
+export CPPFLAGS        := -I$(installdir)/include
 
 
 
@@ -197,18 +198,20 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, curl, $(curl-version), cURL, curlversion)
 	$(call pvcheck, diff, $(diffutils-version), GNU Diffutils,     \
 	                diffutilsversion)
-	$(call pvcheck, find, $(findutils-version), GNU Findutils,       \
+	$(call pvcheck, find, $(findutils-version), GNU Findutils,     \
 	                findutilsversion)
 	$(call pvcheck, gs, $(ghostscript-version), GPL Ghostscript,   \
-	                    ghostscriptversion)
+	                ghostscriptversion)
 	$(call pvcheck, git, $(git-version), Git, gitversion)
 	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
-	$(call pvcheck, libtool, $(libtool-version), GNU Libtool,      \
+	$(call pvcheck, glibtool, $(libtool-version), GNU Libtool,     \
 	                libtoolversion)
 	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
 	                coreutilsversion)
 	$(call pvcheck, lzip, $(lzip-version), Lzip, lzipversion)
 	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
+	$(call pvcheck, pkg-config, $(pkgconfig-version), pkg-config,  \
+	                pkgconfigversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
 	$(call pvcheck, tar, $(tar-version), GNU Tar, tarversion)
 	$(call pvcheck, which, $(which-version), GNU Which, whichversion)
@@ -216,7 +219,7 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # --------- Delete for no Gnuastro ---------
 	$(call pvcheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
-                         gnuastroversion)
+                        gnuastroversion)
         # ------------------------------------------
 
         # Bzip2 prints its version in standard error, not standard output!

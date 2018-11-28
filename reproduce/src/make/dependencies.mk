@@ -51,12 +51,14 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 # compiler and linker. For the library binaries and headers, we are only
 # using our internally built libraries.
 .ONESHELL:
-.SHELLFLAGS     := -ec
-PATH            := $(ibdir)
-LD_LIBRARY_PATH := $(ildir)
-LDFLAGS         := -L$(ildir)
-SHELL           := $(ibdir)/bash
-CPPFLAGS        := -I$(idir)/include
+.SHELLFLAGS              := -ec
+export PATH              := $(ibdir)
+export LD_LIBRARY_PATH   := $(ildir)
+export SHELL             := $(ibdir)/bash
+export CPPFLAGS          := -I$(idir)/include
+export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
+export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
+export LDFLAGS           := -Wl,-rpath=$(ildir) -L$(ildir)
 
 
 
@@ -183,15 +185,14 @@ $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz | $(ilidir)
 $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz | $(ilidir)
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
 
-$(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz | $(ilidir)
+$(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
+                   $(ilidir)/libjpeg | $(ilidir)
 	$(call gbuild, $<, tiff-$(libtiff-version), static)               \
 	&& echo "Libtiff is built" > $@
 
 $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2                \
 	          $(ilidir)/cfitsio | $(ilidir)
-        # Unfortunately WCSLIB forces the building of shared libraries. So
-        # we'll allow it to finish, then remove the shared libraries
-        # afterwards.
+        # Unfortunately WCSLIB forces the building of shared libraries.
 	$(call gbuild, $<, wcslib-$(wcslib-version), ,                     \
 	              LIBS="-pthread -lcurl -lm" --without-pgplot          \
 	              --disable-fortran)                                   \
@@ -225,8 +226,11 @@ $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz                           \
                $(ilidir)/zlib
 	$(call gbuild, $<, curl-$(curl-version), static, --without-brotli)
 
-$(ibdir)/libtool: $(tdir)/libtool-$(libtool-version).tar.xz
-	$(call gbuild, $<, libtool-$(libtool-version), static)
+# On Mac OS, libtool does different things, so to avoid confusion, we'll
+# prefix GNU's libtool executables with `glibtool'.
+$(ibdir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz
+	$(call gbuild, $<, libtool-$(libtool-version), static, \
+                       --program-prefix=g)
 
 $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 	$(call gbuild, $<, ghostscript-$(ghostscript-version))
@@ -243,7 +247,7 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ibdir)/gs                                 \
                          $(ilidir)/gsl                               \
                          $(ilidir)/wcslib                            \
-                         $(ibdir)/libtool                            \
+                         $(ibdir)/glibtool                           \
                          $(ilidir)/libjpeg                           \
                          $(ilidir)/libtiff                           \
                          $(ilidir)/libgit2
