@@ -67,6 +67,7 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	if [ -f $(INDIR)/$$origname ]; then
 	  ln -s $(INDIR)/$$origname $@
 	else
+	  touch $(lockdir)/download
 	  flock $(lockdir)/download $(DOWNLOADER) $@ $$url/$$origname
 	fi
 
