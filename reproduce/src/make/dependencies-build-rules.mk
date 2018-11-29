@@ -53,7 +53,10 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 fi;                                                                  \
 	 check="$(6)";                                                        \
 	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi;         \
-	 if [ -f $(ibdir)/bash ]; then shellop="SHELL=$(ibdir)/bash"; fi;     \
+	 if   [ -f $(ibdir)/bash ]; then shellop="SHELL=$(ibdir)/bash";       \
+	 elif [ -f /bin/bash     ]; then shellop="SHELL=/bin/bash";           \
+	 else                            shellop="SHELL=/bin/sh";             \
+	 fi;                                                                  \
 	 cd $(ddir) && rm -rf $(2) && tar xf $(1) && cd $(2) &&               \
 	 ./configure $(4) "$$shellop" --prefix=$(idir) &&                     \
 	 make "$$shellop" $(5) &&                                             \
@@ -67,11 +70,15 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 
 # CMake
 # -----
+#
+# According to the link below, in CMake `/bin/sh' is hardcoded, so there is
+# no way to change it.
+#
+# https://stackoverflow.com/questions/21167014/how-to-set-shell-variable-in-makefiles-generated-by-cmake
 cbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	   export LDFLAGS="$$LDFLAGS -static";                                \
 	   opts="-DBUILD_SHARED_LIBS=OFF";                                    \
 	 fi;                                                                  \
-	 export SHELL=$(ibdir)/bash;                                          \
 	 cd $(ddir) && rm -rf $(2) && tar xf $(1) && cd $(2) &&               \
 	 rm -rf pipeline-build && mkdir pipeline-build &&                     \
 	 cd pipeline-build &&                                                 \
