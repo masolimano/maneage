@@ -564,7 +564,7 @@ fi
 # Build Basic dependencies
 # ------------------------
 make -f reproduce/src/make/dependencies-basic.mk \
-     static_build=$static_build #-j8
+     static_build=$static_build -j8
 
 
 
@@ -579,7 +579,7 @@ make -f reproduce/src/make/dependencies-basic.mk \
 # to build them in this script. But after this, we can rely on Makefiles.
 numthreads=$($instdir/bin/nproc)
 ./.local/bin/make -f reproduce/src/make/dependencies.mk    \
-                  static_build=$static_build #-j$numthreads
+                  static_build=$static_build -j$numthreads
 
 
 

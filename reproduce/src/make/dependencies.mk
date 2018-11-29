@@ -164,44 +164,43 @@ $(tarballs): $(tdir)/%:
 # for us here. So, we'll make an `$(ildir)/built' directory and make a
 # simple plain text file in it with the basic library name (an no prefix)
 # and create/write into it when the library is successfully built.
-$(ilidir): | $(ildir); mkdir -p $@
-$(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz              \
-                   $(ibdir)/curl | $(ilidir)
+$(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
+                   $(ibdir)/curl
 	$(call gbuild, $<,cfitsio, static, --enable-sse2 --enable-reentrant) \
 	&& echo "CFITSIO is built" > $@
 
 
-$(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz              \
-                   $(ibdir)/cmake                                         \
-                   $(ibdir)/curl | $(ilidir)
-	$(call cbuild, $<, libgit2-$(libgit2-version), static,            \
-	              -DUSE_SSH=OFF -DUSE_OPENSSL=OFF -DBUILD_CLAR=OFF    \
-	              -DTHREADSAFE=ON)                                    \
+$(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
+                   $(ibdir)/cmake                            \
+                   $(ibdir)/curl
+	$(call cbuild, $<, libgit2-$(libgit2-version), static,         \
+	              -DUSE_SSH=OFF -DUSE_OPENSSL=OFF -DBUILD_CLAR=OFF \
+	              -DTHREADSAFE=ON)                                 \
 	&& echo "Libgit2 is built" > $@
 
-$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz | $(ilidir)
-	$(call gbuild, $<, gsl-$(gsl-version), static)                    \
+$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
+	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
 
-$(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz | $(ilidir)
+$(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
-                   $(ilidir)/libjpeg | $(ilidir)
-	$(call gbuild, $<, tiff-$(libtiff-version), static)               \
+                   $(ilidir)/libjpeg
+	$(call gbuild, $<, tiff-$(libtiff-version), static) \
 	&& echo "Libtiff is built" > $@
 
-$(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2                \
-	          $(ilidir)/cfitsio | $(ilidir)
+$(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
+                  $(ilidir)/cfitsio
         # Unfortunately WCSLIB forces the building of shared libraries.
-	$(call gbuild, $<, wcslib-$(wcslib-version), ,                     \
-	              LIBS="-pthread -lcurl -lm" --without-pgplot          \
-	              --disable-fortran)                                   \
+	$(call gbuild, $<, wcslib-$(wcslib-version), ,            \
+	              LIBS="-pthread -lcurl -lm" --without-pgplot \
+	              --disable-fortran)                          \
 	&& echo "WCSLIB is built" > $@
 
 # Zlib: its `./configure' doesn't use Autoconf's configure script, it just
 # accepts a direct `--static' option.
-$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz | $(ilidir)
+$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, zlib-$(zlib-version), , --static) \
 	&& echo "Zlib is built" > $@
@@ -218,12 +217,12 @@ endif
 #
 # CMake can be built with its custom `./bootstrap' script.
 $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz
-	cd $(ddir) && rm -rf cmake-$(cmake-version) &&                       \
-	tar xf $< && cd cmake-$(cmake-version) &&                            \
-	./bootstrap --prefix=$(idir) && make && make install &&              \
+	cd $(ddir) && rm -rf cmake-$(cmake-version) &&          \
+	tar xf $< && cd cmake-$(cmake-version) &&               \
+	./bootstrap --prefix=$(idir) && make && make install && \
 	cd ..&& rm -rf cmake-$(cmake-version)
 
-$(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz                           \
+$(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
                $(ilidir)/zlib
 	$(call gbuild, $<, curl-$(curl-version), static, --without-brotli)
 
@@ -245,13 +244,13 @@ $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
                        --without-tcltk --with-shell=$(ibdir)/bash)
 
 $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
-                         $(ibdir)/gs                                 \
-                         $(ilidir)/gsl                               \
-                         $(ilidir)/wcslib                            \
-                         $(ibdir)/glibtool                           \
-                         $(ilidir)/libjpeg                           \
-                         $(ilidir)/libtiff                           \
-                         $(ilidir)/libgit2
+                         $(ibdir)/glibtool \
+                         $(ilidir)/libjpeg \
+                         $(ilidir)/libtiff \
+                         $(ilidir)/libgit2 \
+                         $(ilidir)/wcslib  \
+                         $(ilidir)/gsl     \
+                         $(ibdir)/gs
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
 	               --enable-static=yes --enable-shared=no, -j8,  \

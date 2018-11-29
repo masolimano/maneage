@@ -48,6 +48,7 @@ tdir  = $(BDIR)/dependencies/tarballs
 idir  = $(BDIR)/dependencies/installed
 ibdir = $(BDIR)/dependencies/installed/bin
 ildir = $(BDIR)/dependencies/installed/lib
+ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # We'll need the system's PATH for making links to low-level programs we
 # won't be building ourselves.
@@ -62,7 +63,7 @@ export LDFLAGS           := -L$(ildir) $(LDFLAGS)
 export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
-top-level-programs = bash which ls sed gawk grep diff find pkg-config
+top-level-programs = gcc pkg-config
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -92,15 +93,21 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 # However, downloading from this link is slow (because its just a link). So
 # its easier to just keep a with the others.
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
+                        binutils-$(binutils-version).tar.lz                 \
                         bzip2-$(bzip2-version).tar.gz                       \
                         coreutils-$(coreutils-version).tar.xz               \
                         diffutils-$(diffutils-version).tar.xz               \
                         findutils-$(findutils-version).tar.lz               \
                         gawk-$(gawk-version).tar.lz                         \
+                        gcc-$(gcc-version).tar.xz                           \
+                        gmp-$(gmp-version).tar.lz                           \
                         grep-$(grep-version).tar.xz                         \
                         gzip-$(gzip-version).tar.gz                         \
+                        isl-$(isl-version).tar.bz2                          \
                         lzip-$(lzip-version).tar.gz                         \
                         make-$(make-version).tar.lz                         \
+                        mpfr-$(mpfr-version).tar.xz                         \
+                        mpc-$(mpc-version).tar.gz                           \
                         pkg-config-$(pkgconfig-version).tar.gz              \
                         sed-$(sed-version).tar.xz                           \
 	                tar-$(tar-version).tar.gz                           \
@@ -116,20 +123,26 @@ $(tarballs): $(tdir)/%:
 	               | awk '{print $$1}' );                               \
 	                                                                    \
 	  mergenames=1;                                                     \
-	  if   [ $$n = bash      ]; then w=http://ftp.gnu.org/gnu/bash;     \
+	  if   [ $$n = bash      ]; then w=http://ftpmirror.gnu.org/gnu/bash; \
+	  elif [ $$n = binutils  ]; then w=http://ftpmirror.gnu.org/gnu/binutils; \
 	  elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
-	  elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
-	  elif [ $$n = diffutils ]; then w=http://ftp.gnu.org/gnu/diffutils;\
+	  elif [ $$n = coreutils ]; then w=http://ftpmirror.gnu.org/gnu/coreutils;\
+	  elif [ $$n = diffutils ]; then w=http://ftpmirror.gnu.org/gnu/diffutils;\
 	  elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
-	  elif [ $$n = gawk      ]; then w=http://ftp.gnu.org/gnu/gawk;     \
-	  elif [ $$n = grep      ]; then w=http://ftp.gnu.org/gnu/grep;     \
+	  elif [ $$n = gawk      ]; then w=http://ftpmirror.gnu.org/gnu/gawk; \
+          elif [ $$n = gcc       ]; then w=http://ftpmirror.gnu.org/gcc/gcc-$(gcc-version); \
+          elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
+	  elif [ $$n = grep      ]; then w=http://ftpmirror.gnu.org/gnu/grep; \
 	  elif [ $$n = gzip      ]; then w=http://akhlaghi.org/src;         \
+          elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
 	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
 	  elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
-	  elif [ $$n = pkg       ]; then w=https://pkg-config.freedesktop.org/releases; \
-	  elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed;      \
-	  elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar;      \
-	  elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which;    \
+          elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
+          elif [ $$n = mpc       ]; then w=http://ftpmirror.gnu.org/gnu/mpc;\
+	  elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
+	  elif [ $$n = sed       ]; then w=http://ftpmirror.gnu.org/gnu/sed;\
+	  elif [ $$n = tar       ]; then w=http://ftpmirror.gnu.org/gnu/tar;\
+	  elif [ $$n = which     ]; then w=http://ftpmirror.gnu.org/gnu/which;\
 	  elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
 	  else                                                              \
 	    echo; echo; echo;                                               \
@@ -144,11 +157,6 @@ $(tarballs): $(tdir)/%:
 	  echo "Downloading $$tarballurl";                                  \
 	  $(DOWNLOADER) $@ $$tarballurl;                                    \
 	fi
-
-# C compiler and linker
-# ---------------------
-#
-# --disable-multilib: ignore 32-bit installation for 64-bit systems.
 
 
 
@@ -167,26 +175,6 @@ $(ibdir)/low-level: | $(ibdir)
         # We aren't building these low-levels tools yet ourselves. We'll
         # thus just use what the host operating system has available.
 	PATH=$(syspath)
-
-        # The Assembler
-	$(call makelink,as)
-
-        # The compiler
-	$(call makelink,clang)
-	$(call makelink,gcc)
-	$(call makelink,g++)
-	$(call makelink,cc)
-
-        # The linker
-	$(call makelink,ar)
-	$(call makelink,ld)
-	$(call makelink,nm)
-	$(call makelink,ps)
-
-        # On Mac OS, libtool is different compared to GNU Libtool. The
-        # libtool we'll build in the high-level dependencies has the
-        # executable name `glibtool'.
-	$(call makelink,libtool)
 
         # GNU Gettext (translate messages)
 	$(call makelink,msgfmt)
@@ -211,7 +199,7 @@ $(ibdir)/low-level: | $(ibdir)
 # the source code tarballs of each program. First, we'll build the
 # necessary programs, then we'll build GNU Tar.
 $(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz \
-	       $(ibdir)/low-level
+               $(ibdir)/low-level
 	$(call gbuild, $<, gzip-$(gzip-version), static)
 
 # GNU Lzip: For a static build, the `-static' flag should be given to
@@ -229,7 +217,7 @@ $(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz \
 	$(call gbuild, $<, xz-$(xz-version), static)
 
 $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz \
-	        $(ibdir)/low-level
+                $(ibdir)/low-level
 	 tdir=bzip2-$(bzip2-version);                                  \
 	 if [ $(static_build) = yes ]; then                            \
 	   makecommand="make LDFLAGS=-static";                         \
@@ -305,7 +293,7 @@ $(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
 	$(call gbuild, $<, sed-$(sed-version), static)
 
 $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
-	        $(ibdir)/make
+                $(ibdir)/make
 	$(call gbuild, $<, which-$(which-version), static)
 
 
@@ -314,7 +302,7 @@ $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
 
 # GNU Bash
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
-	       $(ibdir)/make
+               $(ibdir)/make
 
         # Delete any possibly existing output
 	if [ -f $@ ]; then rm $@; fi;
@@ -335,3 +323,96 @@ endif
         # before making the link, we'll see if the file actually exists
         # there.
 	if [ -f $@ ]; then ln -s $@ $(ibdir)/sh; fi
+
+
+
+
+
+# GCC prerequisites
+# -----------------
+$(ildir):  | $(idir);  mkdir $@
+$(ilidir): | $(ildir); mkdir $@
+$(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
+               $(ibdir)/make | $(ilidir)
+	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
+	&& echo "GNU multiple precision arithmetic library is built" > $@
+
+$(ilidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
+                $(ilidir)/gmp
+	$(call gbuild, $<, mpfr-$(mpfr-version), static, , , make check)  \
+	&& echo "GNU MPFR library is built" > $@
+
+$(ilidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
+               $(ilidir)/mpfr
+	$(call gbuild, $<, mpc-$(mpc-version), static, , , make check)  \
+	&& echo "GNU MPC library is built" > $@
+
+$(ilidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
+               $(ilidir)/gmp
+	$(call gbuild, $<, isl-$(isl-version), static)  \
+	&& echo "GCC's ISL library is built" > $@
+
+# On non-GNU systems, the default linker is different and we don't want our
+# new linker to be mixed with that during the building of libraries and
+# programs before GCC.
+$(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz \
+             $(ibdir)/ls                                 \
+             $(ibdir)/sed                                \
+             $(ilidir)/isl                               \
+             $(ilidir)/mpc                               \
+             $(ibdir)/gawk                               \
+             $(ibdir)/grep                               \
+             $(ibdir)/diff                               \
+             $(ibdir)/find                               \
+             $(ibdir)/bash                               \
+             $(ibdir)/which
+	$(call gbuild, $<, binutils-$(binutils-version), static)
+
+
+
+
+
+# Build GCC
+# ---------
+#
+# We want to build GCC after building all the basic tools that are often
+# used in a configure script to enable GCC's configure script to work as
+# smoothly/robustly as possible.
+$(ibdir)/gcc: $(tdir)/gcc-$(gcc-version).tar.xz \
+              $(ibdir)/ld
+
+        # Un-pack all the necessary tools in the top building directory
+	cd $(ddir);                                                     \
+	rm -rf gcc-build gcc-$(gcc-version);                            \
+	tar xf $< &&                                                    \
+	mkdir $(ddir)/gcc-build &&                                      \
+	cd $(ddir)/gcc-build &&                                         \
+	../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash             \
+	                                --prefix=$(idir)                \
+	                                --with-mpc=$(idir)              \
+	                                --with-mpfr=$(idir)             \
+	                                --with-gmp=$(idir)              \
+	                                --with-isl=$(idir)              \
+	                                --with-build-time-tools=$(idir) \
+	                                --enable-shared                 \
+	                                --disable-multilib              \
+	                                --disable-multiarch             \
+	                                --enable-threads=posix          \
+	                                --enable-libmpx                 \
+	                                --with-local-prefix=$(idir)     \
+	                                --enable-linker-build-id        \
+	                                --with-gnu-as                   \
+	                                --with-gnu-ld                   \
+	                                --enable-lto                    \
+	                                --with-linker-hash-style=gnu    \
+	                                --enable-languages=c,c++        \
+	                                --disable-libada                \
+	                                --disable-nls                   \
+	                                --enable-default-pie            \
+	                                --enable-default-ssp            \
+	                                --enable-cet=auto               \
+	                                --enable-decimal-float &&       \
+	make SHELL=$(ibdir)/bash -j$$(nproc) &&                         \
+	make SHELL=$(ibdir)/bash install &&                             \
+	cd .. &&                                                        \
+	rm -rf gcc-build gcc-$(gcc-version)

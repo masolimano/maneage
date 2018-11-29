@@ -53,11 +53,12 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 fi;                                                                  \
 	 check="$(6)";                                                        \
 	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi;         \
+	 if [ -f $(ibdir)/bash ]; then shellop="SHELL=$(ibdir)/bash"; fi;     \
 	 cd $(ddir) && rm -rf $(2) && tar xf $(1) && cd $(2) &&               \
-	 ./configure $(4) --prefix=$(idir) &&                                 \
-	 make $(5) &&                                                         \
+	 ./configure $(4) "$$shellop" --prefix=$(idir) &&                     \
+	 make "$$shellop" $(5) &&                                             \
 	 $$check &&                                                           \
-	 make install&&                                                       \
+	 make "$$shellop" install &&                                          \
 	 cd .. && rm -rf $(2)
 
 
