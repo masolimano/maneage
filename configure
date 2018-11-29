@@ -535,6 +535,28 @@ fi
 
 
 
+# See if the linker accepts -Wl,-rpath-link
+# -----------------------------------------
+#
+# `-rpath-link' is used to write the information of the linked shared
+# library into the shared object (library or program). But some versions of
+# LLVM's linker don't accept it an can cause problems.
+oprog=$depdir/rpath-test
+cprog=$depdir/rpath-test.c
+echo "#include <stdio.h>"          > $cprog
+echo "int main(void) {return 0;}" >> $cprog
+if [ x$CC = x ]; then CC=gcc; fi;
+if $CC $cprog -o$oprog -Wl,-rpath-link &> /dev/null; then
+    export rpath_command="-Wl,-rpath-link=$instdir/lib"
+else
+    export rpath_command=""
+fi
+rm -f $oprog $cprog
+
+
+
+
+
 # Inform the user that the build process is starting
 # -------------------------------------------------
 if [ $printnotice = yes ]; then
@@ -588,7 +610,9 @@ make -f reproduce/src/make/dependencies-basic.mk \
 # to build them in this script. But after this, we can rely on Makefiles.
 numthreads=$($instdir/bin/nproc)
 ./.local/bin/make -f reproduce/src/make/dependencies.mk    \
-                  static_build=$static_build -j$numthreads
+                  static_build=$static_build               \
+                  rpath_command=$rpath_command             \
+                  -j$numthreads
 
 
 

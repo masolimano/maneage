@@ -98,9 +98,8 @@ cbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 cd $(ddir) && rm -rf $(2) && tar xf $(1) && cd $(2) &&               \
 	 rm -rf pipeline-build && mkdir pipeline-build &&                     \
 	 cd pipeline-build &&                                                 \
-	 cmake .. $$opts $(4) &&                                              \
-	 cmake --build . &&                                                   \
-	 cmake .. -DCMAKE_INSTALL_PREFIX=$(idir) &&                           \
-	 cmake --build . --target install &&                                  \
+	 cmake .. -DCMAKE_LIBRARY_PATH=$(ildir)                               \
+	          -DCMAKE_INSTALL_PREFIX=$(idir) $$opts $(4) &&               \
+	 make && make install &&                                              \
 	 cd ../.. &&                                                          \
 	 rm -rf $(2)

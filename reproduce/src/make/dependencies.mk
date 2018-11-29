@@ -59,7 +59,7 @@ export SHELL             := $(ibdir)/bash
 export CPPFLAGS          := -I$(idir)/include
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export LDFLAGS           := -Wl,-rpath-link=$(ildir) -L$(ildir)
+export LDFLAGS           := $(rpath_command) -L$(ildir)
 
 
 
@@ -193,11 +193,13 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 
 $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                   $(ilidir)/cfitsio | $(ilidir)
-        # Unfortunately WCSLIB forces the building of shared libraries.
+        # Unfortunately WCSLIB forces the building of shared libraries. So
+        # we'll just delete any shared library that is produced afterwards.
 	$(call gbuild, $<, wcslib-$(wcslib-version), ,            \
 	              LIBS="-pthread -lcurl -lm" --without-pgplot \
-	              --disable-fortran)                          \
-	&& echo "WCSLIB is built" > $@
+	              --disable-fortran) &&                       \
+	rm -f $(ildir)/libwcs.so* $(ildir)/libwcs*.dylib &&       \
+	echo "WCSLIB is built" > $@
 
 # Zlib: its `./configure' doesn't use Autoconf's configure script, it just
 # accepts a direct `--static' option.
