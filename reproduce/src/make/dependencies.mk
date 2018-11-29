@@ -104,7 +104,7 @@ $(tarballs): $(tdir)/%:
 	  if [ $$n = cfitsio     ]; then
 	    mergenames=0
 	    v=$$(echo $(cfitsio-version) | sed -e's/\.//'             \
-	              | awk '{l=length($1);                           \
+	              | awk '{l=length($$1);                          \
 	                      printf (l==4 ? "%d\n"                   \
 	                              : (l==3 ? "%d0\n"               \
 	                                 : (l==2 ? "%d00\n"           \
@@ -164,34 +164,35 @@ $(tarballs): $(tdir)/%:
 # for us here. So, we'll make an `$(ildir)/built' directory and make a
 # simple plain text file in it with the basic library name (an no prefix)
 # and create/write into it when the library is successfully built.
+$(ilidir): | $(ildir); mkdir $@
 $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
-                   $(ibdir)/curl
+                   $(ibdir)/curl | $(ilidir)
 	$(call gbuild, $<,cfitsio, static, --enable-sse2 --enable-reentrant) \
 	&& echo "CFITSIO is built" > $@
 
 
 $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
                    $(ibdir)/cmake                            \
-                   $(ibdir)/curl
+                   $(ibdir)/curl | $(ilidir)
 	$(call cbuild, $<, libgit2-$(libgit2-version), static,         \
 	              -DUSE_SSH=OFF -DUSE_OPENSSL=OFF -DBUILD_CLAR=OFF \
 	              -DTHREADSAFE=ON)                                 \
 	&& echo "Libgit2 is built" > $@
 
-$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
+$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz | $(ilidir)
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
 
-$(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
+$(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz | $(ilidir)
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
-                   $(ilidir)/libjpeg
+                   $(ilidir)/libjpeg | $(ilidir)
 	$(call gbuild, $<, tiff-$(libtiff-version), static) \
 	&& echo "Libtiff is built" > $@
 
 $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
-                  $(ilidir)/cfitsio
+                  $(ilidir)/cfitsio | $(ilidir)
         # Unfortunately WCSLIB forces the building of shared libraries.
 	$(call gbuild, $<, wcslib-$(wcslib-version), ,            \
 	              LIBS="-pthread -lcurl -lm" --without-pgplot \
@@ -200,12 +201,15 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 
 # Zlib: its `./configure' doesn't use Autoconf's configure script, it just
 # accepts a direct `--static' option.
-$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
+$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz | $(ilidir)
+
+        # IMPORTANT, the second argument to `gbuild', must not have any
+        # spaces before or after it: it is going to be checked.
 ifeq ($(static_build),yes)
-	$(call gbuild, $<, zlib-$(zlib-version), , --static) \
+	$(call gbuild, $<,zlib-$(zlib-version), , --static) \
 	&& echo "Zlib is built" > $@
 else
-	$(call gbuild, $<, zlib-$(zlib-version)) && echo "Zlib is built" > $@
+	$(call gbuild, $<,zlib-$(zlib-version)) && echo "Zlib is built" > $@
 endif
 
 

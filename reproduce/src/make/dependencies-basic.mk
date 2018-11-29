@@ -63,7 +63,7 @@ export LDFLAGS           := -L$(ildir) $(LDFLAGS)
 export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
-top-level-programs = gcc pkg-config
+top-level-programs = ls sed gawk grep diff find bash which pkg-config
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -168,13 +168,29 @@ $(tarballs): $(tdir)/%:
 # For the time being, we aren't building a local C compiler, but we'll use
 # any C compiler that the system already has and just make a symbolic link
 # to it.
-makelink = a=$$(which $(1) 2> /dev/null); \
+makelink = export PATH=$(syspath); a=$$(which $(1) 2> /dev/null); \
 	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
 $(ibdir):; mkdir $@
 $(ibdir)/low-level: | $(ibdir)
-        # We aren't building these low-levels tools yet ourselves. We'll
-        # thus just use what the host operating system has available.
-	PATH=$(syspath)
+        # The Assembler
+	$(call makelink,as)
+
+        # The compiler
+	$(call makelink,clang)
+	$(call makelink,gcc)
+	$(call makelink,g++)
+	$(call makelink,cc)
+
+        # The linker
+	$(call makelink,ar)
+	$(call makelink,ld)
+	$(call makelink,nm)
+	$(call makelink,ps)
+
+        # On Mac OS, libtool is different compared to GNU Libtool. The
+        # libtool we'll build in the high-level dependencies has the
+        # executable name `glibtool'.
+	$(call makelink,libtool)
 
         # GNU Gettext (translate messages)
 	$(call makelink,msgfmt)
@@ -328,8 +344,8 @@ endif
 
 
 
-# GCC prerequisites
-# -----------------
+# (CURRENTLY IGNORED) GCC prerequisites
+# -------------------------------------
 $(ildir):  | $(idir);  mkdir $@
 $(ilidir): | $(ildir); mkdir $@
 $(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
@@ -372,8 +388,16 @@ $(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz \
 
 
 
-# Build GCC
-# ---------
+# (CURRENTLY IGNORED) Build GCC
+# -----------------------------
+#
+# The building is currently ignored because GNU Binutils currently doesn't
+# install critical components of building a compiler on Mac systems. So we
+# can install and use the GNU C compiler, but we're still going to have the
+# crazy issues with linking on a Mac OS. Since almost no natural science
+# paper's processing depends so strongly on the compiler used, for now,
+# we'll just use the host operating system's C library, compiler, and
+# linker.
 #
 # We want to build GCC after building all the basic tools that are often
 # used in a configure script to enable GCC's configure script to work as

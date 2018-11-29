@@ -563,8 +563,17 @@ fi
 
 # Build Basic dependencies
 # ------------------------
+#
+# Since the system might not have GNU Coreutils at this stage, we'll just
+# default to 4 threads if the actual number isn't found. This is because
+# some versions of Make complain about not having enough 'pipe' (memory) on
+# some systems. After some searching, I found out its because of too many
+# threads.
+if which nproc 2> /dev/null; then numthreads=$(nproc --all);
+else                              numthreads=4;
+fi
 make -f reproduce/src/make/dependencies-basic.mk \
-     static_build=$static_build -j8
+     static_build=$static_build -j$numthreads
 
 
 

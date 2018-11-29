@@ -48,17 +48,33 @@
 #  4: Extra configuration options.
 #  5: Extra options/arguments to pass to Make.
 #  6: Step to run between `make' and `make install': usually `make check'.
+#
+# NOTE: Unfortunately the configure script of `zlib' doesn't recognize
+# `SHELL'. So we'll have to remove it from the call to the configure
+# script.
 gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	   export LDFLAGS="$$LDFLAGS -static";                                \
 	 fi;                                                                  \
 	 check="$(6)";                                                        \
 	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi;         \
-	 if   [ -f $(ibdir)/bash ]; then shellop="SHELL=$(ibdir)/bash";       \
+	 cd $(ddir); rm -rf $(2); tar xf $(1); cd $(2);                       \
+                                                                              \
+	 if   [ -f $(ibdir)/bash ]; then                                      \
+	   sed configure -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'               \
+	                 -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'> configure-t;  \
+	   mv configure-t configure;                                          \
+	   chmod +x configure;                                                \
+	   shellop="SHELL=$(ibdir)/bash";                                     \
 	 elif [ -f /bin/bash     ]; then shellop="SHELL=/bin/bash";           \
 	 else                            shellop="SHELL=/bin/sh";             \
 	 fi;                                                                  \
-	 cd $(ddir) && rm -rf $(2) && tar xf $(1) && cd $(2) &&               \
-	 ./configure $(4) "$$shellop" --prefix=$(idir) &&                     \
+                                                                              \
+	 if [ x"$(2)" = x"zlib-$(zlib-version)" ]; then                       \
+	    configop="--prefix=$(idir)";                                      \
+	 else configop="$$shellop --prefix=$(idir)";                          \
+	 fi;                                                                  \
+                                                                              \
+	 ./configure $(4) $$configop  &&                                    \
 	 make "$$shellop" $(5) &&                                             \
 	 $$check &&                                                           \
 	 make "$$shellop" install &&                                          \
