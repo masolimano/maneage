@@ -83,6 +83,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
 	                git-$(git-version).tar.xz                     \
 	                gnuastro-$(gnuastro-version).tar.lz           \
 	                gsl-$(gsl-version).tar.gz                     \
+                        install-tl-unx.tar.gz                         \
 	                jpegsrc.$(libjpeg-version).tar.gz             \
                         tiff-$(libtiff-version).tar.gz                \
                         libtool-$(libtool-version).tar.xz             \
@@ -117,6 +118,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = git         ]; then w=https://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
+	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = libtool     ]; then w=ftp://ftp.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
@@ -281,35 +283,30 @@ endif
 # link of all the TeX Live executables in $(ibdir). But symbolic links are
 # hard to track for Make (as a target). So we'll make a simple ASCII file
 # called `texlive-ready' when it is complete and use that as a target.
-$(ibdir)/texlive-ready-tlmgr: reproduce/config/pipeline/texlive.conf
+$(ibdir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
+                              reproduce/config/pipeline/texlive.conf
 
-        # To work with TeX live installation, we'll need the internet.
-	if $(DOWNLOADER) $(tdir)/install-tl-unx.tar.gz                         \
-	   http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz; \
-          then
+        # Unpack, enter the directory, and install based on the given
+        # configuration (prerequisite of this rule).
+	topdir=$$(pwd)
+	cd $(ddir)
+	rm -rf install-tl-*
+	tar xf $(tdir)/install-tl-unx.tar.gz
+	cd install-tl-*
+	sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
+	    $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
+	./install-tl --profile=texlive.conf
 
-          # Unpack, enter the directory, and install based on the given
-          # configuration (prerequisite of this rule).
-	  topdir=$$(pwd)
-	  cd $(ddir)
-	  rm -rf install-tl-*
-	  tar xf $(tdir)/install-tl-unx.tar.gz
-	  cd install-tl-*
-	  sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
-	      $$topdir/$< > texlive.conf
-	  ./install-tl --profile=texlive.conf
+        # Put a symbolic link of the TeX Live executables in `ibdir'. The
+        # main problem is that the year and build system (for example
+        # `x86_64-linux') are also in the directory names, making it hard
+        # to be generic. We are using wildcards here, but only in this
+        # Makefile, not in any other.
+	ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
 
-          # Put a symbolic link of the TeX Live executables in `ibdir'. The
-          # main problem is that the year and build system (for example
-          # `x86_64-linux') are also in the directory names, making it hard
-          # to be generic. We are using wildcards here, but only in this
-          # Makefile, not in any other.
-	  ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
-
-          # Clean up and build the final target.
-	  cd .. && rm -rf install-tl-* $(tdir)/install-tl-unx.tar.gz
-	  echo "TeX Live is ready." > $@
-	fi
+        # Clean up and build the final target.
+	cd .. && rm -rf install-tl-* $(tdir)/install-tl-unx.tar.gz
+	echo "TeX Live is ready." > $@
 
 
 
