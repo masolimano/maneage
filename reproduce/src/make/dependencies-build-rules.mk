@@ -57,7 +57,9 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 fi;                                                                  \
 	 check="$(6)";                                                        \
 	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi;         \
-	 cd $(ddir); rm -rf $(2); tar xf $(1); cd $(2);                       \
+	 cd $(ddir); rm -rf $(2);                                             \
+	 if ! tar xf $(1); then echo; echo "Tar error"; exit 1; fi;           \
+	 cd $(2);                                                             \
                                                                               \
 	 if   [ -f $(ibdir)/bash ]; then                                      \
 	   sed configure -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'               \

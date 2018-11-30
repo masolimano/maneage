@@ -591,8 +591,8 @@ fi
 # some versions of Make complain about not having enough 'pipe' (memory) on
 # some systems. After some searching, I found out its because of too many
 # threads.
-if which nproc 2> /dev/null; then numthreads=$(nproc --all);
-else                              numthreads=4;
+if which nproc &> /dev/null; then numthreads=$(nproc --all);
+else                              numthreads=2;
 fi
 make -f reproduce/src/make/dependencies-basic.mk \
      static_build=$static_build -j$numthreads

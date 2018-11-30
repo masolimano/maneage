@@ -171,12 +171,19 @@ $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 	&& echo "CFITSIO is built" > $@
 
 
+# The libgit2 page recommends doing a static build, especially for Mac
+# systems. Under XCode, the following link has written "It’s highly
+# recommended that you build libgit2 as a static library for Xcode
+# projects. This simplifies distribution significantly, as the resolution
+# of dynamic libraries at runtime can be extremely problematic.". This is a
+# major problem we have been having so far with Mac systems:
+# https://libgit2.org/docs/guides/build-and-link
 $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
                    $(ibdir)/cmake                            \
                    $(ibdir)/curl | $(ilidir)
 	$(call cbuild, $<, libgit2-$(libgit2-version), static,         \
 	              -DUSE_SSH=OFF -DUSE_OPENSSL=OFF -DBUILD_CLAR=OFF \
-	              -DTHREADSAFE=ON)                                 \
+	              -DTHREADSAFE=ON -DBUILD_SHARED_LIBS=OFF)         \
 	&& echo "Libgit2 is built" > $@
 
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz | $(ilidir)
