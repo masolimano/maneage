@@ -186,6 +186,7 @@ $(ibdir)/low-level: | $(ibdir)
 	$(call makelink,ld)
 	$(call makelink,nm)
 	$(call makelink,ps)
+	$(call makelink,ranlib)
 
         # On Mac OS, libtool is different compared to GNU Libtool. The
         # libtool we'll build in the high-level dependencies has the
@@ -198,9 +199,12 @@ $(ibdir)/low-level: | $(ibdir)
         # GNU M4 (for managing building macros)
 	$(call makelink,m4)
 
-        # Needed by TeXLive specifically
+        # Needed by TeXLive specifically.
 	$(call makelink,perl)
+
+        # Downloaders.
 	$(call makelink,wget)
+	$(call makelink,curl)
 
 	echo "Low-level program links are setup" > $@
 

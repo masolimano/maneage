@@ -180,8 +180,17 @@ fi
 # the web address.
 if [ $rewritepconfig = yes ]; then
     if type wget > /dev/null 2>/dev/null; then
-        wgetname=$(which wget)
-        downloader="$wgetname --no-use-server-timestamps -O";
+        name=$(which wget)
+
+        # By default Wget keeps the remote file's timestamp, so we'll have
+        # to disable it manually.
+        downloader="$name --no-use-server-timestamps -O";
+    elif type curl > /dev/null 2>/dev/null; then
+        name=$(which curl)
+
+        # - cURL doesn't keep the remote file's timestamp by default.
+        # - With the `-L' option, we tell cURL to follow redirects.
+        downloader="$name -L -o"
     else
         cat <<EOF
 
@@ -591,8 +600,8 @@ fi
 # some versions of Make complain about not having enough 'pipe' (memory) on
 # some systems. After some searching, I found out its because of too many
 # threads.
-if which nproc &> /dev/null; then numthreads=$(nproc --all);
-else                              numthreads=2;
+if which nproc > /dev/null 2>/dev/null; then numthreads=$(nproc --all);
+else                                         numthreads=2;
 fi
 make -f reproduce/src/make/dependencies-basic.mk \
      static_build=$static_build -j$numthreads
