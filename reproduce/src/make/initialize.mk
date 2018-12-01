@@ -254,5 +254,5 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	                wcslibversion)
 	$(call lvcheck, zlib.h, $(zlib-version), zlib, zlibversion)
 
-        # TeX versions
+        # TeX package versions
 	cat $(BDIR)/dependencies/texlive-versions.tex >> $@

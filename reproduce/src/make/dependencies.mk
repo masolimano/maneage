@@ -43,13 +43,24 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = gs git flock astnoisechisel texlive-ready
-all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
+top-level-programs = gs git flock astnoisechisel
+all: $(ddir)/texlive-versions.tex \
+     $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings: We are only including the host
 # operating system's PATH environment variable (after our own!) for the
 # compiler and linker. For the library binaries and headers, we are only
 # using our internally built libraries.
+#
+# To investigate:
+#
+#    1) Set SHELL to `$(ibdir)/env - NAME=VALUE $(ibdir)/bash' and set all
+#       the parameters defined bellow as `NAME=VALUE' statements before
+#       calling Bash. This will enable us to completely ignore the user's
+#       native environment.
+#
+#    2) Add `--noprofile --norc' to `.SHELLFLAGS' so doesn't load the
+#       user's environment.
 .ONESHELL:
 .SHELLFLAGS              := -ec
 export PATH              := $(ibdir)
@@ -281,32 +292,45 @@ endif
 
 # Since we want to avoid complicating the PATH, we are putting a symbolic
 # link of all the TeX Live executables in $(ibdir). But symbolic links are
-# hard to track for Make (as a target). So we'll make a simple ASCII file
-# called `texlive-ready' when it is complete and use that as a target.
+# hard to track for Make (as a target). Also, TeX in general is optional
+# for the pipeline (the processing is the main target, not the generation
+# of the final PDF). So we'll make a simple ASCII file called
+# `texlive-ready-tlmgr' and use its contents to mark if we can use it or
+# not.
 $(ibdir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
                               reproduce/config/pipeline/texlive.conf
 
         # Unpack, enter the directory, and install based on the given
         # configuration (prerequisite of this rule).
-	topdir=$$(pwd)
+	@topdir=$$(pwd)
 	cd $(ddir)
 	rm -rf install-tl-*
 	tar xf $(tdir)/install-tl-unx.tar.gz
 	cd install-tl-*
 	sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
 	    $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
-	./install-tl --profile=texlive.conf
 
-        # Put a symbolic link of the TeX Live executables in `ibdir'. The
-        # main problem is that the year and build system (for example
-        # `x86_64-linux') are also in the directory names, making it hard
-        # to be generic. We are using wildcards here, but only in this
-        # Makefile, not in any other.
-	ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
+        # TeX Live's installation may fail due to any reason. But TeX Live
+        # is optional (only necessary for building the final PDF). So we
+        # don't want the configure script to fail if it can't run.
+	if ./install-tl --profile=texlive.conf; then
 
-        # Clean up and build the final target.
-	cd .. && rm -rf install-tl-* $(tdir)/install-tl-unx.tar.gz
-	echo "TeX Live is ready." > $@
+          # Put a symbolic link of the TeX Live executables in `ibdir'. The
+          # main problem is that the year and build system (for example
+          # `x86_64-linux') are also in the directory names, making it hard
+          # to be generic. We are using wildcards here, but only in this
+          # Makefile, not in any other.
+	  ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
+
+          # Register that the build was successful.
+	  echo "TeX Live is ready." > $@
+	else
+	  echo "NOT!" > $@
+	fi
+
+        # Clean up
+	cd ..
+	rm -rf install-tl-*
 
 
 
@@ -315,12 +339,14 @@ $(ibdir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
 # To keep things modular and simple, we'll break up the installation of TeX
 # Live itself (only very basic TeX and LaTeX) and the installation of its
 # necessary packages into two packages.
-$(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk \
-	                $(ibdir)/texlive-ready-tlmgr
+$(ddir)/texlive-versions.tex: reproduce/config/pipeline/dependency-texlive.mk \
+	                      $(ibdir)/texlive-ready-tlmgr
 
         # To work with TeX live installation, we'll need the internet.
-	res=$(cat $(ibdir)/texlive-ready-tlmgr)
-	if [ -f $(ibdir)/texlive-ready-tlmgr ]; then
+	@res=$$(cat $(ibdir)/texlive-ready-tlmgr)
+	if [ x$$res = x"NOT!" ]; then
+	  echo "" > $@
+	else
 
           # The current directory is necessary later.
 	  topdir=$$(pwd)
@@ -342,10 +368,9 @@ $(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk \
 	  ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
 
           # Get all the necessary versions.
-	  tv=$(ddir)/texlive-versions.tex
 	  texlive=$$(pdflatex --version | awk 'NR==1' | sed 's/.*(\(.*\))/\1/' \
 	                      | awk '{print $$NF}');
-	  echo "\newcommand{\\texliveversion}{$$texlive}" > $$tv
+	  echo "\newcommand{\\texliveversion}{$$texlive}" > $@
 
           # LaTeX Package versions.
 	  tlmgr info $(texlive-packages) --only-installed | awk                \
@@ -355,8 +380,5 @@ $(ibdir)/texlive-ready: reproduce/config/pipeline/dependency-texlive.mk \
 	        $$1=="cat-version:" {version=$$NF}                             \
 	        $$1=="cat-date:" {if(version==0) version=$$2;                  \
 	                          printf("\\newcommand{\\tex%sversion}{%s}\n", \
-	                          name, version)}' >> $$tv
-
-          # Write the target if TeX live was actually installed.
-	  echo "TeX Live's packages are also ready." > $@
+	                          name, version)}' >> $@
 	fi

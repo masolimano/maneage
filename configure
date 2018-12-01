@@ -636,9 +636,8 @@ numthreads=$($instdir/bin/nproc)
 # it. It will just stop at the stage when all the processing is complete
 # and it is only necessary to build the PDF.  So we don't want to stop the
 # pipeline if its not present.
-if ! [ -f  $instdir/bin/texlive-ready ]; then
-    $instdir/bin/texlive-ready-tlmgr
-    rm -rf $instdir/texlive
+texlive_result=$(cat $instdir/bin/texlive-ready-tlmgr)
+if [ x$texlive_result = x"NOT!" ]; then
     cat <<EOF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -646,9 +645,9 @@ if ! [ -f  $instdir/bin/texlive-ready ]; then
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 TeX Live couldn't be installed during the configuration (probably because
-there was no internet). TeX Live is only necessary in making the final PDF
-(which is only done after all the analysis has been complete). It is not
-used at all during the analysis.
+there were downloading problems). TeX Live is only necessary in making the
+final PDF (which is only done after all the analysis has been complete). It
+is not used at all during the analysis.
 
 Therefore, if you don't need the final PDF, and just want to do the
 analysis, you can safely ignore this warning and continue.
@@ -658,7 +657,7 @@ pipeline, please delete the respective files, then re-run configure as
 shown below. Within configure, answer 'n' (for "no") when asked to re-write
 the configuration files.
 
-    rm .local/bin/texlive-ready-*
+    rm .local/bin/texlive-ready-tlmgr
     ./configure
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
