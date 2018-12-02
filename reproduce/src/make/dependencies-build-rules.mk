@@ -61,11 +61,16 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 if ! tar xf $(1); then echo; echo "Tar error"; exit 1; fi;           \
 	 cd $(2);                                                             \
                                                                               \
+	 if   [ -f configure ]; then confscript=configure;                    \
+	 elif [ -f config    ]; then confscript=config;                       \
+	 fi;                                                                  \
+                                                                              \
 	 if   [ -f $(ibdir)/bash ]; then                                      \
-	   sed configure -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'               \
-	                 -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'> configure-t;  \
-	   mv configure-t configure;                                          \
-	   chmod +x configure;                                                \
+	   sed $$confscript -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'            \
+	                    -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'             \
+	       > tmp-$$confscript;                                            \
+	   mv tmp-$$confscript $$confscript;                                  \
+	   chmod +x $$confscript;                                             \
 	   shellop="SHELL=$(ibdir)/bash";                                     \
 	 elif [ -f /bin/bash     ]; then shellop="SHELL=/bin/bash";           \
 	 else                            shellop="SHELL=/bin/sh";             \
@@ -76,7 +81,7 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 else configop="$$shellop --prefix=$(idir)";                          \
 	 fi;                                                                  \
                                                                               \
-	 ./configure $(4) $$configop  &&                                    \
+	 ./$$confscript $(4) $$configop  &&                                   \
 	 make "$$shellop" $(5) &&                                             \
 	 $$check &&                                                           \
 	 make "$$shellop" install &&                                          \

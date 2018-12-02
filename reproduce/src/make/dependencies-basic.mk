@@ -63,7 +63,7 @@ export LDFLAGS           := -L$(ildir) $(LDFLAGS)
 export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
-top-level-programs = ls sed gawk grep diff find bash which pkg-config
+top-level-programs = ls sed gawk grep diff find bash wget which pkg-config
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -108,11 +108,14 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         make-$(make-version).tar.lz                         \
                         mpfr-$(mpfr-version).tar.xz                         \
                         mpc-$(mpc-version).tar.gz                           \
+                        openssl-$(openssl-version).tar.gz                   \
                         pkg-config-$(pkgconfig-version).tar.gz              \
                         sed-$(sed-version).tar.xz                           \
-	                tar-$(tar-version).tar.gz                           \
+                        tar-$(tar-version).tar.gz                           \
+                        wget-$(wget-version).tar.lz                         \
                         which-$(which-version).tar.gz                       \
                         xz-$(xz-version).tar.gz                             \
+                        zlib-$(zlib-version).tar.gz                         \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then                              \
@@ -123,39 +126,46 @@ $(tarballs): $(tdir)/%:
 	               | awk '{print $$1}' );                               \
 	                                                                    \
 	  mergenames=1;                                                     \
-	  if   [ $$n = bash      ]; then w=http://ftpmirror.gnu.org/gnu/bash; \
-	  elif [ $$n = binutils  ]; then w=http://ftpmirror.gnu.org/gnu/binutils; \
-	  elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
-	  elif [ $$n = coreutils ]; then w=http://ftpmirror.gnu.org/gnu/coreutils;\
-	  elif [ $$n = diffutils ]; then w=http://ftpmirror.gnu.org/gnu/diffutils;\
-	  elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
-	  elif [ $$n = gawk      ]; then w=http://ftpmirror.gnu.org/gnu/gawk; \
+          if   [ $$n = bash      ]; then w=http://ftpmirror.gnu.org/gnu/bash; \
+          elif [ $$n = binutils  ]; then w=http://ftpmirror.gnu.org/gnu/binutils; \
+          elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
+          elif [ $$n = coreutils ]; then w=http://ftpmirror.gnu.org/gnu/coreutils;\
+          elif [ $$n = diffutils ]; then w=http://ftpmirror.gnu.org/gnu/diffutils;\
+          elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
+          elif [ $$n = gawk      ]; then w=http://ftpmirror.gnu.org/gnu/gawk; \
           elif [ $$n = gcc       ]; then w=http://ftpmirror.gnu.org/gcc/gcc-$(gcc-version); \
           elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
-	  elif [ $$n = grep      ]; then w=http://ftpmirror.gnu.org/gnu/grep; \
-	  elif [ $$n = gzip      ]; then w=http://akhlaghi.org/src;         \
+          elif [ $$n = grep      ]; then w=http://ftpmirror.gnu.org/gnu/grep; \
+          elif [ $$n = gzip      ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
-	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
-	  elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
+          elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
+          elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
           elif [ $$n = mpc       ]; then w=http://ftpmirror.gnu.org/gnu/mpc;\
-	  elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
-	  elif [ $$n = sed       ]; then w=http://ftpmirror.gnu.org/gnu/sed;\
-	  elif [ $$n = tar       ]; then w=http://ftpmirror.gnu.org/gnu/tar;\
-	  elif [ $$n = which     ]; then w=http://ftpmirror.gnu.org/gnu/which;\
-	  elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
-	  else                                                              \
-	    echo; echo; echo;                                               \
-	    echo "'$$n' not a basic dependency name (for downloading)."     \
-	    echo; echo; echo;                                               \
-	    exit 1;                                                         \
-	  fi;                                                               \
+          elif [ $$n = openssl   ]; then w=http://www.openssl.org/source;   \
+          elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
+          elif [ $$n = sed       ]; then w=http://ftpmirror.gnu.org/gnu/sed;\
+          elif [ $$n = tar       ]; then w=http://ftpmirror.gnu.org/gnu/tar;\
+          elif [ $$n = wget      ]; then w=http://ftpmirror.gnu.org/gnu/wget;\
+          elif [ $$n = which     ]; then w=http://ftpmirror.gnu.org/gnu/which;\
+          elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
+          elif [ $$n = zlib      ]; then w=http://www.zlib.net;             \
+          else                                                              \
+            echo; echo; echo;                                               \
+            echo "'$$n' not a basic dependency name (for downloading)."     \
+            echo; echo; echo;                                               \
+            exit 1;                                                         \
+          fi;                                                               \
 	                                                                    \
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*";               \
 	  else                           tarballurl=$$w;                    \
 	  fi;                                                               \
 	  echo "Downloading $$tarballurl";                                  \
-	  $(DOWNLOADER) $@ $$tarballurl;                                    \
+	  if [ -f $(ibdir)/wget ]; then                                     \
+	    $(ibdir)/wget --no-use-server-timestamps -O$@ $$tarballurl;     \
+	  else                                                              \
+	    $(DOWNLOADER) $@ $$tarballurl;                                  \
+	  fi;                                                               \
 	fi
 
 
@@ -170,8 +180,8 @@ $(tarballs): $(tdir)/%:
 # to it.
 makelink = export PATH=$(syspath); a=$$(which $(1) 2> /dev/null); \
 	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
-$(ibdir):; mkdir $@
-$(ibdir)/low-level: | $(ibdir)
+$(ibdir) $(ildir):; mkdir $@
+$(ibdir)/low-level: | $(ibdir) $(ildir)
         # The Assembler
 	$(call makelink,as)
 
@@ -202,11 +212,12 @@ $(ibdir)/low-level: | $(ibdir)
         # Needed by TeXLive specifically.
 	$(call makelink,perl)
 
-        # Downloaders.
-	$(call makelink,wget)
-	$(call makelink,curl)
+        # Libdl (for dynamic loading libraries at runtime)
+	if [ -f /usr/lib/libdl.a ]; then    \
+	  ln -s /usr/lib/libdl.* $(ildir)/;        \
+	fi;
 
-	echo "Low-level program links are setup" > $@
+	echo "Low-level symbolic links are setup" > $@
 
 
 
@@ -275,6 +286,57 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
                $(ibdir)/tar
 	$(call gbuild, $<, make-$(make-version))
+
+
+
+
+
+# Downloader
+# ----------
+#
+# Zlib's `./configure' doesn't use Autoconf's configure script, it just
+# accepts a direct `--static' option.
+$(idir)/etc:; mkdir $@
+$(ilidir): | $(ildir); mkdir $@
+$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
+                $(ibdir)/make | $(ilidir)
+        # IMPORTANT, the second argument to `gbuild', must not have any
+        # spaces before or after it: it is going to be checked.
+ifeq ($(static_build),yes)
+	$(call gbuild, $<,zlib-$(zlib-version), , --static) \
+	&& echo "Zlib is built" > $@
+else
+	$(call gbuild, $<,zlib-$(zlib-version)) && echo "Zlib is built" > $@
+endif
+
+# OpenSSL
+ifeq ($(static_build),yes)
+openssl-static = no-dso no-dynamic-engine no-shared
+endif
+$(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz             \
+                   $(ilidir)/zlib | $(idir)/etc
+	$(call gbuild, $<, openssl-$(openssl-version), static,           \
+                       --openssldir=$(idir)/etc/ssl                      \
+	               --with-zlib-lib=$(ildir)                          \
+                       --with-zlib-include=$(idir)/include zlib          \
+                       $(openssl-static) )                               \
+	&& echo "OpenSSL is built" > $@
+
+# GNU Wget
+#
+# Note that on some systems (for example GNU/Linux) Wget needs to explicity
+# link with `libdl', but on others (for example Mac OS) it doesn't. We
+# check this at configure time and define the `needs_ldl' variable.
+#
+# Also note that since Wget needs to load outside libraries dynamically, it
+# gives a segmentation fault when built statically.
+$(ibdir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
+               $(ilidir)/openssl
+	libs="-pthread";                                                 \
+	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi;        \
+	$(call gbuild, $<, wget-$(wget-version), ,                       \
+                       LIBS="$$LIBS $$libs" --with-ssl=openssl           \
+	               --with-openssl=yes)
 
 
 
@@ -350,8 +412,6 @@ endif
 
 # (CURRENTLY IGNORED) GCC prerequisites
 # -------------------------------------
-$(ildir):  | $(idir);  mkdir $@
-$(ilidir): | $(ildir); mkdir $@
 $(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
                $(ibdir)/make | $(ilidir)
 	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \

@@ -23,9 +23,11 @@ lzip-version        = 1.20
 make-version        = 4.2.90
 mpfr-version        = 4.0.1
 mpc-version         = 1.1.0
+openssl-version     = 1.1.1a
 pkgconfig-version   = 0.29.2
 sed-version         = 4.5
 tar-version         = 1.30
+wget-version        = 1.20
 which-version       = 2.21
 xz-version          = 5.2.4
 

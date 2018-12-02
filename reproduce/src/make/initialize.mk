@@ -167,7 +167,7 @@ lvcheck = idir=$(BDIR)/dependencies/installed/include;                   \
 	  ver="$(strip $(2))";                                           \
 	  name="$(strip $(3))";                                          \
 	  macro="$(strip $(4))";                                         \
-	  v=$$(awk '$$1=="\#define" && /'$$ver'/{print "y";exit 0}' $$f);\
+	  v=$$(awk '/^\#/&&/define/&&/'$$ver'/{print "y";exit 0}' $$f);  \
 	  if [ x$$v != xy ]; then                                        \
 	    echo; echo "PIPELINE ERROR: Not linking with $$name $$ver";  \
 	    echo; exit 1;                                                \
@@ -210,10 +210,12 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	                coreutilsversion)
 	$(call pvcheck, lzip, $(lzip-version), Lzip, lzipversion)
 	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
+
 	$(call pvcheck, pkg-config, $(pkgconfig-version), pkg-config,  \
 	                pkgconfigversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
 	$(call pvcheck, tar, $(tar-version), GNU Tar, tarversion)
+	$(call pvcheck, wget, $(wget-version), GNU Wget, wgetversion)
 	$(call pvcheck, which, $(which-version), GNU Which, whichversion)
 	$(call pvcheck, xz, $(xz-version), XZ Utils, xzversion)
 
@@ -248,6 +250,8 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
         ########## libjpeg not  yet checked.
 	$(call lvcheck, git2/version.h, $(libgit2-version), Libgit2, \
 	                libgitwoversion)
+	$(call lvcheck, openssl/opensslv.h, $(openssl-version), OpenSSL, \
+	                opensslversion)
 	$(call lvcheck, tiffvers.h, $(libtiff-version), Libtiff, \
 	                libtiffversion)
 	$(call lvcheck, wcslib/wcsconfig.h, $(wcslib-version), WCSLIB, \

@@ -62,7 +62,7 @@ all: $(ddir)/texlive-versions.tex \
 #    2) Add `--noprofile --norc' to `.SHELLFLAGS' so doesn't load the
 #       user's environment.
 .ONESHELL:
-.SHELLFLAGS              := -ec
+.SHELLFLAGS              := --noprofile --norc -ec
 export PATH              := $(ibdir)
 export LD_RUN_PATH       := $(ildir)
 export LD_LIBRARY_PATH   := $(ildir)
@@ -100,7 +100,6 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
 	                wcslib-$(wcslib-version).tar.bz2              \
-                        zlib-$(zlib-version).tar.gz                   \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -126,18 +125,17 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
-	  elif [ $$n = git         ]; then w=https://mirrors.edge.kernel.org/pub/software/scm/git
+	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
+	  elif [ $$n = gsl         ]; then w=http://ftpmirror.gnu.org/gnu/gsl
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
-	  elif [ $$n = libtool     ]; then w=ftp://ftp.gnu.org/gnu/libtool
+	  elif [ $$n = libtool     ]; then w=http://ftpmirror.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
-	  elif [ $$n = zlib        ]; then w=http://www.zlib.net
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -156,7 +154,7 @@ $(tarballs): $(tdir)/%:
 	  else                           tarballurl=$$w
 	  fi
 	  echo "Downloading $$tarballurl"
-	  $(DOWNLOADER) $@ $$tarballurl
+	  $(ibdir)/wget --no-use-server-timestamps -O$@ $$tarballurl
 	fi
 
 
@@ -177,9 +175,8 @@ $(tarballs): $(tdir)/%:
 # for us here. So, we'll make an `$(ildir)/built' directory and make a
 # simple plain text file in it with the basic library name (an no prefix)
 # and create/write into it when the library is successfully built.
-$(ilidir): | $(ildir); mkdir $@
 $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
-                   $(ibdir)/curl | $(ilidir)
+                   $(ibdir)/curl
 	$(call gbuild, $<,cfitsio, static, --enable-sse2 --enable-reentrant) \
 	&& echo "CFITSIO is built" > $@
 
@@ -193,47 +190,32 @@ $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 # https://libgit2.org/docs/guides/build-and-link
 $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
                    $(ibdir)/cmake                            \
-                   $(ibdir)/curl | $(ilidir)
-	$(call cbuild, $<, libgit2-$(libgit2-version), static,         \
-	              -DUSE_SSH=OFF -DUSE_OPENSSL=OFF -DBUILD_CLAR=OFF \
-	              -DTHREADSAFE=ON -DBUILD_SHARED_LIBS=OFF)         \
+                   $(ibdir)/curl
+	$(call cbuild, $<, libgit2-$(libgit2-version), static,  \
+	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF            \
+	              -DTHREADSAFE=ON -DBUILD_SHARED_LIBS=OFF)  \
 	&& echo "Libgit2 is built" > $@
 
-$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz | $(ilidir)
+$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
 
-$(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz | $(ilidir)
+$(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
-                   $(ilidir)/libjpeg | $(ilidir)
+                   $(ilidir)/libjpeg
 	$(call gbuild, $<, tiff-$(libtiff-version), static) \
 	&& echo "Libtiff is built" > $@
 
 $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
-                  $(ilidir)/cfitsio | $(ilidir)
+                  $(ilidir)/cfitsio
         # Unfortunately WCSLIB forces the building of shared libraries. So
         # we'll just delete any shared library that is produced afterwards.
 	$(call gbuild, $<, wcslib-$(wcslib-version), ,            \
 	              LIBS="-pthread -lcurl -lm" --without-pgplot \
 	              --disable-fortran) &&                       \
-	rm -f $(ildir)/libwcs.so* $(ildir)/libwcs*.dylib &&       \
 	echo "WCSLIB is built" > $@
-
-# Zlib: its `./configure' doesn't use Autoconf's configure script, it just
-# accepts a direct `--static' option.
-$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz | $(ilidir)
-
-        # IMPORTANT, the second argument to `gbuild', must not have any
-        # spaces before or after it: it is going to be checked.
-ifeq ($(static_build),yes)
-	$(call gbuild, $<,zlib-$(zlib-version), , --static) \
-	&& echo "Zlib is built" > $@
-else
-	$(call gbuild, $<,zlib-$(zlib-version)) && echo "Zlib is built" > $@
-endif
-
 
 
 
@@ -242,14 +224,16 @@ endif
 # --------
 #
 # CMake can be built with its custom `./bootstrap' script.
-$(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz
-	cd $(ddir) && rm -rf cmake-$(cmake-version) &&          \
-	tar xf $< && cd cmake-$(cmake-version) &&               \
-	./bootstrap --prefix=$(idir) && make && make install && \
+$(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
+                $(ibdir)/curl
+	cd $(ddir) && rm -rf cmake-$(cmake-version) &&           \
+	tar xf $< && cd cmake-$(cmake-version) &&                \
+	./bootstrap --prefix=$(idir) --system-curl --system-zlib \
+	             --system-bzip2 --system-liblzma &&          \
+	make && make install &&                                  \
 	cd ..&& rm -rf cmake-$(cmake-version)
 
-$(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
-               $(ilidir)/zlib
+$(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz
 	$(call gbuild, $<, curl-$(curl-version), static, --without-brotli)
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
@@ -264,8 +248,7 @@ $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 $(ibdir)/flock: $(tdir)/flock-$(flock-version).tar.xz
 	$(call gbuild, $<, flock-$(flock-version), static)
 
-$(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
-              $(ilidir)/zlib
+$(ibdir)/git: $(tdir)/git-$(git-version).tar.xz
 	$(call gbuild, $<, git-$(git-version), static, \
                        --without-tcltk --with-shell=$(ibdir)/bash)
 
@@ -280,10 +263,10 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
 	               --enable-static=yes --enable-shared=no, -j8,  \
-	               make check -j8)
+	               cp config.log ../gnuastro-config.log; make check -j8)
 else
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), , , -j8,    \
-	               make check -j8)
+	               cp config.log ../gnuastro-config.log; make check -j8)
 endif
 
 
@@ -344,10 +327,9 @@ $(ddir)/texlive-versions.tex: reproduce/config/pipeline/dependency-texlive.mk \
 
         # To work with TeX live installation, we'll need the internet.
 	@res=$$(cat $(ibdir)/texlive-ready-tlmgr)
-	if [ x$$res = x"NOT!" ]; then
+	if [ x"$$res" = x"NOT!" ]; then
 	  echo "" > $@
 	else
-
           # The current directory is necessary later.
 	  topdir=$$(pwd)
 

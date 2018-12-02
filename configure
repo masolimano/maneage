@@ -566,7 +566,32 @@ rm -f $oprog $cprog
 
 
 
-# Inform the user that the build process is starting
+# See if we need the dynamic-linker (-ldl)
+# ----------------------------------------
+#
+# Some programs (like Wget) need dynamic loading (using `libdl'). On
+# GNU/Linux systems, we'll need the `-ldl' flag to link such programs.  But
+# Mac OS doesn't need any explicit calling. So we'll check here to use in
+# the building of programs.
+oprog=$depdir/ldl-test
+cprog=$depdir/ldl-test.c
+cat > $cprog <<EOF
+#include <stdio.h>
+#include <dlfcn.h>
+int
+main(void) {
+    void *handle=dlopen ("/lib/CEDD_LIB.so.6", RTLD_LAZY);
+    return 0;
+}
+EOF
+if gcc $cprog -o$oprog &> /dev/null; then needs_ldl=no; else needs_ldl=yes; fi
+rm -f $oprog $cprog
+
+
+
+
+
+# inform the user that the build process is starting
 # -------------------------------------------------
 if [ $printnotice = yes ]; then
     tsec=10
@@ -603,8 +628,13 @@ fi
 if which nproc > /dev/null 2>/dev/null; then numthreads=$(nproc --all);
 else                                         numthreads=2;
 fi
+#######################################
+#static_build=no
+#######################################
 make -f reproduce/src/make/dependencies-basic.mk \
-     static_build=$static_build -j$numthreads
+     static_build=$static_build                  \
+     needs_ldl=$needs_ldl                        \
+     -j$numthreads
 
 
 
@@ -637,7 +667,7 @@ numthreads=$($instdir/bin/nproc)
 # and it is only necessary to build the PDF.  So we don't want to stop the
 # pipeline if its not present.
 texlive_result=$(cat $instdir/bin/texlive-ready-tlmgr)
-if [ x$texlive_result = x"NOT!" ]; then
+if [ x"$texlive_result" = x"NOT!" ]; then
     cat <<EOF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
