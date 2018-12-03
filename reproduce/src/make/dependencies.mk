@@ -276,10 +276,10 @@ $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz
                        --without-tcltk --with-shell=$(ibdir)/bash)
 
 $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
+                         $(ilidir)/libgit2 \
                          $(ibdir)/glibtool \
                          $(ilidir)/libjpeg \
                          $(ilidir)/libtiff \
-                         $(ilidir)/libgit2 \
                          $(ilidir)/wcslib  \
                          $(ilidir)/gsl     \
                          $(ibdir)/gs
