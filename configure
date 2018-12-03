@@ -630,6 +630,22 @@ fi
 
 
 
+# If we are on a Mac OS system
+# ----------------------------
+#
+# For the time being, we'll use the existance of `otool' to see if we are
+# on a Mac OS system or not. Some tools (for example OpenSSL) need to know
+# this.
+if type otool > /dev/null 2>/dev/null; then
+    on_mac_os=yes
+else
+    on_mac_os=no
+fi
+
+
+
+
+
 # Build Basic dependencies
 # ------------------------
 #
@@ -642,9 +658,10 @@ if which nproc > /dev/null 2>/dev/null; then numthreads=$(nproc --all);
 else                                         numthreads=2;
 fi
 make -f reproduce/src/make/dependencies-basic.mk \
-     static_build=$static_build                  \
      rpath_command=$rpath_command                \
+     static_build=$static_build                  \
      needs_ldl=$needs_ldl                        \
+     on_mac_os=$on_mac_os                        \
      #-j$numthreads
 
 

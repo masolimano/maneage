@@ -72,8 +72,8 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	   mv tmp-$$confscript $$confscript;                                  \
 	   chmod +x $$confscript;                                             \
 	   shellop="SHELL=$(ibdir)/bash";                                     \
-	 elif [ -f /bin/bash     ]; then shellop="SHELL=/bin/bash";           \
-	 else                            shellop="SHELL=/bin/sh";             \
+	 elif [ -f /bin/bash ]; then shellop="SHELL=/bin/bash";               \
+	 else shellop="SHELL=/bin/sh";                                        \
 	 fi;                                                                  \
                                                                               \
 	 if [ x"$(2)" = x"zlib-$(zlib-version)" ]; then                       \

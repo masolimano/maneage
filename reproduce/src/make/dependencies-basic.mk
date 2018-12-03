@@ -333,8 +333,20 @@ $(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
 $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
                    $(tdir)/cert.pem                                  \
                    $(ilidir)/zlib | $(idir)/etc
+        # According to OpenSSL's Wiki (link bellow), it can't automatically
+        # detect Mac OS's structure. It will need some help. So we'll use
+        # the `on_mac_os' Make variable that we defined in the configure
+        # script and help it with some extra configuration options and an
+        # environment variable.
+        #
+        # https://wiki.openssl.org/index.php/Compilation_and_Installation
+	if [ x$(on_mac_os) = xyes ]; then                            \
+	  export KERNEL_BITS=64;                                     \
+	  copt="shared no-ssl2 no-ssl3 enable-ec_nistp_64_gcc_128";  \
+	fi;                                                          \
 	$(call gbuild, $<, openssl-$(openssl-version), ,             \
                        zlib                                          \
+	               $$copt                                        \
                        $(rpath_command)                              \
                        --openssldir=$(idir)/etc/ssl                  \
 	               --with-zlib-lib=$(ildir)                      \
