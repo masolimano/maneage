@@ -643,6 +643,7 @@ else                                         numthreads=2;
 fi
 make -f reproduce/src/make/dependencies-basic.mk \
      static_build=$static_build                  \
+     rpath_command=$rpath_command                \
      needs_ldl=$needs_ldl                        \
      #-j$numthreads
 

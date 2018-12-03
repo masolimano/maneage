@@ -59,7 +59,7 @@ syspath         := $(PATH)
 export PATH              := $(ibdir):$(PATH)
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export LDFLAGS           := -L$(ildir) $(LDFLAGS)
+export LDFLAGS           := $(rpath_command) -L$(ildir) $(LDFLAGS)
 export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
@@ -334,9 +334,11 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
                    $(tdir)/cert.pem                                  \
                    $(ilidir)/zlib | $(idir)/etc
 	$(call gbuild, $<, openssl-$(openssl-version), ,             \
+                       zlib                                          \
+                       $(rpath_command)                              \
                        --openssldir=$(idir)/etc/ssl                  \
 	               --with-zlib-lib=$(ildir)                      \
-                       --with-zlib-include=$(idir)/include zlib ) && \
+                       --with-zlib-include=$(idir)/include ) &&      \
 	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem &&              \
 	echo "OpenSSL is built and ready" > $@
 
@@ -384,7 +386,8 @@ $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
              $(ilidir)/openssl
         # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
 	$(call gbuild, $<, coreutils-$(coreutils-version), static, \
-	               --with-openssl)
+	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)" \
+	               --enable-rpath --disable-silent-rules --with-openssl)
 
 $(ibdir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
                      $(ibdir)/make
