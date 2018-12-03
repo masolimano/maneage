@@ -43,7 +43,7 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = gs git flock astnoisechisel
+top-level-programs = astnoisechisel git flock
 all: $(ddir)/texlive-versions.tex \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
@@ -275,14 +275,19 @@ $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz
 	$(call gbuild, $<, git-$(git-version), static, \
                        --without-tcltk --with-shell=$(ibdir)/bash)
 
+# The order of dependencies is based on how long they take to build (how
+# large they are): Libgit2 depends on CMake which takes a VERY long time to
+# build. Also, Ghostscript and GSL are relatively large packages. So when
+# building in parallel, its better to have these packages start building
+# early.
 $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ilidir)/libgit2 \
+                         $(ibdir)/gs       \
+                         $(ilidir)/gsl     \
                          $(ibdir)/glibtool \
                          $(ilidir)/libjpeg \
                          $(ilidir)/libtiff \
-                         $(ilidir)/wcslib  \
-                         $(ilidir)/gsl     \
-                         $(ibdir)/gs
+                         $(ilidir)/wcslib
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
 	               --enable-static=yes --enable-shared=no, -j8,  \
