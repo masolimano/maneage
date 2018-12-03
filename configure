@@ -502,43 +502,56 @@ ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
 
 # See if the C compiler can build static libraries
 # ------------------------------------------------
-oprog=$depdir/static-test
-cprog=$depdir/static-test.c
-echo "#include <stdio.h>"          > $cprog
-echo "int main(void) {return 0;}" >> $cprog
-if [ x$CC = x ]; then CC=gcc; fi;
-if $CC $cprog -o$oprog -static &> /dev/null; then
-    export static_build="yes"
-else
-    export static_build="no"
-fi
-rm -f $oprog $cprog
-if [ $printnotice = yes ] && [ $static_build = "no" ]; then
-    cat <<EOF
-_________________________________________________________________________
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!      WARNING      !!!!!!!!!!!!!!!!!!!!!!!!!!
 
-Your system's C compiler ('$CC') doesn't support building static
-libraries. Therefore the dependencies will be built dynamically. This means
-that they will depend more strongly on changes/updates in the host
-system. For high-level applications (like most research projects in natural
-sciences), this shouldn't be a significant problem.
+# We are manually only working with shared libraries: because some
+# high-level programs like Wget and cURL need dynamic linking and if we
+# build the libraries statically, our own builds will be ignored and these
+# programs will go and find their necessary libraries on the host system.
+#
+# Another good advantage of shared libraries is that we can actually use
+# the shared library tool of the system (`ldd' with GNU C Library) and see
+# exactly where each linked library comes from. But in static building,
+# unless you follow the build closely, its not easy to see if the source of
+# the library came from the system or our build.
+static_build=no
 
-But generally, for reproducibility, its better to build static libraries
-and programs. For more on their difference (and generally an introduction
-on linking), please see the link below:
-
-https://www.gnu.org/software/gnuastro/manual/html_node/Linking.html
-
-If you have other compilers on your system, you can select a different
-compiler by setting the 'CC' environment variable before running
-'./configure'.
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-    sleep 5
-fi
+#oprog=$depdir/static-test
+#cprog=$depdir/static-test.c
+#echo "#include <stdio.h>"          > $cprog
+#echo "int main(void) {return 0;}" >> $cprog
+#if [ x$CC = x ]; then CC=gcc; fi;
+#if $CC $cprog -o$oprog -static &> /dev/null; then
+#    export static_build="yes"
+#else
+#    export static_build="no"
+#fi
+#rm -f $oprog $cprog
+#if [ $printnotice = yes ] && [ $static_build = "no" ]; then
+#    cat <<EOF
+#_________________________________________________________________________
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!      WARNING      !!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+#Your system's C compiler ('$CC') doesn't support building static
+#libraries. Therefore the dependencies will be built dynamically. This means
+#that they will depend more strongly on changes/updates in the host
+#system. For high-level applications (like most research projects in natural
+#sciences), this shouldn't be a significant problem.
+#
+#But generally, for reproducibility, its better to build static libraries
+#and programs. For more on their difference (and generally an introduction
+#on linking), please see the link below:
+#
+#https://www.gnu.org/software/gnuastro/manual/html_node/Linking.html
+#
+#If you have other compilers on your system, you can select a different
+#compiler by setting the 'CC' environment variable before running
+#'./configure'.
+#
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+#EOF
+#    sleep 5
+#fi
 
 
 
@@ -628,13 +641,10 @@ fi
 if which nproc > /dev/null 2>/dev/null; then numthreads=$(nproc --all);
 else                                         numthreads=2;
 fi
-#######################################
-#static_build=no
-#######################################
 make -f reproduce/src/make/dependencies-basic.mk \
      static_build=$static_build                  \
      needs_ldl=$needs_ldl                        \
-     #-j$numthreads
+     -j$numthreads
 
 
 
@@ -651,7 +661,7 @@ numthreads=$($instdir/bin/nproc)
 ./.local/bin/make -f reproduce/src/make/dependencies.mk    \
                   static_build=$static_build               \
                   rpath_command=$rpath_command             \
-                  #-j$numthreads
+                  -j$numthreads
 
 
 

@@ -153,8 +153,15 @@ $(tarballs): $(tdir)/%:
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"
 	  else                           tarballurl=$$w
 	  fi
+
+          # If the download fails, Wget will write the error message in the
+          # target file, so Make will think that its done! To avoid this
+          # problem, we'll rename the output.
 	  echo "Downloading $$tarballurl"
-	  $(ibdir)/wget --no-use-server-timestamps -O$@ $$tarballurl
+	  if ! wget --no-use-server-timestamps -O$@ $$tarballurl; then
+	     rm -f $@
+	     echo; echo "DOWNLOAD FAILED: $$tarballurl"; echo; exit 1
+	  fi
 	fi
 
 
@@ -177,23 +184,25 @@ $(tarballs): $(tdir)/%:
 # and create/write into it when the library is successfully built.
 $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
                    $(ibdir)/curl
-	$(call gbuild, $<,cfitsio, static, --enable-sse2 --enable-reentrant) \
+	$(call gbuild, $<, cfitsio, static, LIBS="-lssl -lcrypto -lz" \
+                       --enable-sse2 --enable-reentrant) \
 	&& echo "CFITSIO is built" > $@
 
 
 # The libgit2 page recommends doing a static build, especially for Mac
-# systems. Under XCode, the following link has written "It’s highly
-# recommended that you build libgit2 as a static library for Xcode
-# projects. This simplifies distribution significantly, as the resolution
-# of dynamic libraries at runtime can be extremely problematic.". This is a
-# major problem we have been having so far with Mac systems:
-# https://libgit2.org/docs/guides/build-and-link
+# systems (with `-DBUILD_SHARED_LIBS=OFF'). Under XCode, the following link
+# has written "It’s highly recommended that you build libgit2 as a static
+# library for Xcode projects. This simplifies distribution significantly,
+# as the resolution of dynamic libraries at runtime can be extremely
+# problematic.". This is a major problem we have been having so far with
+# Mac systems: https://libgit2.org/docs/guides/build-and-link
 $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
                    $(ibdir)/cmake                            \
                    $(ibdir)/curl
+	export LDFLAGS="$$LDFLAGS -lssl -lcrypto -lz";          \
 	$(call cbuild, $<, libgit2-$(libgit2-version), static,  \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF            \
-	              -DTHREADSAFE=ON -DBUILD_SHARED_LIBS=OFF)  \
+	              -DTHREADSAFE=ON )                         \
 	&& echo "Libgit2 is built" > $@
 
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
@@ -212,9 +221,11 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                   $(ilidir)/cfitsio
         # Unfortunately WCSLIB forces the building of shared libraries. So
         # we'll just delete any shared library that is produced afterwards.
-	$(call gbuild, $<, wcslib-$(wcslib-version), ,            \
-	              LIBS="-pthread -lcurl -lm" --without-pgplot \
-	              --disable-fortran) &&                       \
+	$(call gbuild, $<, wcslib-$(wcslib-version), ,              \
+	               LIBS="-pthread -lcurl -lssl -lcrypto -lz -lm" \
+                       --with-cfitsiolib=$(ildir)                    \
+                       --with-cfitsioinc=$(idir)/include             \
+                       --without-pgplot --disable-fortran) &&        \
 	echo "WCSLIB is built" > $@
 
 
@@ -226,15 +237,27 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 # CMake can be built with its custom `./bootstrap' script.
 $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
                 $(ibdir)/curl
-	cd $(ddir) && rm -rf cmake-$(cmake-version) &&           \
-	tar xf $< && cd cmake-$(cmake-version) &&                \
-	./bootstrap --prefix=$(idir) --system-curl --system-zlib \
-	             --system-bzip2 --system-liblzma &&          \
-	make && make install &&                                  \
+        # After searching in `bootstrap', I couldn't find `LIBS', only
+        # `LDFLAGS'. So the extra libraries are being added to `LDFLAGS',
+        # not `LIBS'.
+	cd $(ddir) && rm -rf cmake-$(cmake-version) &&             \
+	tar xf $< && cd cmake-$(cmake-version) &&                  \
+	./bootstrap --prefix=$(idir) --system-curl --system-zlib   \
+	            --system-bzip2 --system-liblzma --no-qt-gui && \
+	make LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1 &&         \
+	make install &&                                            \
 	cd ..&& rm -rf cmake-$(cmake-version)
 
+# Some programs that depend on cURL (in particular CMake) don't necessarily
+# have easiy ways to explicity tell them to also link with libcurl's
+# dependencies (libssl, libcrypto, and libz). So we won't force curl to
+# only be static.
 $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz
-	$(call gbuild, $<, curl-$(curl-version), static, --without-brotli)
+	$(call gbuild, $<, curl-$(curl-version), ,       \
+                       --with-zlib=$(ildir)              \
+                       --with-ssl=$(idir)                \
+                       --without-brotli                  \
+                       LIBS="-pthread" )
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
 # prefix GNU's libtool executables with `glibtool'.
@@ -263,10 +286,10 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
 	               --enable-static=yes --enable-shared=no, -j8,  \
-	               cp config.log ../gnuastro-config.log; make check -j8)
+	               make check -j8)
 else
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), , , -j8,    \
-	               cp config.log ../gnuastro-config.log; make check -j8)
+	               make check -j8)
 endif
 
 

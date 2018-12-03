@@ -63,7 +63,7 @@ export LDFLAGS           := -L$(ildir) $(LDFLAGS)
 export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
-top-level-programs = ls sed gawk grep diff find bash wget which pkg-config
+top-level-programs = ls sed gawk grep diff find bash wget which
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -160,11 +160,17 @@ $(tarballs): $(tdir)/%:
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*";               \
 	  else                           tarballurl=$$w;                    \
 	  fi;                                                               \
+                                                                            \
 	  echo "Downloading $$tarballurl";                                  \
 	  if [ -f $(ibdir)/wget ]; then                                     \
-	    $(ibdir)/wget --no-use-server-timestamps -O$@ $$tarballurl;     \
+	    downloader="wget --no-use-server-timestamps -O";                \
 	  else                                                              \
-	    $(DOWNLOADER) $@ $$tarballurl;                                  \
+	    downloader="$(DOWNLOADER)";                                     \
+	  fi;                                                               \
+                                                                            \
+	  if ! $$downloader $@ $$tarballurl; then                           \
+	     rm -f $@;                                                      \
+	     echo; echo "DOWNLOAD FAILED: $$tarballurl"; echo; exit 1;      \
 	  fi;                                                               \
 	fi
 
@@ -212,10 +218,14 @@ $(ibdir)/low-level: | $(ibdir) $(ildir)
         # Needed by TeXLive specifically.
 	$(call makelink,perl)
 
-        # Libdl (for dynamic loading libraries at runtime)
-	if [ -f /usr/lib/libdl.a ]; then    \
-	  ln -s /usr/lib/libdl.* $(ildir)/;        \
-	fi;
+        # Necessary libraries:
+        #   Libdl (for dynamic loading libraries at runtime)
+        #   POSIX Threads library for multi-threaded programs.
+	for l in dl pthread; do                    \
+	  if [ -f /usr/lib/lib$$l.a ]; then        \
+	    ln -s /usr/lib/lib$$l.* $(ildir)/;     \
+	  fi;                                      \
+	done
 
 	echo "Low-level symbolic links are setup" > $@
 
@@ -294,32 +304,32 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
 # Downloader
 # ----------
 #
-# Zlib's `./configure' doesn't use Autoconf's configure script, it just
-# accepts a direct `--static' option.
+# Some programs (like Wget and CMake) that use zlib need it to be dynamic
+# so they use our custom build. So we won't force a static-only build.
+#
+# Note for a static-only build: Zlib's `./configure' doesn't use Autoconf's
+# configure script, it just accepts a direct `--static' option.
 $(idir)/etc:; mkdir $@
 $(ilidir): | $(ildir); mkdir $@
 $(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
                 $(ibdir)/make | $(ilidir)
-        # IMPORTANT, the second argument to `gbuild', must not have any
-        # spaces before or after it: it is going to be checked.
-ifeq ($(static_build),yes)
-	$(call gbuild, $<,zlib-$(zlib-version), , --static) \
-	&& echo "Zlib is built" > $@
-else
 	$(call gbuild, $<,zlib-$(zlib-version)) && echo "Zlib is built" > $@
-endif
 
-# OpenSSL
-ifeq ($(static_build),yes)
-openssl-static = no-dso no-dynamic-engine no-shared
-endif
+# OpenSSL: Some programs/libraries later need dynamic linking. So we'll
+# build libssl (and libcrypto) dynamically also.
+#
+# In case you do want a static OpenSSL and libcrypto, then uncomment the
+# following conditional and put $(openssl-static) in the configure options.
+#
+#ifeq ($(static_build),yes)
+#openssl-static = no-dso no-dynamic-engine no-shared
+#endif
 $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz             \
                    $(ilidir)/zlib | $(idir)/etc
-	$(call gbuild, $<, openssl-$(openssl-version), static,           \
+	$(call gbuild, $<, openssl-$(openssl-version), ,                 \
                        --openssldir=$(idir)/etc/ssl                      \
 	               --with-zlib-lib=$(ildir)                          \
-                       --with-zlib-include=$(idir)/include zlib          \
-                       $(openssl-static) )                               \
+                       --with-zlib-include=$(idir)/include zlib  )       \
 	&& echo "OpenSSL is built" > $@
 
 # GNU Wget
@@ -331,12 +341,13 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz             \
 # Also note that since Wget needs to load outside libraries dynamically, it
 # gives a segmentation fault when built statically.
 $(ibdir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
+	       $(ibdir)/pkg-config                 \
                $(ilidir)/openssl
 	libs="-pthread";                                                 \
 	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi;        \
 	$(call gbuild, $<, wget-$(wget-version), ,                       \
                        LIBS="$$LIBS $$libs" --with-ssl=openssl           \
-	               --with-openssl=yes)
+	               --with-openssl=yes --with-libssl-prefix=$(idir))
 
 
 

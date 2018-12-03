@@ -106,7 +106,8 @@ cbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 rm -rf pipeline-build && mkdir pipeline-build &&                     \
 	 cd pipeline-build &&                                                 \
 	 cmake .. -DCMAKE_LIBRARY_PATH=$(ildir)                               \
-	          -DCMAKE_INSTALL_PREFIX=$(idir) $$opts $(4) &&               \
+	          -DCMAKE_INSTALL_PREFIX=$(idir)                              \
+	          -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $$opts $(4) &&             \
 	 make && make install &&                                              \
 	 cd ../.. &&                                                          \
 	 rm -rf $(2)
