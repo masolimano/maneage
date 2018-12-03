@@ -383,7 +383,7 @@ $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
              $(ilidir)/openssl
         # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
-	$(call gbuild, $<, coreutils-$(coreutils-version), static,
+	$(call gbuild, $<, coreutils-$(coreutils-version), static, \
 	               --with-openssl)
 
 $(ibdir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
