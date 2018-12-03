@@ -81,6 +81,7 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 else configop="$$shellop --prefix=$(idir)";                          \
 	 fi;                                                                  \
                                                                               \
+	 echo; echo "Using '$$confscript' to configure..."; echo;             \
 	 ./$$confscript $(4) $$configop  &&                                   \
 	 make "$$shellop" $(5) &&                                             \
 	 $$check &&                                                           \

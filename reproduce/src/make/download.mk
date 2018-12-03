@@ -68,7 +68,7 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	  ln -s $(INDIR)/$$origname $@
 	else
 	  touch $(lockdir)/download
-	  flock $(lockdir)/download $(DOWNLOADER) $@ $$url/$$origname
+	  flock $(lockdir)/download wget -O$@ $$url/$$origname
 	fi
 
         # Check the md5 sum to see if this is the proper dataset.

@@ -95,6 +95,7 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         binutils-$(binutils-version).tar.lz                 \
                         bzip2-$(bzip2-version).tar.gz                       \
+                        cert.pem                                            \
                         coreutils-$(coreutils-version).tar.xz               \
                         diffutils-$(diffutils-version).tar.xz               \
                         findutils-$(findutils-version).tar.lz               \
@@ -129,6 +130,7 @@ $(tarballs): $(tdir)/%:
           if   [ $$n = bash      ]; then w=http://ftpmirror.gnu.org/gnu/bash; \
           elif [ $$n = binutils  ]; then w=http://ftpmirror.gnu.org/gnu/binutils; \
           elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
+          elif [ $$n = cert      ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = coreutils ]; then w=http://ftpmirror.gnu.org/gnu/coreutils;\
           elif [ $$n = diffutils ]; then w=http://ftpmirror.gnu.org/gnu/diffutils;\
           elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
@@ -318,19 +320,25 @@ $(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
 # OpenSSL: Some programs/libraries later need dynamic linking. So we'll
 # build libssl (and libcrypto) dynamically also.
 #
+# Until we find a nice and generic way to create an updated CA file in the
+# pipeline, the certificates will be available in a file for this pipeline
+# along with the other tarballs.
+#
 # In case you do want a static OpenSSL and libcrypto, then uncomment the
 # following conditional and put $(openssl-static) in the configure options.
 #
 #ifeq ($(static_build),yes)
 #openssl-static = no-dso no-dynamic-engine no-shared
 #endif
-$(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz             \
+$(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
+                   $(tdir)/cert.pem                                  \
                    $(ilidir)/zlib | $(idir)/etc
-	$(call gbuild, $<, openssl-$(openssl-version), ,                 \
-                       --openssldir=$(idir)/etc/ssl                      \
-	               --with-zlib-lib=$(ildir)                          \
-                       --with-zlib-include=$(idir)/include zlib  )       \
-	&& echo "OpenSSL is built" > $@
+	$(call gbuild, $<, openssl-$(openssl-version), ,             \
+                       --openssldir=$(idir)/etc/ssl                  \
+	               --with-zlib-lib=$(ildir)                      \
+                       --with-zlib-include=$(idir)/include zlib ) && \
+	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem &&              \
+	echo "OpenSSL is built and ready" > $@
 
 # GNU Wget
 #
@@ -373,8 +381,10 @@ $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
 	$(call gbuild, $<, grep-$(grep-version), static)
 
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
-             $(ibdir)/make
-	$(call gbuild, $<, coreutils-$(coreutils-version), static)
+             $(ilidir)/openssl
+        # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
+	$(call gbuild, $<, coreutils-$(coreutils-version), static,
+	               --with-openssl)
 
 $(ibdir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
                      $(ibdir)/make
