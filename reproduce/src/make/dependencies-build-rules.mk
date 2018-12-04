@@ -48,6 +48,7 @@
 #  4: Extra configuration options.
 #  5: Extra options/arguments to pass to Make.
 #  6: Step to run between `make' and `make install': usually `make check'.
+#  7: The configuration script (`configure' by default).
 #
 # NOTE: Unfortunately the configure script of `zlib' doesn't recognize
 # `SHELL'. So we'll have to remove it from the call to the configure
@@ -61,28 +62,28 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 if ! tar xf $(1); then echo; echo "Tar error"; exit 1; fi;           \
 	 cd $(2);                                                             \
                                                                               \
-	 if   [ -f configure ]; then confscript=configure;                    \
-	 elif [ -f config    ]; then confscript=config;                       \
+	 if   [ x"$(strip $(7))" = x ]; then confscript=./configure;          \
+	 else confscript="$(strip $(7))";                                     \
 	 fi;                                                                  \
                                                                               \
 	 if   [ -f $(ibdir)/bash ]; then                                      \
 	   sed $$confscript -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'            \
 	                    -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'             \
-	       > tmp-$$confscript;                                            \
-	   mv tmp-$$confscript $$confscript;                                  \
+	       > $$confscript-tmp;                                            \
+	   mv $$confscript-tmp $$confscript;                                  \
 	   chmod +x $$confscript;                                             \
 	   shellop="SHELL=$(ibdir)/bash";                                     \
 	 elif [ -f /bin/bash ]; then shellop="SHELL=/bin/bash";               \
 	 else shellop="SHELL=/bin/sh";                                        \
 	 fi;                                                                  \
                                                                               \
-	 if [ x"$(2)" = x"zlib-$(zlib-version)" ]; then                       \
+	 if [ x"$(strip $(2))" = x"zlib-$(zlib-version)" ]; then              \
 	    configop="--prefix=$(idir)";                                      \
 	 else configop="$$shellop --prefix=$(idir)";                          \
 	 fi;                                                                  \
                                                                               \
 	 echo; echo "Using '$$confscript' to configure..."; echo;             \
-	 ./$$confscript $(4) $$configop  &&                                   \
+	 $$confscript $(4) $$configop  &&                                     \
 	 make "$$shellop" $(5) &&                                             \
 	 $$check &&                                                           \
 	 make "$$shellop" install &&                                          \

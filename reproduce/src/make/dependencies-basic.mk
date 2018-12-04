@@ -315,7 +315,7 @@ $(idir)/etc:; mkdir $@
 $(ilidir): | $(ildir); mkdir $@
 $(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
                 $(ibdir)/make | $(ilidir)
-	$(call gbuild, $<,zlib-$(zlib-version)) && echo "Zlib is built" > $@
+	$(call gbuild, $<, zlib-$(zlib-version)) && echo "Zlib is built" > $@
 
 # OpenSSL: Some programs/libraries later need dynamic linking. So we'll
 # build libssl (and libcrypto) dynamically also.
@@ -350,7 +350,8 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
                        $(rpath_command)                              \
                        --openssldir=$(idir)/etc/ssl                  \
 	               --with-zlib-lib=$(ildir)                      \
-                       --with-zlib-include=$(idir)/include ) &&      \
+                       --with-zlib-include=$(idir)/include, , ,      \
+	               ./config ) &&                                 \
 	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem &&              \
 	echo "OpenSSL is built and ready" > $@
 
