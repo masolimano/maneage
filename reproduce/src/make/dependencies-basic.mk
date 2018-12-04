@@ -63,7 +63,8 @@ export LDFLAGS           := $(rpath_command) -L$(ildir) $(LDFLAGS)
 export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
-top-level-programs = ls sed gawk grep diff find bash wget which
+top-level-programs = low-level-links ls sed gawk grep diff find \
+                     bash wget which
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -189,7 +190,7 @@ $(tarballs): $(tdir)/%:
 makelink = export PATH=$(syspath); a=$$(which $(1) 2> /dev/null); \
 	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
 $(ibdir) $(ildir):; mkdir $@
-$(ibdir)/low-level: | $(ibdir) $(ildir)
+$(ibdir)/low-level-links: | $(ibdir) $(ildir)
         # The Assembler
 	$(call makelink,as)
 
@@ -206,7 +207,7 @@ $(ibdir)/low-level: | $(ibdir) $(ildir)
 	$(call makelink,ps)
 	$(call makelink,ranlib)
 
-        # Mac OS information
+        # Mac OS information (used by TeX Live).
 	$(call makelink,sw_vers)
 
         # On Mac OS, libtool is different compared to GNU Libtool. The
@@ -244,26 +245,22 @@ $(ibdir)/low-level: | $(ibdir) $(ildir)
 # The first set of programs to be built are those that we need to unpack
 # the source code tarballs of each program. First, we'll build the
 # necessary programs, then we'll build GNU Tar.
-$(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz \
-               $(ibdir)/low-level
+$(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz
 	$(call gbuild, $<, gzip-$(gzip-version), static)
 
 # GNU Lzip: For a static build, the `-static' flag should be given to
 # LDFLAGS on the command-line (not from the environment).
-$(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz \
-               $(ibdir)/low-level
+$(ibdir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, lzip-$(lzip-version), , LDFLAGS="-static")
 else
 	$(call gbuild, $<, lzip-$(lzip-version))
 endif
 
-$(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz \
-             $(ibdir)/low-level
+$(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz
 	$(call gbuild, $<, xz-$(xz-version), static)
 
-$(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz \
-                $(ibdir)/low-level
+$(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	 tdir=bzip2-$(bzip2-version);                                  \
 	 if [ $(static_build) = yes ]; then                            \
 	   makecommand="make LDFLAGS=-static";                         \
