@@ -188,6 +188,7 @@ $(tarballs): $(tdir)/%:
 # any C compiler that the system already has and just make a symbolic link
 # to it.
 makelink = export PATH=$(syspath); a=$$(which $(1) 2> /dev/null); \
+	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;    \
 	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
 $(ibdir) $(ildir):; mkdir $@
 $(ibdir)/low-level-links: | $(ibdir) $(ildir)
@@ -228,6 +229,7 @@ $(ibdir)/low-level-links: | $(ibdir) $(ildir)
         #   Libdl (for dynamic loading libraries at runtime)
         #   POSIX Threads library for multi-threaded programs.
 	for l in dl pthread; do                    \
+          rm -f $(ildir)/lib$$l*;                  \
 	  if [ -f /usr/lib/lib$$l.a ]; then        \
 	    ln -s /usr/lib/lib$$l.* $(ildir)/;     \
 	  fi;                                      \
