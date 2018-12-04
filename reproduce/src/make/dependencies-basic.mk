@@ -208,8 +208,9 @@ $(ibdir)/low-level-links: | $(ibdir) $(ildir)
 	$(call makelink,ps)
 	$(call makelink,ranlib)
 
-        # Mac OS information (used by TeX Live).
+        # Mac OS specific
 	$(call makelink,sw_vers)
+	$(call makelink,install_name_tool)
 
         # On Mac OS, libtool is different compared to GNU Libtool. The
         # libtool we'll build in the high-level dependencies has the

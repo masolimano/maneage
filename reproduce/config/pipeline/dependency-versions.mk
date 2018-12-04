@@ -36,7 +36,15 @@ cfitsio-version     = 3.45
 curl-version        = 7.62.0
 gsl-version         = 2.5
 libjpeg-version     = v9b
-libgit2-version     = 0.26.0
 libtiff-version     = 4.0.10
-wcslib-version      = 6.2
 zlib-version        = 1.2.11
+
+# Special libraries
+# -----------------
+#
+# The shared library name of the following libraries is explicity mentioned
+# the software build Makefiles (`reproduce/src/make/dependencies*.mk'). If
+# you change their version, also please change the explicit shared library
+# names also.
+libgit2-version     = 0.26.0
+wcslib-version      = 6.2

@@ -188,23 +188,6 @@ $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
                        --enable-sse2 --enable-reentrant) \
 	&& echo "CFITSIO is built" > $@
 
-
-# The libgit2 page recommends doing a static build, especially for Mac
-# systems (with `-DBUILD_SHARED_LIBS=OFF'). Under XCode, the following link
-# has written "It’s highly recommended that you build libgit2 as a static
-# library for Xcode projects. This simplifies distribution significantly,
-# as the resolution of dynamic libraries at runtime can be extremely
-# problematic.". This is a major problem we have been having so far with
-# Mac systems: https://libgit2.org/docs/guides/build-and-link
-$(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
-                   $(ibdir)/cmake                            \
-                   $(ibdir)/curl
-	export LDFLAGS="$$LDFLAGS -lssl -lcrypto -lz";          \
-	$(call cbuild, $<, libgit2-$(libgit2-version), static,  \
-	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF            \
-	              -DTHREADSAFE=ON )                         \
-	&& echo "Libgit2 is built" > $@
-
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
@@ -217,16 +200,64 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 	$(call gbuild, $<, tiff-$(libtiff-version), static) \
 	&& echo "Libtiff is built" > $@
 
+
+
+
+
+# Libraries with special attention on Mac OS
+# ------------------------------------------
+#
+# Libgit2 and WCSLIB don't set their installation path, or don't do it
+# properly, in their finally installed shared libraries. But since we are
+# linking everything (including OpenSSL and its dependencies) dynamically,
+# we need to also make a shared libraries and can't use static
+# libraries. So for Mac OS systems we have to correct their addresses
+# manually.
+#
+# For example, Libgit2 page recommends doing a static build, especially for
+# Mac systems (with `-DBUILD_SHARED_LIBS=OFF'): "It’s highly recommended
+# that you build libgit2 as a static library for Xcode projects. This
+# simplifies distribution significantly, as the resolution of dynamic
+# libraries at runtime can be extremely problematic.". This is a major
+# problem we have been having so far with Mac systems:
+# https://libgit2.org/docs/guides/build-and-link
+$(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
+                   $(ibdir)/cmake                            \
+                   $(ibdir)/curl
+        # Build and install the library.
+	$(call cbuild, $<, libgit2-$(libgit2-version), static,  \
+	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF            \
+	              -DTHREADSAFE=ON )
+
+        # The builders didn't set the shared library name (ID) for Mac OS
+        # systems. So we'll have to fix it manually.
+	if [ x$(on_mac_os) = xyes ]; then
+	  install_name_tool -id $(ildir)/libgit2.26.dylib
+	                        $(ildir)/libgit2.26.dylib
+	fi
+
+        # Write the target file.
+	echo "Libgit2 is built" > $@
+
 $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                   $(ilidir)/cfitsio
-        # Unfortunately WCSLIB forces the building of shared libraries. So
-        # we'll just delete any shared library that is produced afterwards.
-	$(call gbuild, $<, wcslib-$(wcslib-version), ,              \
+        # Build and install the library.
+	$(call gbuild, $<, wcslib-$(wcslib-version), ,               \
 	               LIBS="-pthread -lcurl -lssl -lcrypto -lz -lm" \
                        --with-cfitsiolib=$(ildir)                    \
                        --with-cfitsioinc=$(idir)/include             \
-                       --without-pgplot --disable-fortran) &&        \
+                       --without-pgplot --disable-fortran)
+
+        # The builders didn't set the shared library name (ID) for Mac OS
+        # systems. So we'll have to fix it manually.
+	if [ x$(on_mac_os) = xyes ]; then
+	  install_name_tool -id $(ildir)/libwcs.6.2.dylib
+	                        $(ildir)/libwcs.6.2.dylib;
+	fi
+
+        # Write the target file.
 	echo "WCSLIB is built" > $@
+
 
 
 

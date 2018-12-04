@@ -655,7 +655,7 @@ fi
 # some systems. After some searching, I found out its because of too many
 # threads.
 if which nproc > /dev/null 2>/dev/null; then numthreads=$(nproc --all);
-else                                         numthreads=2;
+else                                         numthreads=1;
 fi
 make -f reproduce/src/make/dependencies-basic.mk \
      rpath_command=$rpath_command                \
@@ -677,8 +677,9 @@ make -f reproduce/src/make/dependencies-basic.mk \
 # to build them in this script. But after this, we can rely on Makefiles.
 numthreads=$($instdir/bin/nproc)
 ./.local/bin/make -f reproduce/src/make/dependencies.mk    \
-                  static_build=$static_build               \
                   rpath_command=$rpath_command             \
+                  static_build=$static_build               \
+                  on_mac_os=$on_mac_os                     \
                   #-j$numthreads
 
 
