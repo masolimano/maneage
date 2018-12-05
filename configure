@@ -662,7 +662,7 @@ make -f reproduce/src/make/dependencies-basic.mk \
      static_build=$static_build                  \
      needs_ldl=$needs_ldl                        \
      on_mac_os=$on_mac_os                        \
-     #-j$numthreads
+     -j$numthreads
 
 
 
@@ -680,7 +680,7 @@ numthreads=$($instdir/bin/nproc)
                   rpath_command=$rpath_command             \
                   static_build=$static_build               \
                   on_mac_os=$on_mac_os                     \
-                  #-j$numthreads
+                  -j$numthreads
 
 
 
