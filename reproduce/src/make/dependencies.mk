@@ -184,8 +184,25 @@ $(tarballs): $(tdir)/%:
 # and create/write into it when the library is successfully built.
 $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
                    $(ibdir)/curl
-	$(call gbuild, $<, cfitsio, static, LIBS="-lssl -lcrypto -lz" \
-                       --enable-sse2 --enable-reentrant) \
+
+        # CFITSIO hard-codes the absolute address of cURL's `curl-config'
+        # program (which gives the necessary header and linking
+        # information) into the configure script. So we'll have to modify
+        # it manually before doing the standard build.
+	topdir=$(pwd); cd $(ddir); tar xf $<
+	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
+	sed cfitsio/configure                                 \
+	    -e's|/usr/bin/curl-config|$(ibdir)/curl-config|g' \
+	    > cfitsio/configure_tmp
+	mv cfitsio/configure_tmp cfitsio/configure
+	chmod +x cfitsio/configure
+	tar cf $$customtar cfitsio
+	cd $$topdir
+
+        # Continue the standard build on the customized tarball.
+	$(call gbuild, $$customtar, cfitsio, static,     \
+	               --enable-sse2 --enable-reentrant) \
+	&& rm $$customtar                                \
 	&& echo "CFITSIO is built" > $@
 
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
@@ -242,7 +259,7 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                   $(ilidir)/cfitsio
         # Build and install the library.
 	$(call gbuild, $<, wcslib-$(wcslib-version), ,               \
-	               LIBS="-pthread -lcurl -lssl -lcrypto -lz -lm" \
+	               LIBS="-pthread -lcurl -lm"                    \
                        --with-cfitsiolib=$(ildir)                    \
                        --with-cfitsioinc=$(idir)/include             \
                        --without-pgplot --disable-fortran)
