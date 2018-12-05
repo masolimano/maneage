@@ -4,13 +4,13 @@ Reproduction pipeline for paper XXXXXXX
 This is the reproduction pipeline for the paper titled "**XXXXXX**", by
 XXXXXXXX et al. (**IN PREPARATION**).
 
-To reproduce our results, the only dependency is **Wget**, and a minimal
-Unix-based building environment including a C compiler (already available
-on your system if you have ever built and installed a software from
-source). Note that **Git is not mandatory**: if you don't have Git to run
-the first command below, go to the URL given in the command on your
-browser, and download them manually (there is a button to download a
-compressed tarball of the project).
+To reproduce our results, the only dependency is a minimal Unix-based
+building environment including a C compiler (already available on your
+system if you have ever built and installed a software from source) and a
+downloader (Wget or cURL). Note that **Git is not mandatory**: if you don't
+have Git to run the first command below, go to the URL given in the command
+on your browser, and download them manually (there is a button to download
+a compressed tarball of the project).
 
 ```shell
 $ git clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -44,14 +44,14 @@ This pipeline was designed to have as few dependencies as possible.
 
    1.2: (OPTIONAL) Tarball of dependencies. If they are already present (in
         a directory given at configuration time), they will be
-        used. Otherwise, *GNU Wget* will be used to download any necessary
-        tarball. The necessary tarballs are also collected in the link
-        below for easy download. [[TO PIPELINE DESIGNERS: it is STRONGLY
-        RECOMMENDED to keep a backup of all the necessary software tarballs
-        you need for the project (possibly in another Git repository). If
-        you do have such a link, add it here. If not, remove the
-        placeholder and the previous sentence. Also, don't forget to remove
-        this note.]]
+        used. Otherwise, a downloader (`wget` or `curl`) will be necessary
+        to download any necessary tarball. The necessary tarballs are also
+        collected in the link below for easy download. [[TO PIPELINE
+        DESIGNERS: it is STRONGLY RECOMMENDED to keep a backup of all the
+        necessary software tarballs you need for the project (possibly in
+        another Git repository). If you do have such a link, add it
+        here. If not, remove the placeholder and the previous
+        sentence. Also, don't forget to remove this note.]]
 
             https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
