@@ -166,18 +166,11 @@ fi
 # Identify the downloader tool
 # ----------------------------
 #
-# We use Wget for the downloading. As of November 12th, cURL couldn't
-# download Ghostscript's source from its standard address, but Wget
-# could. Until November 12th, we would check for cURL or Wget, so we
-# defined this check system here (explained in the next paragraph of this
-# comment). For now its redundant, but if the fix for cURL is found later,
-# we can add it back (or add other downloaders). So we'll keep it.
-#
-# Since the options specifying the output filename are different between
-# the two, we'll also specify the output option within the `downloader'
-# variable. So it is important to first give the output filename after
-# calling `DOWNLOADER' within the Makefiles, and finish the command with
-# the web address.
+# After this `./configure' script finishes, we will have both Wget and cURL
+# for downloading any necessary dataset during the processing. However, to
+# complete the configuration, we may also need to download the source code
+# of some necessary software packages (including the downloaders). So we
+# need to check the host's available tool for downloading at this step.
 if [ $rewritepconfig = yes ]; then
     if type wget > /dev/null 2>/dev/null; then
         name=$(which wget)
