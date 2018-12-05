@@ -229,10 +229,9 @@ $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF            \
 	              -DTHREADSAFE=ON )
 
-        # The builders didn't set the shared library name (ID) for Mac OS
-        # systems. So we'll have to fix it manually.
+        # Correct the shared library absolute address if necessary.
 	if [ x$(on_mac_os) = xyes ]; then
-	  install_name_tool -id $(ildir)/libgit2.26.dylib
+	  install_name_tool -id $(ildir)/libgit2.26.dylib \
 	                        $(ildir)/libgit2.26.dylib
 	fi
 
@@ -248,10 +247,9 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                        --with-cfitsioinc=$(idir)/include             \
                        --without-pgplot --disable-fortran)
 
-        # The builders didn't set the shared library name (ID) for Mac OS
-        # systems. So we'll have to fix it manually.
+        # Correct the shared library absolute address if necessary.
 	if [ x$(on_mac_os) = xyes ]; then
-	  install_name_tool -id $(ildir)/libwcs.6.2.dylib
+	  install_name_tool -id $(ildir)/libwcs.6.2.dylib \
 	                        $(ildir)/libwcs.6.2.dylib;
 	fi
 
