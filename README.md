@@ -49,9 +49,9 @@ This pipeline was designed to have as few dependencies as possible.
         collected in the link below for easy download. [[TO PIPELINE
         DESIGNERS: it is STRONGLY RECOMMENDED to keep a backup of all the
         necessary software tarballs you need for the project (possibly in
-        another Git repository). If you do have such a link, add it
-        here. If not, remove the placeholder and the previous
-        sentence. Also, don't forget to remove this note.]]
+        another Git repository). For example see [this template's
+        dependencies](https://gitlab.com/makhlaghi/reproducible-paper-dependencies).
+        Please add a similar address for your project here.]]
 
             https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
