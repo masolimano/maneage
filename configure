@@ -655,6 +655,7 @@ make -f reproduce/src/make/dependencies-basic.mk \
      static_build=$static_build                  \
      needs_ldl=$needs_ldl                        \
      on_mac_os=$on_mac_os                        \
+     numthreads=$numthreads                      \
      -j$numthreads
 
 

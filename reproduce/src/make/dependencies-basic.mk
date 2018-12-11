@@ -281,7 +281,11 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 	      $(ibdir)/lzip                     \
 	      $(ibdir)/gzip                     \
 	      $(ibdir)/xz
-	$(call gbuild, $<, tar-$(tar-version))
+        # Since all later programs depend on Tar, the pipeline will be
+        # stuck here, only making Tar. So its more efficient to built it on
+        # multiple threads (when the user's Make doesn't pass down the
+        # number of threads).
+	$(call gbuild, $<, tar-$(tar-version), , , -j$(numthreads))
 
 
 
@@ -300,7 +304,8 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 # second. So, we'll have to build it dynamically for now.
 $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
                $(ibdir)/tar
-	$(call gbuild, $<, make-$(make-version))
+        # See Tar's comments for the `-j' option.
+	$(call gbuild, $<, make-$(make-version), , , -j$(numthreads))
 
 
 
@@ -401,9 +406,11 @@ $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
              $(ilidir)/openssl
         # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
+        # See Tar's comments for the `-j' option.
 	$(call gbuild, $<, coreutils-$(coreutils-version), static, \
 	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)" \
-	               --enable-rpath --disable-silent-rules --with-openssl)
+	               --enable-rpath --disable-silent-rules --with-openssl,
+	               -j$(numthreads))
 
 $(ibdir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
                      $(ibdir)/make
