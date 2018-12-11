@@ -523,7 +523,6 @@ advanced in later stages of your work.
    - Delete the `reproduce/config/gnuastro` directory.
    - Delete `astnoisechisel` from the value of `top-level-programs` in `reproduce/src/make/dependencies.mk`. You can keep the rule to build `astnoisechisel`, since its not in the `top-level-programs` list, it (and all the dependencies that are only needed by Gnuastro) will be ignored.
    - Delete marked parts in `reproduce/src/make/initialize.mk`.
-   - Delete `and Gnuastro \gnuastroversion` from `tex/preamble-style.tex`.
 
  - **Other dependencies**: If there are any more of the dependencies that
      you don't use (or others that you need), then remove (or add) them in
