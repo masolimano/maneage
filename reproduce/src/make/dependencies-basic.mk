@@ -407,9 +407,9 @@ $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
              $(ilidir)/openssl
         # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
         # See Tar's comments for the `-j' option.
-	$(call gbuild, $<, coreutils-$(coreutils-version), static, \
-	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)" \
-	               --enable-rpath --disable-silent-rules --with-openssl,
+	$(call gbuild, $<, coreutils-$(coreutils-version), static,           \
+	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)"           \
+	               --enable-rpath --disable-silent-rules --with-openssl, \
 	               -j$(numthreads))
 
 $(ibdir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \

@@ -336,11 +336,11 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ilidir)/wcslib
 ifeq ($(static_build),yes)
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
-	               --enable-static=yes --enable-shared=no, -j8,  \
-	               make check -j8)
+	               --enable-static=yes --enable-shared=no,       \
+	               -j$(numthreads), make check -j$(numthreads))
 else
-	$(call gbuild, $<, gnuastro-$(gnuastro-version), , , -j8,    \
-	               make check -j8)
+	$(call gbuild, $<, gnuastro-$(gnuastro-version), , ,         \
+	               -j$(numthreads), make check -j$(numthreads))
 endif
 
 

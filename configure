@@ -674,6 +674,7 @@ numthreads=$($instdir/bin/nproc)
                   rpath_command=$rpath_command             \
                   static_build=$static_build               \
                   on_mac_os=$on_mac_os                     \
+                  numthreads=$numthreads                   \
                   -j$numthreads
 
 
