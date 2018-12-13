@@ -560,8 +560,8 @@ advanced in later stages of your work.
        to acknowledge them in your final research.
 
      - `Makefile`: Delete the lines containing `delete-me` in the `foreach`
-       loops. Just make sure the other lines that end in `\` are
-       immediately after each other.
+       loop. Just make sure the other lines that end in `\` are immediately
+       after each other (except the last line).
 
      - Delete all `delete-me*` files in the following directories:
 
