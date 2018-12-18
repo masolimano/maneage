@@ -249,7 +249,7 @@ $(ibdir)/low-level-links: | $(ibdir) $(ildir)
 # the source code tarballs of each program. First, we'll build the
 # necessary programs, then we'll build GNU Tar.
 $(ibdir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz
-	$(call gbuild, $<, gzip-$(gzip-version), static)
+	$(call gbuild, $<, gzip-$(gzip-version), static, , V=1)
 
 # GNU Lzip: For a static build, the `-static' flag should be given to
 # LDFLAGS on the command-line (not from the environment).
