@@ -318,8 +318,9 @@ $(ibdir)/flock: $(tdir)/flock-$(flock-version).tar.xz
 	$(call gbuild, $<, flock-$(flock-version), static)
 
 $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz
-	$(call gbuild, $<, git-$(git-version), static, \
-                       --without-tcltk --with-shell=$(ibdir)/bash)
+	$(call gbuild, $<, git-$(git-version), static,             \
+                       --without-tcltk --with-shell=$(ibdir)/bash, \
+	               V=1)
 
 # The order of dependencies is based on how long they take to build (how
 # large they are): Libgit2 depends on CMake which takes a VERY long time to

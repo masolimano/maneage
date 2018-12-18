@@ -451,7 +451,7 @@ endif
         # Just to be sure that the installation step above went well,
         # before making the link, we'll see if the file actually exists
         # there.
-	if [ -f $@ ]; then ln -s $@ $(ibdir)/sh; fi
+	if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; fi
 
 
 
