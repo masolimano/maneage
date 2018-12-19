@@ -226,12 +226,13 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Bzip2 prints its version in standard error, not standard output!
 	echo "" | bzip2 --version &> $@_bzip2_ver;
-	v=$$(awk 'NR==1 && /'$(bzip2-version)'/{print "y"; exit 0}'        \
-	         $@_bzip2_ver);                                            \
-	if [ x$$v != xy ]; then                                            \
-	  echo; echo "PIPELINE ERROR: Not running Bzip2 $(bzip2-version)"; \
-	  echo; exit 1;                                                    \
-	fi;                                                                \
+	v=$$(awk 'NR==1 && /'$(bzip2-version)'/{print "y"; exit 0}' \
+	         $@_bzip2_ver);
+	if [ x$$v != xy ]; then
+	  echo; echo "PIPELINE ERROR: Not running Bzip2 $(bzip2-version)";
+	  echo; exit 1;
+	fi;
+	rm $@_bzip2_ver
 	echo "\newcommand{\\bziptwoversion}{$(bzip2-version)}" >> $@
 
         # Unfortunately we couldn't find a way to retrieve the version of
