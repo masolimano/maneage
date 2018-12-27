@@ -11,6 +11,7 @@ mmap_*
 .local
 Makefile
 .gnuastro
+.texlive*
 LOCAL_tmp.mk
 LOCAL_old.mk
 reproduce/build
