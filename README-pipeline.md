@@ -758,7 +758,7 @@ us. In this way, we can add it here for the benefit of others.
       you use GNU Make, you can also see this page on your command-line:
 
         ```shell
-        $ info make "automatic variables
+        $ info make "automatic variables"
         ```
 
    - *Debug*: Since Make doesn't follow the common top-down paradigm, it
