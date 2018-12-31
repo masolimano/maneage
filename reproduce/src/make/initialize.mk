@@ -206,6 +206,7 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
 	$(call pvcheck, glibtool, $(libtool-version), GNU Libtool,     \
 	                libtoolversion)
+	$(call pvcheck, gzip, $(gzip-version), GNU Gzip, gzipversion)
 	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
 	                coreutilsversion)
 	$(call pvcheck, lzip, $(lzip-version), Lzip, lzipversion)

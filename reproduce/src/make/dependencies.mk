@@ -126,7 +126,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
-	  elif [ $$n = gnuastro    ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = gnuastro    ]; then w=http://ftpmirror.gnu.org/gnu/gnuastro
 	  elif [ $$n = gsl         ]; then w=http://ftpmirror.gnu.org/gnu/gsl
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files

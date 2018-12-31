@@ -139,7 +139,7 @@ $(tarballs): $(tdir)/%:
           elif [ $$n = gcc       ]; then w=http://ftpmirror.gnu.org/gcc/gcc-$(gcc-version); \
           elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
           elif [ $$n = grep      ]; then w=http://ftpmirror.gnu.org/gnu/grep; \
-          elif [ $$n = gzip      ]; then w=http://akhlaghi.org/src;         \
+          elif [ $$n = gzip      ]; then w=http://ftpmirror.gnu.org/gnu/gzip; \
           elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
           elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
           elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
