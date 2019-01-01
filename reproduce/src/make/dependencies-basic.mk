@@ -415,7 +415,7 @@ $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
 $(ibdir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
                      $(ibdir)/make
 	$(call gbuild, $<, pkg-config-$(pkgconfig-version), static, \
-                       --with-internal-glib)
+                       --with-internal-glib --with-pc-path=$(ildir)/pkgconfig)
 
 $(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
               $(ibdir)/make
