@@ -9,7 +9,7 @@
 #     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
 #     Your name <your@email.address>
-# Copyright (C) 2018, Your Name.
+# Copyright (C) 2018-2019, Your Name.
 #
 # This Makefile is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
