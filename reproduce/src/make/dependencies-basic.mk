@@ -433,7 +433,8 @@ $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
                $(ibdir)/make
 
-        # Delete any possibly existing output
+        # Delete any possibly existing output (so it doesn't interfere with
+        # the build: we are building bash itself!)
 	if [ -f $@ ]; then rm $@; fi;
 
         # Build Bash.
@@ -450,8 +451,12 @@ endif
         #
         # Just to be sure that the installation step above went well,
         # before making the link, we'll see if the file actually exists
+        # there and remove any possibly existing link that might already be
         # there.
-	if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; fi
+	if [ -f $(ibdir)/sh ]; then rm $(ibdir)/sh; fi
+	if [ -f $@ ]; then ln -s $@ $(ibdir)/sh; \
+	else echo "Bash not build!"; exit 1; fi
+
 
 
 
