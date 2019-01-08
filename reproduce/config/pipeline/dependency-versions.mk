@@ -1,21 +1,21 @@
 # Versions of the various dependnecies
 
 # Programs
-bash-version        = 4.4.18
+bash-version        = 5.0
 binutils-version    = 2.31.1
 bzip2-version       = 1.0.6
 cmake-version       = 3.12.4
 coreutils-version   = 8.30
-diffutils-version   = 3.6
+diffutils-version   = 3.7
 findutils-version   = 4.6.0.199-e3fc
 flock-version       = 0.2.3
 gawk-version        = 4.2.1
 gcc-version         = 8.2.0
 ghostscript-version = 9.26
-git-version         = 2.20.0
+git-version         = 2.20.1
 gmp-version         = 6.1.2
 gnuastro-version    = 0.8
-grep-version        = 3.1
+grep-version        = 3.3
 gzip-version        = 1.10
 isl-version         = 0.18
 libtool-version     = 2.4.6
@@ -25,9 +25,9 @@ mpfr-version        = 4.0.1
 mpc-version         = 1.1.0
 openssl-version     = 1.1.1a
 pkgconfig-version   = 0.29.2
-sed-version         = 4.5
-tar-version         = 1.30
-wget-version        = 1.20
+sed-version         = 4.7
+tar-version         = 1.31
+wget-version        = 1.20.1
 which-version       = 2.21
 xz-version          = 5.2.4
 
