@@ -382,6 +382,16 @@ your research, set it as prerequisites to other rules and remove it from
 the list of prerequisites for TeX macro file. In fact, this is how a
 project is designed to grow in this framework.
 
+When working within a group, more than one person may want to work with the
+pipeline outputs (in the build directory). For example each person is
+developing part of the higher-level steps of the pipeline in their own Git
+branch of the pipeline, but using the same build directory. Therefore, the
+lower-level parts of the built outputs, can be shared between them. In such
+scenarios, this pipeline comes with a `for-group` script (in the top
+directory) which is just a simple wrapper to run the configure and building
+steps. You can specify a group name within this file. Therefore, when you
+use it (fully described in the comments at the start of the file), it will
+ensure that all group members have write access to the created files.
 
 
 
@@ -580,6 +590,14 @@ advanced in later stages of your work.
      file. Therefore, make it as easy as possible for them to start
      with. Also check and update this file one last time when you are ready
      to publish your work (and its reproduction pipeline).
+
+ - **`for-group`**: If you will be working on this pipeline with
+     colleagues, and the build steps involve many files, or are slow, you
+     need to share the build directory. This script is designed for such
+     scenarios. So open this file and give the name of the Unix name of
+     your group to the `thisgroup` variable. You can see the list of groups
+     you are a member of with the `groups` command. You can ask your system
+     administrator to define a group with specific members if necessary.
 
  - **Your first commit**: You have already made some small and basic
      changes in the steps above and you are in the `master` branch. So, you
