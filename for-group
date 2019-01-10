@@ -10,9 +10,8 @@
 # build directory.
 #
 # When the configuration (normally done with `./configure') and build
-# (normally done with `.local/bin/make') steps are done with this with this
-# script, all the files that are created within the pipeline have these
-# properties:
+# (normally done with `.local/bin/make') steps are done with this script,
+# all the files that are created within the pipeline have these properties:
 #
 #   1) Group owner will be a special group (value of `thisgroup' below).
 #   2) The permission flags give write access to the group members.
