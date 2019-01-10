@@ -318,7 +318,8 @@ $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 $(ibdir)/flock: $(tdir)/flock-$(flock-version).tar.xz
 	$(call gbuild, $<, flock-$(flock-version), static)
 
-$(ibdir)/git: $(tdir)/git-$(git-version).tar.xz
+$(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
+              $(ibdir)/curl
 	$(call gbuild, $<, git-$(git-version), static,             \
                        --without-tcltk --with-shell=$(ibdir)/bash, \
 	               V=1)
