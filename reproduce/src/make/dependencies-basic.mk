@@ -56,6 +56,7 @@ syspath         := $(PATH)
 
 # As we build more programs, we want to use our own pipeline's built
 # programs and libraries, not the host's.
+export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir):$(PATH)
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
@@ -187,8 +188,18 @@ $(tarballs): $(tdir)/%:
 # For the time being, we aren't building a local C compiler, but we'll use
 # any C compiler that the system already has and just make a symbolic link
 # to it.
-makelink = export PATH=$(syspath); a=$$(which $(1) 2> /dev/null); \
-	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;    \
+#
+# ccache: ccache acts like a wrapper over the C compiler and is made to
+# avoid/speed-up compiling of identical files in a system (it is commonly
+# used on large servers). It actually makes `gcc' or `g++' a symbolic link
+# to itself so it can control them internally. So, for our purpose here, it
+# is very annoying and can cause many complications. We thus remove any
+# part of PATH of that has `ccache' in it before making symbolic links to
+# the programs we are not building ourselves.
+makelink = export PATH=$$(echo $(syspath)| tr : '\n' |grep -v ccache  \
+	                       | paste -s -d:);                       \
+	   a=$$(which $(1) 2> /dev/null);                             \
+	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;        \
 	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
 $(ibdir) $(ildir):; mkdir $@
 $(ibdir)/low-level-links: | $(ibdir) $(ildir)

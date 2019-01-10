@@ -63,6 +63,7 @@ all: $(ddir)/texlive-versions.tex \
 #       user's environment.
 .ONESHELL:
 .SHELLFLAGS              := --noprofile --norc -ec
+export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir)
 export LD_RUN_PATH       := $(ildir)
 export LD_LIBRARY_PATH   := $(ildir)

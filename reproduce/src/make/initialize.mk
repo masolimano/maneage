@@ -73,7 +73,8 @@ curdir   := $(shell echo $$(pwd))
 # environment variables, we are setting it to prefer the software we have
 # build here.
 .ONESHELL:
-.SHELLFLAGS            = -ec
+.SHELLFLAGS             = -ec
+export CCACHE_DISABLE  := 1
 export PATH            := $(installdir)/bin
 export LD_LIBRARY_PATH := $(installdir)/lib
 export LDFLAGS         := -L$(installdir)/lib
