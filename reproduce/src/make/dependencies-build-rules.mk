@@ -67,9 +67,9 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 fi;                                                                  \
                                                                               \
 	 if   [ -f $(ibdir)/bash ]; then                                      \
-	   sed $$confscript -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'            \
-	                    -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'             \
-	       > $$confscript-tmp;                                            \
+	   sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'                         \
+	       -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'                          \
+	       $$confscript > $$confscript-tmp;                               \
 	   mv $$confscript-tmp $$confscript;                                  \
 	   chmod +x $$confscript;                                             \
 	   shellop="SHELL=$(ibdir)/bash";                                     \
@@ -82,7 +82,8 @@ gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
 	 else configop="$$shellop --prefix=$(idir)";                          \
 	 fi;                                                                  \
                                                                               \
-	 echo; echo "Using '$$confscript' to configure..."; echo;             \
+	 echo; echo "Using '$$confscript' to configure:"; echo;               \
+	 echo "$$confscript $(4) $$configop"; echo;                           \
 	 $$confscript $(4) $$configop  &&                                     \
 	 make "$$shellop" $(5) &&                                             \
 	 $$check &&                                                           \
