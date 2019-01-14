@@ -338,9 +338,7 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
 
         # Delete the library that will be installed (so we can make sure
         # the build process completed afterwards and reset the links).
-	if [ x$(on_mac_os) = xyes ]; then rm -f $(ildir)/libncursesw*dylib;\
-	else                              rm -f $(ildir)/libncursesw.so*;  \
-	fi
+	rm -f $(ildir)/libncursesw*
 
         # Standard build process.
 	$(call gbuild, $<, ncurses-$(ncurses-version), static,            \
@@ -403,8 +401,8 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
 	    ln -fs libncursesw.$$sov     lib$$lib.$$sov;                   \
 	    ln -fs pkgconfig/ncursesw.pc pkgconfig/$$lib.pc;               \
 	  done;                                                            \
-	  ln -fs $$target                libcurses.$$so;                   \
-	  ln -fs $$target                libcursesw.$$sov;                 \
+	  ln -fs libncursesw.$$sov       libcurses.$$so;                   \
+	  ln -fs libncursesw.$$sov       libcursesw.$$sov;                 \
 	  ln -fs pkgconfig/ncursesw.pc   pkgconfig/curses.pc;              \
 	  ln -fs pkgconfig/ncursesw.pc   pkgconfig/cursesw.pc;             \
 	                                                                   \
