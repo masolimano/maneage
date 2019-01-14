@@ -57,7 +57,7 @@ $(demopdf): $(dddemodir)/%.pdf: $(indir)/%.fits | $(dddemodir)
 	rm -f $(tikzdir)/delete-me-wfpc2.pdf
 
         # Convert the dataset to a PDF.
-	astconvertt --fluxhigh=4 $< -h0 -o$@
+	astconvertt --colormap=gray --fluxhigh=4 $< -h0 -o$@
 
 
 
