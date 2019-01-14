@@ -64,8 +64,9 @@ export LDFLAGS           := $(rpath_command) -L$(ildir) $(LDFLAGS)
 export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
+# Define the programs that don't depend on any other.
 top-level-programs = low-level-links ls sed gawk grep diff find \
-                     bash wget which
+                     wget which
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -111,8 +112,10 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         make-$(make-version).tar.lz                         \
                         mpfr-$(mpfr-version).tar.xz                         \
                         mpc-$(mpc-version).tar.gz                           \
+                        ncurses-$(ncurses-version).tar.gz                   \
                         openssl-$(openssl-version).tar.gz                   \
                         pkg-config-$(pkgconfig-version).tar.gz              \
+                        readline-$(readline-version).tar.gz                 \
                         sed-$(sed-version).tar.xz                           \
                         tar-$(tar-version).tar.gz                           \
                         wget-$(wget-version).tar.lz                         \
@@ -146,8 +149,10 @@ $(tarballs): $(tdir)/%:
           elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
           elif [ $$n = mpc       ]; then w=http://ftpmirror.gnu.org/gnu/mpc;\
+	  elif [ $$n = ncurses   ]; then w=http://ftpmirror.gnu.org/gnu/ncurses;\
           elif [ $$n = openssl   ]; then w=http://www.openssl.org/source;   \
           elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
+	  elif [ $$n = readline  ]; then w=http://ftpmirror.gnu.org/gnu/readline; \
           elif [ $$n = sed       ]; then w=http://ftpmirror.gnu.org/gnu/sed;\
           elif [ $$n = tar       ]; then w=http://ftpmirror.gnu.org/gnu/tar;\
           elif [ $$n = wget      ]; then w=http://ftpmirror.gnu.org/gnu/wget;\
@@ -253,8 +258,13 @@ $(ibdir)/low-level-links: | $(ibdir) $(ildir)
 
 
 
-# Compression programs
-# --------------------
+
+
+
+
+
+# Level 1 (MOST BASIC): Compression programs
+# ------------------------------------------
 #
 # The first set of programs to be built are those that we need to unpack
 # the source code tarballs of each program. First, we'll build the
@@ -302,13 +312,18 @@ $(ibdir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 
 
 
-# GNU Make
-# --------
+
+
+
+
+
+# Level 2 (SECOND MOST BASIC): Bash and Make
+# ------------------------------------------
 #
-# GNU Make is the second layer that we'll need to build the basic
-# dependencies.
+# GNU Make and GNU Bash are the second layer that we'll need to build the
+# basic dependencies.
 #
-# Unfortunately it needs dynamic linking in two instances: when loading
+# Unfortunately Make needs dynamic linking in two instances: when loading
 # objects (dynamically linked libraries), or when using the `getpwnam'
 # function (for tilde expansion). The first can be disabled with
 # `--disable-load', but unfortunately I don't know any way to fix the
@@ -317,6 +332,120 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
                $(ibdir)/tar
         # See Tar's comments for the `-j' option.
 	$(call gbuild, $<, make-$(make-version), , , -j$(numthreads))
+
+$(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
+                   $(ibdir)/make | $(ilidir)
+
+        # Delete the library that will be installed (so we can make sure
+        # the build process completed afterwards).
+	if [ x$(on_mac_os) = xyes ]; then rm -f $(ildir)/libncursesw.dylib;\
+	else                              rm -f $(ildir)/libncursesw.so;   \
+	fi
+
+        # Standard build process.
+	$(call gbuild, $<, ncurses-$(ncurses-version), static,            \
+	               --with-shared --enable-rpath --without-normal      \
+	               --without-debug --with-cxx-binding                 \
+	               --with-cxx-shared --enable-widec --enable-pc-files \
+	               --with-pkg-config=$(ildir)/pkgconfig )
+
+        # Unfortunately there are many problems with `ncurses' using
+        # "normal" (or 8-bit) characters. The standard way that will work
+        # is to build it with wide character mode as you see above in the
+        # configuration (or the `w' prefix you see below). Also, most
+        # programs (and in particular Bash and AWK), first look for other
+        # (mostly obsolete) libraries like tinfo, which define the same
+        # symbols. The links below address both situations: we need to fool
+        # higher-level packages to find this library even if they aren't
+        # explicitly mentioning its name correctly (as a value to `-l' at
+        # link time in their configure scripts).
+        #
+        # This part is taken from the Arch Linux build script[1], then
+        # extended to Mac thanks to Homebrew's script [2].
+        #
+        # [1] https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/ncurses
+        # [2] https://github.com/Homebrew/homebrew-core/blob/master/Formula/ncurses.rb
+	if [ x$(on_mac_os) = xyes ]; then oname=$(ildir)/libncursesw.dylib;\
+	else                              oname=$(ildir)/libncursesw.so;   \
+	fi;                                                          \
+	if [ -f $$oname ]; then                                      \
+	  cd "$(ildir)";                                             \
+	  for lib in ncurses ncurses++ form panel menu; do           \
+	    if [ x$(on_mac_os) = xyes ]; then                        \
+	      linkname=lib$$lib.dylib;                               \
+	      target=lib"$$lib"w.$(ncurses-version).dylib;           \
+	    else                                                     \
+	      linkname=lib$$lib.so;                                  \
+	      target=lib"$$lib"w.so.$(ncurses-version);              \
+	    fi;                                                      \
+	    ln -fs $$target $$linkname;                              \
+	    ln -fs pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc;         \
+	  done;                                                      \
+	  for lib in tic tinfo; do                                   \
+	    if [ x$(on_mac_os) = xyes ]; then                        \
+	      linka=lib$$lib.dylib;                                  \
+	      linkb=lib$$lib.$(ncurses-version).dylib;               \
+	      target=libncursesw.$(ncurses-version).dylib;           \
+	    else                                                     \
+	      linka=lib$$lib.so;                                     \
+	      linkb=lib$$lib.so.$(ncurses-version);                  \
+	      target=libncursesw.so.$(ncurses-version);              \
+	    fi;                                                      \
+	    ln -fs $$target $$linka;                                 \
+	    ln -fs $$target $$linkb;                                 \
+	    ln -fs pkgconfig/ncursesw.pc pkgconfig/$$lib.pc;         \
+	  done;                                                      \
+	  if [ x$(on_mac_os) = xyes ]; then                          \
+	    ln -fs $$target libcurses.dylib;                         \
+	    ln -fs $$target libcursesw.dylib;                        \
+	  else                                                       \
+	    ln -fs $$target libcurses.so;                            \
+	    ln -fs $$target libcursesw.so;                           \
+	  fi;                                                        \
+	  ln -fs pkgconfig/ncursesw.pc pkgconfig/curses.pc;          \
+	  ln -fs pkgconfig/ncursesw.pc pkgconfig/cursesw.pc;         \
+	  echo "GNU ncurses is built and ready" > $@;                \
+	else                                                         \
+	  exit 1;                                                    \
+	fi
+
+$(ilidir)/readline: $(tdir)/readline-$(readline-version).tar.gz      \
+                    $(ilidir)/ncurses
+	$(call gbuild, $<, readline-$(readline-version), static,     \
+	                --with-curses --disable-install-examples,    \
+	                SHLIB_LIBS="-lncursesw" ) &&                 \
+	echo "GNU Readline is built and ready" > $@
+
+# IMPORTANT: Even though we have enabled `rpath', Bash doesn't write the
+# absolute adddress of the libraries it depends on. So if you run `ldd
+# $(ibdir)/bash' on the command-line, it will say that it is linking with
+# the system's `readline'. But if you run that same command within a rule
+# in this reproduction pipeline, you'll see that it is indeed linking with
+# our own built readline.
+$(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
+               $(ilidir)/readline
+
+        # Delete any possibly existing output
+	rm -f $@
+
+        # Build Bash.
+ifeq ($(static_build),yes)
+	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link \
+	               --with-installed-readline=$(idir))
+else
+	$(call gbuild, $<, bash-$(bash-version), , \
+	               --with-installed-readline=$(idir))
+endif
+
+        # To be generic, some systems use the `sh' command to call the
+        # shell. By convention, `sh' is just a symbolic link to the
+        # preferred shell executable. So we'll define `$(ibdir)/sh' as a
+        # symbolic link to the Bash that we just built and installed.
+        #
+        # Just to be sure that the installation step above went well,
+        # before making the link, we'll see if the file actually exists
+        # there.
+	if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; else exit 1; fi
 
 
 
@@ -333,7 +462,7 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
 $(idir)/etc:; mkdir $@
 $(ilidir): | $(ildir); mkdir $@
 $(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
-                $(ibdir)/make | $(ilidir)
+                $(ibdir)/bash
 	$(call gbuild, $<, zlib-$(zlib-version)) && echo "Zlib is built" > $@
 
 # OpenSSL: Some programs/libraries later need dynamic linking. So we'll
@@ -399,19 +528,20 @@ $(ibdir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 # higher-level dependencies: Note that during the building of those
 # programs, there is no access to the system's PATH.
 $(ibdir)/diff: $(tdir)/diffutils-$(diffutils-version).tar.xz \
-               $(ibdir)/make
+               $(ibdir)/bash
 	$(call gbuild, $<, diffutils-$(diffutils-version), static)
 
 $(ibdir)/find: $(tdir)/findutils-$(findutils-version).tar.lz \
-               $(ibdir)/make
+               $(ibdir)/bash
 	$(call gbuild, $<, findutils-$(findutils-version), static)
 
 $(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
-               $(ibdir)/make
-	$(call gbuild, $<, gawk-$(gawk-version), static)
+	       $(ibdir)/bash
+	$(call gbuild, $<, gawk-$(gawk-version), static, \
+	               --with-readline=$(idir));
 
 $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
-               $(ibdir)/make
+               $(ibdir)/bash
 	$(call gbuild, $<, grep-$(grep-version), static)
 
 $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
@@ -424,49 +554,21 @@ $(ibdir)/ls: $(tdir)/coreutils-$(coreutils-version).tar.xz \
 	               -j$(numthreads))
 
 $(ibdir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
-                     $(ibdir)/make
+                     $(ibdir)/bash
 	$(call gbuild, $<, pkg-config-$(pkgconfig-version), static, \
                        --with-internal-glib --with-pc-path=$(ildir)/pkgconfig)
 
 $(ibdir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
-              $(ibdir)/make
+              $(ibdir)/bash
 	$(call gbuild, $<, sed-$(sed-version), static)
 
 $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
-                $(ibdir)/make
+                $(ibdir)/bash
 	$(call gbuild, $<, which-$(which-version), static)
 
 
 
 
-
-# GNU Bash
-$(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
-               $(ibdir)/make
-
-        # Delete any possibly existing output (so it doesn't interfere with
-        # the build: we are building bash itself!)
-	if [ -f $@ ]; then rm $@; fi;
-
-        # Build Bash.
-ifeq ($(static_build),yes)
-	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link)
-else
-	$(call gbuild, $<, bash-$(bash-version))
-endif
-
-        # To be generic, some systems use the `sh' command to call the
-        # shell. By convention, `sh' is just a symbolic link to the
-        # preferred shell executable. So we'll define `$(ibdir)/sh' as a
-        # symbolic link to the Bash that we just built and installed.
-        #
-        # Just to be sure that the installation step above went well,
-        # before making the link, we'll see if the file actually exists
-        # there and remove any possibly existing link that might already be
-        # there.
-	if [ -f $(ibdir)/sh ]; then rm $(ibdir)/sh; fi
-	if [ -f $@ ]; then ln -s $@ $(ibdir)/sh; \
-	else echo "Bash not build!"; exit 1; fi
 
 
 
@@ -476,7 +578,7 @@ endif
 # (CURRENTLY IGNORED) GCC prerequisites
 # -------------------------------------
 $(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
-               $(ibdir)/make | $(ilidir)
+               $(ibdir)/bash
 	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
 	&& echo "GNU multiple precision arithmetic library is built" > $@
 
@@ -510,6 +612,11 @@ $(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz \
              $(ibdir)/bash                               \
              $(ibdir)/which
 	$(call gbuild, $<, binutils-$(binutils-version), static)
+
+
+
+
+
 
 
 

@@ -255,6 +255,10 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	                libgitwoversion)
 	$(call lvcheck, openssl/opensslv.h, $(openssl-version), OpenSSL, \
 	                opensslversion)
+	$(call lvcheck, ncursesw/curses.h, $(ncurses-version), GNU NCURSES, \
+	                ncursesversion)
+	$(call lvcheck, readline/readline.h, $(readline-version), GNU Readline, \
+	                readlineversion)
 	$(call lvcheck, tiffvers.h, $(libtiff-version), Libtiff, \
 	                libtiffversion)
 	$(call lvcheck, wcslib/wcsconfig.h, $(wcslib-version), WCSLIB, \
