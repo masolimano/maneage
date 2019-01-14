@@ -337,9 +337,9 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
                    $(ibdir)/make | $(ilidir)
 
         # Delete the library that will be installed (so we can make sure
-        # the build process completed afterwards).
-	if [ x$(on_mac_os) = xyes ]; then rm -f $(ildir)/libncursesw.dylib;\
-	else                              rm -f $(ildir)/libncursesw.so;   \
+        # the build process completed afterwards and reset the links).
+	if [ x$(on_mac_os) = xyes ]; then rm -f $(ildir)/libncursesw*dylib;\
+	else                              rm -f $(ildir)/libncursesw.so*;  \
 	fi
 
         # Standard build process.
@@ -365,48 +365,53 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
         #
         # [1] https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/ncurses
         # [2] https://github.com/Homebrew/homebrew-core/blob/master/Formula/ncurses.rb
-	if [ x$(on_mac_os) = xyes ]; then oname=$(ildir)/libncursesw.dylib;\
-	else                              oname=$(ildir)/libncursesw.so;   \
-	fi;                                                          \
-	if [ -f $$oname ]; then                                      \
-	  cd "$(ildir)";                                             \
-	  for lib in ncurses ncurses++ form panel menu; do           \
-	    if [ x$(on_mac_os) = xyes ]; then                        \
-	      linkname=lib$$lib.dylib;                               \
-	      target=lib"$$lib"w.$(ncurses-version).dylib;           \
-	    else                                                     \
-	      linkname=lib$$lib.so;                                  \
-	      target=lib"$$lib"w.so.$(ncurses-version);              \
-	    fi;                                                      \
-	    ln -fs $$target $$linkname;                              \
-	    ln -fs pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc;         \
-	  done;                                                      \
-	  for lib in tic tinfo; do                                   \
-	    if [ x$(on_mac_os) = xyes ]; then                        \
-	      linka=lib$$lib.dylib;                                  \
-	      linkb=lib$$lib.$(ncurses-version).dylib;               \
-	      target=libncursesw.$(ncurses-version).dylib;           \
-	    else                                                     \
-	      linka=lib$$lib.so;                                     \
-	      linkb=lib$$lib.so.$(ncurses-version);                  \
-	      target=libncursesw.so.$(ncurses-version);              \
-	    fi;                                                      \
-	    ln -fs $$target $$linka;                                 \
-	    ln -fs $$target $$linkb;                                 \
-	    ln -fs pkgconfig/ncursesw.pc pkgconfig/$$lib.pc;         \
-	  done;                                                      \
-	  if [ x$(on_mac_os) = xyes ]; then                          \
-	    ln -fs $$target libcurses.dylib;                         \
-	    ln -fs $$target libcursesw.dylib;                        \
-	  else                                                       \
-	    ln -fs $$target libcurses.so;                            \
-	    ln -fs $$target libcursesw.so;                           \
-	  fi;                                                        \
-	  ln -fs pkgconfig/ncursesw.pc pkgconfig/curses.pc;          \
-	  ln -fs pkgconfig/ncursesw.pc pkgconfig/cursesw.pc;         \
-	  echo "GNU ncurses is built and ready" > $@;                \
-	else                                                         \
-	  exit 1;                                                    \
+        #
+        # Since we can't have comments, in the connected script, here is a
+        # summary:
+        #
+        #   1. We find the actual suffix of the library, from the file that
+        #      is not a symbolic link (starting with `-' in the output of
+        #      `ls -l').
+        #
+        #   2. We make symbolic links to all the "ncurses", "ncurses++",
+        #      "form", "panel" and "menu" libraries to point to their
+        #      "wide" (character) library.
+        #
+        #   3. We make symbolic links to the "tic" and "tinfo" libraries to
+        #      point to the same `libncursesw' library.
+        #
+        #   4. Some programs link with "curses" (not "ncurses", notice the
+        #      starting "n"), so we'll also make links for these to point
+        #      to the `libncursesw' library.
+        #
+        #   5. A link is made to also be able to include files from the
+        #      `ncurses' headers.
+	if [ x$(on_mac_os) = xyes ]; then so="dylib"; else so="so"; fi;    \
+	if [ -f $(ildir)/libncursesw.$$so ]; then                          \
+	                                                                   \
+	  sov=$$(ls -l $(ildir)/libncursesw*                               \
+	               | awk '/^-/{print $$NF}'                            \
+	               | sed -e's|'$(ildir)/libncursesw.'||');             \
+	                                                                   \
+	  cd "$(ildir)";                                                   \
+	  for lib in ncurses ncurses++ form panel menu; do                 \
+	    ln -fs lib$$lib"w".$$sov     lib$$lib.$$so;                    \
+	    ln -fs pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc;               \
+	  done;                                                            \
+	  for lib in tic tinfo; do                                         \
+	    ln -fs libncursesw.$$sov     lib$$lib.$$so;                    \
+	    ln -fs libncursesw.$$sov     lib$$lib.$$sov;                   \
+	    ln -fs pkgconfig/ncursesw.pc pkgconfig/$$lib.pc;               \
+	  done;                                                            \
+	  ln -fs $$target                libcurses.$$so;                   \
+	  ln -fs $$target                libcursesw.$$sov;                 \
+	  ln -fs pkgconfig/ncursesw.pc   pkgconfig/curses.pc;              \
+	  ln -fs pkgconfig/ncursesw.pc   pkgconfig/cursesw.pc;             \
+	                                                                   \
+	  ln -fs $(idir)/include/ncursesw $(idir)/include/ncurses;         \
+	  echo "GNU ncurses is built and ready" > $@;                      \
+	else                                                               \
+	  exit 1;                                                          \
 	fi
 
 $(ilidir)/readline: $(tdir)/readline-$(readline-version).tar.gz      \
