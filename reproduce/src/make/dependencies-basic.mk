@@ -514,14 +514,28 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
 #
 # Also note that since Wget needs to load outside libraries dynamically, it
 # gives a segmentation fault when built statically.
+#
+# There are many network related libraries that we are currently not
+# building as part of this pipeline. So to avoid too much dependency on the
+# host system (especially a crash when these libraries are updated on the
+# host), they are disabled here.
 $(ibdir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 	       $(ibdir)/pkg-config                 \
                $(ilidir)/openssl
-	libs="-pthread";                                                 \
-	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi;        \
-	$(call gbuild, $<, wget-$(wget-version), ,                       \
-                       LIBS="$$LIBS $$libs" --with-ssl=openssl           \
-	               --with-openssl=yes --with-libssl-prefix=$(idir))
+	libs="-pthread";                                          \
+	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi; \
+	$(call gbuild, $<, wget-$(wget-version), ,                \
+	               LIBS="$$LIBS $$libs"                       \
+	               --with-libssl-prefix=$(idir)               \
+	               --with-ssl=openssl                         \
+	               --with-openssl=yes                         \
+	               --without-metalink                         \
+	               --without-libuuid                          \
+	               --without-libpsl                           \
+	               --without-libidn                           \
+	               --disable-pcre2                            \
+	               --disable-pcre                             \
+	               --disable-iri )
 
 
 

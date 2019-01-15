@@ -299,12 +299,33 @@ $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 # have easiy ways to explicity tell them to also link with libcurl's
 # dependencies (libssl, libcrypto, and libz). So we won't force curl to
 # only be static.
+#
+# cURL (and its library, which is needed by several programs here) can
+# optionally link with many different network-related libraries on the host
+# system that we are not yet building in the pipeline. Many of these are
+# not relevant to most science projects, so we are explicitly using
+# `--without-XXX' or `--disable-XXX' so cURL doesn't link with them. Note
+# that if it does link with them, the pipeline will crash when the library
+# is updated/changed by the host, and the whole purpose of this pipeline is
+# avoid dependency on the host as much as possible.
 $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz
 	$(call gbuild, $<, curl-$(curl-version), ,       \
-                       --with-zlib=$(ildir)              \
-                       --with-ssl=$(idir)                \
-                       --without-brotli                  \
-                       LIBS="-pthread" )
+	               LIBS="-pthread"                   \
+	               --with-zlib=$(ildir)              \
+	               --with-ssl=$(idir)                \
+	               --without-mesalink                \
+	               --with-ca-fallback                \
+	               --without-librtmp                 \
+	               --without-libidn2                 \
+	               --without-wolfssl                 \
+	               --without-brotli                  \
+	               --without-gnutls                  \
+	               --without-cyassl                  \
+	               --without-libpsl                  \
+	               --without-axtls                   \
+	               --disable-ldaps                   \
+	               --disable-ldap                    \
+	               --without-nss )
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
 # prefix GNU's libtool executables with `glibtool'.

@@ -35,7 +35,7 @@ xz-version          = 5.2.4
 
 # Libraries
 cfitsio-version     = 3.45
-curl-version        = 7.62.0
+curl-version        = 7.63.0
 gsl-version         = 2.5
 libjpeg-version     = v9b
 libtiff-version     = 4.0.10
