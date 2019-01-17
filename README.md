@@ -2,7 +2,9 @@ Reproduction pipeline for paper XXXXXXX
 =======================================
 
 This is the reproduction pipeline for the paper titled "**XXXXXX**", by
-XXXXXXXX et al. (**IN PREPARATION**).
+XXXXXXXX et al. (**IN PREPARATION**). To learn more about the purpose,
+principles and technicalities of this reproducible paper, please see
+`README-pipeline.md`.
 
 To reproduce our results, the only dependency is a minimal Unix-based
 building environment including a C compiler (already available on your
