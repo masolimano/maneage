@@ -245,50 +245,51 @@ pipeline (described in `README.md`: first run `./configure`, then
 `.local/bin/make -j8`) without any change, just to see how it works.
 
 In order to obtain a reproducible result it is important to have an
-identical environment (for example same versions the programs that it will
-use). This also has the added advantage that in your separate research
-projects, you can use different versions of a single software and they
-won't interfere. Therefore, the pipeline builds its own dependencies during
-the `./configure` step. Building of the dependencies is managed by
+identical environment (for example same versions of the programs that it
+will use). Therefore, the pipeline builds its own dependencies during the
+`./configure` step. Building of the dependencies is managed by
 `reproduce/src/make/dependencies-basic.mk` and
 `reproduce/src/make/dependencies.mk`. These Makefiles are called by the
-`./configure` script. The first is intended for downloading and building
-the most basic tools like GNU Bash, GNU Make, and GNU Tar. Therefore it
-must only contain very basic and portable Make and shell features. The
-second is called after the first, thus enabling usage of the modern and
-advanced features of GNU Bash and GNU Make, similar to the rest of the
-pipeline. Later, if you add a new program/library for your research, you
-will need to include a rule on how to download and build it (in
-`reproduce/src/make/dependencies.mk`).
+`./configure` script and not used afterwards. The first is intended for
+downloading and building the most basic tools like GNU Bash, GNU Make, and
+GNU Tar. Therefore it must only contain very basic and portable Make and
+shell features. The second is called after the first, thus enabling usage
+of the modern and advanced features of GNU Bash and GNU Make, similar to
+the rest of the pipeline. Later, if you add a new program/library for your
+research, you will need to include a rule on how to download and build it
+(in `reproduce/src/make/dependencies.mk`).
 
-After configuring, the `.local/bin/make` command will start the processing
-with the custom version of Make that was locally installed during
-configuration. The first file that is read is the top-level
-`Makefile`. Therefore, we'll start our navigation/discussion with this
-file. This file is relatively short and heavily commented so hopefully the
-descriptions in each comment will be enough to understand the general
+After it finishes, `./configure` will create a `Makefile` in the top
+directory (a symbolic link to `reproduce/src/make/top.mk`) and a `.local`
+directory (a link for easy access to the custom built software
+packages). The `.local/bin/make` command will then use our custom version
+of GNU Make to do the analysis. The first file that is read by Make is the
+top-level `Makefile`. Therefore, we'll start our navigation/discussion with
+this file. This file is relatively short and heavily commented so hopefully
+the descriptions in each comment will be enough to understand the general
 details. As you read this section, please also look at the contents of the
 mentioned files and directories to fully understand what is going on.
 
 Before starting to look into the top `Makefile`, it is important to recall
-that Make defines dependencies by files. Therefore, the input and output of
-every step must be a file. Also recall that Make will use the modification
-date of the prerequisite and target files to see if the target must be
-re-built or not. Therefore during the processing, _many_ intermediate files
-will be created (see the tips section below on a good strategy to deal with
-large/huge files).
+that Make defines dependencies by files. Therefore, the input/prerequisite
+and output of every step/rule must be a file. Also recall that Make will
+use the modification date of the prerequisite and target files to see if
+the target must be re-built or not. Therefore during the processing, _many_
+intermediate files will be created (see the tips section below on a good
+strategy to deal with large/huge files).
 
-To keep the source and (intermediate) built files separate, at
-configuration time, the user _must_ define a top-level build directory
-variable (or `$(BDIR)`) to host all the intermediate files. This directory
+To keep the source and (intermediate) built files separate, you _must_
+define a top-level build directory variable (or `$(BDIR)`) to host all the
+intermediate files (it was defined in `./configure`). This directory
 doesn't need to be version controlled or even synchronized, or backed-up in
 other servers: its contents are all products of the pipeline, and can be
 easily re-created any time. As you define targets for your new rules, it is
 thus important to place them all under sub-directories of `$(BDIR)`.
 
 In this architecture, we have two types of Makefiles that are loaded into
-one: _configuration-Makefiles_ (only independent variables/configurations)
-and _workhorse-Makefiles_ (Makefiles that actually contain rules).
+the top `Makefile`: _configuration-Makefiles_ (only independent
+variables/configurations) and _workhorse-Makefiles_ (Makefiles that
+actually contain rules).
 
 The configuration-Makefiles are those that satisfy this wildcard:
 `reproduce/config/pipeline/*.mk`. These Makefiles don't actually have any
@@ -297,41 +298,68 @@ analysis/processing. Open a few of them to see for your self. These
 Makefiles must only contain raw Make variables (pipeline
 configurations). By raw we mean that the Make variables in these files must
 not depend on variables in any other configuration-Makefile. This is
-because we don't want to assume any order in reading them. It is very
-important to *not* define any rule or other Make construct in any of these
-configuration-Makefiles. This will enable you to set the respective
-Makefiles in this directory as a prerequisite to any target that depends on
-their variable values. Therefore, if you change any of their values, all
-targets that depend on those values will be re-built.
+because we don't want to assume any order in reading them. It is also very
+important to *not* define any rule, or other Make construct in any of these
+configuration-Makefiles.
 
-The workhorse-Makefiles are those within the `reproduce/src/make`
-directory. They contain the details of the processing steps (Makefiles
-containing rules). But in this phase *order is important*, because the
-prerequisites of most rules will be the targets of other rules that will be
-defined prior to them (not a fixed name like `paper.pdf`). The lower-level
-rules must be imported into Make before the higher-level ones. Hence, we
-can't use a simple wildcard like when we imported configuration-Makefiles
-above.
+These conditions will enable you to set these configure-Makefiles as a
+prerequisite to any target that depends on their variable
+values. Therefore, if you change any of their values, all targets that
+depend on those values will be re-built. This is very convenient as your
+project scales up and gets more complex.
+
+The workhorse-Makefiles are those satisfying this wildcard
+`reproduce/src/make/*.mk'. They contain the details of the processing steps
+(Makefiles containing rules). Therefore, in this phase *order is
+important*, because the prerequisites of most rules will be the targets of
+other rules that will be defined prior to them (not a fixed name like
+`paper.pdf`). The lower-level rules must be imported into Make before the
+higher-level ones.
 
 All processing steps are assumed to ultimately (usually after many rules)
 end up in some number, image, figure, or table that are to be included in
 the paper. The writing of these results into the final report/paper is
 managed through separate LaTeX files that only contain macros (a name given
 to a number/string to be used in the LaTeX source, which will be replaced
-when compiling it to the final PDF). So usually the last target in a
+when compiling it to the final PDF). So the last target in a
 workhorse-Makefile is a `.tex` file (with the same base-name as the
 Makefile, but in `$(BDIR)/tex/macros`). As a result, if the targets in a
 workhorse-Makefile aren't directly a prerequisite of other
-workhorse-Makefile targets, they should be a pre-requisite of that
-intermediate LaTeX macro file. Otherwise, they will be ignored by Make.
+workhorse-Makefile targets, they can be a pre-requisite of that
+intermediate LaTeX macro file and thus be called when necessary. Otherwise,
+they will be ignored by Make.
+
+This pipeline also has a mode to share the build directory between several
+users of a Unix group (when working on large computer clusters). In this
+scenario, each user can have their own cloned pipeline source, but share
+the large built files between each other. To do this, it is necessary for
+all built files to give full permission to group members while not allowing
+any other users access to the contents. Therefore the `./configure` and
+Make steps must be called with special conditions which are managed in the
+`for-group` file.
 
 Let's see how this design is implemented. When the `./configure` finishes,
 it makes a `Makefile` in the top directory. This Makefile is just a
 symbolic link to `reproduce/src/make/top.mk`. Please open and inspect it as
-we go along here. The first step (un-commented line) defines the ultimate
-target (`paper.pdf`). You shouldn't modify this line. The rule to build
-`paper.pdf` is in `reproduce/src/make/paper.mk` that will be imported into
-this top Makefile later.
+we go along here. The first step (un-commented line) is to import the local
+configuration (answers to the questions `./configure` asked you). They are
+defined in the configuration-Makefile `reproduce/config/pipeline/LOCAL.mk`
+which was also built by `./configure` (based on the `LOCAL.mk.in`
+template).
+
+The next non-commented set of lines define the ultimate target of the whole
+pipeline (`paper.pdf'). But a sanity check is necessary for situations when
+the user is not careful (for example has configured the pipeline for group
+access but forgets to run the pipeline with `./for-group`, or the
+opposite). Therefore we use a Make conditional to define the `all` target
+based on the group permissions being consistent between the initial
+configuration and the current run.
+
+If there is a problem `all` will not depend on anything and will just print
+a warning to inform you of the problem. When the group conditions are fine,
+`all` will depend on `paper.pdf` (which is defined in
+`reproduce/src/make/paper.mk` and will be imported into this top Makefile
+later).
 
 Having defined the top target, our next step is to include all the other
 necessary Makefiles. But order matters in the importing of
@@ -339,10 +367,12 @@ workhorse-Makefiles and each must also have a TeX macro file with the same
 base name (without a suffix). Therefore, the next step in the top-level
 Makefile is to define a `makesrc` variable to keep the base names (without
 a `.mk` suffix) of the workhorse-Makefiles that must be imported, in the
-proper order. Having defined `makesrc`, in the next step, we'll just import
-all the configuration-Makefiles with a wildcard and all workhorse-Makefiles
-using a Make `foreach` loop to preserve the order. This finishes the
-general view of the pipeline's implementation.
+proper order.
+
+Finally, we'll just import all the configuration-Makefiles with a wildcard
+(while ignoring `LOCAL.mk` that was imported before). Also, all
+workhorse-Makefiles are imported in the proper order using a Make `foreach`
+loop. This finishes the general view of the pipeline's implementation.
 
 In short, to keep things modular, readable and managable, follow these
 recommendations: 1) Set clear-to-understand names for the

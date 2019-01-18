@@ -23,17 +23,59 @@
 
 
 
+# Load the local configuration (created after running `./configure').
+include reproduce/config/pipeline/LOCAL.mk
+
+
+
+
+
 # Ultimate target of this pipeline
 # --------------------------------
 #
-# The final paper (in PDF format) is the main target of this whole
-# reproduction pipeline. So as defined in the Make paradigm, we are
-# defining it here.
+# The final paper/report (`paper.pdf') is the main target of this whole
+# reproduction pipeline. So as defined in the Make paradigm, it is the
+# first target that we define (immediately after loading the local
+# configuration settings, necessary for a group building scenario mentioned
+# next).
 #
-# Note that if you don't have LaTeX to build the PDF, or generally are just
-# interested in the processing, you can skip create the final PDF creation
-# with `pdf-build-final' of `reproduce/config/pipeline/pdf-build.mk'.
+# Group build
+# -----------
+#
+# This pipeline can also be configured to have a shared build directory
+# between multiple users. In this scenario, many users (on a server) can
+# have their own/separate version controlled pipeline source of the
+# pipeline, but share the same build outputs (in a common directory). This
+# will allow a group to work separately, on parallel parts of the analysis.
+# It is thus very useful in cases were special storage requirements or CPU
+# power is necessary and its not possible/efficient for each user to have a
+# fully separate copy of the build directory.
+#
+#   `FOR-GROUP': from `LOCAL.mk' (which was built by `./configure').
+#   `reproducible_paper_for_group': from the `./for-group' script.
+#
+# The final paper is only built when both have a value of `yes', or when
+# `FOR-GROUP' is no and `./for-group' wasn't called (if `./for-group' is
+# called before `make', then `reproducible_paper_for_group==yes').
+#
+# Only processing, no LaTeX PDF
+# -----------------------------
+#
+# If you are just interested in the processing and don't want to build the
+# PDF, you can skip the creatation of the final PDF by removing the value
+# of `pdf-build-final' in `reproduce/config/pipeline/pdf-build.mk'.
+ifeq ($(good-group-configuration),yes)
 all: paper.pdf
+else
+all:
+	@if [ "x$(reproducible_paper_for_group)" = xyes ]; then     \
+	  echo "Pipeline is NOT configured for groups, please run"; \
+	  echo "   $$ .local/bin/make";                             \
+	else                                                        \
+	  echo "Pipeline is configured for groups, please run";     \
+	  echo "   $$ ./for-group make";                            \
+	fi
+endif
 
 
 
@@ -77,11 +119,17 @@ makesrc = initialize                    \
 
 
 
-# Include necessary Makefiles
-# ---------------------------
+# Include all Makefiles
+# ---------------------
 #
-# First, we'll include all the configuration-Makefiles (only defining
-# variables with no rules or order), then the workhorse Makefiles which
-# contain rules and order matters for them.
-include reproduce/config/pipeline/*.mk
+# We have two classes of Makefiles, separated by context and their location:
+#
+#   1) First, we'll include all the configuration-Makefiles. These
+#      Makefiles only define variables with no rules or order. We just
+#      won't include `LOCAL.mk' because it has already been included
+#      above.
+#
+#   2) Then, we'll import the workhorse-Makefiles which contain rules to
+#      actually do the processing of this pipeline.
+include $(filter-out %LOCAL.mk, reproduce/config/pipeline/*.mk)
 include $(foreach s,$(makesrc), reproduce/src/make/$(s).mk)

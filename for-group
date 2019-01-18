@@ -40,7 +40,7 @@
 
 
 # Desired group
-thisgroup=ourgroup
+thisgroup=YOUR-GROUP
 
 
 
@@ -65,5 +65,15 @@ else
     echo "$0: argument must be 'configure' or 'make'"
     exit 1
 fi
-echo; echo $script; echo
-sg $thisgroup "umask g+w && $script"
+
+
+
+
+
+# Define the group, and set the permission so the user and group both have
+# read and write permissions. Then run the respective script.
+#
+# We are also exporting a special variable so `./configure' and Make can
+# prepare for sanity checks and avoid re-doing the whole analysis with a
+# typo (not using this script properly after configuration).
+sg $thisgroup "umask u+r,u+w,g+r,g+w,o-r,o-w,o-x && export reproducible_paper_for_group=yes && $script"

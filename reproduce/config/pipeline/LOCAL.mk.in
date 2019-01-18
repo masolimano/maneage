@@ -6,3 +6,27 @@ BDIR             = @bdir@
 INDIR            = @indir@
 DEPENDENCIES-DIR = @ddir@
 DOWNLOADER       = @downloader@
+FOR-GROUP        = @forgroup@
+
+
+
+
+
+# In the top Makefile (which is created after running `./configure' and is
+# actually a symbolic link to `reproduce/src/make/top.mk'), we need to
+# start by checking if there is no conflict with the running and configured
+# group configuration of the pipeline.
+good-group-configuration := $(shell                           \
+     if [ "x$(FOR-GROUP)" = xyes ]; then                      \
+       if [ "x$(reproducible_paper_for_group)" = xyes ]; then \
+         echo "yes";                                          \
+       else                                                   \
+         echo "no";                                           \
+       fi;                                                    \
+     else                                                     \
+       if [ "x$(reproducible_paper_for_group)" = xyes ]; then \
+         echo "no";                                           \
+       else                                                   \
+	 echo "yes";                                          \
+       fi;                                                    \
+     fi)

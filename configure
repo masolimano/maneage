@@ -162,6 +162,34 @@ fi
 
 
 
+# Make sure the group permissions satisfy the previous configuration (if it
+# exists and we don't want to re-write it).
+if [ $rewritepconfig = no ]; then
+   oldforgroup=$(awk '/FOR-GROUP/ && c==0 {c=1; print $3}' $pconf)
+   if [ "x$oldforgroup" = xyes ]; then
+       if [ "x$reproducible_paper_for_group" = x ]; then
+           echo "-----------------------------"
+           echo "!!!!!!!!    ERROR    !!!!!!!!"
+           echo "-----------------------------"
+           echo "Previous pipeline was configured for groups."
+           echo "Either enable re-write, or use './for-group'."
+           exit 1
+       fi
+   else
+       if [ "x$reproducible_paper_for_group" = xyes ]; then
+           echo "-----------------------------"
+           echo "!!!!!!!!    ERROR    !!!!!!!!"
+           echo "-----------------------------"
+           echo "Previous pipeline was not configured for groups."
+           echo "Either enable re-write, or don't use './for-group'."
+           exit 1
+       fi
+   fi
+fi
+
+
+
+
 
 # Identify the downloader tool
 # ----------------------------
@@ -376,11 +404,23 @@ fi
 
 # Write the parameters into the local configuration file.
 if [ $rewritepconfig = yes ]; then
+
+    # Make the pipeline configuration's initial comments.
     create_file_with_notice $pconf
+
+    # Fix the group settings.
+    if [ "x$reproducible_paper_for_group" = xyes ]; then
+        for_group=yes
+    else
+        for_group=no
+    fi
+
+    # Write the values.
     sed -e's|@bdir[@]|'"$bdir"'|'              \
         -e's|@indir[@]|'"$indir"'|'            \
         -e's|@ddir[@]|'"$ddir"'|'              \
         -e's|@downloader[@]|'"$downloader"'|'  \
+        -e's|@forgroup[@]|'"$for_group"'|'     \
         $pconf.in >> $pconf
 else
     # Read the values from existing configuration file.
