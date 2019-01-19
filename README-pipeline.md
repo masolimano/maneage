@@ -309,7 +309,7 @@ depend on those values will be re-built. This is very convenient as your
 project scales up and gets more complex.
 
 The workhorse-Makefiles are those satisfying this wildcard
-`reproduce/src/make/*.mk'. They contain the details of the processing steps
+`reproduce/src/make/*.mk`. They contain the details of the processing steps
 (Makefiles containing rules). Therefore, in this phase *order is
 important*, because the prerequisites of most rules will be the targets of
 other rules that will be defined prior to them (not a fixed name like
@@ -348,7 +348,7 @@ which was also built by `./configure` (based on the `LOCAL.mk.in`
 template).
 
 The next non-commented set of lines define the ultimate target of the whole
-pipeline (`paper.pdf'). But a sanity check is necessary for situations when
+pipeline (`paper.pdf`). But a sanity check is necessary for situations when
 the user is not careful (for example has configured the pipeline for group
 access but forgets to run the pipeline with `./for-group`, or the
 opposite). Therefore we use a Make conditional to define the `all` target
@@ -934,7 +934,7 @@ future.
     GNU Make, GNU AWK and etc) it needs and sets `PATH` to prefer its own
     builds. It currently doesn't build and use its own version of
     lower-level tools (like the C library and compiler). We plan to add the
-    build steps of these low level tools so the system's `PATH' can be
+    build steps of these low level tools so the system's `PATH` can be
     completely ignored within the pipeline and we are in full control of
     the whole build process. Another solution is based on [an interesting
     tutorial](https://mozillafoundation.github.io/2017-fellows-sf/re-papers/index.html)
