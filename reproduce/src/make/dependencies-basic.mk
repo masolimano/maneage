@@ -358,11 +358,15 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
         # complaining that it can't find `libreadline'. Therefore, even
         # though we build readline below, we won't link Bash with an
         # external readline.
-ifeq ($(static_build),yes)
-	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link)
-else
-	$(call gbuild, $<, bash-$(bash-version))
-endif
+        #
+        # Bash has many `--enable' features which are already enabled by
+        # default. As described in the manual, they are mainly useful when
+        # you disable them all with `--enable-minimal-config' and enable a
+        # subset using the `--enable' options.
+	if [ "x$(static_build)" = xyes ]; then stopt="--enable-static-link";\
+	else                                   stopt="";                    \
+	fi;                                             \
+	$(call gbuild, $<, bash-$(bash-version),, --enable-rpath $$stopt )
 
         # To be generic, some systems use the `sh' command to call the
         # shell. By convention, `sh' is just a symbolic link to the

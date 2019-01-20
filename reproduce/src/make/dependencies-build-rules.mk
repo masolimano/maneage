@@ -53,7 +53,7 @@
 # NOTE: Unfortunately the configure script of `zlib' doesn't recognize
 # `SHELL'. So we'll have to remove it from the call to the configure
 # script.
-gbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
+gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then        \
 	   export LDFLAGS="$$LDFLAGS -static";                                \
 	 fi;                                                                  \
 	 check="$(6)";                                                        \
