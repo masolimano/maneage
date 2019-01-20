@@ -19,9 +19,8 @@
 # ------------------------------------------------------------------------
 #
 # Original author:
-#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Contributing author(s):
 #     Your name <your@email.address>
+# Contributing author(s):
 # Copyright (C) 2018-2019, Your Name.
 #
 # This Makefile is free software: you can redistribute it and/or modify it
@@ -149,10 +148,10 @@ $(tarballs): $(tdir)/%:
           elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
           elif [ $$n = mpc       ]; then w=http://ftpmirror.gnu.org/gnu/mpc;\
-	  elif [ $$n = ncurses   ]; then w=http://ftpmirror.gnu.org/gnu/ncurses;\
+          elif [ $$n = ncurses   ]; then w=http://ftpmirror.gnu.org/gnu/ncurses;\
           elif [ $$n = openssl   ]; then w=http://www.openssl.org/source;   \
           elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
-	  elif [ $$n = readline  ]; then w=http://ftpmirror.gnu.org/gnu/readline; \
+          elif [ $$n = readline  ]; then w=http://ftpmirror.gnu.org/gnu/readline; \
           elif [ $$n = sed       ]; then w=http://ftpmirror.gnu.org/gnu/sed;\
           elif [ $$n = tar       ]; then w=http://ftpmirror.gnu.org/gnu/tar;\
           elif [ $$n = wget      ]; then w=http://ftpmirror.gnu.org/gnu/wget;\
@@ -333,8 +332,143 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
         # See Tar's comments for the `-j' option.
 	$(call gbuild, $<, make-$(make-version), , , -j$(numthreads))
 
+# IMPORTANT: Even though we have enabled `rpath', Bash doesn't write the
+# absolute adddress of the libraries it depends on! Therefore, if we
+# configure Bash with `--with-installed-readline' (so the installed version
+# of Readline, that we build below as a prerequisite or AWK, is used) and
+# you run `ldd $(ibdir)/bash' on the resulting binary, it will say that it
+# is linking with the system's `readline'. But if you run that same command
+# within a rule in this reproduction pipeline, you'll see that it is indeed
+# linking with our own built readline.
+$(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
+               $(ibdir)/make
+
+        # Delete any possibly existing output
+	rm -f $@
+
+        # Build Bash. Note that we aren't building Bash with
+        # `--with-installed-readline'. This is because (as described above)
+        # Bash needs the `LD_LIBRARY_PATH' set properly before it is
+        # run. Within a recipe, things are fine (we do set
+        # `LD_LIBRARY_PATH'). However, Make will also call the shell
+        # outside of the recipe (for example in the `foreach' Make
+        # function!). In such cases, our new `LD_LIBRARY_PATH' is not set.
+        # This will cause a crash in the shell and thus the Makefile,
+        # complaining that it can't find `libreadline'. Therefore, even
+        # though we build readline below, we won't link Bash with an
+        # external readline.
+ifeq ($(static_build),yes)
+	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link)
+else
+	$(call gbuild, $<, bash-$(bash-version))
+endif
+
+        # To be generic, some systems use the `sh' command to call the
+        # shell. By convention, `sh' is just a symbolic link to the
+        # preferred shell executable. So we'll define `$(ibdir)/sh' as a
+        # symbolic link to the Bash that we just built and installed.
+        #
+        # Just to be sure that the installation step above went well,
+        # before making the link, we'll see if the file actually exists
+        # there.
+	if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; else exit 1; fi
+
+
+
+
+
+# Downloader
+# ----------
+#
+# Some programs (like Wget and CMake) that use zlib need it to be dynamic
+# so they use our custom build. So we won't force a static-only build.
+#
+# Note for a static-only build: Zlib's `./configure' doesn't use Autoconf's
+# configure script, it just accepts a direct `--static' option.
+$(idir)/etc:; mkdir $@
+$(ilidir): | $(ildir); mkdir $@
+$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
+                $(ibdir)/bash | $(ilidir)
+	$(call gbuild, $<, zlib-$(zlib-version)) && echo "Zlib is built" > $@
+
+# OpenSSL: Some programs/libraries later need dynamic linking. So we'll
+# build libssl (and libcrypto) dynamically also.
+#
+# Until we find a nice and generic way to create an updated CA file in the
+# pipeline, the certificates will be available in a file for this pipeline
+# along with the other tarballs.
+#
+# In case you do want a static OpenSSL and libcrypto, then uncomment the
+# following conditional and put $(openssl-static) in the configure options.
+#
+#ifeq ($(static_build),yes)
+#openssl-static = no-dso no-dynamic-engine no-shared
+#endif
+$(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
+                   $(tdir)/cert.pem                                  \
+                   $(ilidir)/zlib | $(idir)/etc
+        # According to OpenSSL's Wiki (link bellow), it can't automatically
+        # detect Mac OS's structure. It will need some help. So we'll use
+        # the `on_mac_os' Make variable that we defined in the configure
+        # script and help it with some extra configuration options and an
+        # environment variable.
+        #
+        # https://wiki.openssl.org/index.php/Compilation_and_Installation
+	if [ x$(on_mac_os) = xyes ]; then                            \
+	  export KERNEL_BITS=64;                                     \
+	  copt="shared no-ssl2 no-ssl3 enable-ec_nistp_64_gcc_128";  \
+	fi;                                                          \
+	$(call gbuild, $<, openssl-$(openssl-version), ,             \
+                       zlib                                          \
+	               $$copt                                        \
+                       $(rpath_command)                              \
+                       --openssldir=$(idir)/etc/ssl                  \
+	               --with-zlib-lib=$(ildir)                      \
+                       --with-zlib-include=$(idir)/include, , ,      \
+	               ./config ) &&                                 \
+	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem &&              \
+	echo "OpenSSL is built and ready" > $@
+
+# GNU Wget
+#
+# Note that on some systems (for example GNU/Linux) Wget needs to explicity
+# link with `libdl', but on others (for example Mac OS) it doesn't. We
+# check this at configure time and define the `needs_ldl' variable.
+#
+# Also note that since Wget needs to load outside libraries dynamically, it
+# gives a segmentation fault when built statically.
+#
+# There are many network related libraries that we are currently not
+# building as part of this pipeline. So to avoid too much dependency on the
+# host system (especially a crash when these libraries are updated on the
+# host), they are disabled here.
+$(ibdir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
+	       $(ibdir)/pkg-config                 \
+               $(ilidir)/openssl
+	libs="-pthread";                                          \
+	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi; \
+	$(call gbuild, $<, wget-$(wget-version), ,                \
+	               LIBS="$$LIBS $$libs"                       \
+	               --with-libssl-prefix=$(idir)               \
+	               --with-ssl=openssl                         \
+	               --with-openssl=yes                         \
+	               --without-metalink                         \
+	               --without-libuuid                          \
+	               --without-libpsl                           \
+	               --without-libidn                           \
+	               --disable-pcre2                            \
+	               --disable-pcre                             \
+	               --disable-iri )
+
+
+
+
+
+# Basic command-line programs necessary in build process of the
+# higher-level dependencies: Note that during the building of those
+# programs, there is no access to the system's PATH.
 $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
-                   $(ibdir)/make | $(ilidir)
+                   $(ibdir)/bash | $(ilidir)
 
         # Delete the library that will be installed (so we can make sure
         # the build process completed afterwards and reset the links).
@@ -419,131 +553,6 @@ $(ilidir)/readline: $(tdir)/readline-$(readline-version).tar.gz      \
 	                SHLIB_LIBS="-lncursesw" ) &&                 \
 	echo "GNU Readline is built and ready" > $@
 
-# IMPORTANT: Even though we have enabled `rpath', Bash doesn't write the
-# absolute adddress of the libraries it depends on. So if you run `ldd
-# $(ibdir)/bash' on the command-line, it will say that it is linking with
-# the system's `readline'. But if you run that same command within a rule
-# in this reproduction pipeline, you'll see that it is indeed linking with
-# our own built readline.
-$(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
-               $(ilidir)/readline
-
-        # Delete any possibly existing output
-	rm -f $@
-
-        # Build Bash.
-ifeq ($(static_build),yes)
-	$(call gbuild, $<, bash-$(bash-version), , --enable-static-link \
-	               --with-installed-readline=$(idir))
-else
-	$(call gbuild, $<, bash-$(bash-version), , \
-	               --with-installed-readline=$(idir))
-endif
-
-        # To be generic, some systems use the `sh' command to call the
-        # shell. By convention, `sh' is just a symbolic link to the
-        # preferred shell executable. So we'll define `$(ibdir)/sh' as a
-        # symbolic link to the Bash that we just built and installed.
-        #
-        # Just to be sure that the installation step above went well,
-        # before making the link, we'll see if the file actually exists
-        # there.
-	if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; else exit 1; fi
-
-
-
-
-
-# Downloader
-# ----------
-#
-# Some programs (like Wget and CMake) that use zlib need it to be dynamic
-# so they use our custom build. So we won't force a static-only build.
-#
-# Note for a static-only build: Zlib's `./configure' doesn't use Autoconf's
-# configure script, it just accepts a direct `--static' option.
-$(idir)/etc:; mkdir $@
-$(ilidir): | $(ildir); mkdir $@
-$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
-                $(ibdir)/bash
-	$(call gbuild, $<, zlib-$(zlib-version)) && echo "Zlib is built" > $@
-
-# OpenSSL: Some programs/libraries later need dynamic linking. So we'll
-# build libssl (and libcrypto) dynamically also.
-#
-# Until we find a nice and generic way to create an updated CA file in the
-# pipeline, the certificates will be available in a file for this pipeline
-# along with the other tarballs.
-#
-# In case you do want a static OpenSSL and libcrypto, then uncomment the
-# following conditional and put $(openssl-static) in the configure options.
-#
-#ifeq ($(static_build),yes)
-#openssl-static = no-dso no-dynamic-engine no-shared
-#endif
-$(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
-                   $(tdir)/cert.pem                                  \
-                   $(ilidir)/zlib | $(idir)/etc
-        # According to OpenSSL's Wiki (link bellow), it can't automatically
-        # detect Mac OS's structure. It will need some help. So we'll use
-        # the `on_mac_os' Make variable that we defined in the configure
-        # script and help it with some extra configuration options and an
-        # environment variable.
-        #
-        # https://wiki.openssl.org/index.php/Compilation_and_Installation
-	if [ x$(on_mac_os) = xyes ]; then                            \
-	  export KERNEL_BITS=64;                                     \
-	  copt="shared no-ssl2 no-ssl3 enable-ec_nistp_64_gcc_128";  \
-	fi;                                                          \
-	$(call gbuild, $<, openssl-$(openssl-version), ,             \
-                       zlib                                          \
-	               $$copt                                        \
-                       $(rpath_command)                              \
-                       --openssldir=$(idir)/etc/ssl                  \
-	               --with-zlib-lib=$(ildir)                      \
-                       --with-zlib-include=$(idir)/include, , ,      \
-	               ./config ) &&                                 \
-	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem &&              \
-	echo "OpenSSL is built and ready" > $@
-
-# GNU Wget
-#
-# Note that on some systems (for example GNU/Linux) Wget needs to explicity
-# link with `libdl', but on others (for example Mac OS) it doesn't. We
-# check this at configure time and define the `needs_ldl' variable.
-#
-# Also note that since Wget needs to load outside libraries dynamically, it
-# gives a segmentation fault when built statically.
-#
-# There are many network related libraries that we are currently not
-# building as part of this pipeline. So to avoid too much dependency on the
-# host system (especially a crash when these libraries are updated on the
-# host), they are disabled here.
-$(ibdir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
-	       $(ibdir)/pkg-config                 \
-               $(ilidir)/openssl
-	libs="-pthread";                                          \
-	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi; \
-	$(call gbuild, $<, wget-$(wget-version), ,                \
-	               LIBS="$$LIBS $$libs"                       \
-	               --with-libssl-prefix=$(idir)               \
-	               --with-ssl=openssl                         \
-	               --with-openssl=yes                         \
-	               --without-metalink                         \
-	               --without-libuuid                          \
-	               --without-libpsl                           \
-	               --without-libidn                           \
-	               --disable-pcre2                            \
-	               --disable-pcre                             \
-	               --disable-iri )
-
-
-
-
-
-# Basic command-line programs necessary in build process of the
-# higher-level dependencies: Note that during the building of those
-# programs, there is no access to the system's PATH.
 $(ibdir)/diff: $(tdir)/diffutils-$(diffutils-version).tar.xz \
                $(ibdir)/bash
 	$(call gbuild, $<, diffutils-$(diffutils-version), static)
@@ -553,7 +562,7 @@ $(ibdir)/find: $(tdir)/findutils-$(findutils-version).tar.lz \
 	$(call gbuild, $<, findutils-$(findutils-version), static)
 
 $(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
-	       $(ibdir)/bash
+	       $(ilidir)/readline
 	$(call gbuild, $<, gawk-$(gawk-version), static, \
 	               --with-readline=$(idir));
 
@@ -595,7 +604,7 @@ $(ibdir)/which: $(tdir)/which-$(which-version).tar.gz \
 # (CURRENTLY IGNORED) GCC prerequisites
 # -------------------------------------
 $(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
-               $(ibdir)/bash
+               $(ibdir)/bash | $(ilidir)
 	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
 	&& echo "GNU multiple precision arithmetic library is built" > $@
 
