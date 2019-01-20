@@ -394,17 +394,17 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
 	  cd "$(ildir)";                                                   \
 	  for lib in ncurses ncurses++ form panel menu; do                 \
 	    ln -fs lib$$lib"w".$$sov     lib$$lib.$$so;                    \
-	    ln -fs pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc;               \
+	    ln -fs $(ildir)/pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc;      \
 	  done;                                                            \
 	  for lib in tic tinfo; do                                         \
 	    ln -fs libncursesw.$$sov     lib$$lib.$$so;                    \
 	    ln -fs libncursesw.$$sov     lib$$lib.$$sov;                   \
-	    ln -fs pkgconfig/ncursesw.pc pkgconfig/$$lib.pc;               \
+	    ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/$$lib.pc;      \
 	  done;                                                            \
-	  ln -fs libncursesw.$$sov       libcurses.$$so;                   \
-	  ln -fs libncursesw.$$sov       libcursesw.$$sov;                 \
-	  ln -fs pkgconfig/ncursesw.pc   pkgconfig/curses.pc;              \
-	  ln -fs pkgconfig/ncursesw.pc   pkgconfig/cursesw.pc;             \
+	  ln -fs libncursesw.$$sov libcurses.$$so;                         \
+	  ln -fs libncursesw.$$sov libcursesw.$$sov;                       \
+	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/curses.pc;       \
+	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/cursesw.pc;      \
 	                                                                   \
 	  ln -fs $(idir)/include/ncursesw $(idir)/include/ncurses;         \
 	  echo "GNU ncurses is built and ready" > $@;                      \
