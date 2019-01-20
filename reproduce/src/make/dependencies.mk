@@ -215,7 +215,8 @@ $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ilidir)/libjpeg
-	$(call gbuild, $<, tiff-$(libtiff-version), static) \
+	$(call gbuild, $<, tiff-$(libtiff-version), static, \
+	               --disable-webp --disable-zstd) \
 	&& echo "Libtiff is built" > $@
 
 
