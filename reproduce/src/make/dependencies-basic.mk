@@ -19,8 +19,9 @@
 # ------------------------------------------------------------------------
 #
 # Original author:
-#     Your name <your@email.address>
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
+#     Your name <your@email.address>
 # Copyright (C) 2018-2019, Your Name.
 #
 # This Makefile is free software: you can redistribute it and/or modify it
