@@ -287,7 +287,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call lvcheck, fitsio.h, $(cfitsio-version), CFITSIO, cfitsioversion)
 	$(call lvcheck, gsl/gsl_version.h, $(gsl-version),  \
 	                GNU Scientific Library (GSL), gslversion)
-        ########## libjpeg not  yet checked.
 	$(call lvcheck, git2/version.h, $(libgit2-version), Libgit2, \
 	                libgitwoversion)
 	$(call lvcheck, openssl/opensslv.h, $(openssl-version), OpenSSL, \
@@ -301,6 +300,12 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call lvcheck, wcslib/wcsconfig.h, $(wcslib-version), WCSLIB, \
 	                wcslibversion)
 	$(call lvcheck, zlib.h, $(zlib-version), zlib, zlibversion)
+
+        # Problematic libraries:
+        # - libjpeg not  yet checked.
+        # - libbsd has no version string in its headers.
+	echo "\newcommand{\\libbsdversion}{$(libbsd-version)}"   >> $@
+	echo "\newcommand{\\libjpegversion}{$(libjpeg-version)}" >> $@
 
         # TeX package versions
 	cat $(BDIR)/dependencies/texlive-versions.tex >> $@

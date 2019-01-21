@@ -19,6 +19,7 @@ grep-version        = 3.3
 gzip-version        = 1.10
 isl-version         = 0.18
 libtool-version     = 2.4.6
+libbsd-version      = 0.9.1
 lzip-version        = 1.20
 make-version        = 4.2.90
 metastore-version   = 1.1.2

@@ -97,6 +97,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
 	                gsl-$(gsl-version).tar.gz                     \
                         install-tl-unx.tar.gz                         \
 	                jpegsrc.$(libjpeg-version).tar.gz             \
+	                libbsd-$(libbsd-version).tar.xz               \
                         libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
                         metastore-$(metastore-version).tar.gz         \
@@ -132,6 +133,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = gsl         ]; then w=http://ftpmirror.gnu.org/gnu/gsl
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
+	  elif [ $$n = libbsd      ]; then w=http://libbsd.freedesktop.org/releases
 	  elif [ $$n = libtool     ]; then w=http://ftpmirror.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
@@ -211,6 +213,10 @@ $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
+
+$(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz
+	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
+	&& echo "libbsd is built" > $@
 
 $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
@@ -351,6 +357,7 @@ $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
 # Metastore is used to keep file modification dates (and generally many
 # meta-data) within the Git history.
 $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
+                    $(ilidir)/libbsd                              \
                     $(ibdir)/git
         # Metastore doesn't have any `./configure' script. So we'll just
         # call `pwd' as a place-holder for the `./configure' command.
@@ -360,14 +367,18 @@ $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 
         # Write the relevant hooks into this system's Git hooks, so Git
         # calls metastore properly on every commit and every checkout.
+	cd $$current_dir
 	if [ -f $@ ]; then
-	  cd $$current_dir
 	  rm -f .git/hooks/pre-commit .git/hooks/post-checkout
 	  sed -e's|@BINDIR[@]|$(ibdir)|g' \
 	      reproduce/src/bash/git-pre-commit    > .git/hooks/pre-commit
 	  sed -e's|@BINDIR[@]|$(ibdir)|g' \
 	      reproduce/src/bash/git-post-checkout > .git/hooks/post-checkout
 	  chmod +x .git/hooks/pre-commit .git/hooks/post-checkout
+	else
+	  echo; echo; echo "Metastore couldn't be built on this system!"
+	  echo "Please contact mohammad@akhlaghi.org to try fixing the problem."
+	  echo; echo "But this is not a vital element of the pipeline. You "
 	fi
 
 # The order of dependencies is based on how long they take to build (how
