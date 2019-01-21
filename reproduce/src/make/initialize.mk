@@ -38,8 +38,6 @@ texdir      = $(BDIR)/tex
 srcdir      = reproduce/src
 lockdir     = $(BDIR)/locks
 indir       = $(BDIR)/inputs
-texbdir     = $(texdir)/build
-tikzdir     = $(texbdir)/tikz
 mtexdir     = $(texdir)/macros
 pconfdir    = reproduce/config/pipeline
 installdir  = $(BDIR)/dependencies/installed
@@ -50,8 +48,42 @@ gconfdir    = reproduce/config/gnuastro
 
 
 
-# System's environment
-# --------------------
+
+# TeX build directory
+# ------------------
+#
+# In scenarios where multiple users are working on the pipeline
+# simultaneously, they can't all build the final paper together, there will
+# be conflicts! It is possible to manage the working on the analysis, so no
+# conflict is caused in that phase, but it would be very slow to only let
+# one of the project members to build the paper at every instance
+# (independent parts of the paper can be added to it independently). To fix
+# this problem, when we are in a group setting, we'll use the user's ID to
+# create a separate LaTeX build directory for each user.
+#
+# The same logic applies to the final paper PDF: each user will create a
+# separte final PDF (for example `paper-user1.pdf' and `paper-user2.pdf')
+# and no `paper.pdf' will be built. This isn't a problem because
+# `initialize.tex' is a .PHONY prerequisite, so the rule to build the final
+# paper is always executed (even if it is present and nothing has
+# changed). So in terms of over-all efficiency and processing steps, this
+# doesn't change anything.
+ifeq ($(FOR-GROUP),yes)
+user        = $(shell whoami)
+texbdir     = $(texdir)/build-$(user)
+final-paper = paper-$(user).pdf
+else
+texbdir     = $(texdir)/build
+final-paper = paper.pdf
+endif
+tikzdir     = $(texbdir)/tikz
+
+
+
+
+
+# Original system environment
+# ---------------------------
 #
 # Before defining the local sub-environment here, we'll need to save the
 # system's environment for some scenarios (for example after `clean'ing the
@@ -59,6 +91,9 @@ gconfdir    = reproduce/config/gnuastro
 sys-path := $(PATH)
 sys-rm   := $(shell which rm)
 curdir   := $(shell echo $$(pwd))
+
+
+
 
 
 # High level environment
@@ -85,8 +120,8 @@ export CPPFLAGS        := -I$(installdir)/include
 
 
 
-# Make the high-level level directories
-# -------------------------------------
+# High-level level directories
+# ----------------------------
 #
 # These are just the top-level directories for all the separate steps. The
 # directories (or possible sub-directories) for individual steps will be
@@ -174,6 +209,7 @@ lvcheck = idir=$(BDIR)/dependencies/installed/include;                   \
 	    echo; exit 1;                                                \
 	  fi;                                                            \
 	  echo "\newcommand{\\$$macro}{$$ver}" >> $@
+
 
 
 

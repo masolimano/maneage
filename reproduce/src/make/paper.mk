@@ -135,6 +135,6 @@ paper.pdf: tex/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
           # Come back to the top pipeline directory and copy the built PDF
           # file here.
 	  cd $$p
-	  cp $(texbdir)/$@ $@
+	  cp $(texbdir)/$@ $(final-paper)
 
 	fi
