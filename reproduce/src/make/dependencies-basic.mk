@@ -114,6 +114,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         mpc-$(mpc-version).tar.gz                           \
                         ncurses-$(ncurses-version).tar.gz                   \
                         openssl-$(openssl-version).tar.gz                   \
+                        patchelf-$(patchelf-version).tar.gz                 \
                         pkg-config-$(pkgconfig-version).tar.gz              \
                         readline-$(readline-version).tar.gz                 \
                         sed-$(sed-version).tar.xz                           \
@@ -151,6 +152,7 @@ $(tarballs): $(tdir)/%:
           elif [ $$n = mpc       ]; then w=http://ftpmirror.gnu.org/gnu/mpc;\
           elif [ $$n = ncurses   ]; then w=http://ftpmirror.gnu.org/gnu/ncurses;\
           elif [ $$n = openssl   ]; then w=http://www.openssl.org/source;   \
+          elif [ $$n = patchelf  ]; then w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version); \
           elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
           elif [ $$n = readline  ]; then w=http://ftpmirror.gnu.org/gnu/readline; \
           elif [ $$n = sed       ]; then w=http://ftpmirror.gnu.org/gnu/sed;\
@@ -167,8 +169,8 @@ $(tarballs): $(tdir)/%:
           fi;                                                               \
 	                                                                    \
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*";               \
-	  else                           tarballurl=$$w;                    \
-	  fi;                                                               \
+          else                           tarballurl=$$w;                    \
+          fi;                                                               \
                                                                             \
 	  echo "Downloading $$tarballurl";                                  \
 	  if [ -f $(ibdir)/wget ]; then                                     \
@@ -333,6 +335,97 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
         # See Tar's comments for the `-j' option.
 	$(call gbuild, $<, make-$(make-version), , , -j$(numthreads))
 
+$(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
+                   $(ibdir)/make | $(ilidir)
+
+        # Delete the library that will be installed (so we can make sure
+        # the build process completed afterwards and reset the links).
+	rm -f $(ildir)/libncursesw*
+
+        # Standard build process.
+	$(call gbuild, $<, ncurses-$(ncurses-version), static,            \
+	               --with-shared --enable-rpath --without-normal      \
+	               --without-debug --with-cxx-binding                 \
+	               --with-cxx-shared --enable-widec --enable-pc-files \
+	               --with-pkg-config=$(ildir)/pkgconfig )
+
+        # Unfortunately there are many problems with `ncurses' using
+        # "normal" (or 8-bit) characters. The standard way that will work
+        # is to build it with wide character mode as you see above in the
+        # configuration (or the `w' prefix you see below). Also, most
+        # programs (and in particular Bash and AWK), first look for other
+        # (mostly obsolete) libraries like tinfo, which define the same
+        # symbols. The links below address both situations: we need to fool
+        # higher-level packages to find this library even if they aren't
+        # explicitly mentioning its name correctly (as a value to `-l' at
+        # link time in their configure scripts).
+        #
+        # This part is taken from the Arch Linux build script[1], then
+        # extended to Mac thanks to Homebrew's script [2].
+        #
+        # [1] https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/ncurses
+        # [2] https://github.com/Homebrew/homebrew-core/blob/master/Formula/ncurses.rb
+        #
+        # Since we can't have comments, in the connected script, here is a
+        # summary:
+        #
+        #   1. We find the actual suffix of the library, from the file that
+        #      is not a symbolic link (starting with `-' in the output of
+        #      `ls -l').
+        #
+        #   2. We make symbolic links to all the "ncurses", "ncurses++",
+        #      "form", "panel" and "menu" libraries to point to their
+        #      "wide" (character) library.
+        #
+        #   3. We make symbolic links to the "tic" and "tinfo" libraries to
+        #      point to the same `libncursesw' library.
+        #
+        #   4. Some programs link with "curses" (not "ncurses", notice the
+        #      starting "n"), so we'll also make links for these to point
+        #      to the `libncursesw' library.
+        #
+        #   5. A link is made to also be able to include files from the
+        #      `ncurses' headers.
+	if [ x$(on_mac_os) = xyes ]; then so="dylib"; else so="so"; fi;    \
+	if [ -f $(ildir)/libncursesw.$$so ]; then                          \
+	                                                                   \
+	  sov=$$(ls -l $(ildir)/libncursesw*                               \
+	               | awk '/^-/{print $$NF}'                            \
+	               | sed -e's|'$(ildir)/libncursesw.'||');             \
+	                                                                   \
+	  cd "$(ildir)";                                                   \
+	  for lib in ncurses ncurses++ form panel menu; do                 \
+	    ln -fs lib$$lib"w".$$sov     lib$$lib.$$so;                    \
+	    ln -fs $(ildir)/pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc;      \
+	  done;                                                            \
+	  for lib in tic tinfo; do                                         \
+	    ln -fs libncursesw.$$sov     lib$$lib.$$so;                    \
+	    ln -fs libncursesw.$$sov     lib$$lib.$$sov;                   \
+	    ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/$$lib.pc;      \
+	  done;                                                            \
+	  ln -fs libncursesw.$$sov libcurses.$$so;                         \
+	  ln -fs libncursesw.$$sov libcursesw.$$sov;                       \
+	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/curses.pc;       \
+	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/cursesw.pc;      \
+	                                                                   \
+	  ln -fs $(idir)/include/ncursesw $(idir)/include/ncurses;         \
+	  echo "GNU ncurses is built and ready" > $@;                      \
+	else                                                               \
+	  exit 1;                                                          \
+	fi
+
+$(ilidir)/readline: $(tdir)/readline-$(readline-version).tar.gz      \
+                    $(ilidir)/ncurses
+	$(call gbuild, $<, readline-$(readline-version), static,     \
+	                --with-curses --disable-install-examples,    \
+	                SHLIB_LIBS="-lncursesw" ) &&                 \
+	echo "GNU Readline is built and ready" > $@
+
+$(ibdir)/patchelf: $(tdir)/patchelf-$(patchelf-version).tar.gz \
+                   $(ibdir)/make
+	$(call gbuild, $<, patchelf-$(patchelf-version), static)
+
+
 # IMPORTANT: Even though we have enabled `rpath', Bash doesn't write the
 # absolute adddress of the libraries it depends on! Therefore, if we
 # configure Bash with `--with-installed-readline' (so the installed version
@@ -341,8 +434,14 @@ $(ibdir)/make: $(tdir)/make-$(make-version).tar.lz \
 # is linking with the system's `readline'. But if you run that same command
 # within a rule in this reproduction pipeline, you'll see that it is indeed
 # linking with our own built readline.
+ifeq ($(on_mac_os),yes)
+needpatchelf =
+else
+needpatchelf = $(ibdir)/patchelf
+endif
 $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
-               $(ibdir)/make
+               $(ilidir)/readline                  \
+               $(needpatchelf)
 
         # Delete any possibly existing output
 	rm -f $@
@@ -366,7 +465,12 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 	if [ "x$(static_build)" = xyes ]; then stopt="--enable-static-link";\
 	else                                   stopt="";                    \
 	fi;                                             \
-	$(call gbuild, $<, bash-$(bash-version),, --enable-rpath $$stopt )
+	$(call gbuild, $<, bash-$(bash-version),,       \
+	                   --with-installed-readline=$(ildir) $$stopt )
+
+        # Since Bash doesn't include RPATH by default, we'll have to
+        # manually include it using the `patchelf' program.
+	if [ -f $@ ]; then $(ibdir)/patchelf --set-rpath $(ildir) $@; fi
 
         # To be generic, some systems use the `sh' command to call the
         # shell. By convention, `sh' is just a symbolic link to the
@@ -376,7 +480,9 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
         # Just to be sure that the installation step above went well,
         # before making the link, we'll see if the file actually exists
         # there.
-	if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; else exit 1; fi
+	if [ "x$(needpatchelf)" != x ]; then                         \
+	  if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; else exit 1; fi; \
+	fi
 
 
 
@@ -472,92 +578,6 @@ $(ibdir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 # Basic command-line programs necessary in build process of the
 # higher-level dependencies: Note that during the building of those
 # programs, there is no access to the system's PATH.
-$(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
-                   $(ibdir)/bash | $(ilidir)
-
-        # Delete the library that will be installed (so we can make sure
-        # the build process completed afterwards and reset the links).
-	rm -f $(ildir)/libncursesw*
-
-        # Standard build process.
-	$(call gbuild, $<, ncurses-$(ncurses-version), static,            \
-	               --with-shared --enable-rpath --without-normal      \
-	               --without-debug --with-cxx-binding                 \
-	               --with-cxx-shared --enable-widec --enable-pc-files \
-	               --with-pkg-config=$(ildir)/pkgconfig )
-
-        # Unfortunately there are many problems with `ncurses' using
-        # "normal" (or 8-bit) characters. The standard way that will work
-        # is to build it with wide character mode as you see above in the
-        # configuration (or the `w' prefix you see below). Also, most
-        # programs (and in particular Bash and AWK), first look for other
-        # (mostly obsolete) libraries like tinfo, which define the same
-        # symbols. The links below address both situations: we need to fool
-        # higher-level packages to find this library even if they aren't
-        # explicitly mentioning its name correctly (as a value to `-l' at
-        # link time in their configure scripts).
-        #
-        # This part is taken from the Arch Linux build script[1], then
-        # extended to Mac thanks to Homebrew's script [2].
-        #
-        # [1] https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/ncurses
-        # [2] https://github.com/Homebrew/homebrew-core/blob/master/Formula/ncurses.rb
-        #
-        # Since we can't have comments, in the connected script, here is a
-        # summary:
-        #
-        #   1. We find the actual suffix of the library, from the file that
-        #      is not a symbolic link (starting with `-' in the output of
-        #      `ls -l').
-        #
-        #   2. We make symbolic links to all the "ncurses", "ncurses++",
-        #      "form", "panel" and "menu" libraries to point to their
-        #      "wide" (character) library.
-        #
-        #   3. We make symbolic links to the "tic" and "tinfo" libraries to
-        #      point to the same `libncursesw' library.
-        #
-        #   4. Some programs link with "curses" (not "ncurses", notice the
-        #      starting "n"), so we'll also make links for these to point
-        #      to the `libncursesw' library.
-        #
-        #   5. A link is made to also be able to include files from the
-        #      `ncurses' headers.
-	if [ x$(on_mac_os) = xyes ]; then so="dylib"; else so="so"; fi;    \
-	if [ -f $(ildir)/libncursesw.$$so ]; then                          \
-	                                                                   \
-	  sov=$$(ls -l $(ildir)/libncursesw*                               \
-	               | awk '/^-/{print $$NF}'                            \
-	               | sed -e's|'$(ildir)/libncursesw.'||');             \
-	                                                                   \
-	  cd "$(ildir)";                                                   \
-	  for lib in ncurses ncurses++ form panel menu; do                 \
-	    ln -fs lib$$lib"w".$$sov     lib$$lib.$$so;                    \
-	    ln -fs $(ildir)/pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc;      \
-	  done;                                                            \
-	  for lib in tic tinfo; do                                         \
-	    ln -fs libncursesw.$$sov     lib$$lib.$$so;                    \
-	    ln -fs libncursesw.$$sov     lib$$lib.$$sov;                   \
-	    ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/$$lib.pc;      \
-	  done;                                                            \
-	  ln -fs libncursesw.$$sov libcurses.$$so;                         \
-	  ln -fs libncursesw.$$sov libcursesw.$$sov;                       \
-	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/curses.pc;       \
-	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/cursesw.pc;      \
-	                                                                   \
-	  ln -fs $(idir)/include/ncursesw $(idir)/include/ncurses;         \
-	  echo "GNU ncurses is built and ready" > $@;                      \
-	else                                                               \
-	  exit 1;                                                          \
-	fi
-
-$(ilidir)/readline: $(tdir)/readline-$(readline-version).tar.gz      \
-                    $(ilidir)/ncurses
-	$(call gbuild, $<, readline-$(readline-version), static,     \
-	                --with-curses --disable-install-examples,    \
-	                SHLIB_LIBS="-lncursesw" ) &&                 \
-	echo "GNU Readline is built and ready" > $@
-
 $(ibdir)/diff: $(tdir)/diffutils-$(diffutils-version).tar.xz \
                $(ibdir)/bash
 	$(call gbuild, $<, diffutils-$(diffutils-version), static)
@@ -567,9 +587,20 @@ $(ibdir)/find: $(tdir)/findutils-$(findutils-version).tar.lz \
 	$(call gbuild, $<, findutils-$(findutils-version), static)
 
 $(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
-	       $(ilidir)/readline
+	       $(ibdir)/bash
 	$(call gbuild, $<, gawk-$(gawk-version), static, \
 	               --with-readline=$(idir));
+
+        # Since AWK doesn't include RPATH by default, we'll have to
+        # manually include it using the `patchelf' program. Just note that
+        # AWK produces two executables (for example `gawk-4.2.1' and
+        # `gawk') and a symbolic link `awk' to one of those executables.
+	if [ "x$(needpatchelf)" != x ]; then                                \
+	  if [ -f $@ ]; then $(ibdir)/patchelf --set-rpath $(ildir) $@; fi; \
+	  if [ -f $@-$(awk-version) ]; then                                 \
+	    $(ibdir)/patchelf --set-rpath $(ildir) $@-$(awk-version);       \
+	  fi;                                                               \
+	fi
 
 $(ibdir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
                $(ibdir)/bash
