@@ -21,6 +21,7 @@ isl-version         = 0.18
 libtool-version     = 2.4.6
 lzip-version        = 1.20
 make-version        = 4.2.90
+metastore-version   = 1.1.2
 mpfr-version        = 4.0.1
 mpc-version         = 1.1.0
 ncurses-version     = 6.1

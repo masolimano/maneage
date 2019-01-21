@@ -43,7 +43,7 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = astnoisechisel git flock
+top-level-programs = astnoisechisel metastore flock
 all: $(ddir)/texlive-versions.tex \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
@@ -97,9 +97,10 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
 	                gsl-$(gsl-version).tar.gz                     \
                         install-tl-unx.tar.gz                         \
 	                jpegsrc.$(libjpeg-version).tar.gz             \
-                        tiff-$(libtiff-version).tar.gz                \
                         libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
+                        metastore-$(metastore-version).tar.gz         \
+                        tiff-$(libtiff-version).tar.gz                \
 	                wcslib-$(wcslib-version).tar.bz2              \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
@@ -135,6 +136,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
+	  elif [ $$n = metastore   ]; then w=http://ftp.przemoc.net/pub/software/utils/metastore
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  else
@@ -346,6 +348,28 @@ $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
                        --without-tcltk --with-shell=$(ibdir)/bash, \
 	               V=1)
 
+# Metastore is used to keep file modification dates (and generally many
+# meta-data) within the Git history.
+$(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
+                    $(ibdir)/git
+        # Metastore doesn't have any `./configure' script. So we'll just
+        # call `pwd' as a place-holder for the `./configure' command.
+	current_dir=$$(pwd)
+	$(call gbuild, $<, metastore-$(metastore-version), static,,V=1,, \
+	               pwd, PREFIX=$(idir))
+
+        # Write the relevant hooks into this system's Git hooks, so Git
+        # calls metastore properly on every commit and every checkout.
+	if [ -f $@ ]; then
+	  cd $$current_dir
+	  rm -f .git/hooks/pre-commit .git/hooks/post-checkout
+	  sed -e's|@BINDIR[@]|$(ibdir)|g' \
+	      reproduce/src/bash/git-pre-commit    > .git/hooks/pre-commit
+	  sed -e's|@BINDIR[@]|$(ibdir)|g' \
+	      reproduce/src/bash/git-post-checkout > .git/hooks/post-checkout
+	  chmod +x .git/hooks/pre-commit .git/hooks/post-checkout
+	fi
+
 # The order of dependencies is based on how long they take to build (how
 # large they are): Libgit2 depends on CMake which takes a VERY long time to
 # build. Also, Ghostscript and GSL are relatively large packages. So when
@@ -360,14 +384,11 @@ $(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                          $(ilidir)/libtiff \
                          $(ilidir)/wcslib
 ifeq ($(static_build),yes)
-	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
-	               --enable-static=yes --enable-shared=no,       \
-	               -j$(numthreads), make check -j$(numthreads))
-else
-	$(call gbuild, $<, gnuastro-$(gnuastro-version), , ,         \
-	               -j$(numthreads), make check -j$(numthreads))
+	staticopts="--enable-static=yes --enable-shared=no";
 endif
-
+	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
+	               $$staticopts, -j$(numthreads),                \
+	               make check -j$(numthreads))
 
 
 

@@ -1,0 +1,30 @@
+#!.local/bin/bash
+#
+# The example hook script to store the metadata information of version
+# controlled files (with each commit) using the `metastore' program.
+#
+# This script is taken from the `examples/hooks/pre-commit' file of the
+# `metastore' package (installed within the pipeline, with an MIT
+# license). We have just changed the name of the `MSFILE' and also set
+# special characters for the installation location of meta-store so our own
+# installation is found by Git.
+
+MSFILE=".file-metadata"
+
+exit_on_fail() {
+	"$@"
+	if [ $? -ne 0 ]; then
+		echo "Failed to execute: $@" >&2
+		exit 1
+	fi
+}
+
+if [ ! -e "$MSFILE" ]; then
+	echo "\"$MSFILE\" missing" >&2
+	exit 1
+fi
+
+exit_on_fail \
+	@BINDIR@/metastore -a -m -e -E -q -f "$MSFILE"
+
+exit 0

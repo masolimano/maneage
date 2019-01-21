@@ -248,7 +248,8 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	                coreutilsversion)
 	$(call pvcheck, lzip, $(lzip-version), Lzip, lzipversion)
 	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
-
+	$(call pvcheck, metastore, $(metastore-version), Metastore,    \
+	                metastoreversion)
 	$(call pvcheck, pkg-config, $(pkgconfig-version), pkg-config,  \
 	                pkgconfigversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)

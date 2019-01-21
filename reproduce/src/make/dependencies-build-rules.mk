@@ -49,10 +49,15 @@
 #  5: Extra options/arguments to pass to Make.
 #  6: Step to run between `make' and `make install': usually `make check'.
 #  7: The configuration script (`configure' by default).
+#  8: Arguments for `make install'.
 #
 # NOTE: Unfortunately the configure script of `zlib' doesn't recognize
 # `SHELL'. So we'll have to remove it from the call to the configure
 # script.
+#
+# NOTE: A program might not contain any configure script. In this case,
+# we'll just pass a non-relevant function like `pwd'. So SED should be used
+# to modify `confscript' or to set `configop'.
 gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then        \
 	   export LDFLAGS="$$LDFLAGS -static";                                \
 	 fi;                                                                  \
@@ -67,19 +72,23 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then        \
 	 fi;                                                                  \
                                                                               \
 	 if   [ -f $(ibdir)/bash ]; then                                      \
-	   sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'                         \
-	       -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'                          \
-	       $$confscript > $$confscript-tmp;                               \
-	   mv $$confscript-tmp $$confscript;                                  \
-	   chmod +x $$confscript;                                             \
+	   if [ -f $$confscript ]; then                                       \
+	     sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'                       \
+	         -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'                        \
+	         $$confscript > $$confscript-tmp;                             \
+	     mv $$confscript-tmp $$confscript;                                \
+	     chmod +x $$confscript;                                           \
+	   fi;                                                                \
 	   shellop="SHELL=$(ibdir)/bash";                                     \
 	 elif [ -f /bin/bash ]; then shellop="SHELL=/bin/bash";               \
 	 else shellop="SHELL=/bin/sh";                                        \
 	 fi;                                                                  \
                                                                               \
-	 if [ x"$(strip $(2))" = x"zlib-$(zlib-version)" ]; then              \
-	    configop="--prefix=$(idir)";                                      \
-	 else configop="$$shellop --prefix=$(idir)";                          \
+	 if [ -f $$confscript ]; then                                         \
+	   if [ x"$(strip $(2))" = x"zlib-$(zlib-version)" ]; then            \
+	     configop="--prefix=$(idir)";                                     \
+	   else configop="$$shellop --prefix=$(idir)";                        \
+	   fi;                                                                \
 	 fi;                                                                  \
                                                                               \
 	 echo; echo "Using '$$confscript' to configure:"; echo;               \
@@ -87,7 +96,7 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then        \
 	 $$confscript $(4) $$configop  &&                                     \
 	 make "$$shellop" $(5) &&                                             \
 	 $$check &&                                                           \
-	 make "$$shellop" install &&                                          \
+	 make "$$shellop" install $(8) &&                                     \
 	 cd .. && rm -rf $(2)
 
 
