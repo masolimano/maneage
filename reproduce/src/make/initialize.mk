@@ -248,8 +248,8 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	                coreutilsversion)
 	$(call pvcheck, lzip, $(lzip-version), Lzip, lzipversion)
 	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
-#	$(call pvcheck, metastore, $(metastore-version), Metastore,    \
-#	                metastoreversion)
+	$(call pvcheck, metastore, $(metastore-version), Metastore,    \
+	                metastoreversion)
 	$(call pvcheck, pkg-config, $(pkgconfig-version), pkg-config,  \
 	                pkgconfigversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
@@ -257,11 +257,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	$(call pvcheck, wget, $(wget-version), GNU Wget, wgetversion)
 	$(call pvcheck, which, $(which-version), GNU Which, whichversion)
 	$(call pvcheck, xz, $(xz-version), XZ Utils, xzversion)
-
-        # We are currently using a temporary fork of meta-project and the
-        # version is not incoded in its output properly. So we won't check
-        # the result until/if its merged into the main project.
-	echo "\newcommand{\\metastoreversion}{$(metastore-version)}" >> $@
 
         # --------- Delete for no Gnuastro ---------
 	$(call pvcheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
