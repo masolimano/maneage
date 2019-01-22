@@ -25,6 +25,6 @@ if [ ! -e "$MSFILE" ]; then
 fi
 
 exit_on_fail \
-	@BINDIR@/metastore -a -m -e -E -q -f "$MSFILE"
+       @BINDIR@/metastore -a -m -e -E -q -O @USER@ -G @GROUP@ -f "$MSFILE"
 
 exit 0

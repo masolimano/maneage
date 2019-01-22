@@ -138,7 +138,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
-	  elif [ $$n = metastore   ]; then w=http://ftp.przemoc.net/pub/software/utils/metastore
+	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  else
@@ -359,26 +359,46 @@ $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
 $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
                     $(ilidir)/libbsd                              \
                     $(ibdir)/git
+
+        # The build command below will change the current directory of this
+        # build, so we'll fix its value here.
+	current_dir=$$(pwd)
+
         # Metastore doesn't have any `./configure' script. So we'll just
         # call `pwd' as a place-holder for the `./configure' command.
-	current_dir=$$(pwd)
-	$(call gbuild, $<, metastore-$(metastore-version), static,,V=1,, \
-	               pwd, PREFIX=$(idir))
+        #
+        # File attributes are also not available on some systems, since the
+        # main purpose here is modification dates (and not attributes),
+        # we'll also set the `NO_XATTR' flag.
+	$(call gbuild, $<, metastore-$(metastore-version), static,, \
+	               NO_XATTR=1 V=1,,pwd,PREFIX=$(idir))
 
         # Write the relevant hooks into this system's Git hooks, so Git
         # calls metastore properly on every commit and every checkout.
+        #
+        # Note that the -O and -G options used here are currently only in a
+        # fork of `metastore' currently hosted at:
+        # https://github.com/mohammad-akhlaghi/metastore
+	user=$$(whoami)
+	group=$$(groups $$user | awk '{print $$1}')
 	cd $$current_dir
 	if [ -f $@ ]; then
-	  rm -f .git/hooks/pre-commit .git/hooks/post-checkout
-	  sed -e's|@BINDIR[@]|$(ibdir)|g' \
-	      reproduce/src/bash/git-pre-commit    > .git/hooks/pre-commit
-	  sed -e's|@BINDIR[@]|$(ibdir)|g' \
-	      reproduce/src/bash/git-post-checkout > .git/hooks/post-checkout
-	  chmod +x .git/hooks/pre-commit .git/hooks/post-checkout
+	  for f in pre-commit post-checkout; do
+	    sed -e's|@USER[@]|'$$user'|g'    \
+	        -e's|@GROUP[@]|'$$group'|g'  \
+	        -e's|@BINDIR[@]|$(ibdir)|g'  \
+	        reproduce/src/bash/git-$$f > .git/hooks/$$f
+	    chmod +x .git/hooks/$$f
+	  done
 	else
-	  echo; echo; echo "Metastore couldn't be built on this system!"
-	  echo "Please contact mohammad@akhlaghi.org to try fixing the problem."
-	  echo; echo "But this is not a vital element of the pipeline. You "
+	  echo; echo; echo;
+	  echo "*****************"
+	  echo "metastore couldn't be installed!"
+	  echo
+	  echo "Its used for preserving timestamps on Git commits."
+	  echo "Its useful for development, not simple running of the pipeline."
+	  echo "So we won't stop the pipeline because it wasn't built."
+	  echo "*****************"
 	fi
 
 # The order of dependencies is based on how long they take to build (how
