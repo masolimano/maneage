@@ -468,9 +468,13 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 	$(call gbuild, $<, bash-$(bash-version),,       \
 	                   --with-installed-readline=$(ildir) $$stopt )
 
-        # Since Bash doesn't include RPATH by default, we'll have to
-        # manually include it using the `patchelf' program.
-	if [ -f $@ ]; then $(ibdir)/patchelf --set-rpath $(ildir) $@; fi
+        # Atleast on GNU/Linux systems, Bash doesn't include RPATH by
+        # default. So, we have to manually include it, currently we are
+        # only doing this on GNU/Linux systems (using the `patchelf'
+        # program).
+	if [ "x$(needpatchelf)" != x ]; then                               \
+	  if [ -f $@ ]; then $(ibdir)/patchelf --set-rpath $(ildir) $@; fi \
+	fi
 
         # To be generic, some systems use the `sh' command to call the
         # shell. By convention, `sh' is just a symbolic link to the
@@ -480,9 +484,7 @@ $(ibdir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
         # Just to be sure that the installation step above went well,
         # before making the link, we'll see if the file actually exists
         # there.
-	if [ "x$(needpatchelf)" != x ]; then                         \
-	  if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; else exit 1; fi; \
-	fi
+	if [ -f $@ ]; then ln -fs $@ $(ibdir)/sh; else exit 1; fi
 
 
 
@@ -588,6 +590,7 @@ $(ibdir)/find: $(tdir)/findutils-$(findutils-version).tar.lz \
 
 $(ibdir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
 	       $(ibdir)/bash
+        # Build the main program.
 	$(call gbuild, $<, gawk-$(gawk-version), static, \
 	               --with-readline=$(idir));
 
