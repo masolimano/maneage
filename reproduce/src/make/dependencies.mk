@@ -384,9 +384,10 @@ $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 	cd $$current_dir
 	if [ -f $@ ]; then
 	  for f in pre-commit post-checkout; do
-	    sed -e's|@USER[@]|'$$user'|g'    \
-	        -e's|@GROUP[@]|'$$group'|g'  \
-	        -e's|@BINDIR[@]|$(ibdir)|g'  \
+	    sed -e's|@USER[@]|'$$user'|g'                         \
+	        -e's|@GROUP[@]|'$$group'|g'                       \
+	        -e's|@BINDIR[@]|$(ibdir)|g'                       \
+	        -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g'       \
 	        reproduce/src/bash/git-$$f > .git/hooks/$$f
 	    chmod +x .git/hooks/$$f
 	  done
