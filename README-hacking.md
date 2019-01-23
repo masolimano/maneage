@@ -687,6 +687,22 @@ advanced in later stages of your work.
      $ git merge pipeline                  # Import all the work into master.
      ```
 
+ - **Adding this project to a fork of your pipeline**: As you and your
+     colleagues continue your project in this pipeline, it will be
+     necessary to have separate forks/clones of it. But when you clone your
+     own project on a different system, or a colleague clones it to
+     collaborate with you, the clone won't have the `pipeline-origin`
+     remote that you started the project with. As shown in the previous
+     point, you need this remote to be able to pull recent updates from
+     this pipeline. The steps below, will setup the `pipeline-origin`
+     remote, and a `pipeline` branch to track it, on the new clone.
+
+     ```shell
+     $ git remote add pipeline-origin https://gitlab.com/makhlaghi/reproducible-paper.git
+     $ git fetch pipeline-origin
+     $ git checkout --track pipeline-origin/pipeline
+     ```
+
  - **Pre-publication: add notice on reproducibility**: Add a notice
      somewhere prominent in the first page within your paper, informing the
      reader that your research is fully reproducible. For example in the
