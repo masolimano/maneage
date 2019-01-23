@@ -380,7 +380,7 @@ $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
         # fork of `metastore' currently hosted at:
         # https://github.com/mohammad-akhlaghi/metastore
 	user=$$(whoami)
-	group=$$(groups $$user | awk '{print $$1}')
+	group=$$(groups | awk '{print $$1}')
 	cd $$current_dir
 	if [ -f $@ ]; then
 	  for f in pre-commit post-checkout; do

@@ -1,4 +1,4 @@
-#!.local/bin/bash
+#!@BINDIR@/bash
 #
 # The example hook script to store the metadata information of version
 # controlled files (with each commit) using the `metastore' program.
