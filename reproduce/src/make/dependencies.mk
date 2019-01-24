@@ -354,10 +354,26 @@ $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
                        --without-tcltk --with-shell=$(ibdir)/bash, \
 	               V=1)
 
-# Metastore is used to keep file modification dates (and generally many
-# meta-data) within the Git history.
+# Metastore is used (through a Git hook) to restore the source modification
+# dates of files after a Git checkout. Another Git hook saves all file
+# metadata just before a commit (to allow restoration after a
+# checkout). Since this pipeline is managed in Makefiles, file modification
+# dates are critical to not having to redo the whole analysis after
+# checking out between branches.
+#
+# Note that we aren't using the standard version of Metastore, but a fork
+# of it that is maintained in this repository:
+#    https://gitlab.com/makhlaghi/metastore-fork
+#
+# Libbsd is not necessary on macOS systems, because macOS is already a
+# BSD-based distribution. But on GNU/Linux systems, it is necessary.
+ifeq ($(on_mac_os),yes)
+needlibbsd =
+else
+needlibbsd = $(ilidir)/libbsd
+endif
 $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
-                    $(ilidir)/libbsd                              \
+                    $(needlibbsd)                                 \
                     $(ibdir)/git
 
         # The build command below will change the current directory of this
