@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 #
 # Necessary preparations/configurations for the reproduction pipeline.
 #
