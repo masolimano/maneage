@@ -339,21 +339,21 @@ Make steps must be called with special conditions which are managed in the
 `for-group` file.
 
 Let's see how this design is implemented. When the `./configure` finishes,
-it makes a `Makefile` in the top directory. This Makefile is just a
-symbolic link to `reproduce/src/make/top.mk`. Please open and inspect it as
-we go along here. The first step (un-commented line) is to import the local
-configuration (answers to the questions `./configure` asked you). They are
-defined in the configuration-Makefile `reproduce/config/pipeline/LOCAL.mk`
-which was also built by `./configure` (based on the `LOCAL.mk.in`
-template).
+it a `Makefile` will be placed in the top directory. This `Makefile` is
+just a symbolic link to `reproduce/src/make/top.mk`. Please open and
+inspect it as we go along here. The first step (un-commented line) is to
+import the local configuration (answers to the questions `./configure`
+asked you). They are defined in the configuration-Makefile
+`reproduce/config/pipeline/LOCAL.mk` which was also built by `./configure`
+(based on the `LOCAL.mk.in` template).
 
 The next non-commented set of lines define the ultimate target of the whole
-pipeline (`paper.pdf`). But a sanity check is necessary for situations when
-the user is not careful (for example has configured the pipeline for group
-access but forgets to run the pipeline with `./for-group`, or the
-opposite). Therefore we use a Make conditional to define the `all` target
-based on the group permissions being consistent between the initial
-configuration and the current run.
+pipeline (`paper.pdf`). But to avoid mistakes, a sanity check is necessary
+to see if Make is being run with the same group settings as the configure
+script (for example when the pipeline is configured for group access using
+the `./for-group` script, but Make isn't). Therefore we use a Make
+conditional to define the `all` target based on the group permissions being
+consistent between the initial configuration and the current run.
 
 If there is a problem `all` will not depend on anything and will just print
 a warning to inform you of the problem. When the group conditions are fine,
@@ -620,14 +620,6 @@ advanced in later stages of your work.
      file. Therefore, make it as easy as possible for them to start
      with. Also check and update this file one last time when you are ready
      to publish your work (and its reproduction pipeline).
-
- - **`for-group`**: If you will be working on this pipeline with
-     colleagues, and the build steps involve many files, or are slow, you
-     need to share the build directory. This script is designed for such
-     scenarios. So open this file and give the name of the Unix name of
-     your group to the `thisgroup` variable. You can see the list of groups
-     you are a member of with the `groups` command. You can ask your system
-     administrator to define a group with specific members if necessary.
 
  - **Your first commit**: You have already made some small and basic
      changes in the steps above and you are in the `master` branch. So, you

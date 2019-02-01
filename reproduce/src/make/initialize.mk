@@ -68,13 +68,13 @@ gconfdir    = reproduce/config/gnuastro
 # paper is always executed (even if it is present and nothing has
 # changed). So in terms of over-all efficiency and processing steps, this
 # doesn't change anything.
-ifeq ($(FOR-GROUP),yes)
+ifeq (x$(GROUP-NAME),x)
+texbdir     = $(texdir)/build
+final-paper = paper.pdf
+else
 user        = $(shell whoami)
 texbdir     = $(texdir)/build-$(user)
 final-paper = paper-$(user).pdf
-else
-texbdir     = $(texdir)/build
-final-paper = paper.pdf
 endif
 tikzdir     = $(texbdir)/tikz
 

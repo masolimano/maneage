@@ -165,26 +165,27 @@ fi
 # Make sure the group permissions satisfy the previous configuration (if it
 # exists and we don't want to re-write it).
 if [ $rewritepconfig = no ]; then
-   oldforgroup=$(awk '/FOR-GROUP/ && c==0 {c=1; print $3}' $pconf)
-   if [ "x$oldforgroup" = xyes ]; then
-       if [ "x$reproducible_paper_for_group" = x ]; then
-           echo "-----------------------------"
-           echo "!!!!!!!!    ERROR    !!!!!!!!"
-           echo "-----------------------------"
-           echo "Previous pipeline was configured for groups."
-           echo "Either enable re-write, or use './for-group'."
-           exit 1
-       fi
-   else
-       if [ "x$reproducible_paper_for_group" = xyes ]; then
-           echo "-----------------------------"
-           echo "!!!!!!!!    ERROR    !!!!!!!!"
-           echo "-----------------------------"
-           echo "Previous pipeline was not configured for groups."
-           echo "Either enable re-write, or don't use './for-group'."
-           exit 1
-       fi
-   fi
+    oldgroupname=$(awk '/GROUP-NAME/ {print $3; exit 0}' $pconf)
+    if [ "x$oldgroupname" = "x$reproducible_paper_group_name" ]; then
+        just_a_place_holder_to_avoid_not_equal_test=1;
+    else
+        echo "-----------------------------"
+        echo "!!!!!!!!    ERROR    !!!!!!!!"
+        echo "-----------------------------"
+        if [ "x$oldgroupname" = x ]; then
+            status="NOT configured for groups"
+            confcommand="./configure"
+        else
+            status="configured for '$oldgroupname' group"
+            confcommand="./for-group $oldgroupname configure"
+        fi
+        echo "Previous pipeline was $status!"
+        echo "Either enable re-write of this configuration file,"
+        echo "or re-run this configuration like this:"
+        echo
+        echo "   $confcommand"; echo
+        exit 1
+    fi
 fi
 
 
@@ -408,19 +409,12 @@ if [ $rewritepconfig = yes ]; then
     # Make the pipeline configuration's initial comments.
     create_file_with_notice $pconf
 
-    # Fix the group settings.
-    if [ "x$reproducible_paper_for_group" = xyes ]; then
-        for_group=yes
-    else
-        for_group=no
-    fi
-
     # Write the values.
     sed -e's|@bdir[@]|'"$bdir"'|'              \
         -e's|@indir[@]|'"$indir"'|'            \
         -e's|@ddir[@]|'"$ddir"'|'              \
         -e's|@downloader[@]|'"$downloader"'|'  \
-        -e's|@forgroup[@]|'"$for_group"'|'     \
+        -e's|@groupname[@]|'"$reproducible_paper_group_name"'|' \
         $pconf.in >> $pconf
 else
     # Read the values from existing configuration file.
@@ -783,10 +777,10 @@ ln -s $(pwd)/reproduce/src/make/top.mk Makefile
 #
 # The configuration is now complete, we can inform the user on the next
 # step(s) to take.
-if [ x$reproducible_paper_for_group = xyes ]; then
-    buildcommand="./for-group make -j8"
-else
+if [ x$reproducible_paper_group_name = x ]; then
     buildcommand=".local/bin/make -j8"
+else
+    buildcommand="./for-group $reproducible_paper_group_name make -j8"
 fi
 cat <<EOF
 

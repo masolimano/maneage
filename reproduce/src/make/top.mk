@@ -39,24 +39,29 @@ include reproduce/config/pipeline/LOCAL.mk
 # configuration settings, necessary for a group building scenario mentioned
 # next).
 #
+#
 # Group build
 # -----------
 #
 # This pipeline can also be configured to have a shared build directory
 # between multiple users. In this scenario, many users (on a server) can
-# have their own/separate version controlled pipeline source of the
-# pipeline, but share the same build outputs (in a common directory). This
-# will allow a group to work separately, on parallel parts of the analysis.
-# It is thus very useful in cases were special storage requirements or CPU
-# power is necessary and its not possible/efficient for each user to have a
-# fully separate copy of the build directory.
+# have their own/separate version controlled pipeline source, but share the
+# same build outputs (in a common directory). This will allow a group to
+# work separately, on parallel parts of the analysis that don't
+# interfere. It is thus very useful in cases were special storage
+# requirements or CPU power is necessary and its not possible/efficient for
+# each user to have a fully separate copy of the build directory.
 #
-#   `FOR-GROUP': from `LOCAL.mk' (which was built by `./configure').
-#   `reproducible_paper_for_group': from the `./for-group' script.
+# Controlling this requires two variables that are available at this stage:
 #
-# The final paper is only built when both have a value of `yes', or when
-# `FOR-GROUP' is no and `./for-group' wasn't called (if `./for-group' is
-# called before `make', then `reproducible_paper_for_group==yes').
+#   - `GROUP-NAME': from `LOCAL.mk' (which was built by `./configure').
+#   - `reproducible_paper_group_name': from the `./for-group' script (if it
+#     was used to call Make).
+#
+# The analysis is only done when both have the same group name. Note that
+# when the pipeline isn't being built for a group, both variables will be
+# an empty string.
+#
 #
 # Only processing, no LaTeX PDF
 # -----------------------------
@@ -64,16 +69,16 @@ include reproduce/config/pipeline/LOCAL.mk
 # If you are just interested in the processing and don't want to build the
 # PDF, you can skip the creatation of the final PDF by removing the value
 # of `pdf-build-final' in `reproduce/config/pipeline/pdf-build.mk'.
-ifeq ($(good-group-configuration),yes)
+ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
 all: paper.pdf
 else
 all:
-	@if [ "x$(reproducible_paper_for_group)" = xyes ]; then     \
+	@if [ "x$(GROUP-NAME)" = x ]; then                          \
 	  echo "Pipeline is NOT configured for groups, please run"; \
 	  echo "   $$ .local/bin/make";                             \
 	else                                                        \
 	  echo "Pipeline is configured for groups, please run";     \
-	  echo "   $$ ./for-group make";                            \
+	  echo "   $$ ./for-group $(GROUP-NAME) make -j8";          \
 	fi
 endif
 
