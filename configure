@@ -783,6 +783,11 @@ ln -s $(pwd)/reproduce/src/make/top.mk Makefile
 #
 # The configuration is now complete, we can inform the user on the next
 # step(s) to take.
+if [ x$reproducible_paper_for_group = xyes ]; then
+    buildcommand="./for-group make -j8"
+else
+    buildcommand=".local/bin/make -j8"
+fi
 cat <<EOF
 
 ----------------
@@ -791,7 +796,7 @@ The reproduction pipeline and its environment are configured with no errors.
 Please run the following command to start.
 (Replace '8' with the number of CPU threads)
 
-    .local/bin/make -j8
+    $buildcommand
 
 To change the configuration later, please re-run './configure',
 DO NOT manually edit the relevant files.
