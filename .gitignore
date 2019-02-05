@@ -4,12 +4,16 @@
 *.log
 *.pdf
 *.out
+*.zip
 .nfs*
 mmap_*
+*.tar.gz
 *.auxlock
 
+.tex
 .local
 Makefile
+tex/tikz
 .gnuastro
 .texlive*
 LOCAL_tmp.mk

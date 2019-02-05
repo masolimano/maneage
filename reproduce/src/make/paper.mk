@@ -126,6 +126,12 @@ paper.pdf: tex/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
 	@macros=$$(cat tex/pipeline.tex)
 	if [ x"$$macros" != x ]; then
 
+          # If it doesn't exist, make the `tex/tikz' symbolic link
+          # directory. This is necessary for situations when we just want
+          # TeX to use built figures instead of actually building the
+          # figures.
+	  if [ ! -e tex/tikz ]; then ln -s $(tikzdir) tex/tikz; fi
+
           # Go into the top TeX build directory and make the paper.
 	  p=$$(pwd)
 	  export TEXINPUTS=$$p:$$TEXINPUTS

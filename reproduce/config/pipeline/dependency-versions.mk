@@ -32,9 +32,11 @@ pkgconfig-version   = 0.29.2
 readline-version    = 8.0
 sed-version         = 4.7
 tar-version         = 1.31
+unzip-version       = 6.0
 wget-version        = 1.20.1
 which-version       = 2.21
 xz-version          = 5.2.4
+zip-version         = 3.0
 
 # Libraries
 cfitsio-version     = 3.45

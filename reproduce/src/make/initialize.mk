@@ -158,10 +158,15 @@ $(mtexdir) $(texbdir): | $(texdir); mkdir $@
 # we want to ensure that the file is always built in every run: it contains
 # the pipeline version which may change between two separate runs, even
 # when no file actually differs.
-.PHONY: all clean distclean clean-mmap $(mtexdir)/initialize.tex
+packagebasename := $(shell echo paper-$$(git describe --dirty --always))
+packagecontents = $(texdir)/$(packagebasename)
+.PHONY: all clean distclean clean-mmap tarball zip $(packagecontents) \
+        $(mtexdir)/initialize.tex
+
 # --------- Delete for no Gnuastro ---------
 clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
 # ------------------------------------------
+
 clean: clean-mmap
         # Delete the top-level PDF file.
 	rm -f *.pdf
@@ -173,6 +178,7 @@ clean: clean-mmap
         # are using afterwards.
 	shopt -s extglob
 	rm -rf $(BDIR)/!(dependencies)
+
 distclean: clean
         # We'll be deleting the built environent programs and just need the
         # `rm' program. So for this recipe, we'll use the host system's
@@ -185,13 +191,75 @@ distclean: clean
 
 
 
+# Packaging rules
+# ---------------
+#
+# With the rules in this section, you can package the project in a state
+# that is ready for building the final PDF with LaTeX. This is useful for
+# collaborators who only want to contribute to the text of your project,
+# without having to worry about the technicalities of the analysis.
+$(packagecontents): | $(texdir)
+
+        # Set up the output directory, delete it if it exists and remake it
+        # to fill with new contents.
+	dir=$(texdir)/$(packagebasename)
+	rm -rf $$dir
+	mkdir $$dir
+
+        # Copy the top-level contents into it.
+	cp configure COPYING for-group README.md README-hacking.md $$dir/
+
+        # Since the tarball is mainly intended for high-level building of
+        # the PDF with LaTeX, we'll comment the `makepdf' LaTeX macro in
+        # the paper.
+	sed -e's|\\newcommand{\\makepdf}{}|%\\newcommand{\\makepdf}{}|' \
+	    paper.tex > $$dir/paper.tex
+
+        # Copy all the `reproduce' contents except for the `build' symbolic
+        # link.
+	shopt -s extglob
+	mkdir $$dir/reproduce $$dir/tex $$dir/tex/tikz
+	cp tex/*.tex             $$dir/tex
+	cp -r reproduce/!(build) $$dir/reproduce
+	cp tex/tikz/*.pdf        $$dir/tex/tikz
+
+        # PIPELINE SPECIFIC: add or remove any of the copied files above,
+        # specific to your pipeline here.
+
+        # Clean all temporary files.
+	cd $(texdir)
+	find $(packagebasename) -name \*~ -delete
+
+# Package into `.tar.gz'.
+tarball: $(packagecontents)
+	curdir=$$(pwd)
+	cd $(texdir)
+	tar -cf $(packagebasename).tar $(packagebasename)
+	gzip -f --best $(packagebasename).tar
+	cd $$curdir
+	mv $(texdir)/$(packagebasename).tar.gz ./
+
+# Package into `.zip'.
+zip: $(packagecontents)
+	curdir=$$(pwd)
+	cd $(texdir)
+	zip -q -r $(packagebasename).zip $(packagebasename)
+	cd $$curdir
+	mv $(texdir)/$(packagebasename).zip ./
+
+
+
+
+
 # Check the version of programs which write their version
 # -------------------------------------------------------
 pvcheck = prog="$(strip $(1))";                                          \
 	  ver="$(strip $(2))";                                           \
 	  name="$(strip $(3))";                                          \
 	  macro="$(strip $(4))";                                         \
-	  v=$$($$prog --version | awk '/'$$ver'/{print "y"; exit 0}');   \
+	  verop="$(strip $(5))";                                         \
+	  if [ "x$$verop" = x ]; then V="--version"; else V=$$verop; fi; \
+	  v=$$($$prog $$V | awk '/'$$ver'/{print "y"; exit 0}');         \
 	  if [ x$$v != xy ]; then                                        \
 	    echo; echo "PIPELINE ERROR: Not running $$name $$ver"; echo; \
 	    exit 1;                                                      \
@@ -228,7 +296,12 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\pipelineversion}{$$v}"  > $@
 	@echo "\newcommand{\bdir}{$(BDIR)}"       >> $@
 
-        # Versions of programs (same order as 'dependency-versions.mk').
+        # Versions of programs (same order as 'dependency-versions.mk'),
+        # ordered alphabetically (by their executable name).
+        # --------- Delete for no Gnuastro ---------
+	$(call pvcheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
+                        gnuastroversion)
+        # ------------------------------------------
 	$(call pvcheck, awk, $(gawk-version), GNU AWK, gawkversion)
 	$(call pvcheck, bash, $(bash-version), GNU Bash, bashversion)
 	$(call pvcheck, cmake, $(cmake-version), CMake, cmakeversion)
@@ -237,12 +310,12 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	                diffutilsversion)
 	$(call pvcheck, find, $(findutils-version), GNU Findutils,     \
 	                findutilsversion)
-	$(call pvcheck, gs, $(ghostscript-version), GPL Ghostscript,   \
-	                ghostscriptversion)
 	$(call pvcheck, git, $(git-version), Git, gitversion)
-	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
 	$(call pvcheck, glibtool, $(libtool-version), GNU Libtool,     \
 	                libtoolversion)
+	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
+	$(call pvcheck, gs, $(ghostscript-version), GPL Ghostscript,   \
+	                ghostscriptversion)
 	$(call pvcheck, gzip, $(gzip-version), GNU Gzip, gzipversion)
 	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
 	                coreutilsversion)
@@ -254,14 +327,11 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	                pkgconfigversion)
 	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
 	$(call pvcheck, tar, $(tar-version), GNU Tar, tarversion)
+	$(call pvcheck, unzip, $(unzip-version), Unzip, unzipversion, -v)
 	$(call pvcheck, wget, $(wget-version), GNU Wget, wgetversion)
 	$(call pvcheck, which, $(which-version), GNU Which, whichversion)
 	$(call pvcheck, xz, $(xz-version), XZ Utils, xzversion)
-
-        # --------- Delete for no Gnuastro ---------
-	$(call pvcheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
-                        gnuastroversion)
-        # ------------------------------------------
+	$(call pvcheck, zip, $(zip-version), Zip, zipversion, -v)
 
         # Bzip2 prints its version in standard error, not standard output!
 	echo "" | bzip2 --version &> $@_bzip2_ver;

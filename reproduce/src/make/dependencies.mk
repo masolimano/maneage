@@ -43,7 +43,7 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = astnoisechisel metastore flock
+top-level-programs = astnoisechisel metastore flock zip unzip
 all: $(ddir)/texlive-versions.tex \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
@@ -90,19 +90,21 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         cmake-$(cmake-version).tar.gz                 \
                         curl-$(curl-version).tar.gz                   \
-	                flock-$(flock-version).tar.xz                 \
-	                ghostscript-$(ghostscript-version).tar.gz     \
-	                git-$(git-version).tar.xz                     \
-	                gnuastro-$(gnuastro-version).tar.lz           \
-	                gsl-$(gsl-version).tar.gz                     \
+                        flock-$(flock-version).tar.xz                 \
+                        ghostscript-$(ghostscript-version).tar.gz     \
+                        git-$(git-version).tar.xz                     \
+                        gnuastro-$(gnuastro-version).tar.lz           \
+                        gsl-$(gsl-version).tar.gz                     \
                         install-tl-unx.tar.gz                         \
-	                jpegsrc.$(libjpeg-version).tar.gz             \
-	                libbsd-$(libbsd-version).tar.xz               \
+                        jpegsrc.$(libjpeg-version).tar.gz             \
+                        libbsd-$(libbsd-version).tar.xz               \
                         libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
                         metastore-$(metastore-version).tar.gz         \
+                        unzip-$(unzip-version).tar.gz                 \
                         tiff-$(libtiff-version).tar.gz                \
-	                wcslib-$(wcslib-version).tar.bz2              \
+                        zip-$(zip-version).tar.gz                     \
+                        wcslib-$(wcslib-version).tar.bz2              \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -140,7 +142,13 @@ $(tarballs): $(tdir)/%:
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
+	  elif [ $$n = unzip       ]; then w=ftp://ftp.info-zip.org/pub/infozip/src
+	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
+	    w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
+	  elif [ $$n = zip         ]; then
+	   mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//')
+	   w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -437,6 +445,23 @@ endif
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
 	               $$staticopts, -j$(numthreads),                \
 	               make check -j$(numthreads))
+
+$(ibdir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
+	v=$$(echo $(unzip-version) | sed -e's/\.//')
+	$(call gbuild, $<, unzip$$v, static,,          \
+	               -f unix/Makefile generic_gcc    \
+	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
+	               -f unix/Makefile                \
+	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 )
+
+$(ibdir)/zip: $(tdir)/zip-$(zip-version).tar.gz
+	v=$$(echo $(zip-version) | sed -e's/\.//')
+	$(call gbuild, $<, zip$$v, static,,            \
+	               -f unix/Makefile generic_gcc    \
+	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
+	               -f unix/Makefile                \
+	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 )
+
 
 
 
