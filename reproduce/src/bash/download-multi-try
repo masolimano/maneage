@@ -1,10 +1,10 @@
 #!.local/bin/bash
 #
 # Attempt downloading multiple times before crashing whole pipeline. From
-# the top paper directory (for the shebang above), this script must be run
-# like this:
+# the top project directory (for the shebang above), this script must be
+# run like this:
 #
-#   $ ./download-multi-try downloader lockfile input-url downloaded-name
+#   $ /path/to/download-multi-try downloader lockfile input-url downloaded-name
 #
 # Due to temporary network problems, a download may fail suddenly, but
 # succeed in a second try a few seconds later. Without this script that
