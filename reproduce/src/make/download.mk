@@ -52,6 +52,7 @@
 # process with a file and make sure that only one downloading event is in
 # progress at every moment.
 $(indir):; mkdir $@
+downloadwrapper = $(srcdir)/bash/download-multi-try.sh
 inputdatasets = $(foreach i, wfpc2, $(indir)/$(i).fits)
 $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 
@@ -68,8 +69,7 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	  ln -s $(INDIR)/$$origname $@
 	else
 	  touch $(lockdir)/download
-	  flock $(lockdir)/download bash -c \
-	        "if ! wget -O$@ $$url/$$origname; then rm -f $@; exit 1; fi"
+	  $(downloadwrapper) wget $(lockdir)/download $$url/$$origname $@
 	fi
 
         # Check the md5 sum to see if this is the proper dataset.
