@@ -52,7 +52,7 @@
 # process with a file and make sure that only one downloading event is in
 # progress at every moment.
 $(indir):; mkdir $@
-downloadwrapper = $(srcdir)/bash/download-multi-try.sh
+downloadwrapper = $(srcdir)/bash/download-multi-try
 inputdatasets = $(foreach i, wfpc2, $(indir)/$(i).fits)
 $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 

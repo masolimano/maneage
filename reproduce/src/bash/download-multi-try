@@ -1,6 +1,8 @@
 #!.local/bin/bash
 #
-# Try downloading multiple times before crashing whole pipeline
+# Attempt downloading multiple times before crashing whole pipeline. From
+# the top paper directory (for the shebang above), this script must be run
+# like this:
 #
 #   $ ./download-multi-try downloader lockfile input-url downloaded-name
 #
