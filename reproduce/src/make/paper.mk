@@ -25,17 +25,16 @@
 # LaTeX macros for paper
 # ----------------------
 #
-# To report the input settings and results, the final report's PDF
-# (final target of this reproduction pipeline) uses macros generated
-# from various steps of the pipeline. All these macros are defined in
-# `tex/pipeline.tex'.
+# To report the input settings and results, the final report's PDF (final
+# target of this reproduction pipeline) uses macros generated from various
+# steps of the pipeline. All these macros are defined in
+# `$(mtexdir)/pipeline.tex'.
 #
-# `tex/pipeline.tex' is actually just a combination of separate files
-# that keep the LaTeX macros related to each workhorse Makefile (in
-# `reproduce/src/make/*.mk'). Those individual macros are
-# pre-requisites to `tex/pipeline.tex'. The only workhorse Makefile
-# that doesn't need to produce LaTeX macros is this Makefile
-# (`reproduce/src/make/paper.mk').
+# `$(mtexdir)/pipeline.tex' is actually just a combination of separate
+# files that keep the LaTeX macros related to each workhorse Makefile (in
+# `reproduce/src/make/*.mk'). Those individual macros are pre-requisites to
+# `$(mtexdir)/pipeline.tex'. The only workhorse Makefile that doesn't need
+# to produce LaTeX macros is this Makefile (`reproduce/src/make/paper.mk').
 #
 # This file is thus the interface between the pipeline scripts and the
 # final PDF: when we get to this point, all the processing has been
@@ -44,13 +43,21 @@
 # Note that if you don't want the final PDF and just want the
 # processing and file outputs, you can remove the value of
 # `pdf-build-final' in `reproduce/config/pipeline/pdf-build.mk'.
-tex/pipeline.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s).tex)
+$(mtexdir)/pipeline.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s).tex)
 
         # If no PDF is requested, or if LaTeX isn't available, don't
         # continue to building the final PDF. Otherwise, merge all the TeX
         # macros into one for building the PDF.
 	@if [ -f .local/bin/pdflatex ] && [ x"$(pdf-build-final)" != x ]; then
-	  cat $(mtexdir)/*.tex > $@
+
+          # First make sure the `tex/pipeline' symbolic link exists.
+	  if [ ! -e tex/pipeline ]; then ln -s $(texdir) tex/pipeline; fi
+
+          # Put a LaTeX input command for all the necessary macro files.
+	  rm -f $(mtexdir)/pipeline.tex
+	  for t in $(subst paper,,$(makesrc)); do
+	    echo "\input{tex/pipeline/macros/$$t.tex}" >> $(mtexdir)/pipeline.tex
+	  done
 	else
 	  echo
 	  echo "-----"
@@ -86,15 +93,15 @@ tex/pipeline.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s).tex)
 # necessary bibliography before making the final paper. So we'll first have
 # one run of LaTeX (similar to the `paper.pdf' recipe), then `biber'.
 #
-# NOTE: `tex/pipeline.tex' is an order-only-prerequisite for
+# NOTE: `$(mtexdir)/pipeline.tex' is an order-only-prerequisite for
 # `paper.bbl'. This is because we need to run LaTeX in both the `paper.bbl'
-# recipe and the `paper.pdf' recipe. But if `tex/references.tex' hasn't
+# recipe and the `paper.pdf' recipe. But if `tex/src/references.tex' hasn't
 # been modified, we don't want to re-build the bibliography, only the final
 # PDF.
-$(texbdir)/paper.bbl: tex/references.tex                         \
-                      | $(tikzdir) $(texbdir) tex/pipeline.tex
-        # If `tex/pipeline.tex' is empty, then the PDF must not be built.
-	@macros=$$(cat tex/pipeline.tex)
+$(texbdir)/paper.bbl: tex/src/references.tex                         \
+                      | $(tikzdir) $(texbdir) $(mtexdir)/pipeline.tex
+        # If `$(mtexdir)/pipeline.tex' is empty, don't build PDF.
+	@macros=$$(cat $(mtexdir)/pipeline.tex)
 	if [ x"$$macros" != x ]; then
 
           # We'll run LaTeX first to generate the `.bcf' file (necessary
@@ -119,18 +126,12 @@ $(texbdir)/paper.bbl: tex/references.tex                         \
 # to run everything cleanly from there, it is necessary to add the current
 # directory (top reproduction pipeline directory) to the `TEXINPUTS'
 # environment variable.
-paper.pdf: tex/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
+paper.pdf: $(mtexdir)/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
 	   | $(tikzdir) $(texbdir)
 
-        # If `tex/pipeline.tex' is empty, then the PDF must not be built.
-	@macros=$$(cat tex/pipeline.tex)
+        # If `$(mtexdir)/pipeline.tex' is empty, don't build the PDF.
+	@macros=$$(cat $(mtexdir)/pipeline.tex)
 	if [ x"$$macros" != x ]; then
-
-          # If it doesn't exist, make the `tex/tikz' symbolic link
-          # directory. This is necessary for situations when we just want
-          # TeX to use built figures instead of actually building the
-          # figures.
-	  if [ ! -e tex/tikz ]; then ln -s $(tikzdir) tex/tikz; fi
 
           # Go into the top TeX build directory and make the paper.
 	  p=$$(pwd)

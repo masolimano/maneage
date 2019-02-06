@@ -16,10 +16,10 @@ Makefile
 tex/tikz
 .gnuastro
 .texlive*
+tex/pipeline
 LOCAL_tmp.mk
 LOCAL_old.mk
 reproduce/build
-tex/pipeline.tex
 gnuastro-local.conf
 reproduce/config/pipeline/LOCAL.mk
 

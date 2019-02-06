@@ -33,12 +33,12 @@
 %%    present in the location LaTeX is run).
 %%
 %%  - Use `\includetikz{XXXX}' to make/use the figure. If a `makepdf' LaTeX
-%%    macro is not defined, then it will simply assume a `XXXX.pdf' file
-%%    exists in the `\bdir/tex/build/tikz' directory and simply import
-%%    it. If `makepdf' is defined, then TiKZ/PGFPlot will be called to
-%%    (possibly) build the plot based on `tex/XXXX.tex'. Note that if the
-%%    contents of `tex/XXXX.tex' hasn't changed since the las
-%%    build. TiKZ/PGFPlots won't rebuild the plot.
+%%    macro is not defined, then \includetikz will assume a `XXXX.pdf' file
+%%    exists in `tex/tikz' and simply import it. If `makepdf' is defined,
+%%    then TiKZ/PGFPlot will be called to (possibly) build the plot based
+%%    on `tex/XXXX.tex'. Note that if the contents of `tex/src/XXXX.tex'
+%%    hasn't changed since the last build. TiKZ/PGFPlots won't rebuild the
+%%    plot.
 
 
 
@@ -69,7 +69,7 @@
 \newcommand{\includetikz}[1]{%
   \ifdefined\makepdf%
     \tikzsetnextfilename{#1}%
-    \input{tex/#1.tex}%
+    \input{tex/src/#1.tex}%
   \else
     \includegraphics[width=\linewidth]{tex/tikz/#1.pdf}
   \fi

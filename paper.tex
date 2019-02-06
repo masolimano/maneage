@@ -17,12 +17,11 @@
 %% Necessary LaTeX preambles to include for relevant functionality. We want
 %% to start this file as fast as possible with the actual body of the
 %% paper, while keeping modularity in the preambles.
-\input{tex/pipeline.tex}
-\input{tex/preamble-style.tex}
-\input{tex/preamble-header.tex}
-\input{tex/preamble-biblatex.tex}
-\input{tex/preamble-pgfplots.tex}
-\input{tex/preamble-necessary.tex}
+\input{tex/src/preamble-style.tex}
+\input{tex/src/preamble-header.tex}
+\input{tex/src/preamble-biblatex.tex}
+\input{tex/src/preamble-pgfplots.tex}
+\input{tex/src/preamble-necessary.tex}
 
 
 
@@ -75,10 +74,11 @@ Just don't forget to \emph{never} use numbers or fixed strings (for example
 database urls like \url{\wfpctwourl}) directly within your \LaTeX{}
 source. Read them directly from your configuration files or outputs of the
 programs as part of the reproduction pipeline and import them into \LaTeX{}
-as macros through the \texttt{tex/pipeline.tex} file. See the several
-examples within the pipeline for a demonstration. For some recent
-real-world examples, the reproduction pipelines for Sections 4 and 7.3 of
-\citet{bacon17} are available at
+as macros through the \texttt{tex/pipeline/macros/pipeline.tex} file
+(created after running the pipeline). See the several examples within the
+pipeline for a demonstration. For some recent real-world examples, the
+reproduction pipelines for Sections 4 and 7.3 of \citet{bacon17} are
+available at
 \href{https://doi.org/10.5281/zenodo.1164774}{zenodo.1164774}\footnote{\url{https://gitlab.com/makhlaghi/muse-udf-origin-only-hst-magnitudes}},
 or
 \href{https://doi.org/10.5281/zenodo.1163746}{zenodo.1163746}\footnote{\url{https://gitlab.com/makhlaghi/muse-udf-photometry-astrometry}}. Working

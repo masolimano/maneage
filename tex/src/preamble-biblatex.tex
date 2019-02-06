@@ -7,7 +7,7 @@
 %% just be copied there and used.
 %%
 %% USAGE:
-%%  - `tex/references.tex': the file containing Bibtex source of each
+%%  - `tex/src/references.tex': the file containing Bibtex source of each
 %%     reference. The file suffix doesn't have to be `.bib'. This naming
 %%     helps in clearly identifying the files and avoiding places that
 %%     complain about `.bib' files.
@@ -41,7 +41,7 @@
     backend=biber,natbib]{biblatex}
 \DeclareFieldFormat[article]{pages}{#1}
 \DeclareFieldFormat{pages}{\mkfirstpage[{\mkpageprefix[bookpagination]}]{#1}}
-\addbibresource{tex/references.tex}
+\addbibresource{tex/src/references.tex}
 \renewbibmacro{in:}{}
 \renewcommand*{\bibfont}{\footnotesize}
 \DefineBibliographyStrings{english}{references = {References}}

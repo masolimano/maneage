@@ -140,9 +140,9 @@ export CPPFLAGS        := -I$(installdir)/include
 # option: they add too many extra checks that make it hard to find what you
 # are looking for in this pipeline.
 .SUFFIXES:
-$(tikzdir): | $(texbdir); mkdir $@
 $(texdir) $(lockdir): | $(BDIR); mkdir $@
 $(mtexdir) $(texbdir): | $(texdir); mkdir $@
+$(tikzdir): | $(texbdir); mkdir $@ && ln -s $(tikzdir) tex/tikz
 
 
 
@@ -160,7 +160,7 @@ $(mtexdir) $(texbdir): | $(texdir); mkdir $@
 # when no file actually differs.
 packagebasename := $(shell echo paper-$$(git describe --dirty --always))
 packagecontents = $(texdir)/$(packagebasename)
-.PHONY: all clean distclean clean-mmap tarball zip $(packagecontents) \
+.PHONY: all clean dist dist-zip distclean clean-mmap $(packagecontents) \
         $(mtexdir)/initialize.tex
 
 # --------- Delete for no Gnuastro ---------
@@ -206,32 +206,67 @@ $(packagecontents): | $(texdir)
 	rm -rf $$dir
 	mkdir $$dir
 
+        # Build a small Makefile to help in automatizing the paper building
+        # (including the bibliography).
+	m=$$dir/Makefile
+	echo   "paper.pdf: paper.tex paper.bbl"                   > $$m
+	printf "\tpdflatex -shell-escape -halt-on-error paper\n" >> $$m
+	echo   "paper.bbl: tex/src/references.tex"               >> $$m
+	printf "\tpdflatex -shell-escape -halt-on-error paper\n" >> $$m
+	printf "\tbiber paper\n"                                 >> $$m
+	echo   ".PHONY: clean"                                   >> $$m
+	echo   "clean:"                                          >> $$m
+	printf "\trm -f *.aux *.auxlock *.bbl *.bcf\n"           >> $$m
+	printf "\trm -f *.blg *.log *.out *.run.xml\n"           >> $$m
+
         # Copy the top-level contents into it.
 	cp configure COPYING for-group README.md README-hacking.md $$dir/
 
-        # Since the tarball is mainly intended for high-level building of
+        # Build the top-level directories.
+	mkdir $$dir/reproduce $$dir/tex $$dir/tex/tikz $$dir/tex/pipeline
+
+        # Copy all the `reproduce' contents except for the `build' symbolic
+        # link.
+	shopt -s extglob
+	cp -r tex/src                            $$dir/tex/src
+	cp tex/tikz/*.pdf                        $$dir/tex/tikz
+	cp -r reproduce/!(build)                 $$dir/reproduce
+	cp -r tex/pipeline/!($(packagebasename)) $$dir/tex/pipeline
+
+        # Clean up un-necessary/local files: 1) the $(texdir)/build*
+        # directories (when building in a group structure, there will be
+        # `build-user1', `build-user2' and etc), are just temporary LaTeX
+        # build files and don't have any relevant/hand-written files in
+        # them. 2) The `LOCAL.mk' and `gnuastro-local.conf' files just have
+        # this machine's local settings and are irrelevant for anyone else.
+	rm -rf $$dir/tex/pipeline/build*
+	rm $$dir/reproduce/config/pipeline/LOCAL.mk
+	rm $$dir/reproduce/config/gnuastro/gnuastro-local.conf
+
+        # PIPELINE SPECIFIC: under this comment, copy any other file for
+        # packaging, or remove any of the copied files above to suite your
+        # project.
+
+        # Since the packaging is mainly intended for high-level building of
         # the PDF with LaTeX, we'll comment the `makepdf' LaTeX macro in
         # the paper.
 	sed -e's|\\newcommand{\\makepdf}{}|%\\newcommand{\\makepdf}{}|' \
 	    paper.tex > $$dir/paper.tex
 
-        # Copy all the `reproduce' contents except for the `build' symbolic
-        # link.
-	shopt -s extglob
-	mkdir $$dir/reproduce $$dir/tex $$dir/tex/tikz
-	cp tex/*.tex             $$dir/tex
-	cp -r reproduce/!(build) $$dir/reproduce
-	cp tex/tikz/*.pdf        $$dir/tex/tikz
+        # Just in case the package users want to rebuild some of the
+        # figures (manually un-comments the `makepdf' command we commented
+        # above), correct the TikZ external directory, so the figures can
+        # be rebuilt.
+	pgfsettings="$$dir/tex/src/preamble-pgfplots.tex"
+	sed -e's|{tikz/}|{tex/tikz/}|' $$pgfsettings > $$pgfsettings.new
+	mv $$pgfsettings.new $$pgfsettings
 
-        # PIPELINE SPECIFIC: add or remove any of the copied files above,
-        # specific to your pipeline here.
-
-        # Clean all temporary files.
+        # Clean temporary (currently those ending in `~') files.
 	cd $(texdir)
 	find $(packagebasename) -name \*~ -delete
 
 # Package into `.tar.gz'.
-tarball: $(packagecontents)
+dist: $(packagecontents)
 	curdir=$$(pwd)
 	cd $(texdir)
 	tar -cf $(packagebasename).tar $(packagebasename)
@@ -240,7 +275,7 @@ tarball: $(packagecontents)
 	mv $(texdir)/$(packagebasename).tar.gz ./
 
 # Package into `.zip'.
-zip: $(packagecontents)
+dist-zip: $(packagecontents)
 	curdir=$$(pwd)
 	cd $(texdir)
 	zip -q -r $(packagebasename).zip $(packagebasename)
@@ -294,7 +329,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
         # Version of the pipeline and build directory (for LaTeX inputs).
 	@v=$$(git describe --dirty --always);
 	echo "\newcommand{\pipelineversion}{$$v}"  > $@
-	@echo "\newcommand{\bdir}{$(BDIR)}"       >> $@
 
         # Versions of programs (same order as 'dependency-versions.mk'),
         # ordered alphabetically (by their executable name).

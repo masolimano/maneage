@@ -388,20 +388,13 @@ possible.
 The `reproduce/src/make/paper.mk` Makefile must be the final Makefile that
 is included. It ends with the rule to build `paper.pdf` (final target of
 the whole reproduction pipeline). If look in it, you will notice that it
-starts with a rule to create `tex/pipeline.tex`. `tex/pipeline.tex` is the
-connection between the processing/analysis steps of the pipeline, and the
-steps to build the final PDF. As you see, `tex/pipeline.tex` is only a
-merging/concatenation of LaTeX macros defined as the output of each
-high-level processing step (the separate work-horse Makefiles that you
-included).
-
-One of the LaTeX macros created by `reproduce/src/make/initialize.mk` is
-`\bdir`. It is the location of the build directory. In some cases you want
-tables and images to also be included in the final PDF. To keep these
-necessary LaTeX inputs, you can define other directories under
-`$(BDIR)/tex` in the relevant workhorse-Makefile. You can then easily guide
-LaTeX to look into the proper directory to import an image for example
-through the `\bdir` macro.
+starts with a rule to create `$(mtexdir)/pipeline.tex` (`mtexdir` is just a
+shorthand name for `$(BDIR)/tex/macros` mentioned before).
+`$(mtexdir)/pipeline.tex` is the connection between the processing/analysis
+steps of the pipeline, and the steps to build the final PDF. As you see,
+`$(mtexdir)/pipeline.tex` only instruct LaTeX to import the LaTeX macros of
+each high-level processing step during the analysis (the separate
+work-horse Makefiles that you defined and included).
 
 During the research, it often happens that you want to test a step that is
 not a prerequisite of any higher-level operation. In such cases, you can
@@ -446,9 +439,9 @@ mind are listed below.
    the variable defined in it.
 
  - Through any number of intermediate prerequisites, all processing steps
-   should end in (be a prerequisite of) `tex/pipeline.tex` (defined in
-   `reproduce/src/make/paper.mk`). `tex/pipeline.tex` is the bridge between
-   the processing steps and PDF-building steps.
+   should end in (be a prerequisite of) `$(mtexdir)/pipeline.tex` (defined
+   in `reproduce/src/make/paper.mk`). `$(mtexdir)/pipeline.tex` is the
+   bridge between the processing steps and PDF-building steps.
 
 
 
