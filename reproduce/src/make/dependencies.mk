@@ -41,10 +41,13 @@ idir   = $(BDIR)/dependencies/installed
 ibdir  = $(BDIR)/dependencies/installed/bin
 ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
+pydir  = $(BDIR)/dependencies/installed/lib/python
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = astnoisechisel metastore flock python3 unzip zip
-all: $(ddir)/texlive-versions.tex \
+top-level-python   = numpy
+top-level-programs = astnoisechisel metastore flock zip
+all: $(ddir)/texlive-versions.tex                       \
+     $(foreach p, $(top-level-python),   $(pydir)/$(p)) \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings: We are only including the host
@@ -101,6 +104,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
                         metastore-$(metastore-version).tar.gz         \
+                        numpy-$(numpy-version).zip                    \
                         python-$(python-version).tar.gz               \
                         unzip-$(unzip-version).tar.gz                 \
                         tiff-$(libtiff-version).tar.gz                \
@@ -142,6 +146,7 @@ $(tarballs): $(tdir)/%:
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = numpy       ]; then w=https://fossies.org/linux/misc
 	  elif [ $$n = python      ]; then
 	    mergenames=0
 	    w=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
@@ -451,7 +456,10 @@ endif
 	               make check -j$(numthreads))
 
 $(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
-	$(call gbuild, $<, python-$(python-version))
+	$(call gbuild, $<, python-$(python-version))        \
+	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
+            {printf "%d.%d\n", $$1, $$2}')              \
+    && ln -s $(ildir)/python$$v $(ildir)/python
 
 $(ibdir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
 	v=$$(echo $(unzip-version) | sed -e's/\.//')
@@ -470,6 +478,15 @@ $(ibdir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 )
 
 
+
+
+
+# Python packages
+# ---------------
+$(pydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
+                $(ibdir)/python3                   \
+                $(ibdir)/unzip
+	pip3 install $< --verbose
 
 
 
