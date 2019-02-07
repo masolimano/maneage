@@ -29,6 +29,7 @@ ncurses-version     = 6.1
 openssl-version     = 1.1.1a
 patchelf-version    = 0.9
 pkgconfig-version   = 0.29.2
+python-version      = 3.6.8
 readline-version    = 8.0
 sed-version         = 4.7
 tar-version         = 1.31

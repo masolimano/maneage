@@ -11,6 +11,7 @@ mmap_*
 *.auxlock
 
 .tex
+build
 .local
 Makefile
 tex/tikz

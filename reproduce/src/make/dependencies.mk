@@ -43,7 +43,7 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = astnoisechisel metastore flock zip unzip
+top-level-programs = astnoisechisel metastore flock python3 unzip zip
 all: $(ddir)/texlive-versions.tex \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
@@ -101,6 +101,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         libtool-$(libtool-version).tar.xz             \
                         libgit2-$(libgit2-version).tar.gz             \
                         metastore-$(metastore-version).tar.gz         \
+                        python-$(python-version).tar.gz               \
                         unzip-$(unzip-version).tar.gz                 \
                         tiff-$(libtiff-version).tar.gz                \
                         zip-$(zip-version).tar.gz                     \
@@ -141,6 +142,9 @@ $(tarballs): $(tdir)/%:
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = python      ]; then
+	    mergenames=0
+	    w=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = unzip       ]; then w=ftp://ftp.info-zip.org/pub/infozip/src
 	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
@@ -445,6 +449,9 @@ endif
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
 	               $$staticopts, -j$(numthreads),                \
 	               make check -j$(numthreads))
+
+$(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
+	$(call gbuild, $<, python-$(python-version))
 
 $(ibdir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
 	v=$$(echo $(unzip-version) | sed -e's/\.//')
