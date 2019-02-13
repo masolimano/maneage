@@ -103,8 +103,8 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
                         metastore-$(metastore-version).tar.gz         \
                         unzip-$(unzip-version).tar.gz                 \
                         tiff-$(libtiff-version).tar.gz                \
-                        zip-$(zip-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2              \
+                        zip-$(zip-version).tar.gz                     \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -147,8 +147,8 @@ $(tarballs): $(tdir)/%:
 	    w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  elif [ $$n = zip         ]; then
-	   mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//')
-	   w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz
+	    mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//')
+	    w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
