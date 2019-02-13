@@ -5,6 +5,7 @@
 *.pdf
 *.out
 *.zip
+*.swp
 .nfs*
 mmap_*
 *.tar.gz

@@ -316,7 +316,6 @@ lvcheck = idir=$(BDIR)/dependencies/installed/include;                   \
 
 
 
-
 # Pipeline initialization results
 # -------------------------------
 #
@@ -413,3 +412,9 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # TeX package versions
 	cat $(BDIR)/dependencies/texlive-versions.tex >> $@
+
+	# Python packages
+	$(call pvcheck, python3, $(python-version), Python, pythonversion)
+	echo "\newcommand{\\numpyversion}{$(numpy-version)}"     >> $@
+	echo "\newcommand{\\astropyversion}{$(astropy-version)}" >> $@
+

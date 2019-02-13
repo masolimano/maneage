@@ -103,6 +103,22 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then        \
 
 
 
+# Python
+# ------
+#
+# To build Python packages with direct access to a `setup.py' (if no direct
+# access to `setup.py' is needed, pip can be used)
+pybuild = cd $(ddir); rm -rf $(2);                                        \
+	 if ! tar xf $(1); then echo; echo "Tar error"; exit 1; fi;           \
+	 cd $(2);                                                             \
+	 python3 setup.py build &&                                            \
+	 python3 setup.py install &&                                          \
+	 cd .. && rm -rf $(2)
+
+
+
+
+
 # CMake
 # -----
 #

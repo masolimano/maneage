@@ -41,13 +41,12 @@ idir   = $(BDIR)/dependencies/installed
 ibdir  = $(BDIR)/dependencies/installed/bin
 ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
-pydir  = $(BDIR)/dependencies/installed/lib/python
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-python   = numpy
-top-level-programs = astnoisechisel metastore flock zip
+top-level-python   = astropy
+top-level-programs = astnoisechisel metastore flock unzip zip
 all: $(ddir)/texlive-versions.tex                       \
-     $(foreach p, $(top-level-python),   $(pydir)/$(p)) \
+     $(foreach p, $(top-level-python),   $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings: We are only including the host
@@ -90,26 +89,27 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz             \
-                        cmake-$(cmake-version).tar.gz                 \
-                        curl-$(curl-version).tar.gz                   \
-                        flock-$(flock-version).tar.xz                 \
-                        ghostscript-$(ghostscript-version).tar.gz     \
-                        git-$(git-version).tar.xz                     \
-                        gnuastro-$(gnuastro-version).tar.lz           \
-                        gsl-$(gsl-version).tar.gz                     \
-                        install-tl-unx.tar.gz                         \
-                        jpegsrc.$(libjpeg-version).tar.gz             \
-                        libbsd-$(libbsd-version).tar.xz               \
-                        libtool-$(libtool-version).tar.xz             \
-                        libgit2-$(libgit2-version).tar.gz             \
-                        metastore-$(metastore-version).tar.gz         \
-                        numpy-$(numpy-version).zip                    \
-                        python-$(python-version).tar.gz               \
-                        unzip-$(unzip-version).tar.gz                 \
-                        tiff-$(libtiff-version).tar.gz                \
-                        zip-$(zip-version).tar.gz                     \
-                        wcslib-$(wcslib-version).tar.bz2              \
+tarballs = $(foreach t, astropy-$(astropy-version).tar.gz                  \
+                        cfitsio-$(cfitsio-version).tar.gz                  \
+                        cmake-$(cmake-version).tar.gz                      \
+                        curl-$(curl-version).tar.gz                        \
+                        flock-$(flock-version).tar.xz                      \
+                        ghostscript-$(ghostscript-version).tar.gz          \
+                        git-$(git-version).tar.xz                          \
+                        gnuastro-$(gnuastro-version).tar.lz                \
+                        gsl-$(gsl-version).tar.gz                          \
+                        install-tl-unx.tar.gz                              \
+                        jpegsrc.$(libjpeg-version).tar.gz                  \
+                        libbsd-$(libbsd-version).tar.xz                    \
+                        libtool-$(libtool-version).tar.xz                  \
+                        libgit2-$(libgit2-version).tar.gz                  \
+                        metastore-$(metastore-version).tar.gz              \
+                        numpy-$(numpy-version).zip                         \
+                        python-$(python-version).tar.gz                    \
+                        unzip-$(unzip-version).tar.gz                      \
+                        tiff-$(libtiff-version).tar.gz                     \
+                        zip-$(zip-version).tar.gz                          \
+                        wcslib-$(wcslib-version).tar.bz2                   \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -122,7 +122,8 @@ $(tarballs): $(tdir)/%:
 
           # Set the top download link of the requested tarball.
 	  mergenames=1
-	  if [ $$n = cfitsio     ]; then
+	  if   [ $$n = astropy     ]; then w=https://files.pythonhosted.org/packages/eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352
+	  elif [ $$n = cfitsio     ]; then
 	    mergenames=0
 	    v=$$(echo $(cfitsio-version) | sed -e's/\.//'             \
 	              | awk '{l=length($$1);                          \
@@ -146,7 +147,7 @@ $(tarballs): $(tdir)/%:
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = numpy       ]; then w=https://fossies.org/linux/misc
+	  elif [ $$n = numpy       ]; then w=https://files.pythonhosted.org/packages/2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c
 	  elif [ $$n = python      ]; then
 	    mergenames=0
 	    w=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
@@ -483,10 +484,15 @@ $(ibdir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 
 # Python packages
 # ---------------
-$(pydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
-                $(ibdir)/python3                   \
-                $(ibdir)/unzip
-	pip3 install $< --verbose
+$(ilidir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
+                 $(ibdir)/python3
+	pip3 install $< --verbose && echo "numpy is built" > $@
+
+$(ilidir)/astropy: $(tdir)/astropy-$(astropy-version).tar.gz \
+                   $(ilidir)/numpy
+	pip3 install $< --verbose && echo "astropy is built" > $@
+
+
 
 
 
