@@ -52,8 +52,25 @@ zlib-version               = 1.2.11
 #
 # IMPORTANT: Fix url in `reproduce/src/make/dependencies.mk'
 # if changing the version
+astroquery-version         = 0.3.9
 astropy-version            = 3.1.1
+beautifulsoup4-version     = 4.7.1
+certifi-version            = 2018.11.29
+chardet-version            = 3.0.4
+entrypoints-version        = 0.3
+html5lib-version           = 1.0.1
+idna-version               = 2.8
+keyring-version            = 18.0.0
 numpy-version              = 1.16.1
+pip-version                = 19.0.2
+requests-version           = 2.21.0
+setuptools-version         = 40.8.0
+setuptools_scm-version     = 3.2.0
+six-version                = 1.12.0
+soupsieve-version          = 1.8
+urllib3-version            = 1.24.1
+virtualenv-version         = 16.4.0
+webencodings-version       = 0.5.1
 
 # Special libraries
 # -----------------

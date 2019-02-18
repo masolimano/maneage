@@ -43,10 +43,8 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-python   = astropy
-top-level-programs = astnoisechisel metastore flock unzip zip
+top-level-programs = astnoisechisel flock metastore unzip zip
 all: $(ddir)/texlive-versions.tex                       \
-     $(foreach p, $(top-level-python),   $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 # Other basic environment settings: We are only including the host
@@ -89,8 +87,7 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, astropy-$(astropy-version).tar.gz                  \
-                        cfitsio-$(cfitsio-version).tar.gz                  \
+tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         flock-$(flock-version).tar.xz                      \
@@ -104,8 +101,6 @@ tarballs = $(foreach t, astropy-$(astropy-version).tar.gz                  \
                         libtool-$(libtool-version).tar.xz                  \
                         libgit2-$(libgit2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
-                        numpy-$(numpy-version).zip                         \
-                        python-$(python-version).tar.gz                    \
                         unzip-$(unzip-version).tar.gz                      \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
@@ -122,8 +117,7 @@ $(tarballs): $(tdir)/%:
 
           # Set the top download link of the requested tarball.
 	  mergenames=1
-	  if   [ $$n = astropy     ]; then w=https://files.pythonhosted.org/packages/eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352
-	  elif [ $$n = cfitsio     ]; then
+	  if [ $$n = cfitsio     ]; then
 	    mergenames=0
 	    v=$$(echo $(cfitsio-version) | sed -e's/\.//'             \
 	              | awk '{l=length($$1);                          \
@@ -147,10 +141,6 @@ $(tarballs): $(tdir)/%:
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = numpy       ]; then w=https://files.pythonhosted.org/packages/2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c
-	  elif [ $$n = python      ]; then
-	    mergenames=0
-	    w=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = unzip       ]; then w=ftp://ftp.info-zip.org/pub/infozip/src
 	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
@@ -456,12 +446,6 @@ endif
 	               $$staticopts, -j$(numthreads),                \
 	               make check -j$(numthreads))
 
-$(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
-	$(call gbuild, $<, Python-$(python-version))        \
-	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
-            {printf "%d.%d\n", $$1, $$2}')              \
-    && ln -s $(ildir)/python$$v $(ildir)/python
-
 $(ibdir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
 	v=$$(echo $(unzip-version) | sed -e's/\.//')
 	$(call gbuild, $<, unzip$$v, static,,          \
@@ -477,20 +461,6 @@ $(ibdir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
 	               -f unix/Makefile                \
 	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 )
-
-
-
-
-
-# Python packages
-# ---------------
-$(ilidir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
-                 $(ibdir)/python3
-	pip3 install $< --verbose && echo "numpy is built" > $@
-
-$(ilidir)/astropy: $(tdir)/astropy-$(astropy-version).tar.gz \
-                   $(ilidir)/numpy
-	pip3 install $< --verbose && echo "astropy is built" > $@
 
 
 
