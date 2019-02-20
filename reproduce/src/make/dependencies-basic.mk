@@ -342,6 +342,13 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
         # the build process completed afterwards and reset the links).
 	rm -f $(ildir)/libncursesw*
 
+        # Delete the (possibly existing) low-level programs that depend on
+        # `readline', and thus `ncurses'. Since these programs are actually
+        # used during the building of `ncurses', we need to delete them so
+        # the build process doesn't use the pipeline's Bash and AWK, but
+        # the host systems.
+	rm -f $(ibdir)/bash* $(ibdir)/awk* $(ibdir)/gawk*
+
         # Standard build process.
 	$(call gbuild, $<, ncurses-$(ncurses-version), static,            \
 	               --with-shared --enable-rpath --without-normal      \
