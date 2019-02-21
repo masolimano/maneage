@@ -43,7 +43,7 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 ipydir = $(BDIR)/dependencies/installed/lib/built/python
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-python   = astroquery
+top-level-python   = astroquery matplotlib #scipy
 all: $(foreach p, $(top-level-python), $(ipydir)/$(p))
 
 # Other basic environment settings: We are only including the host
@@ -91,14 +91,20 @@ tarballs = $(foreach t, astroquery-$(astroquery-version).tar.gz           \
                         beautifulsoup4-$(beautifulsoup4-version).tar.gz   \
                         certifi-$(certifi-version).tar.gz                 \
                         chardet-$(chardet-version).tar.gz                 \
+                        cycler-$(cycler-version).tar.gz                   \
                         entrypoints-$(entrypoints-version).tar.gz         \
                         html5lib-$(html5lib-version).tar.gz               \
                         idna-$(idna-version).tar.gz                       \
+                        kiwisolver-$(kiwisolver-version).tar.gz           \
                         keyring-$(keyring-version).tar.gz                 \
+                        matplotlib-$(matplotlib-version).tar.gz           \
                         numpy-$(numpy-version).zip                        \
                         pip-$(pip-version).tar.gz                         \
                         python-$(python-version).tar.gz                   \
+                        python-dateutil-$(python-dateutil-version).tar.gz \
+                        pyparsing-$(pyparsing-version).tar.gz             \
                         requests-$(requests-version).tar.gz               \
+                        scipy-$(scipy-version).tar.gz                     \
                         setuptools-$(setuptools-version).zip              \
                         setuptools_scm-$(setuptools_scm-version).tar.gz   \
                         six-$(six-version).tar.gz                         \
@@ -112,10 +118,27 @@ $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
 	  cp $(DEPENDENCIES-DIR)/$* $@
 	else
-          # Remove all numbers, `-' and `.' from the tarball name so we can
-          # search more easily only with the program name.
-	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
-	               | awk '{print $$1}' )
+
+          # Convenience variable
+          # --------------------
+          #
+          # `n' is just for convenience and to avoid having to repeat the
+          # package tarball name in the conditional to find its URL.
+          #
+          # For some packages (for example `python-dateutil', or those with
+          # a number or dash in their name), we need special consideration
+          # because the tokenization above will produce `python' as the
+          # first string.
+	      if [ $* = python-dateutil-$(python-dateutil-version).tar.gz ]; then
+	        n=dateutil
+          # elif [ $* = strange-tarball5name-version.tar.gz ]; then
+          #  n=strange5-name
+	      else
+            # Remove all numbers, `-' and `.' from the tarball name so we can
+            # search more easily only with the program name.
+	        n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
+	                  | awk '{print $$1}')
+	      fi
 
           # Set the top download link of the requested tarball.
 	  mergenames=1
@@ -127,19 +150,26 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = beautifulsoup  ]; then h=80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748
 	  elif [ $$n = certifi        ]; then h=55/54/3ce77783acba5979ce16674fc98b1920d00b01d337cfaaf5db22543505ed
 	  elif [ $$n = chardet        ]; then h=fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d
+	  elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488
 	  elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c
 	  elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f
 	  elif [ $$n = idna           ]; then h=ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7
 	  elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2
+	  elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864
+	  elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f
 	  elif [ $$n = numpy          ]; then h=2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c
 	  elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af
+	  elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc
+	  elif [ $$n = dateutil       ]; then h=ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c
 	  elif [ $$n = requests       ]; then h=52/2c/514e4ac25da2b08ca5a464c50463682126385c4272c18193876e91f4bc38
+	  elif [ $$n = scipy          ]; then h=a9/b4/5598a706697d1e2929eaf7fe68898ef4bea76e4950b9efbe1ef396b8813a
 	  elif [ $$n = setuptools     ]; then h=c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0
 	  elif [ $$n = setuptools_scm ]; then h=54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3
 	  elif [ $$n = six            ]; then h=dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca
 	  elif [ $$n = soupsieve      ]; then h=0c/52/e9088bb9b96e2d39fc3b33fcda5b4fde9d71473536ac660a1ca9a0958a2f
 	  elif [ $$n = virtualenv     ]; then h=51/aa/c395a6e6eaaedfa5a04723b6446a1df783b16cca6fec66e671cede514688
 	  elif [ $$n = webencodings   ]; then h=0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47
+#         elif [ $$n = strange5-name  ]; then h=XXXXX
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -234,6 +264,10 @@ $(ipydir)/chardet: $(tdir)/chardet-$(chardet-version).tar.gz \
                    $(ibdir)/python3
 	$(call pybuild, tar xf, $<, chardet-$(chardet-version))
 
+$(ipydir)/cycler: $(tdir)/cycler-$(cycler-version).tar.gz \
+                   $(ipydir)/six
+	$(call pybuild, tar xf, $<, cycler-$(cycler-version))
+
 $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
                        $(ibdir)/python3
 	$(call pybuild, tar xf, $<, entrypoints-$(entrypoints-version))
@@ -252,6 +286,18 @@ $(ipydir)/keyring: $(tdir)/keyring-$(keyring-version).tar.gz    \
                    $(ipydir)/setuptools_scm
 	$(call pybuild, tar xf, $<, keyring-$(keyring-version))
 
+$(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
+                   $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, kiwisolver-$(kiwisolver-version))
+
+
+$(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
+                      $(ipydir)/cycler                                  \
+                      $(ipydir)/pyparsing                               \
+                      $(ipydir)/python-dateutil                         \
+                      $(ipydir)/kiwisolver
+	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version))
+
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ibdir)/python3
 	$(call pybuild, unzip, $<, numpy-$(numpy-version))
@@ -260,6 +306,14 @@ $(ibdir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
                $(ibdir)/python3
 	$(call pybuild, tar xf, $<, pip-$(pip-version))
 
+$(ipydir)/pyparsing: $(tdir)/pyparsing-$(pyparsing-version).tar.gz \
+                     $(ibdir)/python3
+	$(call pybuild, tar xf, $<, pyparsing-$(pyparsing-version))
+
+$(ipydir)/python-dateutil: $(tdir)/python-dateutil-$(python-dateutil-version).tar.gz  \
+                           $(ipydir)/six
+	$(call pybuild, tar xf, $<, python-dateutil-$(python-dateutil-version))
+
 $(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz   \
                     $(ipydir)/certifi                             \
                     $(ipydir)/chardet                             \
@@ -267,6 +321,10 @@ $(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz   \
                     $(ipydir)/numpy                               \
                     $(ipydir)/urllib3
 	$(call pybuild, tar xf, $<, requests-$(requests-version))
+
+$(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
+                 $(ipydir)/numpy
+	$(call pybuild, tar xf, $<, scipy-$(scipy-version))
 
 $(ipydir)/setuptools: $(tdir)/setuptools-$(setuptools-version).zip \
                       $(ibdir)/python3
