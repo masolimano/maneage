@@ -669,20 +669,10 @@ $(ilidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
 	$(call gbuild, $<, isl-$(isl-version), static)  \
 	&& echo "GCC's ISL library is built" > $@
 
-# On non-GNU systems, the default linker is different and we don't want our
-# new linker to be mixed with that during the building of libraries and
-# programs before GCC.
-$(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz \
-             $(ibdir)/ls                                 \
-             $(ibdir)/sed                                \
-             $(ilidir)/isl                               \
-             $(ilidir)/mpc                               \
-             $(ibdir)/gawk                               \
-             $(ibdir)/grep                               \
-             $(ibdir)/diff                               \
-             $(ibdir)/find                               \
-             $(ibdir)/bash                               \
-             $(ibdir)/which
+# Binutils' linker `ld' is apparently only good for GNU/Linux systems and
+# other OSs have their own. So for now we aren't actually building
+# Binutils (`ld' isn't a prerequisite of GCC).
+$(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz
 	$(call gbuild, $<, binutils-$(binutils-version), static)
 
 
@@ -709,7 +699,16 @@ $(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz \
 # used in a configure script to enable GCC's configure script to work as
 # smoothly/robustly as possible.
 $(ibdir)/gcc: $(tdir)/gcc-$(gcc-version).tar.xz \
-              $(ibdir)/ld
+              $(ibdir)/ls                       \
+              $(ibdir)/sed                      \
+              $(ilidir)/isl                     \
+              $(ilidir)/mpc                     \
+              $(ibdir)/gawk                     \
+              $(ibdir)/grep                     \
+              $(ibdir)/diff                     \
+              $(ibdir)/find                     \
+              $(ibdir)/bash                     \
+              $(ibdir)/which
 
         # Un-pack all the necessary tools in the top building directory
 	cd $(ddir);                                                     \
@@ -735,7 +734,7 @@ $(ibdir)/gcc: $(tdir)/gcc-$(gcc-version).tar.xz \
 	                                --with-gnu-ld                   \
 	                                --enable-lto                    \
 	                                --with-linker-hash-style=gnu    \
-	                                --enable-languages=c,c++        \
+	                                --enable-languages=c,c++,fortran\
 	                                --disable-libada                \
 	                                --disable-nls                   \
 	                                --enable-default-pie            \
