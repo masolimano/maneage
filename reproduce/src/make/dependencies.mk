@@ -230,7 +230,7 @@ $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 
 # Freetype is necessary to install matplotlib
 $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
-	                $(ilibdir)/libpng
+	                $(ilidir)/libpng
 	$(call gbuild, $<, freetype-$(freetype-version), static) \
 	&& echo "freetype is built" > $@
 
