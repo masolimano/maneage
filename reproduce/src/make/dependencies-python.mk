@@ -144,7 +144,7 @@ $(tarballs): $(tdir)/%:
 	  mergenames=1
 	  if [ $$n = python           ]; then
 	    mergenames=0
-	    w=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
+	    h=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
 	  elif [ $$n = astroquery     ]; then h=61/50/a7a08f9e54d7d9d97e69433cd88231e1ad2901811c9d1ae9ac7ccaef9396
 	  elif [ $$n = astropy        ]; then h=eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352
 	  elif [ $$n = beautifulsoup  ]; then h=80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748
@@ -167,6 +167,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = setuptools_scm ]; then h=54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3
 	  elif [ $$n = six            ]; then h=dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca
 	  elif [ $$n = soupsieve      ]; then h=0c/52/e9088bb9b96e2d39fc3b33fcda5b4fde9d71473536ac660a1ca9a0958a2f
+	  elif [ $$n = urllib         ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1
 	  elif [ $$n = virtualenv     ]; then h=51/aa/c395a6e6eaaedfa5a04723b6446a1df783b16cca6fec66e671cede514688
 	  elif [ $$n = webencodings   ]; then h=0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47
 #         elif [ $$n = strange5-name  ]; then h=XXXXX
@@ -227,6 +228,13 @@ pybuild = cd $(ddir); rm -rf $(3);                                        \
 # -------------------
 #
 $(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
+        # On Mac systems, the build complains about `clang' specific
+        # features, so we can't use our own GCC build here.
+#	if [ x$(on_mac_os) = xyes ]; then                   \
+#	  export CC=clang;                                  \
+#	  export CXX=clang++;                               \
+#	fi;                                                 \
+
 	$(call gbuild, $<, Python-$(python-version))        \
 	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
 	    {printf "%d.%d\n", $$1, $$2}')                  \
@@ -293,6 +301,7 @@ $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
 
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
                       $(ipydir)/cycler                                  \
+                      $(ilidir)/freetype                                \
                       $(ipydir)/pyparsing                               \
                       $(ipydir)/python-dateutil                         \
                       $(ipydir)/kiwisolver
@@ -300,6 +309,9 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ibdir)/python3
+	export BLAS=None; \
+	export ATLAS=None; \
+	export LAPACK=None; \
 	$(call pybuild, unzip, $<, numpy-$(numpy-version))
 
 $(ibdir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \

@@ -43,9 +43,11 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs = astnoisechisel flock metastore unzip zip
+top-level-programs  = astnoisechisel flock metastore unzip zip
+top-level-libraries = freetype
 all: $(ddir)/texlive-versions.tex                       \
-     $(foreach p, $(top-level-programs), $(ibdir)/$(p))
+     $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
+     $(foreach p, $(top-level-libraries), $(ilidir)/$(p))
 
 # Other basic environment settings: We are only including the host
 # operating system's PATH environment variable (after our own!) for the
@@ -91,6 +93,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         flock-$(flock-version).tar.xz                      \
+                        freetype-$(freetype-version).tar.gz                \
                         ghostscript-$(ghostscript-version).tar.gz          \
                         git-$(git-version).tar.xz                          \
                         gnuastro-$(gnuastro-version).tar.lz                \
@@ -98,6 +101,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         install-tl-unx.tar.gz                              \
                         jpegsrc.$(libjpeg-version).tar.gz                  \
                         libbsd-$(libbsd-version).tar.xz                    \
+                        libpng-$(libpng-version).tar.xz                    \
                         libtool-$(libtool-version).tar.xz                  \
                         libgit2-$(libgit2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
@@ -129,6 +133,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
+	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://ftpmirror.gnu.org/gnu/gnuastro
@@ -136,6 +141,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = libbsd      ]; then w=http://libbsd.freedesktop.org/releases
+	  elif [ $$n = libpng      ]; then w=https://download.sourceforge.net/libpng
 	  elif [ $$n = libtool     ]; then w=http://ftpmirror.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
@@ -222,12 +228,21 @@ $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
 
+# Freetype is necessary to install matplotlib
+$(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
+	                $(ilibdir)/libpng
+	$(call gbuild, $<, freetype-$(freetype-version), static) \
+	&& echo "freetype is built" > $@
+
 $(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz
 	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
 	&& echo "libbsd is built" > $@
 
 $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
+
+$(ilidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
+	$(call gbuild, $<, libpng, static) && echo "Libpng is built" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ilidir)/libjpeg
@@ -304,6 +319,13 @@ $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
         # After searching in `bootstrap', I couldn't find `LIBS', only
         # `LDFLAGS'. So the extra libraries are being added to `LDFLAGS',
         # not `LIBS'.
+        #
+        # On Mac systems, the build complains about `clang' specific
+        # features, so we can't use our own GCC build here.
+	if [ x$(on_mac_os) = xyes ]; then                          \
+	  export CC=clang;                                         \
+	  export CXX=clang++;                                      \
+	fi;                                                        \
 	cd $(ddir) && rm -rf cmake-$(cmake-version) &&             \
 	tar xf $< && cd cmake-$(cmake-version) &&                  \
 	./bootstrap --prefix=$(idir) --system-curl --system-zlib   \
