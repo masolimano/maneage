@@ -65,8 +65,7 @@ export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
 # Define the programs that don't depend on any other.
-top-level-programs = low-level-links ls sed gawk grep diff find \
-                     wget which
+top-level-programs = low-level-links wget gcc
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -141,7 +140,7 @@ $(tarballs): $(tdir)/%:
           elif [ $$n = diffutils ]; then w=http://ftpmirror.gnu.org/gnu/diffutils;\
           elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = gawk      ]; then w=http://ftpmirror.gnu.org/gnu/gawk; \
-          elif [ $$n = gcc       ]; then w=http://ftpmirror.gnu.org/gcc/gcc-$(gcc-version); \
+          elif [ $$n = gcc       ]; then w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
           elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
           elif [ $$n = grep      ]; then w=http://ftpmirror.gnu.org/gnu/grep; \
           elif [ $$n = gzip      ]; then w=http://ftpmirror.gnu.org/gnu/gzip; \
@@ -210,14 +209,14 @@ makelink = export PATH=$$(echo $(syspath)| tr : '\n' |grep -v ccache  \
 	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
 $(ibdir) $(ildir):; mkdir $@
 $(ibdir)/low-level-links: | $(ibdir) $(ildir)
+
         # The Assembler
 	$(call makelink,as)
 
-        # The compiler
+        # Compiler (Cmake needs the clang compiler which we aren't building
+        # yet in the pipeline).
 	$(call makelink,clang)
-	$(call makelink,gcc)
-	$(call makelink,g++)
-	$(call makelink,cc)
+	$(call makelink,clang++)
 
         # The linker
 	$(call makelink,ar)
@@ -227,7 +226,9 @@ $(ibdir)/low-level-links: | $(ibdir) $(ildir)
 	$(call makelink,ranlib)
 
         # Mac OS specific
+	$(call makelink,sysctl)
 	$(call makelink,sw_vers)
+	$(call makelink,dsymutil)
 	$(call makelink,install_name_tool)
 
         # On Mac OS, libtool is different compared to GNU Libtool. The
@@ -341,6 +342,13 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
         # Delete the library that will be installed (so we can make sure
         # the build process completed afterwards and reset the links).
 	rm -f $(ildir)/libncursesw*
+
+        # Delete the (possibly existing) low-level programs that depend on
+        # `readline', and thus `ncurses'. Since these programs are actually
+        # used during the building of `ncurses', we need to delete them so
+        # the build process doesn't use the pipeline's Bash and AWK, but
+        # the host systems.
+	rm -f $(ibdir)/bash* $(ibdir)/awk* $(ibdir)/gawk*
 
         # Standard build process.
 	$(call gbuild, $<, ncurses-$(ncurses-version), static,            \
@@ -662,20 +670,10 @@ $(ilidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
 	$(call gbuild, $<, isl-$(isl-version), static)  \
 	&& echo "GCC's ISL library is built" > $@
 
-# On non-GNU systems, the default linker is different and we don't want our
-# new linker to be mixed with that during the building of libraries and
-# programs before GCC.
-$(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz \
-             $(ibdir)/ls                                 \
-             $(ibdir)/sed                                \
-             $(ilidir)/isl                               \
-             $(ilidir)/mpc                               \
-             $(ibdir)/gawk                               \
-             $(ibdir)/grep                               \
-             $(ibdir)/diff                               \
-             $(ibdir)/find                               \
-             $(ibdir)/bash                               \
-             $(ibdir)/which
+# Binutils' linker `ld' is apparently only good for GNU/Linux systems and
+# other OSs have their own. So for now we aren't actually building
+# Binutils (`ld' isn't a prerequisite of GCC).
+$(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz
 	$(call gbuild, $<, binutils-$(binutils-version), static)
 
 
@@ -701,41 +699,53 @@ $(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz \
 # We want to build GCC after building all the basic tools that are often
 # used in a configure script to enable GCC's configure script to work as
 # smoothly/robustly as possible.
+# Including `objc, obj-c++' is necessary for installing matplotlib.
 $(ibdir)/gcc: $(tdir)/gcc-$(gcc-version).tar.xz \
-              $(ibdir)/ld
+              $(ibdir)/ls                       \
+              $(ibdir)/sed                      \
+              $(ilidir)/isl                     \
+              $(ilidir)/mpc                     \
+              $(ibdir)/gawk                     \
+              $(ibdir)/grep                     \
+              $(ibdir)/diff                     \
+              $(ibdir)/find                     \
+              $(ibdir)/bash                     \
+              $(ibdir)/which
+
+        # Clean up (possibly existing) gcc installation
+	rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*
+	rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc* \
+		   $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*
 
         # Un-pack all the necessary tools in the top building directory
-	cd $(ddir);                                                     \
-	rm -rf gcc-build gcc-$(gcc-version);                            \
-	tar xf $< &&                                                    \
-	mkdir $(ddir)/gcc-build &&                                      \
-	cd $(ddir)/gcc-build &&                                         \
-	../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash             \
-	                                --prefix=$(idir)                \
-	                                --with-mpc=$(idir)              \
-	                                --with-mpfr=$(idir)             \
-	                                --with-gmp=$(idir)              \
-	                                --with-isl=$(idir)              \
-	                                --with-build-time-tools=$(idir) \
-	                                --enable-shared                 \
-	                                --disable-multilib              \
-	                                --disable-multiarch             \
-	                                --enable-threads=posix          \
-	                                --enable-libmpx                 \
-	                                --with-local-prefix=$(idir)     \
-	                                --enable-linker-build-id        \
-	                                --with-gnu-as                   \
-	                                --with-gnu-ld                   \
-	                                --enable-lto                    \
-	                                --with-linker-hash-style=gnu    \
-	                                --enable-languages=c,c++        \
-	                                --disable-libada                \
-	                                --disable-nls                   \
-	                                --enable-default-pie            \
-	                                --enable-default-ssp            \
-	                                --enable-cet=auto               \
-	                                --enable-decimal-float &&       \
-	make SHELL=$(ibdir)/bash -j$$(nproc) &&                         \
-	make SHELL=$(ibdir)/bash install &&                             \
-	cd .. &&                                                        \
+	cd $(ddir);                                                                      \
+	rm -rf gcc-build gcc-$(gcc-version);                                             \
+	tar xf $< &&                                                                     \
+	mkdir $(ddir)/gcc-build &&                                                       \
+	cd $(ddir)/gcc-build &&                                                          \
+	../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash                              \
+	                                --prefix=$(idir)                                 \
+	                                --with-mpc=$(idir)                               \
+	                                --with-mpfr=$(idir)                              \
+	                                --with-gmp=$(idir)                               \
+	                                --with-isl=$(idir)                               \
+	                                --with-build-time-tools=$(idir)                  \
+	                                --enable-shared                                  \
+	                                --disable-multilib                               \
+	                                --disable-multiarch                              \
+	                                --enable-threads=posix                           \
+	                                --with-local-prefix=$(idir)                      \
+	                                --enable-linker-build-id                         \
+	                                --enable-lto                                     \
+	                                --enable-languages=c,c++,fortran,objc,obj-c++    \
+	                                --disable-libada                                 \
+	                                --disable-nls                                    \
+	                                --enable-default-pie                             \
+	                                --enable-default-ssp                             \
+	                                --enable-cet=auto                                \
+	                                --enable-decimal-float &&                        \
+	make SHELL=$(ibdir)/bash -j$$(nproc) &&                                          \
+	make SHELL=$(ibdir)/bash install &&                                              \
+	cd .. &&                                                                         \
 	rm -rf gcc-build gcc-$(gcc-version)
+
