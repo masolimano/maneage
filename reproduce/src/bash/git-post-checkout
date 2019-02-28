@@ -9,8 +9,13 @@
 # special characters for the installation location of meta-store so our own
 # installation is found by Git.
 
-# File containig the metadata.
+# File containig the metadata and metastore executable.
 MSFILE=".file-metadata"
+MSBIN=@BINDIR@/metastore
+
+# If metastore is not installed, then ignore this script (exit with a
+# status of 0).
+if [ ! -f $MSBIN ]; then exit 0; fi
 
 # Delete all temporary files
 find @TOP_PROJECT_DIR@/ -name "*~" -type f -delete
@@ -32,7 +37,7 @@ fi
 
 # Run metastore.
 exit_on_fail \
-       @BINDIR@/metastore -a -m -e -E -q -O @USER@ -G @GROUP@ -f "$MSFILE"
+       $MSBIN -a -m -e -E -q -O @USER@ -G @GROUP@ -f "$MSFILE"
 
 # Return with a success code (0).
 exit 0
