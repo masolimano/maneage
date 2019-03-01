@@ -926,38 +926,51 @@ Future improvements
 ===================
 
 This is an evolving project and as time goes on, it will evolve and become
-more robust. Here are the list of features that we plan to add in the
-future.
+more robust. Some of the most prominent issues we plan to implement in the
+future are listed below, please join us if you are interested.
 
- - *Containers*: It is important to have better/full control of the
-    environment of the reproduction pipeline. Our current reproducible
-    paper pipeline builds the higher-level programs (for example GNU Bash,
-    GNU Make, GNU AWK and etc) it needs and sets `PATH` to prefer its own
-    builds. It currently doesn't build and use its own version of
-    lower-level tools (like the C library and compiler). We plan to add the
-    build steps of these low level tools so the system's `PATH` can be
-    completely ignored within the pipeline and we are in full control of
-    the whole build process. Another solution is based on [an interesting
-    tutorial](https://mozillafoundation.github.io/2017-fellows-sf/re-papers/index.html)
-    by the Mozilla science lab to build reproducible papers. It suggests
-    using the [Nix package manager](https://nixos.org/nix/about.html) to
-    build the necessary software for the pipeline and run the pipeline in
-    its completely closed environment. This is an interesting solution
-    because using Nix or [Guix](https://www.gnu.org/software/guix/) (which
-    is based on Nix, but uses the [Scheme
-    language](https://en.wikipedia.org/wiki/Scheme_(programming_language)),
-    not a custom language for the management) will allow a fully working
-    closed environment on the host system which contains the instructions
-    on how to build the environment. The availability of the instructions
-    to build the programs and environment with Nix or Guix, makes them a
-    better solution than binary containers like
-    [docker](https://www.docker.com/) which are essentially just a binary
-    (not human readable) black box and only usable on the given CPU
-    architecture. However, one limitation of using these is their own
-    installation (which usually requires root access).
+Package management
+------------------
 
+It is important to have control of the environment of the reproduction
+pipeline. The current reproducible paper template builds the higher-level
+programs (for example GNU Bash, GNU Make, GNU AWK and domain-specific
+software) it needs, then sets `PATH` so the analysis is done only with the
+pipeline's built software. But currently the configuration of each program
+is in the Makefile rules that build it. This is not good because a change
+in the build configuration does not automatically cause a re-build. Also,
+each separate project on a system needs to have its own built tools (that
+can waste a lot of space).
 
+A good solution is based on the [Nix package
+manager](https://nixos.org/nix/about.html): a separate file is present for
+each software, containing all the necessary info to build it (including its
+URL, its tarball MD5 hash, dependencies, configuration parameters, build
+steps and etc). Using this file, a script can automatically generate the
+Make rules to download, build and install program and its dependencies
+(along with the dependencies of those dependencies and etc).
 
+All the software are installed in a "store". Each installed file (library
+or executable) is prefixed by a hash of this configuration (and the OS
+architecture) and the standard program name. For example (from the Nix
+webpage):
+
+```
+/nix/store/b6gvzjyb2pg0kjfwrjmg1vfhh54ad73z-firefox-33.1/
+```
+
+The important thing is that the "store" is *not* in the pipeline's search
+path. After the complete installation of the software, symbolic links are
+made to populate the pipeline's program and library search paths without a
+hash. This hash will be unique to that particular software and its
+particular configuration. So simply by searching for this hash in the
+installed directory, we can find the installed files of that software to
+generate the links.
+
+This scenario has several advantages: 1) a change in a software's build
+configuration triggers a rebuild. 2) a single "store" can be used in many
+projects, thus saving space and configuration time for new projects (that
+commonly have large overlaps in lower-level programs).
 
 
 
