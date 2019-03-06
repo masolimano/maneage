@@ -20,8 +20,13 @@
 #     git reset HEAD -- .metadata
 #     git checkout HEAD -- .metadata
 
-# File containig the metadata.
+# File containig the metadata and metastore executable.
 MSFILE=".file-metadata"
+MSBIN=@BINDIR@/metastore
+
+# If metastore is not installed, then ignore this script (exit with a
+# status of 0).
+if [ ! -f $MSBIN ]; then exit 0; fi
 
 # Function to help in reporting a crash.
 exit_on_fail() {
@@ -34,12 +39,12 @@ exit_on_fail() {
 
 # Run metastore.
 exit_on_fail \
-	@BINDIR@/metastore -O @USER@ -G @GROUP@ -s -f "$MSFILE"
+	$MSBIN -O @USER@ -G @GROUP@ -s -f "$MSFILE"
 
 # If it's first metastore commit, store again to include $MSFILE in $MSFILE.
 if ! git-ls-tree --name-only HEAD 2>/dev/null | grep -Fqx "$MSFILE"; then
 	exit_on_fail \
-	        @BINDIR@/metastore -O @USER@ -G @GROUP@ -s -f "$MSFILE"
+	        $MSBIN -O @USER@ -G @GROUP@ -s -f "$MSFILE"
 fi
 
 # Check if the metadata file exists.

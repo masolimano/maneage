@@ -43,11 +43,11 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-python   = astropy
-top-level-programs = astnoisechisel metastore flock unzip zip
+top-level-programs  = astnoisechisel flock metastore unzip zip
+top-level-libraries = freetype
 all: $(ddir)/texlive-versions.tex                       \
-     $(foreach p, $(top-level-python),   $(ilidir)/$(p)) \
-     $(foreach p, $(top-level-programs), $(ibdir)/$(p))
+     $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
+     $(foreach p, $(top-level-libraries), $(ilidir)/$(p))
 
 # Other basic environment settings: We are only including the host
 # operating system's PATH environment variable (after our own!) for the
@@ -89,11 +89,11 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, astropy-$(astropy-version).tar.gz                  \
-                        cfitsio-$(cfitsio-version).tar.gz                  \
+tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         flock-$(flock-version).tar.xz                      \
+                        freetype-$(freetype-version).tar.gz                \
                         ghostscript-$(ghostscript-version).tar.gz          \
                         git-$(git-version).tar.xz                          \
                         gnuastro-$(gnuastro-version).tar.lz                \
@@ -101,11 +101,10 @@ tarballs = $(foreach t, astropy-$(astropy-version).tar.gz                  \
                         install-tl-unx.tar.gz                              \
                         jpegsrc.$(libjpeg-version).tar.gz                  \
                         libbsd-$(libbsd-version).tar.xz                    \
+                        libpng-$(libpng-version).tar.xz                    \
                         libtool-$(libtool-version).tar.xz                  \
                         libgit2-$(libgit2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
-                        numpy-$(numpy-version).zip                         \
-                        python-$(python-version).tar.gz                    \
                         unzip-$(unzip-version).tar.gz                      \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
@@ -122,8 +121,7 @@ $(tarballs): $(tdir)/%:
 
           # Set the top download link of the requested tarball.
 	  mergenames=1
-	  if   [ $$n = astropy     ]; then w=https://files.pythonhosted.org/packages/eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352
-	  elif [ $$n = cfitsio     ]; then
+	  if [ $$n = cfitsio     ]; then
 	    mergenames=0
 	    v=$$(echo $(cfitsio-version) | sed -e's/\.//'             \
 	              | awk '{l=length($$1);                          \
@@ -135,6 +133,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
+	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://ftpmirror.gnu.org/gnu/gnuastro
@@ -142,15 +141,12 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = libbsd      ]; then w=http://libbsd.freedesktop.org/releases
+	  elif [ $$n = libpng      ]; then w=https://download.sourceforge.net/libpng
 	  elif [ $$n = libtool     ]; then w=http://ftpmirror.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = numpy       ]; then w=https://files.pythonhosted.org/packages/2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c
-	  elif [ $$n = python      ]; then
-	    mergenames=0
-	    w=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = unzip       ]; then w=ftp://ftp.info-zip.org/pub/infozip/src
 	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
@@ -232,12 +228,22 @@ $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
 
+# Freetype is necessary to install matplotlib
+$(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
+	                $(ilidir)/libpng
+	$(call gbuild, $<, freetype-$(freetype-version), static) \
+	&& echo "freetype is built" > $@
+
 $(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz
 	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
 	&& echo "libbsd is built" > $@
 
 $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
+
+$(ilidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
+	$(call gbuild, $<, libpng-$(libpng-version), static) \
+	&& echo "Libpng is built" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ilidir)/libjpeg
@@ -314,6 +320,13 @@ $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
         # After searching in `bootstrap', I couldn't find `LIBS', only
         # `LDFLAGS'. So the extra libraries are being added to `LDFLAGS',
         # not `LIBS'.
+        #
+        # On Mac systems, the build complains about `clang' specific
+        # features, so we can't use our own GCC build here.
+	if [ x$(on_mac_os) = xyes ]; then                          \
+	  export CC=clang;                                         \
+	  export CXX=clang++;                                      \
+	fi;                                                        \
 	cd $(ddir) && rm -rf cmake-$(cmake-version) &&             \
 	tar xf $< && cd cmake-$(cmake-version) &&                  \
 	./bootstrap --prefix=$(idir) --system-curl --system-zlib   \
@@ -456,12 +469,6 @@ endif
 	               $$staticopts, -j$(numthreads),                \
 	               make check -j$(numthreads))
 
-$(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
-	$(call gbuild, $<, Python-$(python-version))        \
-	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
-            {printf "%d.%d\n", $$1, $$2}')              \
-    && ln -s $(ildir)/python$$v $(ildir)/python
-
 $(ibdir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
 	v=$$(echo $(unzip-version) | sed -e's/\.//')
 	$(call gbuild, $<, unzip$$v, static,,          \
@@ -477,20 +484,6 @@ $(ibdir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
 	               -f unix/Makefile                \
 	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 )
-
-
-
-
-
-# Python packages
-# ---------------
-$(ilidir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
-                 $(ibdir)/python3
-	pip3 install $< --verbose && echo "numpy is built" > $@
-
-$(ilidir)/astropy: $(tdir)/astropy-$(astropy-version).tar.gz \
-                   $(ilidir)/numpy
-	pip3 install $< --verbose && echo "astropy is built" > $@
 
 
 

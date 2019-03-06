@@ -65,8 +65,7 @@ export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
 # Define the programs that don't depend on any other.
-top-level-programs = low-level-links ls sed gawk grep diff find \
-                     wget which
+top-level-programs = low-level-links wget gcc
 all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 
 
@@ -141,7 +140,7 @@ $(tarballs): $(tdir)/%:
           elif [ $$n = diffutils ]; then w=http://ftpmirror.gnu.org/gnu/diffutils;\
           elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = gawk      ]; then w=http://ftpmirror.gnu.org/gnu/gawk; \
-          elif [ $$n = gcc       ]; then w=http://ftpmirror.gnu.org/gcc/gcc-$(gcc-version); \
+          elif [ $$n = gcc       ]; then w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
           elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
           elif [ $$n = grep      ]; then w=http://ftpmirror.gnu.org/gnu/grep; \
           elif [ $$n = gzip      ]; then w=http://ftpmirror.gnu.org/gnu/gzip; \
@@ -210,14 +209,14 @@ makelink = export PATH=$$(echo $(syspath)| tr : '\n' |grep -v ccache  \
 	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
 $(ibdir) $(ildir):; mkdir $@
 $(ibdir)/low-level-links: | $(ibdir) $(ildir)
+
         # The Assembler
 	$(call makelink,as)
 
-        # The compiler
+        # Compiler (Cmake needs the clang compiler which we aren't building
+        # yet in the pipeline).
 	$(call makelink,clang)
-	$(call makelink,gcc)
-	$(call makelink,g++)
-	$(call makelink,cc)
+	$(call makelink,clang++)
 
         # The linker
 	$(call makelink,ar)
@@ -227,7 +226,9 @@ $(ibdir)/low-level-links: | $(ibdir) $(ildir)
 	$(call makelink,ranlib)
 
         # Mac OS specific
+	$(call makelink,sysctl)
 	$(call makelink,sw_vers)
+	$(call makelink,dsymutil)
 	$(call makelink,install_name_tool)
 
         # On Mac OS, libtool is different compared to GNU Libtool. The
@@ -287,15 +288,34 @@ $(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz
 	$(call gbuild, $<, xz-$(xz-version), static)
 
 $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
-	 tdir=bzip2-$(bzip2-version);                                  \
-	 if [ $(static_build) = yes ]; then                            \
-	   makecommand="make LDFLAGS=-static";                         \
-	 else                                                          \
-	   makecommand="make";                                         \
-	 fi;                                                           \
-	 cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir &&      \
-	 $$makecommand && make install PREFIX=$(idir) &&               \
-	 cd .. && rm -rf $$tdir
+        # Bzip2 doesn't have a `./configure' script, and its Makefile
+        # doesn't build a shared library. So we can't use the `gbuild'
+        # function here and we need to take some extra steps (inspired
+        # from the "Linux from Scratch" guide for Bzip2):
+        #   1) The `sed' call is for relative installed symbolic links.
+        #   2) The special Makefile-libbz2_so builds the shared library.
+        #
+        # NOTE: the major version number appears in the final symbolic
+        # link.
+	tdir=bzip2-$(bzip2-version);                                  \
+	if [ $(static_build) = yes ]; then                            \
+	  makecommand="make LDFLAGS=-static";                         \
+	  makeshared="echo no-shared";                                \
+	else                                                          \
+	  makecommand="make";                                         \
+	  makeshared="make -f Makefile-libbz2_so";                    \
+	fi;                                                           \
+	cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir         \
+	&& sed -i 's@\(ln -s -f \)$$(PREFIX)/bin/@\1@' Makefile       \
+	&& $$makeshared                                               \
+	&& cp -a libbz2* $(ildir)/                                    \
+	&& make clean                                                 \
+	&& $$makecommand                                              \
+	&& make install PREFIX=$(idir)                                \
+	&& cd ..                                                      \
+	&& rm -rf $$tdir                                              \
+	&& cd $(ildir)                                                \
+	&& ln -fs libbz2.so.1.0 libbz2.so
 
 # GNU Tar: When built statically, tar gives a segmentation fault on
 # unpacking Bash. So we'll build it dynamically.
@@ -698,6 +718,9 @@ $(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz
 # We want to build GCC after building all the basic tools that are often
 # used in a configure script to enable GCC's configure script to work as
 # smoothly/robustly as possible.
+#
+# Including Objective C and Objective C++ is necessary for installing
+# `matplotlib'.
 $(ibdir)/gcc: $(tdir)/gcc-$(gcc-version).tar.xz \
               $(ibdir)/ls                       \
               $(ibdir)/sed                      \
@@ -710,38 +733,39 @@ $(ibdir)/gcc: $(tdir)/gcc-$(gcc-version).tar.xz \
               $(ibdir)/bash                     \
               $(ibdir)/which
 
+        # Clean up (possibly existing) gcc installation
+	rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*
+	rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc* \
+		   $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*
+
         # Un-pack all the necessary tools in the top building directory
-	cd $(ddir);                                                     \
-	rm -rf gcc-build gcc-$(gcc-version);                            \
-	tar xf $< &&                                                    \
-	mkdir $(ddir)/gcc-build &&                                      \
-	cd $(ddir)/gcc-build &&                                         \
-	../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash             \
-	                                --prefix=$(idir)                \
-	                                --with-mpc=$(idir)              \
-	                                --with-mpfr=$(idir)             \
-	                                --with-gmp=$(idir)              \
-	                                --with-isl=$(idir)              \
-	                                --with-build-time-tools=$(idir) \
-	                                --enable-shared                 \
-	                                --disable-multilib              \
-	                                --disable-multiarch             \
-	                                --enable-threads=posix          \
-	                                --enable-libmpx                 \
-	                                --with-local-prefix=$(idir)     \
-	                                --enable-linker-build-id        \
-	                                --with-gnu-as                   \
-	                                --with-gnu-ld                   \
-	                                --enable-lto                    \
-	                                --with-linker-hash-style=gnu    \
-	                                --enable-languages=c,c++,fortran\
-	                                --disable-libada                \
-	                                --disable-nls                   \
-	                                --enable-default-pie            \
-	                                --enable-default-ssp            \
-	                                --enable-cet=auto               \
-	                                --enable-decimal-float &&       \
-	make SHELL=$(ibdir)/bash -j$$(nproc) &&                         \
-	make SHELL=$(ibdir)/bash install &&                             \
-	cd .. &&                                                        \
+	cd $(ddir);                                                        \
+	rm -rf gcc-build gcc-$(gcc-version);                               \
+	tar xf $< &&                                                       \
+	mkdir $(ddir)/gcc-build &&                                         \
+	cd $(ddir)/gcc-build &&                                            \
+	../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash                \
+	                                --prefix=$(idir)                   \
+	                                --with-mpc=$(idir)                 \
+	                                --with-mpfr=$(idir)                \
+	                                --with-gmp=$(idir)                 \
+	                                --with-isl=$(idir)                 \
+	                                --with-build-time-tools=$(idir)    \
+	                                --enable-shared                    \
+	                                --disable-multilib                 \
+	                                --disable-multiarch                \
+	                                --enable-threads=posix             \
+	                                --with-local-prefix=$(idir)        \
+	                                --enable-linker-build-id           \
+	                                --enable-lto                       \
+	                                --enable-languages=c,c++,fortran,objc,obj-c++ \
+	                                --disable-libada                   \
+	                                --disable-nls                      \
+	                                --enable-default-pie               \
+	                                --enable-default-ssp               \
+	                                --enable-cet=auto                  \
+	                                --enable-decimal-float &&          \
+	make SHELL=$(ibdir)/bash -j$$(nproc) &&                            \
+	make SHELL=$(ibdir)/bash install &&                                \
+	cd .. &&                                                           \
 	rm -rf gcc-build gcc-$(gcc-version)

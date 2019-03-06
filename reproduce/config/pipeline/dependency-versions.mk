@@ -3,14 +3,14 @@
 # Programs
 bash-version               = 5.0
 binutils-version           = 2.31.1
-bzip2-version              = 1.0.6
 cmake-version              = 3.12.4
 coreutils-version          = 8.30
 diffutils-version          = 3.7
 findutils-version          = 4.6.0.199-e3fc
 flock-version              = 0.2.3
+freetype-version           = 2.9
 gawk-version               = 4.2.1
-gcc-version                = 8.2.0
+gcc-version                = 8.3.0
 ghostscript-version        = 9.26
 git-version                = 2.20.1
 gmp-version                = 6.1.2
@@ -18,8 +18,9 @@ gnuastro-version           = 0.8
 grep-version               = 3.3
 gzip-version               = 1.10
 isl-version                = 0.18
-libtool-version            = 2.4.6
 libbsd-version             = 0.9.1
+libpng-version             = 1.6.36
+libtool-version            = 2.4.6
 lzip-version               = 1.20
 make-version               = 4.2.90
 metastore-version          = 1.1.2-23-fa9170b
@@ -52,15 +53,38 @@ zlib-version               = 1.2.11
 #
 # IMPORTANT: Fix url in `reproduce/src/make/dependencies.mk'
 # if changing the version
+astroquery-version         = 0.3.9
 astropy-version            = 3.1.1
+beautifulsoup4-version     = 4.7.1
+certifi-version            = 2018.11.29
+chardet-version            = 3.0.4
+cycler-version             = 0.10.0
+entrypoints-version        = 0.3
+html5lib-version           = 1.0.1
+idna-version               = 2.8
+kiwisolver-version         = 1.0.1
+keyring-version            = 18.0.0
+matplotlib-version         = 3.0.2
 numpy-version              = 1.16.1
+pip-version                = 19.0.2
+pyparsing-version          = 2.3.1
+python-dateutil-version    = 2.8.0
+requests-version           = 2.21.0
+scipy-version              = 1.2.1
+setuptools-version         = 40.8.0
+setuptools_scm-version     = 3.2.0
+six-version                = 1.12.0
+soupsieve-version          = 1.8
+urllib3-version            = 1.24.1
+virtualenv-version         = 16.4.0
+webencodings-version       = 0.5.1
 
 # Special libraries
 # -----------------
 #
-# The shared library name of the following libraries is explicity mentioned
-# the software build Makefiles (`reproduce/src/make/dependencies*.mk'). If
-# you change their version, also please change the explicit shared library
-# names also.
+# When updating the version of these libraries, please look into the build
+# rule first: In one way or another, the version string becomes necessary
+# during their build and must be accounted for.
+bzip2-version              = 1.0.6
 libgit2-version            = 0.26.0
 wcslib-version             = 6.2

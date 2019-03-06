@@ -718,6 +718,24 @@ numthreads=$($instdir/bin/nproc)
 
 
 
+# Python dependencies
+# -------------------
+#
+# Python has its own installation program. To help in managing the
+# dependencies we make the installation of packages as a separate
+# Makefile.
+./.local/bin/make -f reproduce/src/make/dependencies-python.mk    \
+                  rpath_command=$rpath_command                    \
+                  static_build=$static_build                      \
+                  on_mac_os=$on_mac_os                            \
+                  numthreads=$numthreads                          \
+                  -j$numthreads
+
+
+
+
+
+
 # Make sure TeX Live installed successfully
 # -----------------------------------------
 #
