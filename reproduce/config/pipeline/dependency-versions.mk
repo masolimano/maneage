@@ -3,7 +3,6 @@
 # Programs
 bash-version               = 5.0
 binutils-version           = 2.31.1
-bzip2-version              = 1.0.6
 cmake-version              = 3.12.4
 coreutils-version          = 8.30
 diffutils-version          = 3.7
@@ -83,9 +82,9 @@ webencodings-version       = 0.5.1
 # Special libraries
 # -----------------
 #
-# The shared library name of the following libraries is explicity mentioned
-# the software build Makefiles (`reproduce/src/make/dependencies*.mk'). If
-# you change their version, also please change the explicit shared library
-# names also.
+# When updating the version of these libraries, please look into the build
+# rule first: In one way or another, the version string becomes necessary
+# during their build and must be accounted for.
+bzip2-version              = 1.0.6
 libgit2-version            = 0.26.0
 wcslib-version             = 6.2

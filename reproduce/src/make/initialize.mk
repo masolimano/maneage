@@ -116,6 +116,19 @@ export LDFLAGS         := -L$(installdir)/lib
 export SHELL           := $(installdir)/bin/bash
 export CPPFLAGS        := -I$(installdir)/include
 
+# Python enviroment
+# So far we have found several other Python-related environment
+# variables which might interfere. So we are just removing all
+# of their values within the pipeline.
+export PYTHONPATH             := $(installdir)/lib/python/site-packages
+export PYTHONPATH3            := $(PYTHONPATH)
+export _LMFILES_              :=
+export PYTHONPATH2            :=
+export LOADEDMODULES          :=
+export MPI_PYTHON_SITEARCH    :=
+export MPI_PYTHON2_SITEARCH   :=
+export MPI_PYTHON3_SITEARCH   :=
+
 
 
 

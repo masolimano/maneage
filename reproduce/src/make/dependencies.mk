@@ -242,7 +242,8 @@ $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
 
 $(ilidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
-	$(call gbuild, $<, libpng, static) && echo "Libpng is built" > $@
+	$(call gbuild, $<, libpng-$(libpng-version), static) \
+	&& echo "Libpng is built" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ilidir)/libjpeg

@@ -288,15 +288,34 @@ $(ibdir)/xz: $(tdir)/xz-$(xz-version).tar.gz
 	$(call gbuild, $<, xz-$(xz-version), static)
 
 $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
-	 tdir=bzip2-$(bzip2-version);                                  \
-	 if [ $(static_build) = yes ]; then                            \
-	   makecommand="make LDFLAGS=-static";                         \
-	 else                                                          \
-	   makecommand="make";                                         \
-	 fi;                                                           \
-	 cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir &&      \
-	 $$makecommand && make install PREFIX=$(idir) &&               \
-	 cd .. && rm -rf $$tdir
+        # Bzip2 doesn't have a `./configure' script, and its Makefile
+        # doesn't build a shared library. So we can't use the `gbuild'
+        # function here and we need to take some extra steps (inspired
+        # from the "Linux from Scratch" guide for Bzip2):
+        #   1) The `sed' call is for relative installed symbolic links.
+        #   2) The special Makefile-libbz2_so builds the shared library.
+        #
+        # NOTE: the major version number appears in the final symbolic
+        # link.
+	tdir=bzip2-$(bzip2-version);                                  \
+	if [ $(static_build) = yes ]; then                            \
+	  makecommand="make LDFLAGS=-static";                         \
+	  makeshared="echo no-shared";                                \
+	else                                                          \
+	  makecommand="make";                                         \
+	  makeshared="make -f Makefile-libbz2_so";                    \
+	fi;                                                           \
+	cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir         \
+	&& sed -i 's@\(ln -s -f \)$$(PREFIX)/bin/@\1@' Makefile       \
+	&& $$makeshared                                               \
+	&& cp -a libbz2* $(ildir)/                                    \
+	&& make clean                                                 \
+	&& $$makecommand                                              \
+	&& make install PREFIX=$(idir)                                \
+	&& cd ..                                                      \
+	&& rm -rf $$tdir                                              \
+	&& cd $(ildir)                                                \
+	&& ln -fs libbz2.so.1.0 libbz2.so
 
 # GNU Tar: When built statically, tar gives a segmentation fault on
 # unpacking Bash. So we'll build it dynamically.

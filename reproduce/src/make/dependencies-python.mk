@@ -302,6 +302,7 @@ $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
                       $(ipydir)/cycler                                  \
                       $(ilidir)/freetype                                \
+                      $(ipydir)/numpy                                   \
                       $(ipydir)/pyparsing                               \
                       $(ipydir)/python-dateutil                         \
                       $(ipydir)/kiwisolver
