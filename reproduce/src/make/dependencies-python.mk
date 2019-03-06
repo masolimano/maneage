@@ -76,6 +76,26 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 
 
 
+# Python enviroment
+# -----------------
+#
+# The main Python environment variable is `PYTHONPATH'. However, so far we
+# have found several other Python-related environment variables on some
+# systems which might interfere. To be safe, we are removing all their
+# values.
+export PYTHONPATH             := $(installdir)/lib/python/site-packages
+export PYTHONPATH3            := $(PYTHONPATH)
+export _LMFILES_              :=
+export PYTHONPATH2            :=
+export LOADEDMODULES          :=
+export MPI_PYTHON_SITEARCH    :=
+export MPI_PYTHON2_SITEARCH   :=
+export MPI_PYTHON3_SITEARCH   :=
+
+
+
+
+
 # Tarballs
 # --------
 #
@@ -362,4 +382,3 @@ $(ipydir)/urllib3: $(tdir)/urllib3-$(urllib3-version).tar.gz \
 $(ipydir)/webencodings: $(tdir)/webencodings-$(webencodings-version).tar.gz \
                         $(ibdir)/python3
 	$(call pybuild, tar xf, $<, webencodings-$(webencodings-version))
-
