@@ -106,25 +106,32 @@ export MPI_PYTHON3_SITEARCH   :=
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, astroquery-$(astroquery-version).tar.gz           \
+tarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz           \
+                        astroquery-$(astroquery-version).tar.gz           \
                         astropy-$(astropy-version).tar.gz                 \
                         beautifulsoup4-$(beautifulsoup4-version).tar.gz   \
                         certifi-$(certifi-version).tar.gz                 \
+                        cffi-$(cffi-version).tar.gz                       \
                         chardet-$(chardet-version).tar.gz                 \
+                        cryptography-$(cryptography-version).tar.gz       \
                         cycler-$(cycler-version).tar.gz                   \
                         entrypoints-$(entrypoints-version).tar.gz         \
                         html5lib-$(html5lib-version).tar.gz               \
                         idna-$(idna-version).tar.gz                       \
+                        jeepney-$(jeepney-version).tar.gz                 \
                         kiwisolver-$(kiwisolver-version).tar.gz           \
                         keyring-$(keyring-version).tar.gz                 \
+                        libffi-$(libffi-version).tar.gz                   \
                         matplotlib-$(matplotlib-version).tar.gz           \
                         numpy-$(numpy-version).zip                        \
                         pip-$(pip-version).tar.gz                         \
+                        pycparser-$(pycparser-version).tar.gz             \
                         python-$(python-version).tar.gz                   \
                         python-dateutil-$(python-dateutil-version).tar.gz \
                         pyparsing-$(pyparsing-version).tar.gz             \
                         requests-$(requests-version).tar.gz               \
                         scipy-$(scipy-version).tar.gz                     \
+                        secretstorage-$(secretstorage-version).tar.gz     \
                         setuptools-$(setuptools-version).zip              \
                         setuptools_scm-$(setuptools_scm-version).tar.gz   \
                         six-$(six-version).tar.gz                         \
@@ -149,40 +156,55 @@ $(tarballs): $(tdir)/%:
           # a number or dash in their name), we need special consideration
           # because the tokenization above will produce `python' as the
           # first string.
-	      if [ $* = python-dateutil-$(python-dateutil-version).tar.gz ]; then
+	  if [ $* = python-dateutil-$(python-dateutil-version).tar.gz ]; then
 	        n=dateutil
           # elif [ $* = strange-tarball5name-version.tar.gz ]; then
           #  n=strange5-name
-	      else
+	  else
             # Remove all numbers, `-' and `.' from the tarball name so we can
             # search more easily only with the program name.
-	        n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
-	                  | awk '{print $$1}')
-	      fi
+	    n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
+	              | awk '{print $$1}')
+	  fi
 
-          # Set the top download link of the requested tarball.
+          # Set the top download link of the requested tarball. The ones
+          # that have non-standard filenames (differing from our archived
+          # tarball names) are treated first, then the standard ones.
 	  mergenames=1
 	  if [ $$n = python           ]; then
 	    mergenames=0
 	    h=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
+	  elif [ $$n = libffi         ]; then
+	    mergenames=0
+	    h=ftp://sourceware.org/pub/libffi/libffi-$(libffi-version).tar.gz
+	  elif [ $$n = secretstorage  ]; then
+	    mergenames=0
+	    hash=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5
+	    h=$(topurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
+	  elif [ $$n = asn            ]; then h=fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4
 	  elif [ $$n = astroquery     ]; then h=61/50/a7a08f9e54d7d9d97e69433cd88231e1ad2901811c9d1ae9ac7ccaef9396
 	  elif [ $$n = astropy        ]; then h=eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352
 	  elif [ $$n = beautifulsoup  ]; then h=80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748
 	  elif [ $$n = certifi        ]; then h=55/54/3ce77783acba5979ce16674fc98b1920d00b01d337cfaaf5db22543505ed
+	  elif [ $$n = cffi           ]; then h=64/7c/27367b38e6cc3e1f49f193deb761fe75cda9f95da37b67b422e62281fcac
 	  elif [ $$n = chardet        ]; then h=fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d
+	  elif [ $$n = cryptography   ]; then h=07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449
 	  elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488
 	  elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c
 	  elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f
 	  elif [ $$n = idna           ]; then h=ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7
+	  elif [ $$n = jeepney        ]; then h=16/1d/74adf3b164a8d19a60d0fcf706a751ffa2a1eaa8e5bbb1b6705c92a05263
 	  elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2
 	  elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864
 	  elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f
 	  elif [ $$n = numpy          ]; then h=2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c
 	  elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af
+	  elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a
 	  elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc
 	  elif [ $$n = dateutil       ]; then h=ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c
 	  elif [ $$n = requests       ]; then h=52/2c/514e4ac25da2b08ca5a464c50463682126385c4272c18193876e91f4bc38
 	  elif [ $$n = scipy          ]; then h=a9/b4/5598a706697d1e2929eaf7fe68898ef4bea76e4950b9efbe1ef396b8813a
+	  elif [ $$n = secretstorage  ]; then h=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5
 	  elif [ $$n = setuptools     ]; then h=c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0
 	  elif [ $$n = setuptools_scm ]; then h=54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3
 	  elif [ $$n = six            ]; then h=dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca
@@ -244,9 +266,11 @@ pybuild = cd $(ddir); rm -rf $(3);                                        \
 
 
 
-# Python installation
-# -------------------
+# Necessary programs and libraries
+# --------------------------------
 #
+# While this Makefile is for Python programs, in some cases, we need
+# certain programs (like Python itself), or libraries for the modules.
 $(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
         # On Mac systems, the build complains about `clang' specific
         # features, so we can't use our own GCC build here.
@@ -261,12 +285,21 @@ $(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
 	&& ln -s $(ildir)/python$$v $(ildir)/python         \
 	&& rm -rf $(ipydir) && mkdir $(ipydir)
 
+$(ilidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
+	$(call gbuild, $<, libffi-$(libffi-version))        \
+	echo "libffi is built" > $@
 
 
 
-# Python packages
+
+# Python modules
 # ---------------
 #
+# All the necessary Python modules go here.
+$(ipydir)/asn1crypto: $(tdir)/asn1crypto-$(asn1crypto-version).tar.gz \
+                      $(ibdir)/python3
+	$(call pybuild, tar xf, $<, asn1crypto-$(asn1crypto-version))
+
 $(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz  \
                       $(ipydir)/astropy                                \
                       $(ipydir)/beautifulsoup4                         \
@@ -288,9 +321,19 @@ $(ipydir)/certifi: $(tdir)/certifi-$(certifi-version).tar.gz \
                    $(ibdir)/python3
 	$(call pybuild, tar xf, $<, certifi-$(certifi-version))
 
+$(ipydir)/cffi: $(tdir)/cffi-$(cffi-version).tar.gz \
+                $(ipydir)/pycparser                 \
+                $(ilidir)/libffi
+	$(call pybuild, tar xf, $<, cffi-$(cffi-version))
+
 $(ipydir)/chardet: $(tdir)/chardet-$(chardet-version).tar.gz \
                    $(ibdir)/python3
 	$(call pybuild, tar xf, $<, chardet-$(chardet-version))
+
+$(ipydir)/cryptography: $(tdir)/cryptography-$(cryptography-version).tar.gz \
+                        $(ipydir)/cffi                                      \
+                        $(ipydir)/asn1crypto
+	$(call pybuild, tar xf, $<, cryptography-$(cryptography-version))
 
 $(ipydir)/cycler: $(tdir)/cycler-$(cycler-version).tar.gz \
                    $(ipydir)/six
@@ -309,9 +352,14 @@ $(ipydir)/idna: $(tdir)/idna-$(idna-version).tar.gz \
                 $(ibdir)/python3
 	$(call pybuild, tar xf, $<, idna-$(idna-version))
 
+$(ipydir)/jeepney: $(tdir)/jeepney-$(jeepney-version).tar.gz \
+                $(ibdir)/python3
+	$(call pybuild, tar xf, $<, jeepney-$(jeepney-version))
+
 $(ipydir)/keyring: $(tdir)/keyring-$(keyring-version).tar.gz    \
-                   $(ipydir)/entrypoints                        \
-                   $(ipydir)/setuptools_scm
+                   $(ipydir)/setuptools_scm                     \
+                   $(ipydir)/secretstorage                      \
+                   $(ipydir)/entrypoints
 	$(call pybuild, tar xf, $<, keyring-$(keyring-version))
 
 $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
@@ -339,11 +387,16 @@ $(ibdir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
                $(ibdir)/python3
 	$(call pybuild, tar xf, $<, pip-$(pip-version))
 
+$(ipydir)/pycparser: $(tdir)/pycparser-$(pycparser-version).tar.gz \
+                     $(ibdir)/python3
+	$(call pybuild, tar xf, $<, pycparser-$(pycparser-version))
+
 $(ipydir)/pyparsing: $(tdir)/pyparsing-$(pyparsing-version).tar.gz \
                      $(ibdir)/python3
 	$(call pybuild, tar xf, $<, pyparsing-$(pyparsing-version))
 
 $(ipydir)/python-dateutil: $(tdir)/python-dateutil-$(python-dateutil-version).tar.gz  \
+                           $(ipydir)/setuptools_scm                                   \
                            $(ipydir)/six
 	$(call pybuild, tar xf, $<, python-dateutil-$(python-dateutil-version))
 
@@ -358,6 +411,11 @@ $(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz   \
 $(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
                  $(ipydir)/numpy
 	$(call pybuild, tar xf, $<, scipy-$(scipy-version))
+
+$(ipydir)/secretstorage: $(tdir)/secretstorage-$(secretstorage-version).tar.gz \
+                         $(ipydir)/cryptography                                \
+                         $(ipydir)/jeepney
+	$(call pybuild, tar xf, $<, SecretStorage-$(secretstorage-version))
 
 $(ipydir)/setuptools: $(tdir)/setuptools-$(setuptools-version).zip \
                       $(ibdir)/python3
