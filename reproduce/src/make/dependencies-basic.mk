@@ -715,57 +715,71 @@ $(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz
 # we'll just use the host operating system's C library, compiler, and
 # linker.
 #
-# We want to build GCC after building all the basic tools that are often
-# used in a configure script to enable GCC's configure script to work as
-# smoothly/robustly as possible.
+# Based on the GCC manual, the GCC build can benefit from a GNU
+# environment. So, we'll build GCC after building all the basic tools that
+# are often used in a configure and build scripts of GCC components.
 #
 # Including Objective C and Objective C++ is necessary for installing
 # `matplotlib'.
-$(ibdir)/gcc: $(tdir)/gcc-$(gcc-version).tar.xz \
-              $(ibdir)/ls                       \
-              $(ibdir)/sed                      \
-              $(ilidir)/isl                     \
-              $(ilidir)/mpc                     \
-              $(ibdir)/gawk                     \
-              $(ibdir)/grep                     \
-              $(ibdir)/diff                     \
-              $(ibdir)/find                     \
-              $(ibdir)/bash                     \
+#
+# We are currently having problems installing GCC on macOS, so for the time
+# being, if the pipeline is being run on a macOS, we'll just set a link.
+ifeq ($(on_mac_os),yes)
+gcc-prerequisites =
+else
+gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
+                    $(ilidir)/isl                     \
+                    $(ilidir)/mpc
+endif
+$(ibdir)/gcc: $(gcc-prerequisites)  \
+              $(ibdir)/ls           \
+              $(ibdir)/sed          \
+              $(ibdir)/gawk         \
+              $(ibdir)/grep         \
+              $(ibdir)/diff         \
+              $(ibdir)/find         \
+              $(ibdir)/bash         \
               $(ibdir)/which
 
-        # Clean up (possibly existing) gcc installation
-	rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*
-	rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc* \
-		   $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*
-
-        # Un-pack all the necessary tools in the top building directory
-	cd $(ddir);                                                        \
-	rm -rf gcc-build gcc-$(gcc-version);                               \
-	tar xf $< &&                                                       \
-	mkdir $(ddir)/gcc-build &&                                         \
-	cd $(ddir)/gcc-build &&                                            \
-	../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash                \
-	                                --prefix=$(idir)                   \
-	                                --with-mpc=$(idir)                 \
-	                                --with-mpfr=$(idir)                \
-	                                --with-gmp=$(idir)                 \
-	                                --with-isl=$(idir)                 \
-	                                --with-build-time-tools=$(idir)    \
-	                                --enable-shared                    \
-	                                --disable-multilib                 \
-	                                --disable-multiarch                \
-	                                --enable-threads=posix             \
-	                                --with-local-prefix=$(idir)        \
-	                                --enable-linker-build-id           \
-	                                --enable-lto                       \
-	                                --enable-languages=c,c++,fortran,objc,obj-c++ \
-	                                --disable-libada                   \
-	                                --disable-nls                      \
-	                                --enable-default-pie               \
-	                                --enable-default-ssp               \
-	                                --enable-cet=auto                  \
-	                                --enable-decimal-float &&          \
-	make SHELL=$(ibdir)/bash -j$$(nproc) &&                            \
-	make SHELL=$(ibdir)/bash install &&                                \
-	cd .. &&                                                           \
-	rm -rf gcc-build gcc-$(gcc-version)
+        # On a macOS, we (currently!) won't build GCC because of some
+        # errors we are still trying to find. So, we'll just make a
+        # symbolic link to the host's executables.
+	if [ "x$(on_mac_os)" = xyes ]; then                                \
+	  $(call makelink,gfortran);                                       \
+	  $(call makelink,gcc);                                            \
+	  $(call makelink,g++);                                            \
+	else                                                               \
+	                                                                   \
+	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
+	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*;            \
+	  rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*;\
+	                                                                   \
+	  cd $(ddir);                                                      \
+	  rm -rf gcc-build gcc-$(gcc-version);                             \
+	  tar xf $< &&                                                     \
+	  mkdir $(ddir)/gcc-build &&                                       \
+	  cd $(ddir)/gcc-build &&                                          \
+	  ../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash              \
+	                    --prefix=$(idir)                               \
+	                    --with-mpc=$(idir)                             \
+	                    --with-mpfr=$(idir)                            \
+	                    --with-gmp=$(idir)                             \
+	                    --with-isl=$(idir)                             \
+	                    --with-build-time-tools=$(idir)                \
+	                    --enable-shared                                \
+	                    --disable-multilib                             \
+	                    --disable-multiarch                            \
+	                    --enable-threads=posix                         \
+	                    --with-local-prefix=$(idir)                    \
+	                    --enable-languages=c,c++,fortran,objc,obj-c++  \
+	                    --disable-libada                               \
+	                    --disable-nls                                  \
+	                    --enable-default-pie                           \
+	                    --enable-default-ssp                           \
+	                    --enable-cet=auto                              \
+	                    --enable-decimal-float &&                      \
+	  make SHELL=$(ibdir)/bash -j$$(nproc) &&                          \
+	  make SHELL=$(ibdir)/bash install &&                              \
+	  cd .. &&                                                         \
+	  rm -rf gcc-build gcc-$(gcc-version);                             \
+	fi
