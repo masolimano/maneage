@@ -66,7 +66,7 @@ testfile=".reproducible-pipeline-group-test"
 if sg "$1" "echo test > $testfile"; then
     rm $testfile
     if   [ "x$2" = xconfigure ]; then script="./configure"
-    elif [ "x$2" = xmake      ]; then script=".local/bin/make $3"
+    elif [ "x$2" = xmake      ]; then script=".local/bin/make $3 $4"
     else
         echo "$0: a third argument is necessary."
         echo "It specifies the action: either 'configure' or 'make'"
