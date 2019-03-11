@@ -351,89 +351,90 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Versions of programs (same order as 'dependency-versions.mk'),
         # ordered alphabetically (by their executable name).
-        # --------- Delete for no Gnuastro ---------
-	$(call pvcheck, astnoisechisel, $(gnuastro-version), Gnuastro, \
-                        gnuastroversion)
-        # ------------------------------------------
-	$(call pvcheck, awk, $(gawk-version), GNU AWK, gawkversion)
-	$(call pvcheck, bash, $(bash-version), GNU Bash, bashversion)
-	$(call pvcheck, cmake, $(cmake-version), CMake, cmakeversion)
-	$(call pvcheck, curl, $(curl-version), cURL, curlversion)
-	$(call pvcheck, diff, $(diffutils-version), GNU Diffutils,     \
-	                diffutilsversion)
-	$(call pvcheck, find, $(findutils-version), GNU Findutils,     \
-	                findutilsversion)
-	$(call pvcheck, git, $(git-version), Git, gitversion)
-	$(call pvcheck, glibtool, $(libtool-version), GNU Libtool,     \
-	                libtoolversion)
-	$(call pvcheck, grep, $(grep-version), GNU Grep, grepversion)
-	$(call pvcheck, gs, $(ghostscript-version), GPL Ghostscript,   \
-	                ghostscriptversion)
-	$(call pvcheck, gzip, $(gzip-version), GNU Gzip, gzipversion)
-	$(call pvcheck, ls, $(coreutils-version), GNU Coreutils,       \
-	                coreutilsversion)
-	$(call pvcheck, lzip, $(lzip-version), Lzip, lzipversion)
-	$(call pvcheck, make, $(make-version), GNU Make, makeversion)
-	$(call pvcheck, metastore, $(metastore-version), Metastore,    \
-	                metastoreversion)
-	$(call pvcheck, pkg-config, $(pkgconfig-version), pkg-config,  \
-	                pkgconfigversion)
-	$(call pvcheck, sed, $(sed-version), GNU SED, sedversion)
-	$(call pvcheck, tar, $(tar-version), GNU Tar, tarversion)
-	$(call pvcheck, unzip, $(unzip-version), Unzip, unzipversion, -v)
-	$(call pvcheck, wget, $(wget-version), GNU Wget, wgetversion)
-	$(call pvcheck, which, $(which-version), GNU Which, whichversion)
-	$(call pvcheck, xz, $(xz-version), XZ Utils, xzversion)
-	$(call pvcheck, zip, $(zip-version), Zip, zipversion, -v)
+	echo "\newcommand{\\bashversion}{$(bash-version)}"              >> $@
+#	echo "\newcommand{\\bashversion}{$(binutils-version)}"          >> $@
+	echo "\newcommand{\\bziptwoversion}{$(bzip2-version)}"          >> $@
+	echo "\newcommand{\\cmakeversion}{$(cmake-version)}"            >> $@
+	echo "\newcommand{\\coreutilsversion}{$(coreutils-version)}"    >> $@
+	echo "\newcommand{\\diffutilsversion}{$(diffutils-version)}"    >> $@
+	echo "\newcommand{\\findutilsversion}{$(findutils-version)}"    >> $@
+	echo "\newcommand{\\flockversion}{$(flock-version)}"            >> $@
+	echo "\newcommand{\\freetypeversion}{$(freetype-version)}"      >> $@
+	echo "\newcommand{\\gawkversion}{$(gawk-version)}"              >> $@
+	echo "\newcommand{\\gccversion}{$(gcc-version)}"                >> $@
+	echo "\newcommand{\\ghostscriptversion}{$(ghostscript-version)}" >> $@
+	echo "\newcommand{\\gitversion}{$(git-version)}"                >> $@
+	echo "\newcommand{\\gmpversion}{$(gmp-version)}"                >> $@
+	echo "\newcommand{\\gnuastroversion}{$(gnuastro-version)}"      >> $@
+	echo "\newcommand{\\grepversion}{$(grep-version)}"              >> $@
+	echo "\newcommand{\\gzipversion}{$(gzip-version)}"              >> $@
+	echo "\newcommand{\\islversion}{$(isl-version)}"                >> $@
+	echo "\newcommand{\\libbsdversion}{$(libbsd-version)}"          >> $@
+	echo "\newcommand{\\libffiversion}{$(libffi-version)}"          >> $@
+	echo "\newcommand{\\libpngversion}{$(libpng-version)}"          >> $@
+	echo "\newcommand{\\libtoolversion}{$(libtool-version)}"        >> $@
+	echo "\newcommand{\\lzipversion}{$(lzip-version)}"              >> $@
+	echo "\newcommand{\\makeversion}{$(make-version)}"              >> $@
+	echo "\newcommand{\\metastoreversion}{$(metastore-version)}"    >> $@
+	echo "\newcommand{\\mpfrversion}{$(mpfr-version)}"              >> $@
+	echo "\newcommand{\\mpcversion}{$(mpc-version)}"                >> $@
+	echo "\newcommand{\\ncursesversion}{$(ncurses-version)}"        >> $@
+	echo "\newcommand{\\opensslversion}{$(openssl-version)}"        >> $@
+	echo "\newcommand{\\patchelfversion}{$(patchelf-version)}"      >> $@
+	echo "\newcommand{\\pkgconfigversion}{$(pkgconfig-version)}"    >> $@
+	echo "\newcommand{\\pythonversion}{$(python-version)}"          >> $@
+	echo "\newcommand{\\readlineversion}{$(readline-version)}"      >> $@
+	echo "\newcommand{\\sedversion}{$(sed-version)}"                >> $@
+	echo "\newcommand{\\swarpversion}{$(swarp-version)}"            >> $@
+	echo "\newcommand{\\tarversion}{$(tar-version)}"                >> $@
+	echo "\newcommand{\\unzipversion}{$(unzip-version)}"            >> $@
+	echo "\newcommand{\\wgetversion}{$(wget-version)}"              >> $@
+	echo "\newcommand{\\whichversion}{$(which-version)}"            >> $@
+	echo "\newcommand{\\xzversion}{$(xz-version)}"                  >> $@
+	echo "\newcommand{\\zipversion}{$(zip-version)}"                >> $@
 
-        # Bzip2 prints its version in standard error, not standard output!
-	echo "" | bzip2 --version &> $@_bzip2_ver;
-	v=$$(awk 'NR==1 && /'$(bzip2-version)'/{print "y"; exit 0}' \
-	         $@_bzip2_ver);
-	if [ x$$v != xy ]; then
-	  echo; echo "PIPELINE ERROR: Not running Bzip2 $(bzip2-version)";
-	  echo; exit 1;
-	fi;
-	rm $@_bzip2_ver
-	echo "\newcommand{\\bziptwoversion}{$(bzip2-version)}" >> $@
+        # Libraries.
+	echo "\newcommand{\\cfitsioversion}{$(cfitsio-version)}"        >> $@
+	echo "\newcommand{\\curlversion}{$(curl-version)}"              >> $@
+	echo "\newcommand{\\gslversion}{$(gsl-version)}"                >> $@
+	echo "\newcommand{\\libgittwoversion}{$(libgit2-version)}"      >> $@
+	echo "\newcommand{\\libjpegversion}{$(libjpeg-version)}"        >> $@
+	echo "\newcommand{\\libtiffversion}{$(libtiff-version)}"        >> $@
+	echo "\newcommand{\\wcslibversion}{$(wcslib-version)}"          >> $@
+	echo "\newcommand{\\zlibversion}{$(zlib-version)}"              >> $@
 
-        # Unfortunately we couldn't find a way to retrieve the version of
-        # the discoteq `flock' that we are using here. So we'll just repot
-        # the version we downloaded and installed.
-	echo "\newcommand{\\flockversion}{$(flock-version)}" >> $@
-
-
-
-
-
-        # Versions of libraries.
-	$(call lvcheck, fitsio.h, $(cfitsio-version), CFITSIO, cfitsioversion)
-	$(call lvcheck, gsl/gsl_version.h, $(gsl-version),  \
-	                GNU Scientific Library (GSL), gslversion)
-	$(call lvcheck, git2/version.h, $(libgit2-version), Libgit2, \
-	                libgitwoversion)
-	$(call lvcheck, openssl/opensslv.h, $(openssl-version), OpenSSL, \
-	                opensslversion)
-	$(call lvcheck, ncursesw/curses.h, $(ncurses-version), GNU NCURSES, \
-	                ncursesversion)
-	$(call lvcheck, readline/readline.h, $(readline-version), GNU Readline, \
-	                readlineversion)
-	$(call lvcheck, tiffvers.h, $(libtiff-version), Libtiff, \
-	                libtiffversion)
-	$(call lvcheck, wcslib/wcsconfig.h, $(wcslib-version), WCSLIB, \
-	                wcslibversion)
-	$(call lvcheck, zlib.h, $(zlib-version), zlib, zlibversion)
-
-        # Problematic libraries:
-        # - libjpeg not  yet checked.
-        # - libbsd has no version string in its headers.
-	echo "\newcommand{\\libbsdversion}{$(libbsd-version)}"   >> $@
-	echo "\newcommand{\\libjpegversion}{$(libjpeg-version)}" >> $@
+        # Python modules.
+	echo "\newcommand{\\asncryptoversion}{$(asn1crypto-version)}"   >> $@
+	echo "\newcommand{\\astroqueryversion}{$(astroquery-version)}"  >> $@
+	echo "\newcommand{\\astropyversion}{$(astropy-version)}"        >> $@
+	echo "\newcommand{\\beautifulsoupversion}{$(beautifulsoup4-version)}" >> $@
+	echo "\newcommand{\\certifiversion}{$(certifi-version)}"        >> $@
+	echo "\newcommand{\\cffiversion}{$(cffi-version)}"              >> $@
+	echo "\newcommand{\\chardetversion}{$(chardet-version)}"        >> $@
+	echo "\newcommand{\\cryptographyversion}{$(cryptography-version)}" >> $@
+	echo "\newcommand{\\cyclerversion}{$(cycler-version)}"          >> $@
+	echo "\newcommand{\\entrypointsversion}{$(entrypoints-version)}" >> $@
+	echo "\newcommand{\\htmlfivelibversion}{$(html5lib-version)}"   >> $@
+	echo "\newcommand{\\indaversion}{$(idna-version)}"              >> $@
+	echo "\newcommand{\\jeepneyversion}{$(jeepney-version)}"        >> $@
+	echo "\newcommand{\\kiwisolverversion}{$(kiwisolver-version)}"  >> $@
+	echo "\newcommand{\\keyringversion}{$(keyring-version)}"        >> $@
+	echo "\newcommand{\\matplotlibversion}{$(matplotlib-version)}"  >> $@
+	echo "\newcommand{\\numpyversion}{$(numpy-version)}"            >> $@
+#	echo "\newcommand{\\pipversion}{$(pip-version)}"                >> $@
+	echo "\newcommand{\\pycparserversion}{$(pycparser-version)}"    >> $@
+	echo "\newcommand{\\pyparsingversion}{$(pyparsing-version)}"    >> $@
+	echo "\newcommand{\\pythondateutilversion}{$(python-dateutil-version)}" >> $@
+	echo "\newcommand{\\requestsversion}{$(requests-version)}"      >> $@
+	echo "\newcommand{\\scipyversion}{$(scipy-version)}"            >> $@
+	echo "\newcommand{\\screenstorageversion}{$(secretstorage-version)}" >> $@
+	echo "\newcommand{\\setuptoolsversion}{$(setuptools-version)}"  >> $@
+	echo "\newcommand{\\setuptoolsscmversion}{$(setuptools_scm-version)}"  >> $@
+	echo "\newcommand{\\sixversion}{$(six-version)}"                >> $@
+	echo "\newcommand{\\soupsieveversion}{$(soupsieve-version)}"    >> $@
+	echo "\newcommand{\\urllibthreeversion}{$(urllib3-version)}"    >> $@
+	echo "\newcommand{\\virtualenvversion}{$(virtualenv-version)}"  >> $@
+	echo "\newcommand{\\webencodingsversion}{$(webencodings-version)}" >> $@
 
         # TeX package versions
 	cat $(BDIR)/dependencies/texlive-versions.tex >> $@
-
-        # Python packages
-	$(call pvcheck, python3, $(python-version), Python, pythonversion)
-	echo "\newcommand{\\numpyversion}{$(numpy-version)}"     >> $@
-	echo "\newcommand{\\astropyversion}{$(astropy-version)}" >> $@
