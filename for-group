@@ -92,3 +92,19 @@ fi
 # typo (not using this script properly after configuration).
 export reproducible_paper_group_name="$1"
 sg "$1" "umask u+r,u+w,g+r,g+w,o-r,o-w,o-x && $script"
+
+
+
+
+
+# Group writing permissions for dependencies directory
+#
+# The common build process sets the writing permissions of the installed
+# programs/libraries to `755'. So group members can't write over a
+# file. This creates problems when another group member wants to update the
+# software for example. We thus need to manually add the group writing flag
+# to all installed software files.
+if [ "x$2" = xconfigure ]; then
+    echo "Enabling group writing permission on all installed software..."
+    chmod -R g+w .local/;
+fi
