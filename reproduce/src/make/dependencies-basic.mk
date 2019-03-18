@@ -293,7 +293,7 @@ $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
         # function here and we need to take some extra steps (inspired
         # from the "Linux from Scratch" guide for Bzip2):
         #   1) The `sed' call is for relative installed symbolic links.
-        #   2) The special Makefile-libbz2_so builds the shared library.
+        #   2) The special Makefile-libbz2_so builds shared libraries.
         #
         # NOTE: the major version number appears in the final symbolic
         # link.
@@ -303,10 +303,16 @@ $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	  makeshared="echo no-shared";                                \
 	else                                                          \
 	  makecommand="make";                                         \
-	  makeshared="make -f Makefile-libbz2_so";                    \
+	  if [ x$(on_mac_os) = xyes ]; then                           \
+	    makeshared="echo no-shared";                              \
+	  else                                                        \
+	    makeshared="make -f Makefile-libbz2_so";                  \
+	  fi;                                                         \
 	fi;                                                           \
 	cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir         \
-	&& sed -i 's@\(ln -s -f \)$$(PREFIX)/bin/@\1@' Makefile       \
+	&& sed -e 's@\(ln -s -f \)$$(PREFIX)/bin/@\1@' Makefile       \
+	       > Makefile.sed                                         \
+	&& mv Makefile.sed Makefile                                   \
 	&& $$makeshared                                               \
 	&& cp -a libbz2* $(ildir)/                                    \
 	&& make clean                                                 \
