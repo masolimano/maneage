@@ -202,11 +202,13 @@ $(tarballs): $(tdir)/%:
 # is very annoying and can cause many complications. We thus remove any
 # part of PATH of that has `ccache' in it before making symbolic links to
 # the programs we are not building ourselves.
-makelink = export PATH=$$(echo $(syspath)| tr : '\n' |grep -v ccache  \
-	                       | paste -s -d:);                       \
-	   a=$$(which $(1) 2> /dev/null);                             \
-	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;        \
-	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
+makelink = origpath="$$PATH";                                          \
+	   export PATH=$$(echo $(syspath) | tr : '\n' | grep -v ccache \
+	                       | paste -s -d:);                        \
+	   a=$$(which $(1) 2> /dev/null);                              \
+	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;         \
+	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi;         \
+	   export PATH="$$origpath"
 $(ibdir) $(ildir):; mkdir $@
 $(ibdir)/low-level-links: | $(ibdir) $(ildir)
 
@@ -748,12 +750,12 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
               $(ibdir)/which
 
         # On a macOS, we (currently!) won't build GCC because of some
-        # errors we are still trying to find. So, we'll just make a
-        # symbolic link to the host's executables.
+        # errors we are still trying to fix. So, we'll just make a symbolic
+        # link to the host's executables.
 	if [ "x$(on_mac_os)" = xyes ]; then                                \
 	  $(call makelink,gfortran);                                       \
-	  $(call makelink,gcc);                                            \
 	  $(call makelink,g++);                                            \
+	  $(call makelink,gcc);                                            \
 	else                                                               \
 	                                                                   \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
