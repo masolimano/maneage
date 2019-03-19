@@ -17,6 +17,7 @@ build
 Makefile
 tex/tikz
 .gnuastro
+.DS_Store
 .texlive*
 tex/pipeline
 LOCAL_tmp.mk
