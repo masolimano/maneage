@@ -44,7 +44,7 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
 top-level-programs  = astnoisechisel flock metastore unzip zip
-top-level-libraries = freetype
+top-level-libraries = atlas freetype
 all: $(ddir)/texlive-versions.tex                       \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
      $(foreach p, $(top-level-libraries), $(ilidir)/$(p))
@@ -67,12 +67,12 @@ all: $(ddir)/texlive-versions.tex                       \
 .SHELLFLAGS              := --noprofile --norc -ec
 export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir)
-export LD_RUN_PATH       := $(ildir)
-export LD_LIBRARY_PATH   := $(ildir)
 export SHELL             := $(ibdir)/bash
 export CPPFLAGS          := -I$(idir)/include
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
+export LD_RUN_PATH       := $(ildir):$(il64dir)
+export LD_LIBRARY_PATH   := $(ildir):$(il64dir)
 export LDFLAGS           := $(rpath_command) -L$(ildir)
 
 
@@ -90,6 +90,7 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
 tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
+                        atlas-$(atlas-version).tar.bz2                     \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         flock-$(flock-version).tar.xz                      \
@@ -100,6 +101,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         gsl-$(gsl-version).tar.gz                          \
                         install-tl-unx.tar.gz                              \
                         jpegsrc.$(libjpeg-version).tar.gz                  \
+                        lapack-$(lapack-version).tar.gz                    \
                         libbsd-$(libbsd-version).tar.xz                    \
                         libpng-$(libpng-version).tar.xz                    \
                         libtool-$(libtool-version).tar.xz                  \
@@ -130,6 +132,9 @@ $(tarballs): $(tdir)/%:
 	                                 : (l==2 ? "%d00\n"           \
                                             : "%d000\n") ), $$1)}')
 	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
+	  elif [ $$n = atlas       ]; then
+	    mergenames=0
+	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
@@ -140,6 +145,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = gsl         ]; then w=http://ftpmirror.gnu.org/gnu/gsl
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
+	  elif [ $$n = lapack      ]; then w=http://www.netlib.org/lapack
 	  elif [ $$n = libbsd      ]; then w=http://libbsd.freedesktop.org/releases
 	  elif [ $$n = libpng      ]; then w=https://download.sourceforge.net/libpng
 	  elif [ $$n = libtool     ]; then w=http://ftpmirror.gnu.org/gnu/libtool
@@ -250,6 +256,64 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 	$(call gbuild, $<, tiff-$(libtiff-version), static, \
 	               --disable-webp --disable-zstd) \
 	&& echo "Libtiff is built" > $@
+
+$(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
+	         $(tdir)/lapack-$(lapack-version).tar.gz
+
+
+        # Get the CPU frequency.
+	if [ x$(on_mac_os) = xyes ]; then
+	  core=2400
+	else
+	  core=$$(cat /proc/cpuinfo | grep "cpu MHz" \
+	              | head -n 1                    \
+	              | sed "s/.*: \([0-9.]*\).*/\1/")
+	fi
+
+        # See if the shared libraries should be build for a single CPU
+        # thread or multiple threads.
+	N=$$(nproc)
+	srcdir=$$(pwd)/reproduce/src/make
+	if [ $$N = 1 ]; then
+	  sharedmk=$$srcdir/dependencies-atlas-single.mk
+	else
+	  sharedmk=$$srcdir/dependencies-atlas-multiple.mk
+	fi
+
+        # The linking step here doesn't recognize the `-Wl' in the
+        # `rpath_command'.
+	export LDFLAGS=-L$(ildir)
+
+	cd $(ddir)
+	tar xf $<
+	cd ATLAS
+	rm -rf build
+	mkdir build
+	cd build
+	../configure -b 64 -D c -DPentiumCPS=$$core  \
+	             --with-netlib-lapack-tarfile=$(word 2, $^) \
+	             --cripple-atlas-performance     \
+	             -Fa alg -fPIC --shared          \
+	             --prefix=$(idir)
+
+        # Do the basic build and the extra shared libraries.
+	make
+	cd lib && make -f $$sharedmk && cd ..
+
+        # Add RPATH to all the shared libraries.
+	for l in lib/*.so*; do patchelf --set-rpath $(ildir) $$l; done
+
+        # Install the libraires.
+	make install
+	cp -d lib/*.so* $(ildir)
+	[ -e lib/libptlapack.a ] && cp lib/libptlapack.a $(ildir)
+	ln -fs $(ildir)/libblas.so         $(ildir)/libblas.so.3
+	ln -fs $(ildir)/liblapack.so.3.6.1 $(ildir)/liblapack.so
+	ln -fs $(ildir)/liblapack.so.3.6.1 $(ildir)/liblapack.so.3
+	exit 1
+	cd $(ddir)
+	rm -rf ATLAS
+	echo "Atlas is built" > $@
 
 
 

@@ -378,9 +378,6 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ibdir)/python3
-	export BLAS=None; \
-	export ATLAS=None; \
-	export LAPACK=None; \
 	$(call pybuild, unzip, $<, numpy-$(numpy-version))
 
 $(ibdir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \

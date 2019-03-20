@@ -744,6 +744,12 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
         # On a macOS, we (currently!) won't build GCC because of some
         # errors we are still trying to find. So, we'll just make a
         # symbolic link to the host's executables.
+        #
+        # GCC builds is own libraries in '$(idir)/lib64'. But all other
+        # libraries are in '$(idir)/lib'. Since this pipeline is only for a
+        # single architecture, we can trick GCC into building its libraries
+        # in '$(idir)/lib' by defining the '$(idir)/lib64' as a symbolic
+        # link to '$(idir)/lib'.
 	if [ "x$(on_mac_os)" = xyes ]; then                                \
 	  $(call makelink,gfortran);                                       \
 	  $(call makelink,gcc);                                            \
@@ -754,12 +760,14 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
 	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*;            \
 	  rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*;\
 	                                                                   \
+	  ln -fs $(ildir) $(idir)/lib64;                                   \
+	                                                                   \
 	  cd $(ddir);                                                      \
 	  rm -rf gcc-build gcc-$(gcc-version);                             \
-	  tar xf $< &&                                                     \
-	  mkdir $(ddir)/gcc-build &&                                       \
-	  cd $(ddir)/gcc-build &&                                          \
-	  ../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash              \
+	  tar xf $<                                                        \
+	  && mkdir $(ddir)/gcc-build                                       \
+	  && cd $(ddir)/gcc-build                                          \
+	  && ../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash           \
 	                    --prefix=$(idir)                               \
 	                    --with-mpc=$(idir)                             \
 	                    --with-mpfr=$(idir)                            \
@@ -777,9 +785,16 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
 	                    --enable-default-pie                           \
 	                    --enable-default-ssp                           \
 	                    --enable-cet=auto                              \
-	                    --enable-decimal-float &&                      \
-	  make SHELL=$(ibdir)/bash -j$$(nproc) &&                          \
-	  make SHELL=$(ibdir)/bash install &&                              \
-	  cd .. &&                                                         \
-	  rm -rf gcc-build gcc-$(gcc-version);                             \
+	                    --enable-decimal-float                         \
+	  && make SHELL=$(ibdir)/bash -j$$(nproc)                          \
+	  && make SHELL=$(ibdir)/bash install                              \
+	  && cd ..                                                         \
+	  && rm -rf gcc-build gcc-$(gcc-version)                           \
+	                                                                   \
+	  && for f in $$(find $(idir)/libexec/gcc); do                     \
+	       if ldd $$f &> /dev/null; then                               \
+	         patchelf --set-rpath $(ildir) $$f;                        \
+	       fi;                                                         \
+	     done;                                                         \
 	fi
+
