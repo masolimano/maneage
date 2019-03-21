@@ -284,36 +284,39 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
         # `rpath_command'.
 	export LDFLAGS=-L$(ildir)
 
-	cd $(ddir)
-	tar xf $<
-	cd ATLAS
-	rm -rf build
-	mkdir build
-	cd build
-	../configure -b 64 -D c -DPentiumCPS=$$core  \
-	             --with-netlib-lapack-tarfile=$(word 2, $^) \
-	             --cripple-atlas-performance     \
-	             -Fa alg -fPIC --shared          \
-	             --prefix=$(idir)
+	cd $(ddir)                                                \
+	&& tar xf $<                                              \
+	&& cd ATLAS                                               \
+	&& rm -rf build                                           \
+	&& mkdir build                                            \
+	&& cd build                                               \
+	&& ../configure -b 64 -D c -DPentiumCPS=$$core            \
+	             --with-netlib-lapack-tarfile=$(word 2, $^)   \
+	             --cripple-atlas-performance                  \
+	             -Fa alg -fPIC --shared                       \
+	             --prefix=$(idir)                             \
+	&& make                                                   \
+	&& cd lib && make -f $$sharedmk && cd ..                  \
+	&& for l in lib/*.so*; do patchelf --set-rpath $(ildir) $$l; done \
+	&& make install                                           \
+	&& cp -d lib/*.so* $(ildir)                               \
+	&& ln -fs $(ildir)/libblas.so         $(ildir)/libblas.so.3 \
+	&& ln -fs $(ildir)/libf77blas.so      $(ildir)/libf77blas.so.3 \
+	&& ln -fs $(ildir)/liblapack.so.3.6.1 $(ildir)/liblapack.so \
+	&& ln -fs $(ildir)/liblapack.so.3.6.1 $(ildir)/liblapack.so.3;
 
-        # Do the basic build and the extra shared libraries.
-	make
-	cd lib && make -f $$sharedmk && cd ..
-
-        # Add RPATH to all the shared libraries.
-	for l in lib/*.so*; do patchelf --set-rpath $(ildir) $$l; done
-
-        # Install the libraires.
-	make install
-	cp -d lib/*.so* $(ildir)
-	[ -e lib/libptlapack.a ] && cp lib/libptlapack.a $(ildir)
-	ln -fs $(ildir)/libblas.so         $(ildir)/libblas.so.3
-	ln -fs $(ildir)/liblapack.so.3.6.1 $(ildir)/liblapack.so
-	ln -fs $(ildir)/liblapack.so.3.6.1 $(ildir)/liblapack.so.3
-	exit 1
-	cd $(ddir)
-	rm -rf ATLAS
-	echo "Atlas is built" > $@
+        # We need to check the existance of `libptlapack.a', but we can't
+        # do this in the `&&' steps above (it will conflict). So we'll do
+        # the check after seeing if `libtatlas.so' is installed, then we'll
+        # finalize the build (delete the untarred directory).
+	if [ -e $(ildir)/libtatlas.so ]; then                      \
+	  [ -e lib/libptlapack.a ] && cp lib/libptlapack.a $(ildir); \
+	  cd $(ddir);                                              \
+	  rm -rf ATLAS;                                            \
+	  echo "Atlas is built" > $@;                              \
+	else                                                       \
+	  echo; echo "ATLAS wasn't installed!!!!"; exit 1;         \
+	fi
 
 
 

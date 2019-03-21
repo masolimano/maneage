@@ -43,7 +43,7 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 ipydir = $(BDIR)/dependencies/installed/lib/built/python
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-python   = astroquery matplotlib #scipy
+top-level-python   = astroquery matplotlib scipy
 all: $(foreach p, $(top-level-python), $(ipydir)/$(p))
 
 # Other basic environment settings: We are only including the host
@@ -249,18 +249,24 @@ $(tarballs): $(tdir)/%:
 # --------------------
 #
 # To build Python packages with direct access to a `setup.py' (if no direct
-# access to `setup.py' is needed, pip can be used)
+# access to `setup.py' is needed, pip can be used).
 # Arguments of this function are the numbers
 #   1) Unpack command
 #   2) Package name
 #   3) Unpacked directory name after unpacking the tarball
-pybuild = cd $(ddir); rm -rf $(3);                                        \
-	 if ! $(1) $(2); then echo; echo "Tar error"; exit 1; fi;             \
-	 cd $(3);                                                             \
-	 python3 setup.py build &&                                            \
-	 python3 setup.py install &&                                          \
-	 cd .. && rm -rf $(3) &&                                              \
-	 echo "done!" > $@
+#   4) site.cfg file (optional)
+pybuild = cd $(ddir); rm -rf $(3);                                \
+	 if ! $(1) $(2); then echo; echo "Tar error"; exit 1; fi; \
+	 cd $(3);                                                 \
+	 if [ "x$(4)" != x ]; then                                \
+	   sed -e 's|@LIBDIR[@]|'"$(ildir)"'|'                    \
+	       -e 's|@INCDIR[@]|'"$(idir)/include"'|'             \
+	       $(4) > site.cfg;                                   \
+	 fi;                                                      \
+	 python3 setup.py build                                   \
+	 && python3 setup.py install                              \
+	 && cd .. && rm -rf $(3)                                  \
+	 && echo "done!" > $@
 
 
 
@@ -271,7 +277,12 @@ pybuild = cd $(ddir); rm -rf $(3);                                        \
 #
 # While this Makefile is for Python programs, in some cases, we need
 # certain programs (like Python itself), or libraries for the modules.
-$(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
+$(ilidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
+	$(call gbuild, $<, libffi-$(libffi-version))        \
+	echo "libffi is built" > $@
+
+$(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz \
+                  $(ilidir)/libffi
         # On Mac systems, the build complains about `clang' specific
         # features, so we can't use our own GCC build here.
 #	if [ x$(on_mac_os) = xyes ]; then                   \
@@ -279,15 +290,17 @@ $(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
 #	  export CXX=clang++;                               \
 #	fi;                                                 \
 
-	$(call gbuild, $<, Python-$(python-version))        \
+	$(call gbuild, $<, Python-$(python-version),,       \
+	       --enable-optimizations                       \
+	       --without-ensurepip                          \
+	       --with-system-ffi                            \
+	       --enable-shared                              \
+	       --with-threads                               \
+	       --with-lto )                                 \
 	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
 	    {printf "%d.%d\n", $$1, $$2}')                  \
 	&& ln -s $(ildir)/python$$v $(ildir)/python         \
 	&& rm -rf $(ipydir) && mkdir $(ipydir)
-
-$(ilidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
-	$(call gbuild, $<, libffi-$(libffi-version))        \
-	echo "libffi is built" > $@
 
 
 
@@ -378,7 +391,9 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ibdir)/python3
-	$(call pybuild, unzip, $<, numpy-$(numpy-version))
+	export LDFLAGS="$$LDFLAGS -shared"; \
+	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
+	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf)
 
 $(ibdir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
                $(ibdir)/python3
@@ -407,7 +422,9 @@ $(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz   \
 
 $(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
                  $(ipydir)/numpy
-	$(call pybuild, tar xf, $<, scipy-$(scipy-version))
+	export LDFLAGS="$$LDFLAGS -shared"; \
+	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
+	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf)
 
 $(ipydir)/secretstorage: $(tdir)/secretstorage-$(secretstorage-version).tar.gz \
                          $(ipydir)/cryptography                                \

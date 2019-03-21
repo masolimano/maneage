@@ -566,8 +566,15 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
 	               --with-zlib-lib=$(ildir)                      \
                        --with-zlib-include=$(idir)/include, , ,      \
 	               ./config ) &&                                 \
-	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem &&              \
-	echo "OpenSSL is built and ready" > $@
+	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem;                \
+	if [ $$? = 0 ]; then                                         \
+	  if [ x$(on_mac_os) = xyes ]; then                          \
+	    echo "No need to fix rpath in libssl";                   \
+	  else                                                       \
+	    patchelf --set-rpath $(ildir) $(ildir)/libssl.so;        \
+	  fi;                                                        \
+	  echo "OpenSSL is built and ready" > $@;                    \
+	fi
 
 # GNU Wget
 #
