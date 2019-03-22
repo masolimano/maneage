@@ -369,10 +369,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\\grepversion}{$(grep-version)}"              >> $@
 	echo "\newcommand{\\gzipversion}{$(gzip-version)}"              >> $@
 	echo "\newcommand{\\islversion}{$(isl-version)}"                >> $@
-	echo "\newcommand{\\libbsdversion}{$(libbsd-version)}"          >> $@
-	echo "\newcommand{\\libffiversion}{$(libffi-version)}"          >> $@
-	echo "\newcommand{\\libpngversion}{$(libpng-version)}"          >> $@
-	echo "\newcommand{\\libtoolversion}{$(libtool-version)}"        >> $@
 	echo "\newcommand{\\lzipversion}{$(lzip-version)}"              >> $@
 	echo "\newcommand{\\makeversion}{$(make-version)}"              >> $@
 	echo "\newcommand{\\metastoreversion}{$(metastore-version)}"    >> $@
@@ -394,12 +390,18 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\\zipversion}{$(zip-version)}"                >> $@
 
         # Libraries.
+	echo "\newcommand{\\atlasversion}{$(cfitsio-version)}"          >> $@
 	echo "\newcommand{\\cfitsioversion}{$(cfitsio-version)}"        >> $@
 	echo "\newcommand{\\curlversion}{$(curl-version)}"              >> $@
 	echo "\newcommand{\\gslversion}{$(gsl-version)}"                >> $@
+	echo "\newcommand{\\lapack}{$(lapack-version)}"                 >> $@
+	echo "\newcommand{\\libbsdversion}{$(libbsd-version)}"          >> $@
+	echo "\newcommand{\\libffiversion}{$(libffi-version)}"          >> $@
 	echo "\newcommand{\\libgittwoversion}{$(libgit2-version)}"      >> $@
 	echo "\newcommand{\\libjpegversion}{$(libjpeg-version)}"        >> $@
+	echo "\newcommand{\\libpngversion}{$(libpng-version)}"          >> $@
 	echo "\newcommand{\\libtiffversion}{$(libtiff-version)}"        >> $@
+	echo "\newcommand{\\libtoolversion}{$(libtool-version)}"        >> $@
 	echo "\newcommand{\\wcslibversion}{$(wcslib-version)}"          >> $@
 	echo "\newcommand{\\zlibversion}{$(zlib-version)}"              >> $@
 
@@ -414,8 +416,9 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\\cryptographyversion}{$(cryptography-version)}" >> $@
 	echo "\newcommand{\\cyclerversion}{$(cycler-version)}"          >> $@
 	echo "\newcommand{\\entrypointsversion}{$(entrypoints-version)}" >> $@
+	echo "\newcommand{\\hpyversion}{$(h5py-version)}"               >> $@
 	echo "\newcommand{\\htmlfivelibversion}{$(html5lib-version)}"   >> $@
-	echo "\newcommand{\\indaversion}{$(idna-version)}"              >> $@
+	echo "\newcommand{\\idaversion}{$(idna-version)}"               >> $@
 	echo "\newcommand{\\jeepneyversion}{$(jeepney-version)}"        >> $@
 	echo "\newcommand{\\kiwisolverversion}{$(kiwisolver-version)}"  >> $@
 	echo "\newcommand{\\keyringversion}{$(keyring-version)}"        >> $@
@@ -433,7 +436,7 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\\sixversion}{$(six-version)}"                >> $@
 	echo "\newcommand{\\soupsieveversion}{$(soupsieve-version)}"    >> $@
 	echo "\newcommand{\\urllibthreeversion}{$(urllib3-version)}"    >> $@
-	echo "\newcommand{\\virtualenvversion}{$(virtualenv-version)}"  >> $@
+#	echo "\newcommand{\\virtualenvversion}{$(virtualenv-version)}"  >> $@
 	echo "\newcommand{\\webencodingsversion}{$(webencodings-version)}" >> $@
 
         # TeX package versions

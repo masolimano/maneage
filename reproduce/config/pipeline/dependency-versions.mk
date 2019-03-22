@@ -76,6 +76,7 @@ chardet-version            = 3.0.4
 cryptography-version       = 2.6.1
 cycler-version             = 0.10.0
 entrypoints-version        = 0.3
+h5py-version               = 2.9.0
 html5lib-version           = 1.0.1
 idna-version               = 2.8
 jeepney-version            = 0.4

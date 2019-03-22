@@ -116,6 +116,7 @@ tarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz           \
                         cryptography-$(cryptography-version).tar.gz       \
                         cycler-$(cycler-version).tar.gz                   \
                         entrypoints-$(entrypoints-version).tar.gz         \
+                        h5py-$(h5py-version).tar.gz                       \
                         html5lib-$(html5lib-version).tar.gz               \
                         idna-$(idna-version).tar.gz                       \
                         jeepney-$(jeepney-version).tar.gz                 \
@@ -157,7 +158,10 @@ $(tarballs): $(tdir)/%:
           # because the tokenization above will produce `python' as the
           # first string.
 	  if [ $* = python-dateutil-$(python-dateutil-version).tar.gz ]; then
-	        n=dateutil
+	    n=dateutil
+	  elif [ $* = h5py-$(h5py-version).tar.gz ]; then
+	    n=h5py
+
           # elif [ $* = strange-tarball5name-version.tar.gz ]; then
           #  n=strange5-name
 	  else
@@ -191,13 +195,14 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = cryptography   ]; then h=07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449
 	  elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488
 	  elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c
+	  elif [ $$n = h5py           ]; then h=43/27/a6e7dcb8ae20a4dbf3725321058923fec262b6f7835179d78ccc8d98deec
 	  elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f
 	  elif [ $$n = idna           ]; then h=ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7
 	  elif [ $$n = jeepney        ]; then h=16/1d/74adf3b164a8d19a60d0fcf706a751ffa2a1eaa8e5bbb1b6705c92a05263
 	  elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2
 	  elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864
 	  elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f
-	  elif [ $$n = numpy          ]; then h=2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c
+	  elif [ $$n = numpy          ]; then h=cf/8d/6345b4f32b37945fedc1e027e83970005fc9c699068d2f566b82826515f2
 	  elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af
 	  elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a
 	  elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc
@@ -212,7 +217,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = urllib         ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1
 	  elif [ $$n = virtualenv     ]; then h=51/aa/c395a6e6eaaedfa5a04723b6446a1df783b16cca6fec66e671cede514688
 	  elif [ $$n = webencodings   ]; then h=0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47
-#         elif [ $$n = strange5-name  ]; then h=XXXXX
+#	  elif [ $$n = strange5-name  ]; then h=XXXXX
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -310,7 +315,7 @@ $(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz \
 #
 # All the necessary Python modules go here.
 $(ipydir)/asn1crypto: $(tdir)/asn1crypto-$(asn1crypto-version).tar.gz \
-                      $(ibdir)/python3
+                      $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, asn1crypto-$(asn1crypto-version))
 
 $(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz  \
@@ -323,6 +328,7 @@ $(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz  \
 	$(call pybuild, tar xf, $<, astroquery-$(astroquery-version))
 
 $(ipydir)/astropy: $(tdir)/astropy-$(astropy-version).tar.gz \
+                   $(ipydir)/h5py                            \
                    $(ipydir)/numpy
 	$(call pybuild, tar xf, $<, astropy-$(astropy-version))
 
@@ -331,30 +337,34 @@ $(ipydir)/beautifulsoup4: $(tdir)/beautifulsoup4-$(beautifulsoup4-version).tar.g
 	$(call pybuild, tar xf, $<, beautifulsoup4-$(beautifulsoup4-version))
 
 $(ipydir)/certifi: $(tdir)/certifi-$(certifi-version).tar.gz \
-                   $(ibdir)/python3
+                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, certifi-$(certifi-version))
 
 $(ipydir)/cffi: $(tdir)/cffi-$(cffi-version).tar.gz \
-                $(ipydir)/pycparser                 \
-                $(ilidir)/libffi
+                $(ilidir)/libffi                    \
+                $(ipydir)/pycparser
 	$(call pybuild, tar xf, $<, cffi-$(cffi-version))
 
 $(ipydir)/chardet: $(tdir)/chardet-$(chardet-version).tar.gz \
-                   $(ibdir)/python3
+                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, chardet-$(chardet-version))
 
 $(ipydir)/cryptography: $(tdir)/cryptography-$(cryptography-version).tar.gz \
-                        $(ipydir)/cffi                                      \
-                        $(ipydir)/asn1crypto
+                        $(ipydir)/asn1crypto                                \
+                        $(ipydir)/cffi
 	$(call pybuild, tar xf, $<, cryptography-$(cryptography-version))
 
 $(ipydir)/cycler: $(tdir)/cycler-$(cycler-version).tar.gz \
-                   $(ipydir)/six
+                  $(ipydir)/six
 	$(call pybuild, tar xf, $<, cycler-$(cycler-version))
 
 $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
-                       $(ibdir)/python3
+                       $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, entrypoints-$(entrypoints-version))
+
+$(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
+                $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, h5py-$(h5py-version))
 
 $(ipydir)/html5lib: $(tdir)/html5lib-$(html5lib-version).tar.gz  \
                     $(ipydir)/six                                \
@@ -362,49 +372,48 @@ $(ipydir)/html5lib: $(tdir)/html5lib-$(html5lib-version).tar.gz  \
 	$(call pybuild, tar xf, $<, html5lib-$(html5lib-version))
 
 $(ipydir)/idna: $(tdir)/idna-$(idna-version).tar.gz \
-                $(ibdir)/python3
+                $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, idna-$(idna-version))
 
 $(ipydir)/jeepney: $(tdir)/jeepney-$(jeepney-version).tar.gz \
-                $(ibdir)/python3
+                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, jeepney-$(jeepney-version))
 
 $(ipydir)/keyring: $(tdir)/keyring-$(keyring-version).tar.gz    \
-                   $(ipydir)/setuptools_scm                     \
+                   $(ipydir)/entrypoints                        \
                    $(ipydir)/secretstorage                      \
-                   $(ipydir)/entrypoints
+                   $(ipydir)/setuptools_scm
 	$(call pybuild, tar xf, $<, keyring-$(keyring-version))
 
 $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
                    $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, kiwisolver-$(kiwisolver-version))
 
-
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
                       $(ipydir)/cycler                                  \
                       $(ilidir)/freetype                                \
+                      $(ipydir)/kiwisolver                              \
                       $(ipydir)/numpy                                   \
                       $(ipydir)/pyparsing                               \
-                      $(ipydir)/python-dateutil                         \
-                      $(ipydir)/kiwisolver
+                      $(ipydir)/python-dateutil
 	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version))
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
-                 $(ibdir)/python3
+                 $(ipydir)/setuptools
 	export LDFLAGS="$$LDFLAGS -shared"; \
 	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
 	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf)
 
 $(ibdir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
-               $(ibdir)/python3
+               $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pip-$(pip-version))
 
 $(ipydir)/pycparser: $(tdir)/pycparser-$(pycparser-version).tar.gz \
-                     $(ibdir)/python3
+                     $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pycparser-$(pycparser-version))
 
 $(ipydir)/pyparsing: $(tdir)/pyparsing-$(pyparsing-version).tar.gz \
-                     $(ibdir)/python3
+                     $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pyparsing-$(pyparsing-version))
 
 $(ipydir)/python-dateutil: $(tdir)/python-dateutil-$(python-dateutil-version).tar.gz  \
@@ -440,17 +449,17 @@ $(ipydir)/setuptools_scm: $(tdir)/setuptools_scm-$(setuptools_scm-version).tar.g
 	$(call pybuild, tar xf, $<, setuptools_scm-$(setuptools_scm-version))
 
 $(ipydir)/six: $(tdir)/six-$(six-version).tar.gz \
-               $(ibdir)/python3
+               $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, six-$(six-version))
 
 $(ipydir)/soupsieve: $(tdir)/soupsieve-$(soupsieve-version).tar.gz \
-                     $(ibdir)/python3
+                     $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, soupsieve-$(soupsieve-version))
 
 $(ipydir)/urllib3: $(tdir)/urllib3-$(urllib3-version).tar.gz \
-                   $(ibdir)/python3
+                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, urllib3-$(urllib3-version))
 
 $(ipydir)/webencodings: $(tdir)/webencodings-$(webencodings-version).tar.gz \
-                        $(ibdir)/python3
+                        $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, webencodings-$(webencodings-version))
