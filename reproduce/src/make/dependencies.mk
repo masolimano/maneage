@@ -416,11 +416,6 @@ $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	make install &&                                            \
 	cd ..&& rm -rf cmake-$(cmake-version)
 
-# Some programs that depend on cURL (in particular CMake) don't necessarily
-# have easiy ways to explicity tell them to also link with libcurl's
-# dependencies (libssl, libcrypto, and libz). So we won't force curl to
-# only be static.
-#
 # cURL (and its library, which is needed by several programs here) can
 # optionally link with many different network-related libraries on the host
 # system that we are not yet building in the pipeline. Many of these are
@@ -446,7 +441,7 @@ $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz
 	               --without-axtls                   \
 	               --disable-ldaps                   \
 	               --disable-ldap                    \
-	               --without-nss )
+	               --without-nss, V=1)
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
 # prefix GNU's libtool executables with `glibtool'.

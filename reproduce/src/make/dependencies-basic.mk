@@ -206,8 +206,9 @@ makelink = origpath="$$PATH";                                          \
 	   export PATH=$$(echo $(syspath) | tr : '\n' | grep -v ccache \
 	                       | paste -s -d:);                        \
 	   a=$$(which $(1) 2> /dev/null);                              \
-	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;         \
-	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi;         \
+	   if [ -e $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;         \
+	   if [ x"$(2)" = xcopy ]; then c=cp; else c="ln -s"; fi;      \
+	   if [ x$$a != x ]; then $$c $$a $(ibdir)/$(1); fi;           \
 	   export PATH="$$origpath"
 $(ibdir) $(ildir):; mkdir $@
 $(ibdir)/low-level-links: | $(ibdir) $(ildir)
@@ -768,7 +769,7 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
 	if [ "x$(on_mac_os)" = xyes ]; then                                \
 	  $(call makelink,gfortran);                                       \
 	  $(call makelink,g++);                                            \
-	  $(call makelink,gcc);                                            \
+	  $(call makelink,gcc,copy);                                       \
 	else                                                               \
 	                                                                   \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
