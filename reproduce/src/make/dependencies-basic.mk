@@ -202,11 +202,13 @@ $(tarballs): $(tdir)/%:
 # is very annoying and can cause many complications. We thus remove any
 # part of PATH of that has `ccache' in it before making symbolic links to
 # the programs we are not building ourselves.
-makelink = export PATH=$$(echo $(syspath)| tr : '\n' |grep -v ccache  \
-	                       | paste -s -d:);                       \
-	   a=$$(which $(1) 2> /dev/null);                             \
-	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;        \
-	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi
+makelink = origpath="$$PATH";                                          \
+	   export PATH=$$(echo $(syspath) | tr : '\n' | grep -v ccache \
+	                       | paste -s -d:);                        \
+	   a=$$(which $(1) 2> /dev/null);                              \
+	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;         \
+	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi;         \
+	   export PATH="$$origpath"
 $(ibdir) $(ildir):; mkdir $@
 $(ibdir)/low-level-links: | $(ibdir) $(ildir)
 
@@ -293,7 +295,7 @@ $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
         # function here and we need to take some extra steps (inspired
         # from the "Linux from Scratch" guide for Bzip2):
         #   1) The `sed' call is for relative installed symbolic links.
-        #   2) The special Makefile-libbz2_so builds the shared library.
+        #   2) The special Makefile-libbz2_so builds shared libraries.
         #
         # NOTE: the major version number appears in the final symbolic
         # link.
@@ -303,10 +305,16 @@ $(ibdir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	  makeshared="echo no-shared";                                \
 	else                                                          \
 	  makecommand="make";                                         \
-	  makeshared="make -f Makefile-libbz2_so";                    \
+	  if [ x$(on_mac_os) = xyes ]; then                           \
+	    makeshared="echo no-shared";                              \
+	  else                                                        \
+	    makeshared="make -f Makefile-libbz2_so";                  \
+	  fi;                                                         \
 	fi;                                                           \
 	cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir         \
-	&& sed -i 's@\(ln -s -f \)$$(PREFIX)/bin/@\1@' Makefile       \
+	&& sed -e 's@\(ln -s -f \)$$(PREFIX)/bin/@\1@' Makefile       \
+	       > Makefile.sed                                         \
+	&& mv Makefile.sed Makefile                                   \
 	&& $$makeshared                                               \
 	&& cp -a libbz2* $(ildir)/                                    \
 	&& make clean                                                 \
@@ -759,8 +767,8 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
         # link to '$(idir)/lib'.
 	if [ "x$(on_mac_os)" = xyes ]; then                                \
 	  $(call makelink,gfortran);                                       \
-	  $(call makelink,gcc);                                            \
 	  $(call makelink,g++);                                            \
+	  $(call makelink,gcc);                                            \
 	else                                                               \
 	                                                                   \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
