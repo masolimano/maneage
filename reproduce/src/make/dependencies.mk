@@ -261,10 +261,21 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
 
 
-        # Get the CPU frequency.
+        # Get the operating system specific features (how to get
+        # CPU frequency and the library suffixes). To make the steps
+        # more readable, the different library version suffixes are
+        # named with a single character: `s' for no version in the
+        # name, `m' for the major version suffix, and `f' for the
+        # full version suffix.
 	if [ x$(on_mac_os) = xyes ]; then
-	  core=2400
+	  s=dylib
+	  m=3.dylib
+	  f=3.6.1.dylib
+	  core=$$(sysctl hw.cpufrequency | awk '{print $$2/1000000}')
 	else
+	  s=so
+	  m=so.3
+	  f=so.3.6.1
 	  core=$$(cat /proc/cpuinfo | grep "cpu MHz" \
 	              | head -n 1                    \
 	              | sed "s/.*: \([0-9.]*\).*/\1/")
@@ -297,19 +308,22 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	             --prefix=$(idir)                             \
 	&& make                                                   \
 	&& cd lib && make -f $$sharedmk && cd ..                  \
-	&& for l in lib/*.so*; do patchelf --set-rpath $(ildir) $$l; done \
+	&& if [ "x$(on_mac_os)" != xyes ]; then                   \
+	     for l in lib/*.$$s*; do                              \
+	       patchelf --set-rpath $(ildir) $$l; done            \
+	   fi                                                     \
 	&& make install                                           \
-	&& cp -d lib/*.so* $(ildir)                               \
-	&& ln -fs $(ildir)/libblas.so         $(ildir)/libblas.so.3 \
-	&& ln -fs $(ildir)/libf77blas.so      $(ildir)/libf77blas.so.3 \
-	&& ln -fs $(ildir)/liblapack.so.3.6.1 $(ildir)/liblapack.so \
-	&& ln -fs $(ildir)/liblapack.so.3.6.1 $(ildir)/liblapack.so.3;
+	&& cp -d lib/*.$$s* $(ildir)                              \
+	&& ln -fs $(ildir)/libblas.$$s      $(ildir)/libblas.$$m  \
+	&& ln -fs $(ildir)/libf77blas.$$s   $(ildir)/libf77blas.$$m \
+	&& ln -fs $(ildir)/liblapack.$$f    $(ildir)/liblapack.$$s \
+	&& ln -fs $(ildir)/liblapack.$$f    $(ildir)/liblapack.$$m;
 
         # We need to check the existance of `libptlapack.a', but we can't
         # do this in the `&&' steps above (it will conflict). So we'll do
         # the check after seeing if `libtatlas.so' is installed, then we'll
         # finalize the build (delete the untarred directory).
-	if [ -e $(ildir)/libtatlas.so ]; then                      \
+	if [ -e $(ildir)/libtatlas.$$s ]; then                     \
 	  [ -e lib/libptlapack.a ] && cp lib/libptlapack.a $(ildir); \
 	  cd $(ddir);                                              \
 	  rm -rf ATLAS;                                            \
