@@ -202,9 +202,9 @@ $(tarballs): $(tdir)/%:
 # is very annoying and can cause many complications. We thus remove any
 # part of PATH of that has `ccache' in it before making symbolic links to
 # the programs we are not building ourselves.
-makelink = origpath="$$PATH";                                          \
+makelink = origpath="$$PATH";                                      \
 	   export PATH=$$(echo $(syspath) | tr : '\n' | grep -v ccache \
-	                       | paste -s -d:);                        \
+	                       | tr '\n' :);                           \
 	   a=$$(which $(1) 2> /dev/null);                              \
 	   if [ -e $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;         \
 	   if [ x"$(2)" = xcopy ]; then c=cp; else c="ln -s"; fi;      \
