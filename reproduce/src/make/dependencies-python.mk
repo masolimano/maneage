@@ -43,7 +43,10 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 ipydir = $(BDIR)/dependencies/installed/lib/built/python
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-python   = astroquery matplotlib scipy
+ifneq ($(on_mac_os),yes)
+withscipy=scipy
+endif
+top-level-python   = astroquery matplotlib $(withscipy)
 all: $(foreach p, $(top-level-python), $(ipydir)/$(p))
 
 # Other basic environment settings: We are only including the host

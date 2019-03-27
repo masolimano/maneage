@@ -740,13 +740,13 @@ $(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz
 #
 # We are currently having problems installing GCC on macOS, so for the time
 # being, if the pipeline is being run on a macOS, we'll just set a link.
-ifeq ($(on_mac_os),yes)
-gcc-prerequisites =
-else
+#ifeq ($(on_mac_os),yes)
+#gcc-prerequisites =
+#else
 gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
                     $(ilidir)/isl                     \
                     $(ilidir)/mpc
-endif
+#endif
 $(ibdir)/gcc: $(gcc-prerequisites)  \
               $(ibdir)/ls           \
               $(ibdir)/sed          \
@@ -766,12 +766,15 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
         # single architecture, we can trick GCC into building its libraries
         # in '$(idir)/lib' by defining the '$(idir)/lib64' as a symbolic
         # link to '$(idir)/lib'.
-	if [ "x$(on_mac_os)" = xyes ]; then                                \
-	  $(call makelink,gfortran);                                       \
-	  $(call makelink,g++);                                            \
-	  $(call makelink,gcc,copy);                                       \
-	else                                                               \
-	                                                                   \
+
+# SO FAR IT SEEMS TO BE WORKING ON MAC, BUT MORE TESTS ARE NEEDED TO TOTALLY
+# REMOVE THE STEP WHERE WE JUST USE THE HOST'S GCC.
+#	if [ "x$(on_mac_os)" = xyesno ]; then                                \
+#	  $(call makelink,gfortran);                                       \
+#	  $(call makelink,g++);                                            \
+#	  $(call makelink,gcc,copy);                                       \
+#	else                                                               \
+
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
 	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*;            \
 	  rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*;\
@@ -807,10 +810,12 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
 	  && cd ..                                                         \
 	  && rm -rf gcc-build gcc-$(gcc-version)                           \
 	                                                                   \
-	  && for f in $$(find $(idir)/libexec/gcc); do                     \
-	       if ldd $$f &> /dev/null; then                               \
-	         patchelf --set-rpath $(ildir) $$f;                        \
-	       fi;                                                         \
-	     done;                                                         \
-	fi
+	  && if [ "x$(on_mac_os)" != xyes ]; then                          \
+	       for f in $$(find $(idir)/libexec/gcc); do                   \
+	         if ldd $$f &> /dev/null; then                             \
+	           patchelf --set-rpath $(ildir) $$f;                      \
+	         fi;                                                       \
+	       done;                                                       \
+	     fi;                                                           \
+#	fi
 

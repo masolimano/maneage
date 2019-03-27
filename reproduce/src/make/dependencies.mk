@@ -44,7 +44,10 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
 top-level-programs  = astnoisechisel flock metastore unzip zip
-top-level-libraries = atlas freetype
+ifneq ($(on_mac_os),yes)
+withatlas = atlas
+endif
+top-level-libraries = freetype $(withatlas)
 all: $(ddir)/texlive-versions.tex                       \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
      $(foreach p, $(top-level-libraries), $(ilidir)/$(p))
@@ -260,6 +263,11 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
 
+	if [ x$(on_mac_os) = xyes ]; then
+	   echo; echo;
+	   echo "ATLAS build instructions not yet working on Mac"
+	   exit 1
+	fi
 
         # Get the operating system specific features (how to get
         # CPU frequency and the library suffixes). To make the steps
@@ -294,7 +302,6 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
         # The linking step here doesn't recognize the `-Wl' in the
         # `rpath_command'.
 	export LDFLAGS=-L$(ildir)
-
 	cd $(ddir)                                                \
 	&& tar xf $<                                              \
 	&& cd ATLAS                                               \
@@ -305,6 +312,14 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	             --with-netlib-lapack-tarfile=$(word 2, $^)   \
 	             --cripple-atlas-performance                  \
 	             -Fa alg -fPIC --shared                       \
+				 -C xc $(ibdir)/gcc               \
+				 -C gc $(ibdir)/gcc               \
+				 -C if $(ibdir)/gfortran          \
+				 -C ic $(ibdir)/gcc               \
+				 -C dm $(ibdir)/gcc               \
+				 -C sm $(ibdir)/gcc               \
+				 -C dk $(ibdir)/gcc               \
+				 -C sk $(ibdir)/gcc               \
 	             --prefix=$(idir)                             \
 	&& make                                                   \
 	&& cd lib && make -f $$sharedmk && cd ..                  \
