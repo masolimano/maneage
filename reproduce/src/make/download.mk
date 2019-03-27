@@ -69,7 +69,8 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	  ln -s $(INDIR)/$$origname $@
 	else
 	  touch $(lockdir)/download
-	  $(downloadwrapper) wget $(lockdir)/download $$url/$$origname $@
+	  $(downloadwrapper) "wget --no-use-server-timestamps -O" \
+	                     $(lockdir)/download $$url/$$origname $@
 	fi
 
         # Check the md5 sum to see if this is the proper dataset.

@@ -1,10 +1,12 @@
-#!.local/bin/bash
-#
 # Attempt downloading multiple times before crashing whole pipeline. From
 # the top project directory (for the shebang above), this script must be
 # run like this:
 #
 #   $ /path/to/download-multi-try downloader lockfile input-url downloaded-name
+#
+# NOTE: The `downloader' must contain the option to specify the output name
+# in its end. For example "wget -O". Any other option can also be placed in
+# the middle.
 #
 # Due to temporary network problems, a download may fail suddenly, but
 # succeed in a second try a few seconds later. Without this script that
@@ -70,7 +72,7 @@ fi
 
 
 
-# Try downloading multiple times before crashing
+# Try downloading multiple times before crashing.
 counter=0
 maxcounter=10
 while [ ! -f "$outname" ]; do
@@ -97,9 +99,12 @@ while [ ! -f "$outname" ]; do
         sleep $tstep
     fi
 
-    # Attempt downloading the file (one-at-a-time).
+    # Attempt downloading the file (one-at-a-time). Note that the
+    # `downloader' ends with the respective option to specify the output
+    # name. For example "wget -O" (so `outname', that comes after it) will
+    # be the name of the downloaded file.
     flock "$lockfile" bash -c \
-          "if ! $downloader -O$outname $inurl; then rm -f $outname; fi"
+          "if ! $downloader $outname $inurl; then rm -f $outname; fi"
 done
 
 

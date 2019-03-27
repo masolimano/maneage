@@ -43,12 +43,13 @@ include reproduce/config/pipeline/LOCAL.mk
 include reproduce/src/make/dependencies-build-rules.mk
 include reproduce/config/pipeline/dependency-versions.mk
 
-ddir  = $(BDIR)/dependencies
-tdir  = $(BDIR)/dependencies/tarballs
-idir  = $(BDIR)/dependencies/installed
-ibdir = $(BDIR)/dependencies/installed/bin
-ildir = $(BDIR)/dependencies/installed/lib
-ilidir = $(BDIR)/dependencies/installed/lib/built
+lockdir = $(BDIR)/locks
+ddir    = $(BDIR)/dependencies
+tdir    = $(BDIR)/dependencies/tarballs
+idir    = $(BDIR)/dependencies/installed
+ibdir   = $(BDIR)/dependencies/installed/bin
+ildir   = $(BDIR)/dependencies/installed/lib
+ilidir  = $(BDIR)/dependencies/installed/lib/built
 
 # We'll need the system's PATH for making links to low-level programs we
 # won't be building ourselves.
@@ -94,6 +95,8 @@ all: $(foreach p, $(top-level-programs), $(ibdir)/$(p))
 #
 # However, downloading from this link is slow (because its just a link). So
 # its easier to just keep a with the others.
+$(lockdir): | $(BDIR); mkdir $@
+downloadwrapper = ./reproduce/src/bash/download-multi-try
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         binutils-$(binutils-version).tar.lz                 \
                         bzip2-$(bzip2-version).tar.gz                       \
@@ -123,7 +126,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         xz-$(xz-version).tar.gz                             \
                         zlib-$(zlib-version).tar.gz                         \
                       , $(tdir)/$(t) )
-$(tarballs): $(tdir)/%:
+$(tarballs): $(tdir)/%: $(lockdir)
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then                              \
 	  cp $(DEPENDENCIES-DIR)/$* $@;                                     \
 	else                                                                \
@@ -132,32 +135,32 @@ $(tarballs): $(tdir)/%:
 	               | awk '{print $$1}' );                               \
 	                                                                    \
 	  mergenames=1;                                                     \
-          if   [ $$n = bash      ]; then w=http://ftpmirror.gnu.org/gnu/bash; \
-          elif [ $$n = binutils  ]; then w=http://ftpmirror.gnu.org/gnu/binutils; \
+          if   [ $$n = bash      ]; then w=http://ftp.gnu.org/gnu/bash;     \
+          elif [ $$n = binutils  ]; then w=http://ftp.gnu.org/gnu/binutils; \
           elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = cert      ]; then w=http://akhlaghi.org/src;         \
-          elif [ $$n = coreutils ]; then w=http://ftpmirror.gnu.org/gnu/coreutils;\
-          elif [ $$n = diffutils ]; then w=http://ftpmirror.gnu.org/gnu/diffutils;\
+          elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
+          elif [ $$n = diffutils ]; then w=http://ftp.gnu.org/gnu/diffutils;\
           elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
-          elif [ $$n = gawk      ]; then w=http://ftpmirror.gnu.org/gnu/gawk; \
+          elif [ $$n = gawk      ]; then w=http://ftp.gnu.org/gnu/gawk;     \
           elif [ $$n = gcc       ]; then w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
           elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
-          elif [ $$n = grep      ]; then w=http://ftpmirror.gnu.org/gnu/grep; \
-          elif [ $$n = gzip      ]; then w=http://ftpmirror.gnu.org/gnu/gzip; \
+          elif [ $$n = grep      ]; then w=http://ftp.gnu.org/gnu/grep;     \
+          elif [ $$n = gzip      ]; then w=http://ftp.gnu.org/gnu/gzip;     \
           elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
           elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
           elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
           elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
-          elif [ $$n = mpc       ]; then w=http://ftpmirror.gnu.org/gnu/mpc;\
-          elif [ $$n = ncurses   ]; then w=http://ftpmirror.gnu.org/gnu/ncurses;\
+          elif [ $$n = mpc       ]; then w=http://ftp.gnu.org/gnu/mpc;      \
+          elif [ $$n = ncurses   ]; then w=http://ftp.gnu.org/gnu/ncurses;  \
           elif [ $$n = openssl   ]; then w=http://www.openssl.org/source;   \
           elif [ $$n = patchelf  ]; then w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version); \
           elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
-          elif [ $$n = readline  ]; then w=http://ftpmirror.gnu.org/gnu/readline; \
-          elif [ $$n = sed       ]; then w=http://ftpmirror.gnu.org/gnu/sed;\
-          elif [ $$n = tar       ]; then w=http://ftpmirror.gnu.org/gnu/tar;\
-          elif [ $$n = wget      ]; then w=http://ftpmirror.gnu.org/gnu/wget;\
-          elif [ $$n = which     ]; then w=http://ftpmirror.gnu.org/gnu/which;\
+          elif [ $$n = readline  ]; then w=http://ftp.gnu.org/gnu/readline; \
+          elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed;      \
+          elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar;      \
+          elif [ $$n = wget      ]; then w=http://ftp.gnu.org/gnu/wget;     \
+          elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which;    \
           elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
           elif [ $$n = zlib      ]; then w=http://www.zlib.net;             \
           else                                                              \
@@ -178,10 +181,9 @@ $(tarballs): $(tdir)/%:
 	    downloader="$(DOWNLOADER)";                                     \
 	  fi;                                                               \
                                                                             \
-	  if ! $$downloader $@ $$tarballurl; then                           \
-	     rm -f $@;                                                      \
-	     echo; echo "DOWNLOAD FAILED: $$tarballurl"; echo; exit 1;      \
-	  fi;                                                               \
+	  touch $(lockdir)/download;                                        \
+	  $(downloadwrapper) "$$downloader" $(lockdir)/download             \
+	                     $$tarballurl $@;                               \
 	fi
 
 

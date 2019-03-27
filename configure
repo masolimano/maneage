@@ -418,8 +418,12 @@ if [ $rewritepconfig = yes ]; then
         $pconf.in >> $pconf
 else
     # Read the values from existing configuration file.
-    inbdir=$(awk     '$1=="BDIR"             {print $3}' $pconf)
-    downloader=$(awk '$1=="DOWNLOADER"       {print $3}' $pconf)
+    inbdir=$(awk     '$1=="BDIR"                     {print $3}' $pconf)
+
+    # The downloader command may contain multiple elements, so we'll just
+    # change the (in memory) first and second tokens to empty space and
+    # write the full line (the original file is unchanged).
+    downloader=$(awk '$1=="DOWNLOADER" {$1=""; $2=""; print $0}' $pconf)
 
     # Make sure all necessary variables have a value
     err=0
@@ -670,6 +674,61 @@ if type otool > /dev/null 2>/dev/null; then
     on_mac_os=yes
 else
     on_mac_os=no
+fi
+
+
+
+
+
+# Build `flock' as first program
+# ------------------------------
+#
+# Flock (or file-lock) is a unique program in the pipeline that is
+# necessary to serialize the (generally parallel) processing of make when
+# necessary. GNU/Linux machines have it as part of their `util-linux'
+# programs. But to be consistent, we will be using our own build.
+#
+# The reason its sepecial is that we need it to serialize the download
+# process of the dependency tarballs.
+flockversion=$(awk '/flock-version/{print $3}' \
+                   reproduce/config/pipeline/dependency-versions.mk)
+flocktar=flock-$flockversion.tar.gz
+flockurl=http://github.com/discoteq/flock/releases/download/v$flockversion/
+
+# Prepare/download the tarball.
+if ! [ -f $tardir/$flocktar ]; then
+    if [ -f $ddir/$flocktar ]; then
+        cp $ddir/$flocktar $tardir/$flocktar
+    else
+        if ! $downloader $tardir/$flocktar $flockurl/$flocktar; then
+            rm -f $tardir/$flocktar;
+            echo
+            echo "DOWNLOAD ERROR: Couldn't download the 'flock' tarball:"
+            echo "  $flockurl"
+            echo
+            echo "You can manually place it in '$ddir' to avoid downloading."
+            exit 1
+        fi
+    fi
+fi
+
+# If the tarball is newer than the (possibly existing) program, then delete
+# the program.
+if [ -f .local/bin/flock ]; then
+    if [ $tardir/$flocktar -nt .local/bin/flock ]; then
+        rm .local/bin/flock
+    fi
+fi
+
+# Build `flock' if necessary.
+if ! [ -f .local/bin/flock ]; then
+    cd $depdir
+    tar xf $tardir/$flocktar
+    cd flock-$flockversion
+    ./configure --prefix=$instdir
+    make; make install
+    cd $topdir
+    rm -rf $depdir/flock-$flockversion
 fi
 
 

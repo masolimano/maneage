@@ -43,7 +43,7 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs  = astnoisechisel flock metastore unzip zip
+top-level-programs  = astnoisechisel metastore unzip zip
 top-level-libraries = freetype
 all: $(ddir)/texlive-versions.tex                       \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
@@ -92,7 +92,6 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
-                        flock-$(flock-version).tar.xz                      \
                         freetype-$(freetype-version).tar.gz                \
                         ghostscript-$(ghostscript-version).tar.gz          \
                         git-$(git-version).tar.xz                          \
@@ -132,17 +131,16 @@ $(tarballs): $(tdir)/%:
 	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
-	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
 	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
-	  elif [ $$n = gnuastro    ]; then w=http://ftpmirror.gnu.org/gnu/gnuastro
-	  elif [ $$n = gsl         ]; then w=http://ftpmirror.gnu.org/gnu/gsl
+	  elif [ $$n = gnuastro    ]; then w=http://ftp.gnu.org/gnu/gnuastro
+	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = libbsd      ]; then w=http://libbsd.freedesktop.org/releases
 	  elif [ $$n = libpng      ]; then w=https://download.sourceforge.net/libpng
-	  elif [ $$n = libtool     ]; then w=http://ftpmirror.gnu.org/gnu/libtool
+	  elif [ $$n = libtool     ]; then w=http://ftp.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
@@ -375,9 +373,6 @@ $(ibdir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz
 
 $(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 	$(call gbuild, $<, ghostscript-$(ghostscript-version))
-
-$(ibdir)/flock: $(tdir)/flock-$(flock-version).tar.xz
-	$(call gbuild, $<, flock-$(flock-version), static)
 
 $(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
               $(ibdir)/curl
