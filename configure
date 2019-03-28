@@ -34,6 +34,199 @@ set -e
 
 
 
+# Output of --help
+# ----------------
+me=$0                           # Executable file name.
+help_print() {
+
+    if [ x"$build_dir" = x ]; then
+        bdir_status="NOT SET"
+    else
+        bdir_status="$build_dir"
+    fi
+
+    if [ x"$input_dir" = x ]; then
+        indir_status="NOT SET"
+    else
+        indir_status="$input_dir"
+    fi
+
+    if [ x"$software_dir" = x ]; then
+        software_status="NOT SET"
+    else
+        software_status="$software_dir"
+    fi
+
+    if [ $in_minmapsize = 0 ]; then
+        mm_status="NOT SET"
+    else
+        mm_status="$in_minmapsize"
+    fi
+
+    if [ $jobs = "0" ]; then
+        jobs_status="NUMBER OF THREADS ON SYSTEM"
+    else
+        jobs_status=$jobs
+    fi
+
+    if [ $existing_conf = 1 ]; then
+        ec_status="ACTIVATED"
+    else
+        ec_status="NOT SET"
+    fi
+
+    # Print the output.
+    cat <<EOF
+Usage: $me [OPTION]...
+
+Configure the reproducible paper template for this system (do local
+settings). The local settings can be given on the command-line through the
+options below. If not, the configure script will interactively ask for a
+value to each one (with basic necessary background information printed
+before them). Alternatively, if you have already configured this script for
+your system, you can use the '--existing-conf' to use it and avoid
+re-setting the values.
+
+RECOMMENDATION: If this is the first time you are running this pipeline,
+please don't use the options and let the script explain each parameter in
+full detail by simply running './configure'.
+
+The only mandatory value for this script is the local build directory. This
+is where all the pipeline's outputs will be stored. Optionally, you can
+also provide directories that host input data, or software source codes. If
+the necessary files don't exist there, the template will automatically
+download them.
+
+With the options below you can modify the default behavior. Just note that
+you should not put an '=' sign between an option name and its value.
+
+Options:
+
+ -b, --build-dir STR      Top directory to build the project in.
+                          Current value: $bdir_status
+
+ -i, --input-dir STR      Directory containing necessary input datasets.
+                          Current value: $indir_status
+
+ -s, --software-dir STR   Directory containing necessary software tarballs.
+                          Current value: $software_status
+
+ -m, --minmapsize INT     (Specific to Gnuastro) Number of bytes to avoid
+                          using RAM, use HDD/SSD instead of memory.
+                          Current value: $mm_status
+
+ -j, --jobs INT           Number of threads to use in building the software
+                          during the pipeline. Note that on MacOS, currently
+                          the first phase will be done on a single thread,
+                          but higher-level software will be built in parallel.
+                          Current value: $jobs_status
+
+ -e, --existing-conf      Use (possibly existing) local configuration.
+                          Current value: $ec_status
+
+ -h, --help               Print this help list.
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+Reproducible paper template: https://gitlab.com/makhlaghi/reproducible-paper
+
+Report bugs to mohammad@akhlaghi.org
+EOF
+}
+
+
+
+
+
+# Parse the arguments
+# -------------------
+jobs=0
+build_dir=
+input_dir=
+software_dir=
+in_minmapsize=0
+existing_conf=0
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+    case $key in
+        -b|--build-dir)
+            build_dir="$2"
+            if [ x"$build_dir" = x ]; then
+                echo "No argument given to '--build-dir' ('-b')."
+                exit 1;
+            fi
+            shift # past argument
+            shift # past value
+            ;;
+        -i|--input-dir)
+            input_dir="$2"
+            if [ x"$input_dir" = x ]; then
+                echo "No argument given to '--input-dir' ('-i')."
+                exit 1;
+            fi
+            shift # past argument
+            shift # past value
+            ;;
+        -s|--software-dir)
+            software_dir="$2"
+            if [ x"$software_dir" = x ]; then
+                echo "No argument given to '--software-dir' ('-s')."
+                exit 1;
+            fi
+            shift # past argument
+            shift # past value
+            ;;
+        -m|--minmapsize)
+            in_minmapsize="$2"
+            if [ x"$in_minmapsize" = x ]; then
+                echo "No argument given to '--minmapsize' ('-m')."
+                exit 1;
+            fi
+            shift # past argument
+            shift # past value
+            ;;
+        -j|--jobs)
+            jobs="$2"
+            if [ x"$jobs" = x ]; then
+                echo "No argument given to '--jobs' ('-j')."
+                exit 1;
+            fi
+            shift # past argument
+            shift # past value
+            ;;
+        -e|--existing-conf)
+            existing_conf=1
+            shift # past argument
+            ;;
+
+        -h|-P|--help|--printparams)
+            help_print
+            exit 0
+            ;;
+#        -V|--version)
+#            echo $version
+#            exit 0
+#            ;;
+        *)    # unknown option
+            cat <<EOF
+Usage: $me [OPTION]...
+'$1' isn't a recognized option. Aborted.
+
+Note that for this script, option names (short or long format) and values
+must be separated by atleast one white-space character and MUST NOT have
+an '=' between them.
+EOF
+            exit 1
+            ;;
+    esac
+done
+
+
+
+
+
 # Important internal locations
 # ----------------------------
 #
@@ -141,17 +334,7 @@ printnotice=yes
 rewritepconfig=yes
 rewritegconfig=yes
 if [ -f $pconf ] || [ -f $glconf ]; then
-
-    # If it already exits, see what the user wants to do.
-    echo "Atleast one local configuration file already exists."
-    echo
-    while [ "$userread" != "y" -a "$userread" != "n" ]
-    do
-        read -p"Re-write existing configuration file(s) (y/n)? " userread
-    done
-
-    # Set `rewriteconfig'.
-    if [ $userread = "n" ]; then
+    if [ $existing_conf = 1 ]; then
         printnotice=no
         if [ -f $pconf  ]; then rewritepconfig=no; fi
         if [ -f $glconf ]; then rewritegconfig=no; fi
@@ -220,10 +403,10 @@ if [ $rewritepconfig = yes ]; then
 !!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-Couldn't find GNU Wget. It is used for downloading necessary programs and
-data if they aren't already present in the specified directories. Therefore
-the pipeline will crash if the necessary files are not already present on
-the system.
+Couldn't find GNU Wget, or cURL on this system. These programs are used for
+downloading necessary programs and data if they aren't already present (in
+directories that you can specify with this configure script). Therefore if
+the necessary files are not present, the pipeline will crash.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -258,30 +441,36 @@ build directory in a very different address from this one (one that can be
 deleted and has large volume), while having easy access to it from here.
 
 EOF
-    bdir=""
+    bdir=
     junkname=pure-junk-974adfkj38
     while [ x$bdir == x ]
     do
-        # Ask the user.
-        read -p"Please enter the top build directory: " inbdir
+        # Ask the user (if not already set on the command-line).
+        if [ x"$build_dir" = x ]; then
+            read -p"Please enter the top build directory: " build_dir
+        fi
 
         # If it exists, see if we can write in it. If not, try making it.
-        if [ -d $inbdir ]; then
-            if mkdir $inbdir/$junkname 2> /dev/null; then
-                bdir=$(absolute_dir $inbdir)
+        if [ -d $build_dir ]; then
+            if mkdir $build_dir/$junkname 2> /dev/null; then
+                bdir=$(absolute_dir $build_dir)
                 echo " -- Build directory: '$bdir'"
-                rm -rf $inbdir/$junkname
+                rm -rf $build_dir/$junkname
             else
-                echo " -- Can't write in '$inbdir'"
+                echo " -- Can't write in '$build_dir'"
             fi
         else
-            if mkdir $inbdir 2> /dev/null; then
-                bdir=$(absolute_dir $inbdir)
+            if mkdir $build_dir 2> /dev/null; then
+                bdir=$(absolute_dir $build_dir)
                 echo " -- Build directory set to (the newly created): '$bdir'"
             else
-                echo " -- Can't create '$inbdir'"
+                echo " -- Can't create '$build_dir'"
             fi
         fi
+
+        # Reset `build_dir' to blank, so it continues asking when the
+        # previous value wasn't usable.
+        build_dir=
     done
 fi
 
@@ -291,12 +480,16 @@ fi
 
 # Input directory
 # ---------------
-indir=$optionaldir
+if [ x"$input_dir" = x ]; then
+    indir=$optionaldir
+else
+    indir=$input_dir
+fi
 wfpc2name=$(awk '!/^#/ && $1=="WFPC2IMAGE" {print $3}' $pdir/INPUTS.mk)
 wfpc2md5=$(awk  '!/^#/ && $1=="WFPC2MD5"   {print $3}' $pdir/INPUTS.mk)
 wfpc2size=$(awk '!/^#/ && $1=="WFPC2SIZE"  {print $3}' $pdir/INPUTS.mk)
 wfpc2url=$(awk  '!/^#/ && $1=="WFPC2URL"   {print $3}' $pdir/INPUTS.mk)
-if [ $rewritepconfig = yes ]; then
+if [ $rewritepconfig = yes ] && [ x"$input_dir" = x ]; then
     cat <<EOF
 
 ----------------------------------
@@ -338,12 +531,16 @@ fi
 
 # Dependency tarball directory
 # ----------------------------
-if [ $rewritepconfig = yes ]; then
+if [ x"$software_dir" = x ]; then
     ddir=$optionaldir
+else
+    ddir=$software_dir
+fi
+if [ $rewritepconfig = yes ] && [ x"$software_dir" = x ]; then
     cat <<EOF
 
 ---------------------------------------
-(OPTIONAL) Dependency tarball directory
+(OPTIONAL) Software tarball directory
 ---------------------------------------
 
 To ensure an identical build environment, the pipeline will use its own
@@ -369,9 +566,18 @@ fi
 
 # Memory mapping minimum size
 # ---------------------------
-if [ $rewritegconfig = yes ]; then
-    defaultminmapsize=10000000000
-    minmapsize=$defaultminmapsize
+#
+# This option is specific to GNU Astronomy Utilities. It is primarily
+# included here as a demonstration option for software that need special
+# local settings (that are irrelevant to their processing, but necessary to
+# set based on local settings). If you do not use Gnuastro, please remove
+# this option from this script.
+if [ x"$in_minmapsize" = x ]; then
+    minmapsize=10000000000
+else
+    minmapsize=$in_minmapsize
+fi
+if [ $rewritegconfig = yes ] && [ $in_minmapsize = 0 ]; then
     cat <<EOF
 
 ---------------------------
@@ -738,13 +944,21 @@ fi
 # Build Basic dependencies
 # ------------------------
 #
-# Since the system might not have GNU Coreutils at this stage, we'll just
-# default to 4 threads if the actual number isn't found. This is because
-# some versions of Make complain about not having enough 'pipe' (memory) on
-# some systems. After some searching, I found out its because of too many
-# threads.
-if which nproc > /dev/null 2>/dev/null; then numthreads=$(nproc --all);
-else                                         numthreads=1;
+# Since the system might not have GNU Make at this stage, and other Make
+# implementations can't deal with parallel build properly, we'll just
+# default to 1 thread. This is because some versions of Make complain about
+# not having enough 'pipe' (memory) on some systems. After some searching,
+# I found out its because of too many threads. GNU Make will be present on
+# GNU systems (that have `nproc', part of GNU Coreutils). So to simplify
+# the test for GNU Make, we'll just try running `nproc'.
+if which nproc > /dev/null 2>/dev/null; then
+    if [ $jobs = 0 ]; then
+        numthreads=$(nproc --all);
+    else
+        numthreads=$jobs
+    fi
+else
+    numthreads=1;
 fi
 make -f reproduce/src/make/dependencies-basic.mk \
      rpath_command=$rpath_command                \
