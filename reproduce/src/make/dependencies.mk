@@ -44,10 +44,7 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
 top-level-programs  = astnoisechisel flock metastore unzip zip
-ifneq ($(on_mac_os),yes)
-withatlas = atlas
-endif
-top-level-libraries = freetype $(withatlas)
+top-level-libraries = freetype atlas
 all: $(ddir)/texlive-versions.tex                       \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
      $(foreach p, $(top-level-libraries), $(ilidir)/$(p))
@@ -263,27 +260,25 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
 
-	if [ x$(on_mac_os) = xyes ]; then
-	   echo; echo;
-	   echo "ATLAS build instructions not yet working on Mac"
-	   exit 1
-	fi
-
         # Get the operating system specific features (how to get
         # CPU frequency and the library suffixes). To make the steps
         # more readable, the different library version suffixes are
         # named with a single character: `s' for no version in the
         # name, `m' for the major version suffix, and `f' for the
         # full version suffix.
+        # GCC in Mac OS doesn't work. To work around this issue, on Mac
+        # systems we force ATLAS to use `clang' instead of `gcc'.
 	if [ x$(on_mac_os) = xyes ]; then
 	  s=dylib
 	  m=3.dylib
 	  f=3.6.1.dylib
 	  core=$$(sysctl hw.cpufrequency | awk '{print $$2/1000000}')
+	  clangflag="--force-clang=$(ibdir)/clang"
 	else
 	  s=so
 	  m=so.3
 	  f=so.3.6.1
+	  clangflag=
 	  core=$$(cat /proc/cpuinfo | grep "cpu MHz" \
 	              | head -n 1                    \
 	              | sed "s/.*: \([0-9.]*\).*/\1/")
@@ -308,44 +303,37 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	&& rm -rf build                                           \
 	&& mkdir build                                            \
 	&& cd build                                               \
-	&& ../configure -b 64 -D c -DPentiumCPS=$$core            \
+	&& echo ../configure -b 64 -D c -DPentiumCPS=$$core       \
 	             --with-netlib-lapack-tarfile=$(word 2, $^)   \
 	             --cripple-atlas-performance                  \
-	             -Fa alg -fPIC --shared                       \
-				 -C xc $(ibdir)/gcc               \
-				 -C gc $(ibdir)/gcc               \
-				 -C if $(ibdir)/gfortran          \
-				 -C ic $(ibdir)/gcc               \
-				 -C dm $(ibdir)/gcc               \
-				 -C sm $(ibdir)/gcc               \
-				 -C dk $(ibdir)/gcc               \
-				 -C sk $(ibdir)/gcc               \
+	             -Fa alg -fPIC --shared $$clangflag           \
 	             --prefix=$(idir)                             \
 	&& make                                                   \
-	&& cd lib && make -f $$sharedmk && cd ..                  \
 	&& if [ "x$(on_mac_os)" != xyes ]; then                   \
-	     for l in lib/*.$$s*; do                              \
-	       patchelf --set-rpath $(ildir) $$l; done            \
+	     cd lib && make -f $$sharedmk && cd ..                \
+	     && for l in lib/*.$$s*; do                           \
+	          patchelf --set-rpath $(ildir) $$l; done         \
+	     && cp -d lib/*.$$s* $(ildir)                         \
+	     && ln -fs $(ildir)/libblas.$$s  $(ildir)/libblas.$$m \
+	     && ln -fs $(ildir)/libf77blas.$$s $(ildir)/libf77blas.$$m \
+	     && ln -fs $(ildir)/liblapack.$$f  $(ildir)/liblapack.$$s \
+	     && ln -fs $(ildir)/liblapack.$$f  $(ildir)/liblapack.$$m; \
 	   fi                                                     \
-	&& make install                                           \
-	&& cp -d lib/*.$$s* $(ildir)                              \
-	&& ln -fs $(ildir)/libblas.$$s      $(ildir)/libblas.$$m  \
-	&& ln -fs $(ildir)/libf77blas.$$s   $(ildir)/libf77blas.$$m \
-	&& ln -fs $(ildir)/liblapack.$$f    $(ildir)/liblapack.$$s \
-	&& ln -fs $(ildir)/liblapack.$$f    $(ildir)/liblapack.$$m;
+	&& make install
 
         # We need to check the existance of `libptlapack.a', but we can't
         # do this in the `&&' steps above (it will conflict). So we'll do
         # the check after seeing if `libtatlas.so' is installed, then we'll
         # finalize the build (delete the untarred directory).
-	if [ -e $(ildir)/libtatlas.$$s ]; then                     \
+	if [ "x$(on_mac_os)" != xyes ]; then                       \
 	  [ -e lib/libptlapack.a ] && cp lib/libptlapack.a $(ildir); \
 	  cd $(ddir);                                              \
 	  rm -rf ATLAS;                                            \
-	  echo "Atlas is built" > $@;                              \
-	else                                                       \
-	  echo; echo "ATLAS wasn't installed!!!!"; exit 1;         \
 	fi
+
+        # We'll check the full installation with the static library (not
+        # currently building shared library on Mac.
+	if [ -f $(ildir)/libatlas.a ]; then echo "Atlas is built" > $@; fi
 
 
 

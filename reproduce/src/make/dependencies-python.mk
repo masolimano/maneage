@@ -293,18 +293,14 @@ $(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz \
                   $(ilidir)/libffi
         # On Mac systems, the build complains about `clang' specific
         # features, so we can't use our own GCC build here.
-#	if [ x$(on_mac_os) = xyes ]; then                   \
-#	  export CC=clang;                                  \
-#	  export CXX=clang++;                               \
-#	fi;                                                 \
-
+	if [ x$(on_mac_os) = xyes ]; then                   \
+	  export CC=clang;                                  \
+	  export CXX=clang++;                               \
+	fi;                                                 \
 	$(call gbuild, $<, Python-$(python-version),,       \
-	       --enable-optimizations                       \
 	       --without-ensurepip                          \
 	       --with-system-ffi                            \
-	       --enable-shared                              \
-	       --with-threads                               \
-	       --with-lto )                                 \
+	       --enable-shared)                             \
 	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
 	    {printf "%d.%d\n", $$1, $$2}')                  \
 	&& ln -s $(ildir)/python$$v $(ildir)/python         \
