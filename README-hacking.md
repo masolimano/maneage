@@ -1,3 +1,6 @@
+Copyright (C) 2018-2019 Mohammad Akhlaghi.
+See the end of the file for license conditions.
+
 Reproducible paper template
 ===========================
 
@@ -1011,3 +1014,25 @@ that is not reproducible (due to incomplete information by the author) is
 not scientific: the readers have to have faith in the subjective experience
 of the authors in the very important choice of configuration values and
 order of operations: this is contrary to the scientific spirit.
+
+
+
+
+
+Copyright information
+---------------------
+This file is part of the reproducible paper template
+   https://gitlab.com/makhlaghi/reproducible-paper
+
+This template is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This template is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along
+with Template.  If not, see <https://www.gnu.org/licenses/>.

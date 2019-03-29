@@ -1,11 +1,11 @@
 %% PGFPlots settings
 %% -----------------
-%%
+%
 %% PGFPLOTS is a package in (La)TeX for making plots internally. It fits
 %% nicely with the purpose of a reproduction pipeline. But it isn't
 %% mandatory. Therefore if you don't need it, just comment/delete the line
 %% that includes this file in the top LaTeX source (`paper.tex').
-%%
+%
 %% However, TiKZ and PGFPlots are the recommended way to include figures
 %% and plots in your paper. There are two main reasons: 1) it follows the
 %% same LaTeX settings as the text of the paper, so the figures will be in
@@ -17,21 +17,21 @@
 %% but it requires Python and Numpy. The latter is not easy to build from
 %% source, so after a few years, installing the required version can be
 %% very frustrating.
-%%
+%
 %% Keeping all BibLaTeX settings in a separate preamble was done in the
 %% spirit of modularity to 1) easily managable, 2) If a similar BibLaTeX
 %% configuration is necessary in another LaTeX compilation, this file can
 %% just be copied there and used.
-%%
+%
 %% PGFPlots uses the (La)TeX TiKZ package to build plots. So we will first
 %% do the settings that are necessary in TiKZ, and then go onto the actual
 %% PGFPlots package.
 %%
 %% USAGE:
-%%
+%
 %%  - All plots are made within a `tikz' directory (that must already be
 %%    present in the location LaTeX is run).
-%%
+%
 %%  - Use `\includetikz{XXXX}' to make/use the figure. If a `makepdf' LaTeX
 %%    macro is not defined, then \includetikz will assume a `XXXX.pdf' file
 %%    exists in `tex/tikz' and simply import it. If `makepdf' is defined,
@@ -39,7 +39,24 @@
 %%    on `tex/XXXX.tex'. Note that if the contents of `tex/src/XXXX.tex'
 %%    hasn't changed since the last build. TiKZ/PGFPlots won't rebuild the
 %%    plot.
-
+%
+%% Original author:
+%%     Mohammad Akhlaghi <mohammad@akhlaghi.org>
+%% Contributing author(s):
+%% Copyright (C) 2018-2019, Mohammad Akhlaghi.
+%
+%% This template is free software: you can redistribute it and/or modify it
+%% under the terms of the GNU General Public License as published by the
+%% Free Software Foundation, either version 3 of the License, or (at your
+%% option) any later version.
+%
+%% This template is distributed in the hope that it will be useful, but
+%% WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%% General Public License for more details.
+%
+%% You should have received a copy of the GNU General Public License along
+%% with this template. If not, see <http://www.gnu.org/licenses/>.
 
 
 
