@@ -1,7 +1,11 @@
 # Input files necessary for this pipeline.
 #
 # This file is read by the configure script and running Makefiles.
-
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved.  This file is offered as-is, without any
+# warranty.
 
 WFPC2IMAGE = WFPC2ASSNu5780205bx.fits
 WFPC2MD5   = a4791e42cd1045892f9c41f11b50bad8

@@ -4,6 +4,12 @@
 # name to this variable (you can check in `ctan.org' to find the official
 # name).
 #
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved.  This file is offered as-is, without any
+# warranty.
+
+
 # Note on `tex' and `fancyhdr': These two packages are installed along with
 # the basic installation scheme that we used to install tlmgr, they will be
 # ignored in the `tlmgr install' command, but will be used later when we
