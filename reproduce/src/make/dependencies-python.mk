@@ -29,51 +29,6 @@
 
 
 
-# Top level environment
-include reproduce/config/pipeline/LOCAL.mk
-include reproduce/src/make/dependencies-build-rules.mk
-include reproduce/config/pipeline/dependency-versions.mk
-
-ddir   = $(BDIR)/dependencies
-tdir   = $(BDIR)/dependencies/tarballs
-idir   = $(BDIR)/dependencies/installed
-ibdir  = $(BDIR)/dependencies/installed/bin
-ildir  = $(BDIR)/dependencies/installed/lib
-ilidir = $(BDIR)/dependencies/installed/lib/built
-ipydir = $(BDIR)/dependencies/installed/lib/built/python
-
-# Define the top-level programs to build (installed in `.local/bin').
-top-level-python   = astroquery matplotlib
-all: $(foreach p, $(top-level-python), $(ipydir)/$(p))
-
-# Other basic environment settings: We are only including the host
-# operating system's PATH environment variable (after our own!) for the
-# compiler and linker. For the library binaries and headers, we are only
-# using our internally built libraries.
-#
-# To investigate:
-#
-#    1) Set SHELL to `$(ibdir)/env - NAME=VALUE $(ibdir)/bash' and set all
-#       the parameters defined bellow as `NAME=VALUE' statements before
-#       calling Bash. This will enable us to completely ignore the user's
-#       native environment.
-#
-#    2) Add `--noprofile --norc' to `.SHELLFLAGS' so doesn't load the
-#       user's environment.
-.ONESHELL:
-.SHELLFLAGS              := --noprofile --norc -ec
-export CCACHE_DISABLE    := 1
-export PATH              := $(ibdir)
-export LD_RUN_PATH       := $(ildir)
-export LD_LIBRARY_PATH   := $(ildir)
-export SHELL             := $(ibdir)/bash
-export CPPFLAGS          := -I$(idir)/include
-export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
-export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export LDFLAGS           := $(rpath_command) -L$(ildir)
-
-
-
 
 
 # Python enviroment
@@ -106,7 +61,7 @@ export MPI_PYTHON3_SITEARCH   :=
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz           \
+pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         astroquery-$(astroquery-version).tar.gz           \
                         astropy-$(astropy-version).tar.gz                 \
                         beautifulsoup4-$(beautifulsoup4-version).tar.gz   \
@@ -141,8 +96,8 @@ tarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz           \
                         webencodings-$(webencodings-version).tar.gz       \
                         virtualenv-$(virtualenv-version).tar.gz           \
                       , $(tdir)/$(t) )
-topurl=https://files.pythonhosted.org/packages
-$(tarballs): $(tdir)/%:
+pytopurl=https://files.pythonhosted.org/packages
+$(pytarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
 	  cp $(DEPENDENCIES-DIR)/$* $@
 	else
@@ -184,7 +139,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = secretstorage  ]; then
 	    mergenames=0
 	    hash=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5
-	    h=$(topurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
+	    h=$(pytopurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
 	  elif [ $$n = asn            ]; then h=fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4
 	  elif [ $$n = astroquery     ]; then h=61/50/a7a08f9e54d7d9d97e69433cd88231e1ad2901811c9d1ae9ac7ccaef9396
 	  elif [ $$n = astropy        ]; then h=eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352
@@ -232,7 +187,7 @@ $(tarballs): $(tdir)/%:
           # storing all the tarballs in one directory, we want it to have
           # the same naming convention, so we'll download it to a temporary
           # name, then rename that.
-	  if [ $$mergenames = 1 ]; then  tarballurl=$(topurl)/$$h/"$*"
+	  if [ $$mergenames = 1 ]; then  tarballurl=$(pytopurl)/$$h/"$*"
 	  else                           tarballurl=$$h
 	  fi
 
@@ -383,7 +338,7 @@ $(ipydir)/keyring: $(tdir)/keyring-$(keyring-version).tar.gz    \
 	$(call pybuild, tar xf, $<, keyring-$(keyring-version))
 
 $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
-                   $(ipydir)/setuptools
+                      $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, kiwisolver-$(kiwisolver-version))
 
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \

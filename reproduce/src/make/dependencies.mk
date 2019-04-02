@@ -35,12 +35,14 @@ include reproduce/src/make/dependencies-build-rules.mk
 include reproduce/config/pipeline/dependency-texlive.mk
 include reproduce/config/pipeline/dependency-versions.mk
 
+
 ddir   = $(BDIR)/dependencies
 tdir   = $(BDIR)/dependencies/tarballs
 idir   = $(BDIR)/dependencies/installed
 ibdir  = $(BDIR)/dependencies/installed/bin
 ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
+ipydir = $(BDIR)/dependencies/installed/lib/built/python
 
 # Define the top-level programs to build (installed in `.local/bin').
 #
@@ -48,11 +50,13 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 # high level software depend on it. The current rule for ATLAS is tested
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
+top-level-libraries = # atlas
 top-level-programs  = astnoisechisel flock metastore unzip zip
-top-level-libraries = freetype openblas fftw  # atlas
-all: $(ddir)/texlive-versions.tex                       \
-     $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
-     $(foreach p, $(top-level-libraries), $(ilidir)/$(p))
+top-level-python    = astroquery matplotlib
+all: $(ddir)/texlive-versions.tex                         \
+     $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
+     $(foreach p, $(top-level-programs),  $(ibdir)/$(p))  \
+     $(foreach p, $(top-level-python),    $(ipydir)/$(p))
 
 # Other basic environment settings: We are only including the host
 # operating system's PATH environment variable (after our own!) for the
@@ -81,7 +85,8 @@ export LD_LIBRARY_PATH   := $(ildir):$(il64dir)
 export LDFLAGS           := $(rpath_command) -L$(ildir)
 
 
-
+# Python packages
+include reproduce/src/make/dependencies-python.mk
 
 
 # Tarballs
@@ -123,12 +128,12 @@ $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
 	  cp $(DEPENDENCIES-DIR)/$* $@
 	else
-          # Remove all numbers, `-' and `.' from the tarball name so we can
-          # search more easily only with the program name.
+	  # Remove all numbers, `-' and `.' from the tarball name so we can
+	  # search more easily only with the program name.
 	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
 	               | awk '{print $$1}' )
 
-          # Set the top download link of the requested tarball.
+	  # Set the top download link of the requested tarball.
 	  mergenames=1
 	  if [ $$n = cfitsio     ]; then
 	    mergenames=0
@@ -179,20 +184,20 @@ $(tarballs): $(tdir)/%:
 	    exit 1
 	  fi
 
-          # Download the requested tarball. Note that some packages may not
-          # follow our naming convention (where the package name is merged
-          # with its version number). In such cases, `w' will be the full
-          # address, not just the top directory address. But since we are
-          # storing all the tarballs in one directory, we want it to have
-          # the same naming convention, so we'll download it to a temporary
-          # name, then rename that.
+	  # Download the requested tarball. Note that some packages may not
+	  # follow our naming convention (where the package name is merged
+	  # with its version number). In such cases, `w' will be the full
+	  # address, not just the top directory address. But since we are
+	  # storing all the tarballs in one directory, we want it to have
+	  # the same naming convention, so we'll download it to a temporary
+	  # name, then rename that.
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"
 	  else                           tarballurl=$$w
 	  fi
 
-          # If the download fails, Wget will write the error message in the
-          # target file, so Make will think that its done! To avoid this
-          # problem, we'll rename the output.
+	  # If the download fails, Wget will write the error message in the
+	  # target file, so Make will think that its done! To avoid this
+	  # problem, we'll rename the output.
 	  echo "Downloading $$tarballurl"
 	  if ! wget --no-use-server-timestamps -O$@ $$tarballurl; then
 	     rm -f $@
@@ -353,7 +358,7 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 
 $(ilidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	if [ x$(on_mac_os) = xyes ]; then                           \
-	  export CC=clang                                           \
+	  export CC=clang;                                          \
 	fi;                                                         \
 	cd $(ddir)                                                  \
 	&& tar xf $<                                                \
