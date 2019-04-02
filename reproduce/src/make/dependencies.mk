@@ -43,8 +43,13 @@ ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
 
 # Define the top-level programs to build (installed in `.local/bin').
+#
+# About ATLAS: currently the core pipeline does not depend on ATLAS but many
+# high level software depend on it. The current rule for ATLAS is tested
+# successfully on Mac (only static) and GNU/Linux (shared and static). But,
+# since it takes a few hours to build, it is not currently a target.
 top-level-programs  = astnoisechisel flock metastore unzip zip
-top-level-libraries = freetype atlas
+top-level-libraries = freetype openblas fftw  # atlas
 all: $(ddir)/texlive-versions.tex                       \
      $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
      $(foreach p, $(top-level-libraries), $(ilidir)/$(p))
@@ -95,6 +100,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         curl-$(curl-version).tar.gz                        \
                         flock-$(flock-version).tar.xz                      \
                         freetype-$(freetype-version).tar.gz                \
+                        fftw-$(fftw-version).tar.gz                        \
                         ghostscript-$(ghostscript-version).tar.gz          \
                         git-$(git-version).tar.xz                          \
                         gnuastro-$(gnuastro-version).tar.lz                \
@@ -108,6 +114,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         libgit2-$(libgit2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
                         unzip-$(unzip-version).tar.gz                      \
+                        openblas-$(openblas-version).tar.gz                \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
                         zip-$(zip-version).tar.gz                          \
@@ -138,6 +145,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
+	  elif [ $$n = fftw        ]; then w=ftp://ftp.fftw.org/pub/fftw
 	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
@@ -153,6 +161,9 @@ $(tarballs): $(tdir)/%:
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = openblas    ]; then
+	    mergenames=0
+	    w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = unzip       ]; then w=ftp://ftp.info-zip.org/pub/infozip/src
 	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
@@ -234,6 +245,11 @@ $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
 
+$(ilidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
+	$(call gbuild, $<, fftw-$(fftw-version), static,  \
+	               --enable-shared)                   \
+	&& echo "FFTW is built" > $@
+
 # Freetype is necessary to install matplotlib
 $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
 	                $(ilidir)/libpng
@@ -303,7 +319,7 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	&& rm -rf build                                           \
 	&& mkdir build                                            \
 	&& cd build                                               \
-	&& echo ../configure -b 64 -D c -DPentiumCPS=$$core       \
+	&& ../configure -b 64 -D c -DPentiumCPS=$$core            \
 	             --with-netlib-lapack-tarfile=$(word 2, $^)   \
 	             --cripple-atlas-performance                  \
 	             -Fa alg -fPIC --shared $$clangflag           \
@@ -335,6 +351,18 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
         # currently building shared library on Mac.
 	if [ -f $(ildir)/libatlas.a ]; then echo "Atlas is built" > $@; fi
 
+$(ilidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
+	if [ x$(on_mac_os) = xyes ]; then                           \
+	  export CC=clang                                           \
+	fi;                                                         \
+	cd $(ddir)                                                  \
+	&& tar xf $<                                                \
+	&& cd OpenBLAS-$(openblas-version)                          \
+	&& make                                                     \
+	&& make PREFIX=$(idir) install                              \
+	&& cd ..                                                    \
+	&& rm -rf OpenBLAS-$(openblas-version)                      \
+	&& echo "Libtiff is built" > $@
 
 
 

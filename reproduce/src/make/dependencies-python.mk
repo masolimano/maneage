@@ -43,10 +43,7 @@ ilidir = $(BDIR)/dependencies/installed/lib/built
 ipydir = $(BDIR)/dependencies/installed/lib/built/python
 
 # Define the top-level programs to build (installed in `.local/bin').
-ifneq ($(on_mac_os),yes)
-withscipy=scipy
-endif
-top-level-python   = astroquery matplotlib $(withscipy)
+top-level-python   = astroquery matplotlib
 all: $(foreach p, $(top-level-python), $(ipydir)/$(p))
 
 # Other basic environment settings: We are only including the host
@@ -328,7 +325,8 @@ $(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz  \
 
 $(ipydir)/astropy: $(tdir)/astropy-$(astropy-version).tar.gz \
                    $(ipydir)/h5py                            \
-                   $(ipydir)/numpy
+                   $(ipydir)/numpy                           \
+                   $(ipydir)/scipy
 	$(call pybuild, tar xf, $<, astropy-$(astropy-version))
 
 $(ipydir)/beautifulsoup4: $(tdir)/beautifulsoup4-$(beautifulsoup4-version).tar.gz \
@@ -398,8 +396,14 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
 	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version))
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
-                 $(ipydir)/setuptools
-	export LDFLAGS="$$LDFLAGS -shared"; \
+                 $(ipydir)/setuptools               \
+                 $(ilidir)/openblas                 \
+                 $(ilidir)/fftw
+	if [ x$(on_mac_os) = xyes ]; then                                    \
+	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle";     \
+	else                                                                 \
+	  export LDFLAGS="$(LDFLAGS) -shared";                               \
+	fi;                                                                  \
 	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
 	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf)
 
@@ -430,7 +434,11 @@ $(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz   \
 
 $(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
                  $(ipydir)/numpy
-	export LDFLAGS="$$LDFLAGS -shared"; \
+	if [ x$(on_mac_os) = xyes ]; then                                    \
+	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle";     \
+	else                                                                 \
+	  export LDFLAGS="$(LDFLAGS) -shared";                               \
+	fi;                                                                  \
 	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
 	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf)
 

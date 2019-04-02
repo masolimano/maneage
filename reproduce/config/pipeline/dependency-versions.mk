@@ -6,6 +6,7 @@ binutils-version           = 2.31.1
 cmake-version              = 3.12.4
 coreutils-version          = 8.30
 diffutils-version          = 3.7
+fftw-version               = 3.3.8
 findutils-version          = 4.6.0.199-e3fc
 flock-version              = 0.2.3
 freetype-version           = 2.9
@@ -48,6 +49,7 @@ curl-version               = 7.63.0
 gsl-version                = 2.5
 libjpeg-version            = v9b
 libtiff-version            = 4.0.10
+openblas-version           = 0.3.5
 zlib-version               = 1.2.11
 
 # Special libraries
