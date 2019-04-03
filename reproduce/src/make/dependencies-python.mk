@@ -39,9 +39,9 @@
 # systems which might interfere. To be safe, we are removing all their
 # values.
 export PYTHONPATH             := $(installdir)/lib/python/site-packages
+export PYTHONPATH2            := $(PYTHONPATH)
 export PYTHONPATH3            := $(PYTHONPATH)
 export _LMFILES_              :=
-export PYTHONPATH2            :=
 export LOADEDMODULES          :=
 export MPI_PYTHON_SITEARCH    :=
 export MPI_PYTHON2_SITEARCH   :=
@@ -79,6 +79,7 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         keyring-$(keyring-version).tar.gz                 \
                         libffi-$(libffi-version).tar.gz                   \
                         matplotlib-$(matplotlib-version).tar.gz           \
+                        mpi4py-$(mpi4py-version).tar.gz                   \
                         numpy-$(numpy-version).zip                        \
                         pip-$(pip-version).tar.gz                         \
                         pycparser-$(pycparser-version).tar.gz             \
@@ -157,6 +158,7 @@ $(pytarballs): $(tdir)/%:
 	  elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2
 	  elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864
 	  elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f
+	  elif [ $$n = mpi            ]; then h=55/a2/c827b196070e161357b49287fa46d69f25641930fd5f854722319d431843
 	  elif [ $$n = numpy          ]; then h=cf/8d/6345b4f32b37945fedc1e027e83970005fc9c699068d2f566b82826515f2
 	  elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af
 	  elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a
@@ -315,7 +317,11 @@ $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
 	$(call pybuild, tar xf, $<, entrypoints-$(entrypoints-version))
 
 $(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
-                $(ipydir)/setuptools
+                $(ipydir)/setuptools                \
+                $(ilidir)/hdf5
+                # $(ipydir)/mpi4py # AFTER its problem is fixed.
+	#export HDF5_MPI=ON;       # AFTER its problem is fixed.
+	export HDF5_DIR=$(ildir); \
 	$(call pybuild, tar xf, $<, h5py-$(h5py-version))
 
 $(ipydir)/html5lib: $(tdir)/html5lib-$(html5lib-version).tar.gz  \
@@ -349,6 +355,20 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
                       $(ipydir)/pyparsing                               \
                       $(ipydir)/python-dateutil
 	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version))
+
+# Currently mpi4py doesn't build because of some conflict with OpenMPI:
+#
+#  In file included from src/mpi4py.MPI.c:591,
+#                  from src/MPI.c:4:
+#  src/mpi4py.MPI.c: In function '__pyx_f_6mpi4py_3MPI_del_Datatype':
+#  src/mpi4py.MPI.c:15094:36: error: expected expression before '_Static_assert'
+#  __pyx_t_1 = (((__pyx_v_ob[0]) == MPI_UB) != 0);
+#
+# But atleast on my system it fails.
+$(ipydir)/mpi4py: $(tdir)/mpi4py-$(mpi4py-version).tar.gz    \
+                  $(ipydir)/setuptools                       \
+                  $(ilidir)/openmpi
+	$(call pybuild, tar xf, $<, mpi4py-$(mpi4py-version))
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ipydir)/setuptools               \

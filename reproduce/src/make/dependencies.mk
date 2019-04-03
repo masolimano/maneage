@@ -110,6 +110,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         git-$(git-version).tar.xz                          \
                         gnuastro-$(gnuastro-version).tar.lz                \
                         gsl-$(gsl-version).tar.gz                          \
+                        hdf5-$(hdf5-version).tar.gz                        \
                         install-tl-unx.tar.gz                              \
                         jpegsrc.$(libjpeg-version).tar.gz                  \
                         lapack-$(lapack-version).tar.gz                    \
@@ -118,6 +119,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         libtool-$(libtool-version).tar.xz                  \
                         libgit2-$(libgit2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
+                        openmpi-$(openmpi-version).tar.gz                  \
                         unzip-$(unzip-version).tar.gz                      \
                         openblas-$(openblas-version).tar.gz                \
                         tiff-$(libtiff-version).tar.gz                     \
@@ -152,6 +154,10 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = flock       ]; then w=https://github.com/discoteq/flock/releases/download/v$(flock-version)
 	  elif [ $$n = fftw        ]; then w=ftp://ftp.fftw.org/pub/fftw
 	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
+	  elif [ $$n = hdf         ]; then
+	    mergenames=0
+	    majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
+	    w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://ftpmirror.gnu.org/gnu/gnuastro
@@ -169,6 +175,10 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = openblas    ]; then
 	    mergenames=0
 	    w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
+	  elif [ $$n = openmpi     ]; then
+	    mergenames=0
+	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
+	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = unzip       ]; then w=ftp://ftp.info-zip.org/pub/infozip/src
 	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
@@ -261,6 +271,13 @@ $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
 	$(call gbuild, $<, freetype-$(freetype-version), static) \
 	&& echo "freetype is built" > $@
 
+$(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz \
+                $(ilidir)/openmpi
+	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
+	               --enable-parallel                 \
+	               --enable-fortran, V=1)            \
+	&& echo "HDF5 library is built" > $@
+
 $(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz
 	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
 	&& echo "libbsd is built" > $@
@@ -277,6 +294,10 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 	$(call gbuild, $<, tiff-$(libtiff-version), static, \
 	               --disable-webp --disable-zstd) \
 	&& echo "Libtiff is built" > $@
+
+$(ilidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
+	$(call gbuild, $<, openmpi-$(openmpi-version), static, , V=1) \
+	&& echo "OpenMPI is built" > $@
 
 $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
