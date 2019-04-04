@@ -19,11 +19,14 @@
 # A copy of the GNU General Public License is available at
 # <http://www.gnu.org/licenses/>.
 
-# Programs
+# C/C++ programs and libraries.
+atlas-version              = 3.10.3
 bash-version               = 5.0
 binutils-version           = 2.31.1
+cfitsio-version            = 3.45
 cmake-version              = 3.12.4
 coreutils-version          = 8.30
+curl-version               = 7.63.0
 diffutils-version          = 3.7
 fftw-version               = 3.3.8
 findutils-version          = 4.6.0.199-e3fc
@@ -36,12 +39,15 @@ git-version                = 2.20.1
 gmp-version                = 6.1.2
 gnuastro-version           = 0.8
 grep-version               = 3.3
+gsl-version                = 2.5
 gzip-version               = 1.10
 hdf5-version               = 1.10.5
 isl-version                = 0.18
 libbsd-version             = 0.9.1
 libffi-version             = 3.2.1
+libjpeg-version            = v9b
 libpng-version             = 1.6.36
+libtiff-version            = 4.0.10
 libtool-version            = 2.4.6
 lzip-version               = 1.20
 make-version               = 4.2.90
@@ -49,6 +55,7 @@ metastore-version          = 1.1.2-23-fa9170b
 mpfr-version               = 4.0.2
 mpc-version                = 1.1.0
 ncurses-version            = 6.1
+openblas-version           = 0.3.5
 openmpi-version            = 4.0.1
 openssl-version            = 1.1.1a
 patchelf-version           = 0.9
@@ -62,15 +69,6 @@ wget-version               = 1.20.1
 which-version              = 2.21
 xz-version                 = 5.2.4
 zip-version                = 3.0
-
-# Libraries
-atlas-version              = 3.10.3
-cfitsio-version            = 3.45
-curl-version               = 7.63.0
-gsl-version                = 2.5
-libjpeg-version            = v9b
-libtiff-version            = 4.0.10
-openblas-version           = 0.3.5
 zlib-version               = 1.2.11
 
 # Special libraries

@@ -54,7 +54,8 @@ $(mtexdir)/pipeline.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s
 	  if [ ! -e tex/pipeline ]; then ln -s $(texdir) tex/pipeline; fi
 
           # Put a LaTeX input command for all the necessary macro files.
-	  rm -f $(mtexdir)/pipeline.tex
+	  echo "\input{tex/pipeline/macros/dependency-versions.tex}" \
+	       > $(mtexdir)/pipeline.tex
 	  for t in $(subst paper,,$(makesrc)); do
 	    echo "\input{tex/pipeline/macros/$$t.tex}" >> $(mtexdir)/pipeline.tex
 	  done

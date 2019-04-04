@@ -629,6 +629,12 @@ if ! [ -d $tardir ];  then mkdir $tardir; fi
 instdir=$depdir/installed
 if ! [ -d $instdir ]; then mkdir $instdir; fi
 
+texdir=$bdir/tex
+if ! [ -d $texdir ]; then mkdir $texdir; fi
+
+mtexdir=$texdir/macros
+if ! [ -d $mtexdir ]; then mkdir $mtexdir; fi
+
 rm -f $installedlink
 ln -s $instdir $installedlink
 
@@ -761,7 +767,7 @@ NOTE: the built software will NOT BE INSTALLED on your system (no root
 access is required). They are only for local usage by this reproduction
 pipeline. They will be installed in:
 
-  $bdir/dependencies/installed
+  $depdir/installed
 
 EOF
     sleep $tsec
@@ -932,6 +938,115 @@ the configuration files.
 EOF
 fi
 
+
+
+
+
+# Write all the software versions as a LaTeX macro.
+# Versions of programs (same order as 'dependency-versions.mk').
+vertex=$mtexdir/dependency-versions.tex
+function version_in_tex() {
+    v=$(awk '$1=="'"$1"'"{print $3}' $pdir/dependency-versions.mk)
+    if [ x"$v" = x ]; then echo "'$1' not found!"; exit 1; fi
+    echo "\newcommand{\\$2}{$v}" >> $vertex
+}
+echo "%% Automatically created list of software versions." > $vertex
+#version_in_tex "atlas-version" atlasversion
+version_in_tex "bash-version" bashversion
+#version_in_tex "binutils-version" binutilsversion
+version_in_tex "cfitsio-version" cfitsioversion
+version_in_tex "cmake-version" cmakeversion
+version_in_tex "coreutils-version" coreutilsversion
+version_in_tex "curl-version" curlversion
+version_in_tex "diffutils-version" diffutilsversion
+version_in_tex "fftw-version" fftwversion
+version_in_tex "findutils-version" findutilsversion
+version_in_tex "flock-version" flockversion
+version_in_tex "freetype-version" freetypeversion
+version_in_tex "gawk-version" gawkversion
+version_in_tex "gcc-version" gccversion
+version_in_tex "ghostscript-version" ghostscriptversion
+version_in_tex "git-version" gitversion
+version_in_tex "gmp-version" gmpversion
+version_in_tex "gnuastro-version" gnuastroversion
+version_in_tex "grep-version" grepversion
+version_in_tex "gsl-version" gslversion
+version_in_tex "gzip-version" gzipversion
+version_in_tex "hdf5-version" hdffiveversion
+version_in_tex "isl-version" islversion
+version_in_tex "libbsd-version" libbsdversion
+version_in_tex "libffi-version" libffiversion
+version_in_tex "libjpeg-version" libjpegversion
+version_in_tex "libpng-version" libpngversion
+version_in_tex "libtiff-version" libtiffversion
+version_in_tex "libtool-version" libtoolversion
+version_in_tex "lzip-version" lzipversion
+version_in_tex "make-version" makeversion
+version_in_tex "metastore-version" metastoreversion
+version_in_tex "mpfr-version" mpfrversion
+version_in_tex "mpc-version" mpcversion
+version_in_tex "ncurses-version" ncursesversion
+version_in_tex "openblas-version" openblasversion
+version_in_tex "openmpi-version" openmpiversion
+version_in_tex "openssl-version" opensslversion
+version_in_tex "patchelf-version" patchelfversion
+version_in_tex "pkgconfig-version" pkgconfigversion
+version_in_tex "python-version" pythonversion
+version_in_tex "readline-version" readlineversion
+version_in_tex "sed-version" sedversion
+version_in_tex "tar-version" tarversion
+version_in_tex "unzip-version" unzipversion
+version_in_tex "wget-version" wgetversion
+version_in_tex "which-version" whichversion
+version_in_tex "xz-version" xzversion
+version_in_tex "zip-version" zipversion
+version_in_tex "zlib-version" zlibversion
+
+# Special libraries.
+version_in_tex "bzip2-version" bziptwoversion
+#version_in_tex "lapack-version" lapackversion
+version_in_tex "libgit2-version" libgittwoversion
+version_in_tex "wcslib-version" wcslibversion
+
+# Python modules.
+version_in_tex "asn1crypto-version" asncryptoversion
+version_in_tex "astroquery-version" astroqueryversion
+version_in_tex "astropy-version" astropyversion
+version_in_tex "beautifulsoup4-version" beautifulsoupversion
+version_in_tex "certifi-version" certifiversion
+version_in_tex "cffi-version" cffiversion
+version_in_tex "chardet-version" chardetversion
+version_in_tex "cryptography-version" cryptographyversion
+version_in_tex "cycler-version" cyclerversion
+version_in_tex "entrypoints-version" entrypointsversion
+version_in_tex "h5py-version" hpyversion
+version_in_tex "html5lib-version" htmlfivelibversion
+version_in_tex "idna-version" idnaversion
+version_in_tex "jeepney-version" jeepneyversion
+version_in_tex "kiwisolver-version" kiwisolverversion
+version_in_tex "keyring-version" keyringversion
+version_in_tex "matplotlib-version" matplotlibversion
+version_in_tex "mpi4py-version" mpipyversion
+version_in_tex "numpy-version" numpyversion
+#version_in_tex "pip-version" pipversion
+version_in_tex "pycparser-version" pycparserversion
+version_in_tex "pyparsing-version" pyparsingversion
+version_in_tex "python-dateutil-version" pythondateutilversion
+version_in_tex "requests-version" requestsversion
+version_in_tex "scipy-version" scipyversion
+version_in_tex "secretstorage-version" secretstorageversion
+version_in_tex "setuptools-version" setuptoolsversion
+version_in_tex "setuptools_scm-version" setuptoolsscmversion
+version_in_tex "six-version" sixversion
+version_in_tex "soupsieve-version" soupsieveversion
+version_in_tex "urllib3-version" urllibthreeversion
+#version_in_tex "virtualenv-version" virtualenvversion
+version_in_tex "webencodings-version" webencodingsversion
+
+# TeX package versions
+if [ x"$texlive_result" != x"NOT!" ]; then
+    cat $depdir/texlive-versions.tex >> $vertex
+fi
 
 
 

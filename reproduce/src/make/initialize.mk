@@ -160,8 +160,8 @@ export MPI_PYTHON3_SITEARCH   :=
 # option: they add too many extra checks that make it hard to find what you
 # are looking for in this pipeline.
 .SUFFIXES:
-$(texdir) $(lockdir): | $(BDIR); mkdir $@
-$(mtexdir) $(texbdir): | $(texdir); mkdir $@
+$(lockdir): | $(BDIR); mkdir $@
+$(texbdir): | $(texdir); mkdir $@
 $(tikzdir): | $(texbdir); mkdir $@ && ln -s $(tikzdir) tex/tikz
 
 
@@ -348,96 +348,3 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
         # Version of the pipeline and build directory (for LaTeX inputs).
 	@v=$$(git describe --dirty --always);
 	echo "\newcommand{\pipelineversion}{$$v}"  > $@
-
-        # Versions of programs (same order as 'dependency-versions.mk'),
-        # ordered alphabetically (by their executable name).
-	echo "\newcommand{\\bashversion}{$(bash-version)}"              >> $@
-#	echo "\newcommand{\\bashversion}{$(binutils-version)}"          >> $@
-	echo "\newcommand{\\bziptwoversion}{$(bzip2-version)}"          >> $@
-	echo "\newcommand{\\cmakeversion}{$(cmake-version)}"            >> $@
-	echo "\newcommand{\\coreutilsversion}{$(coreutils-version)}"    >> $@
-	echo "\newcommand{\\diffutilsversion}{$(diffutils-version)}"    >> $@
-	echo "\newcommand{\\findutilsversion}{$(findutils-version)}"    >> $@
-	echo "\newcommand{\\flockversion}{$(flock-version)}"            >> $@
-	echo "\newcommand{\\freetypeversion}{$(freetype-version)}"      >> $@
-	echo "\newcommand{\\gawkversion}{$(gawk-version)}"              >> $@
-	echo "\newcommand{\\gccversion}{$(gcc-version)}"                >> $@
-	echo "\newcommand{\\ghostscriptversion}{$(ghostscript-version)}" >> $@
-	echo "\newcommand{\\gitversion}{$(git-version)}"                >> $@
-	echo "\newcommand{\\gmpversion}{$(gmp-version)}"                >> $@
-	echo "\newcommand{\\gnuastroversion}{$(gnuastro-version)}"      >> $@
-	echo "\newcommand{\\grepversion}{$(grep-version)}"              >> $@
-	echo "\newcommand{\\gzipversion}{$(gzip-version)}"              >> $@
-	echo "\newcommand{\\islversion}{$(isl-version)}"                >> $@
-	echo "\newcommand{\\lzipversion}{$(lzip-version)}"              >> $@
-	echo "\newcommand{\\makeversion}{$(make-version)}"              >> $@
-	echo "\newcommand{\\metastoreversion}{$(metastore-version)}"    >> $@
-	echo "\newcommand{\\mpfrversion}{$(mpfr-version)}"              >> $@
-	echo "\newcommand{\\mpcversion}{$(mpc-version)}"                >> $@
-	echo "\newcommand{\\ncursesversion}{$(ncurses-version)}"        >> $@
-	echo "\newcommand{\\opensslversion}{$(openssl-version)}"        >> $@
-	echo "\newcommand{\\patchelfversion}{$(patchelf-version)}"      >> $@
-	echo "\newcommand{\\pkgconfigversion}{$(pkgconfig-version)}"    >> $@
-	echo "\newcommand{\\pythonversion}{$(python-version)}"          >> $@
-	echo "\newcommand{\\readlineversion}{$(readline-version)}"      >> $@
-	echo "\newcommand{\\sedversion}{$(sed-version)}"                >> $@
-	echo "\newcommand{\\swarpversion}{$(swarp-version)}"            >> $@
-	echo "\newcommand{\\tarversion}{$(tar-version)}"                >> $@
-	echo "\newcommand{\\unzipversion}{$(unzip-version)}"            >> $@
-	echo "\newcommand{\\wgetversion}{$(wget-version)}"              >> $@
-	echo "\newcommand{\\whichversion}{$(which-version)}"            >> $@
-	echo "\newcommand{\\xzversion}{$(xz-version)}"                  >> $@
-	echo "\newcommand{\\zipversion}{$(zip-version)}"                >> $@
-
-        # Libraries.
-	echo "\newcommand{\\atlasversion}{$(cfitsio-version)}"          >> $@
-	echo "\newcommand{\\cfitsioversion}{$(cfitsio-version)}"        >> $@
-	echo "\newcommand{\\curlversion}{$(curl-version)}"              >> $@
-	echo "\newcommand{\\gslversion}{$(gsl-version)}"                >> $@
-	echo "\newcommand{\\lapack}{$(lapack-version)}"                 >> $@
-	echo "\newcommand{\\libbsdversion}{$(libbsd-version)}"          >> $@
-	echo "\newcommand{\\libffiversion}{$(libffi-version)}"          >> $@
-	echo "\newcommand{\\libgittwoversion}{$(libgit2-version)}"      >> $@
-	echo "\newcommand{\\libjpegversion}{$(libjpeg-version)}"        >> $@
-	echo "\newcommand{\\libpngversion}{$(libpng-version)}"          >> $@
-	echo "\newcommand{\\libtiffversion}{$(libtiff-version)}"        >> $@
-	echo "\newcommand{\\libtoolversion}{$(libtool-version)}"        >> $@
-	echo "\newcommand{\\wcslibversion}{$(wcslib-version)}"          >> $@
-	echo "\newcommand{\\zlibversion}{$(zlib-version)}"              >> $@
-
-        # Python modules.
-	echo "\newcommand{\\asncryptoversion}{$(asn1crypto-version)}"   >> $@
-	echo "\newcommand{\\astroqueryversion}{$(astroquery-version)}"  >> $@
-	echo "\newcommand{\\astropyversion}{$(astropy-version)}"        >> $@
-	echo "\newcommand{\\beautifulsoupversion}{$(beautifulsoup4-version)}" >> $@
-	echo "\newcommand{\\certifiversion}{$(certifi-version)}"        >> $@
-	echo "\newcommand{\\cffiversion}{$(cffi-version)}"              >> $@
-	echo "\newcommand{\\chardetversion}{$(chardet-version)}"        >> $@
-	echo "\newcommand{\\cryptographyversion}{$(cryptography-version)}" >> $@
-	echo "\newcommand{\\cyclerversion}{$(cycler-version)}"          >> $@
-	echo "\newcommand{\\entrypointsversion}{$(entrypoints-version)}" >> $@
-	echo "\newcommand{\\hpyversion}{$(h5py-version)}"               >> $@
-	echo "\newcommand{\\htmlfivelibversion}{$(html5lib-version)}"   >> $@
-	echo "\newcommand{\\idaversion}{$(idna-version)}"               >> $@
-	echo "\newcommand{\\jeepneyversion}{$(jeepney-version)}"        >> $@
-	echo "\newcommand{\\kiwisolverversion}{$(kiwisolver-version)}"  >> $@
-	echo "\newcommand{\\keyringversion}{$(keyring-version)}"        >> $@
-	echo "\newcommand{\\matplotlibversion}{$(matplotlib-version)}"  >> $@
-	echo "\newcommand{\\numpyversion}{$(numpy-version)}"            >> $@
-#	echo "\newcommand{\\pipversion}{$(pip-version)}"                >> $@
-	echo "\newcommand{\\pycparserversion}{$(pycparser-version)}"    >> $@
-	echo "\newcommand{\\pyparsingversion}{$(pyparsing-version)}"    >> $@
-	echo "\newcommand{\\pythondateutilversion}{$(python-dateutil-version)}" >> $@
-	echo "\newcommand{\\requestsversion}{$(requests-version)}"      >> $@
-	echo "\newcommand{\\scipyversion}{$(scipy-version)}"            >> $@
-	echo "\newcommand{\\screenstorageversion}{$(secretstorage-version)}" >> $@
-	echo "\newcommand{\\setuptoolsversion}{$(setuptools-version)}"  >> $@
-	echo "\newcommand{\\setuptoolsscmversion}{$(setuptools_scm-version)}"  >> $@
-	echo "\newcommand{\\sixversion}{$(six-version)}"                >> $@
-	echo "\newcommand{\\soupsieveversion}{$(soupsieve-version)}"    >> $@
-	echo "\newcommand{\\urllibthreeversion}{$(urllib3-version)}"    >> $@
-#	echo "\newcommand{\\virtualenvversion}{$(virtualenv-version)}"  >> $@
-	echo "\newcommand{\\webencodingsversion}{$(webencodings-version)}" >> $@
-
-        # TeX package versions
-	cat $(BDIR)/dependencies/texlive-versions.tex >> $@
