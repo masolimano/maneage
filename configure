@@ -124,24 +124,35 @@ function check_v() {
 # `--name=value' and `--name value'. The former (with `=') is a single
 # command-line argument, so we just need to shift the counter by one. The
 # latter (without `=') is two arguments, so we'll need two shifts.
+#
+# Note on the case strings: for every option, we need three lines: one when
+# the option name and value are separate. Another when there is an equal
+# between them, and finally one where the value is immediately after the
+# short-format. This exact order is important. Otherwise, there will be a
+# conflict between them.
 while [[ $# -gt 0 ]]
 do
  case $1 in
   # Input parameters.
-  -b*|--build-dir=*)     build_dir="${1#*=}";      check_v $1 "$build_dir";     shift;;
-  -b|--builddir)         build_dir="$2";           check_v $1 "$build_dir";     shift;shift;;
-  -i*|--inputdir=*)      input_dir="${1#*=}";      check_v $1 "$input_dir";     shift;;
-  -i|--inputdir)         input_dir="$2";           check_v $1 "$input_dir";     shift;shift;;
-  -s*|--software-dir=*)  software_dir="${1#*=}";   check_v $1 "$software_dir";  shift;;
-  -s|--software-dir)     software_dir="$2";        check_v $1 "$software_dir";  shift;shift;;
-  -m*|--minmapsize=*)    minmapsize="${1#*=}";     check_v $1 "$minmapsize";    shift;;
-  -m|--minmapsize)       minmapsize="$2";          check_v $1 "$minmapsize";    shift;shift;;
+  -b|--builddir)         build_dir="$2";                           check_v $1 "$build_dir";    shift;shift;;
+  -b=*|--build-dir=*)    build_dir="${1#*=}";                      check_v $1 "$build_dir";    shift;;
+  -b*)                   build_dir=$(echo $1    | sed -e's/-b//'); check_v $1 "$build_dir";    shift;;
+  -i|--inputdir)         input_dir="$2";                           check_v $1 "$input_dir";    shift;shift;;
+  -i=*|--inputdir=*)     input_dir="${1#*=}";                      check_v $1 "$input_dir";    shift;;
+  -i*)                   input_dir=$(echo $1    | sed -e's/-i//'); check_v $1 "$input_dir";    shift;;
+  -s|--software-dir)     software_dir="$2";                        check_v $1 "$software_dir"; shift;shift;;
+  -s=*|--software-dir=*) software_dir="${1#*=}";                   check_v $1 "$software_dir"; shift;;
+  -s*)                   software_dir=$(echo $1 | sed -e's/-s//'); check_v $1 "$software_dir"; shift;;
+  -m|--minmapsize)       minmapsize="$2";                          check_v $1 "$minmapsize";   shift;shift;;
+  -m=*|--minmapsize=*)   minmapsize="${1#*=}";                     check_v $1 "$minmapsize";   shift;;
+  -m*)                   minmapsize=$(echo $1   | sed -e's/-m//'); check_v $1 "$minmapsize";   shift;;
 
-  # Operating mode options.
-  -j*|--jobs=*)           jobs="${1#*=}";          check_v $1 "$jobs";          shift;;
+  # Operating mode options
   -j|--jobs)              jobs="$2";               check_v $1 "$jobs";          shift;shift;;
+  -j=*|--jobs=*)          jobs="${1#*=}";          check_v $1 "$jobs";          shift;;
+  -j*)                    jobs=$(echo $1 | sed -e's/-j//'); check_v $1 "$jobs"; shift;;
+  -e|--existing-conf)     existing_conf=1;                                      shift;;
   -e*|--existing-conf=*)  on_off_option_error --existing-conf;;
-  -e|--existing-conf)     existing_conf=1;         check_v $1 "$existing_conf"; shift;shift;;
   -?|--help)              print_help; exit 0;;
 
   # Unrecognized option:
@@ -223,7 +234,11 @@ function create_file_with_notice() {
 # Since the build directory will go into a symbolic link, we want it to be
 # an absolute address. With this function we can make sure of that.
 function absolute_dir() {
-    echo "$(cd "$(dirname "$1")" && pwd )/$(basename "$1")"
+    if stat $1 1> /dev/null; then
+        echo "$(cd "$(dirname "$1")" && pwd )/$(basename "$1")"
+    else
+        exit 1;
+    fi
 }
 
 
