@@ -773,9 +773,9 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
 # (SOMETIMES IT CRASHES IN libiberty with g++) AND SOMETIMES IT FINISHES,
 # SO, MORE TESTS ARE NEEDED ON MAC AND WE'LL USE THE HOST'S COMPILER UNTIL
 # THEN.
-	if [ "x$(on_mac_os)" = xyesno ]; then                              \
-	  $(call makelink,gfortran);                                       \
+	if [ "x$(on_mac_os)" = xyes ]; then                                \
 	  $(call makelink,g++);                                            \
+	  $(call makelink,gfortran);                                       \
 	  $(call makelink,gcc,copy);                                       \
 	else                                                               \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
@@ -821,4 +821,3 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
 	       done;                                                       \
 	     fi;                                                           \
 	fi
-
