@@ -128,20 +128,20 @@ while [[ $# -gt 0 ]]
 do
  case $1 in
   # Input parameters.
-  -b=*|--build-dir=*)    build_dir="${1#*=}";      check_v $1 "$build_dir";     shift;;
+  -b*|--build-dir=*)     build_dir="${1#*=}";      check_v $1 "$build_dir";     shift;;
   -b|--builddir)         build_dir="$2";           check_v $1 "$build_dir";     shift;shift;;
-  -i=*|--inputdir=*)     input_dir="${1#*=}";      check_v $1 "$input_dir";     shift;;
+  -i*|--inputdir=*)      input_dir="${1#*=}";      check_v $1 "$input_dir";     shift;;
   -i|--inputdir)         input_dir="$2";           check_v $1 "$input_dir";     shift;shift;;
-  -s=*|--software-dir=*) software_dir="${1#*=}";   check_v $1 "$software_dir";  shift;;
+  -s*|--software-dir=*)  software_dir="${1#*=}";   check_v $1 "$software_dir";  shift;;
   -s|--software-dir)     software_dir="$2";        check_v $1 "$software_dir";  shift;shift;;
-  -m=*|--minmapsize=*)   minmapsize="${1#*=}";     check_v $1 "$minmapsize";    shift;;
+  -m*|--minmapsize=*)    minmapsize="${1#*=}";     check_v $1 "$minmapsize";    shift;;
   -m|--minmapsize)       minmapsize="$2";          check_v $1 "$minmapsize";    shift;shift;;
 
   # Operating mode options.
-  -j=*|--jobs=*)          jobs="${1#*=}";          check_v $1 "$jobs";          shift;;
+  -j*|--jobs=*)           jobs="${1#*=}";          check_v $1 "$jobs";          shift;;
   -j|--jobs)              jobs="$2";               check_v $1 "$jobs";          shift;shift;;
-  -e=*|--existing-conf=*) existing_conf="${1#*=}"; check_v $1 "$existing_conf"; shift;;
-  -e|--existing-conf)     existing_conf="$2";      check_v $1 "$existing_conf"; shift;shift;;
+  -e*|--existing-conf=*)  on_off_option_error --existing-conf;;
+  -e|--existing-conf)     existing_conf=1;         check_v $1 "$existing_conf"; shift;shift;;
   -?|--help)              print_help; exit 0;;
 
   # Unrecognized option:
