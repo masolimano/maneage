@@ -273,6 +273,8 @@ $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
 
 $(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz \
                 $(ilidir)/openmpi
+	export CC=mpicc;                                 \
+	export FC=mpif90;                                \
 	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
 	               --enable-parallel                 \
 	               --enable-fortran, V=1)            \

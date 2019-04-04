@@ -767,14 +767,15 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
         # in '$(idir)/lib' by defining the '$(idir)/lib64' as a symbolic
         # link to '$(idir)/lib'.
 
-# SO FAR IT SEEMS TO BE WORKING ON MAC, BUT MORE TESTS ARE NEEDED TO TOTALLY
-# REMOVE THE STEP WHERE WE JUST USE THE HOST'S GCC.
-#	if [ "x$(on_mac_os)" = xyesno ]; then                                \
-#	  $(call makelink,gfortran);                                       \
-#	  $(call makelink,g++);                                            \
-#	  $(call makelink,gcc,copy);                                       \
-#	else                                                               \
-
+# SO FAR WE HAVEN'T BEEN ABLE TO GET A CONSISTENT BUILD OF GCC ON MAC
+# (SOMETIMES IT CRASHES IN libiberty with g++) AND SOMETIMES IT FINISHES,
+# SO, MORE TESTS ARE NEEDED ON MAC AND WE'LL USE THE HOST'S COMPILER UNTIL
+# THEN.
+	if [ "x$(on_mac_os)" = xyesno ]; then                              \
+	  $(call makelink,gfortran);                                       \
+	  $(call makelink,g++);                                            \
+	  $(call makelink,gcc,copy);                                       \
+	else                                                               \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
 	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*;            \
 	  rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*;\
@@ -817,5 +818,5 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
 	         fi;                                                       \
 	       done;                                                       \
 	     fi;                                                           \
-#	fi
+	fi
 
