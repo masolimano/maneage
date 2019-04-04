@@ -134,32 +134,34 @@ while [[ $# -gt 0 ]]
 do
  case $1 in
   # Input parameters.
-  -b|--builddir)         build_dir="$2";                           check_v $1 "$build_dir";    shift;shift;;
-  -b=*|--build-dir=*)    build_dir="${1#*=}";                      check_v $1 "$build_dir";    shift;;
-  -b*)                   build_dir=$(echo $1    | sed -e's/-b//'); check_v $1 "$build_dir";    shift;;
-  -i|--inputdir)         input_dir="$2";                           check_v $1 "$input_dir";    shift;shift;;
-  -i=*|--inputdir=*)     input_dir="${1#*=}";                      check_v $1 "$input_dir";    shift;;
-  -i*)                   input_dir=$(echo $1    | sed -e's/-i//'); check_v $1 "$input_dir";    shift;;
-  -s|--software-dir)     software_dir="$2";                        check_v $1 "$software_dir"; shift;shift;;
-  -s=*|--software-dir=*) software_dir="${1#*=}";                   check_v $1 "$software_dir"; shift;;
-  -s*)                   software_dir=$(echo $1 | sed -e's/-s//'); check_v $1 "$software_dir"; shift;;
-  -m|--minmapsize)       minmapsize="$2";                          check_v $1 "$minmapsize";   shift;shift;;
-  -m=*|--minmapsize=*)   minmapsize="${1#*=}";                     check_v $1 "$minmapsize";   shift;;
-  -m*)                   minmapsize=$(echo $1   | sed -e's/-m//'); check_v $1 "$minmapsize";   shift;;
+  -b|--builddir)         build_dir="$2";                             check_v "$1" "$build_dir";    shift;shift;;
+  -b=*|--build-dir=*)    build_dir="${1#*=}";                        check_v "$1" "$build_dir";    shift;;
+  -b*)                   build_dir=$(echo    "$1" | sed -e's/-b//'); check_v "$1" "$build_dir";    shift;;
+  -i|--inputdir)         input_dir="$2";                             check_v "$1" "$input_dir";    shift;shift;;
+  -i=*|--inputdir=*)     input_dir="${1#*=}";                        check_v "$1" "$input_dir";    shift;;
+  -i*)                   input_dir=$(echo    "$1" | sed -e's/-i//'); check_v "$1" "$input_dir";    shift;;
+  -s|--software-dir)     software_dir="$2";                          check_v "$1" "$software_dir"; shift;shift;;
+  -s=*|--software-dir=*) software_dir="${1#*=}";                     check_v "$1" "$software_dir"; shift;;
+  -s*)                   software_dir=$(echo "$1" | sed -e's/-s//'); check_v "$1" "$software_dir"; shift;;
+  -m|--minmapsize)       minmapsize="$2";                            check_v "$1" "$minmapsize";   shift;shift;;
+  -m=*|--minmapsize=*)   minmapsize="${1#*=}";                       check_v "$1" "$minmapsize";   shift;;
+  -m*)                   minmapsize=$(echo   "$1" | sed -e's/-m//'); check_v "$1" "$minmapsize";   shift;;
 
   # Operating mode options
-  -j|--jobs)              jobs="$2";               check_v $1 "$jobs";          shift;shift;;
-  -j=*|--jobs=*)          jobs="${1#*=}";          check_v $1 "$jobs";          shift;;
-  -j*)                    jobs=$(echo $1 | sed -e's/-j//'); check_v $1 "$jobs"; shift;;
-  -e|--existing-conf)     existing_conf=1;                                      shift;;
+  -j|--jobs)              jobs="$2";                          check_v "$1" "$jobs"; shift;shift;;
+  -j=*|--jobs=*)          jobs="${1#*=}";                     check_v "$1" "$jobs"; shift;;
+  -j*)                    jobs=$(echo "$1" | sed -e's/-j//'); check_v "$1" "$jobs"; shift;;
+  -e|--existing-conf)     existing_conf=1;                                          shift;;
   -e*|--existing-conf=*)  on_off_option_error --existing-conf;;
   -?|--help)              print_help; exit 0;;
+  -?*|--help=*)           on_off_option_error --help;;
 
   # Unrecognized option:
   -*) echo "$scriptname: unknown option '$1'"; exit 1;;
 
   # Not an option, an argument.
-  *) echo "The configure script doesn't accept arguments."; exit 1;;
+  *) echo "The configure script doesn't accept arguments.";
+     echo "For a description of options, please run with '--help'."; exit 1;;
  esac
 done
 
@@ -209,17 +211,17 @@ rm -f Makefile
 # a text editor and wants to edit them, it is important to let them know
 # that their changes are not going to be permenant.
 function create_file_with_notice() {
-    if echo "# IMPORTANT: file can be RE-WRITTEN after './configure'"  > $1
+    if echo "# IMPORTANT: file can be RE-WRITTEN after './configure'"  > "$1"
     then
-        echo "#"                                                      >> $1
-        echo "# This file was created during the reproduction"        >> $1
-        echo "# pipeline's configuration ('./configure'). Therefore," >> $1
-        echo "# it is not under version control and any manual "      >> $1
-        echo "# changes to it will be over-written if the pipeline "  >> $1
-        echo "# is re-configured."                                    >> $1
-        echo "#"                                                      >> $1
+        echo "#"                                                      >> "$1"
+        echo "# This file was created during the reproduction"        >> "$1"
+        echo "# pipeline's configuration ('./configure'). Therefore," >> "$1"
+        echo "# it is not under version control and any manual "      >> "$1"
+        echo "# changes to it will be over-written if the pipeline "  >> "$1"
+        echo "# is re-configured."                                    >> "$1"
+        echo "#"                                                      >> "$1"
     else
-        echo; echo "Can't write to $1"; echo;
+        echo; echo "Can't write to "$1""; echo;
         exit 1
     fi
 }
@@ -234,7 +236,7 @@ function create_file_with_notice() {
 # Since the build directory will go into a symbolic link, we want it to be
 # an absolute address. With this function we can make sure of that.
 function absolute_dir() {
-    if stat $1 1> /dev/null; then
+    if stat "$1" 1> /dev/null; then
         echo "$(cd "$(dirname "$1")" && pwd )/$(basename "$1")"
     else
         exit 1;
