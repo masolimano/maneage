@@ -1,3 +1,32 @@
+# Rules to build ATLAS shared libraries in multi-threaded mode on GNU/Linux
+#
+# ------------------------------------------------------------------------
+#                      !!!!! IMPORTANT NOTES !!!!!
+#
+# This Makefile will be run during the initial `./configure' script. It is
+# not included into the reproduction pipe after that.
+#
+# ------------------------------------------------------------------------
+#
+# Original author:
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Contributing author(s):
+#     Your name <your@email.address>
+# Copyright (C) 2019, Your Name.
+#
+# This Makefile is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# This Makefile is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+# Public License for more details.
+#
+# A copy of the GNU General Public License is available at
+# <http://www.gnu.org/licenses/>.
+
 ORIGLDFLAGS := $(LDFLAGS)
 
 include Make.inc
