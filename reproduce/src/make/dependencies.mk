@@ -35,19 +35,28 @@ include reproduce/src/make/dependencies-build-rules.mk
 include reproduce/config/pipeline/dependency-texlive.mk
 include reproduce/config/pipeline/dependency-versions.mk
 
+
 ddir   = $(BDIR)/dependencies
 tdir   = $(BDIR)/dependencies/tarballs
 idir   = $(BDIR)/dependencies/installed
 ibdir  = $(BDIR)/dependencies/installed/bin
 ildir  = $(BDIR)/dependencies/installed/lib
 ilidir = $(BDIR)/dependencies/installed/lib/built
+ipydir = $(BDIR)/dependencies/installed/lib/built/python
 
 # Define the top-level programs to build (installed in `.local/bin').
-top-level-programs  = astnoisechisel metastore unzip zip
-top-level-libraries = freetype
-all: $(ddir)/texlive-versions.tex                       \
-     $(foreach p, $(top-level-programs), $(ibdir)/$(p)) \
-     $(foreach p, $(top-level-libraries), $(ilidir)/$(p))
+#
+# About ATLAS: currently the core pipeline does not depend on ATLAS but many
+# high level software depend on it. The current rule for ATLAS is tested
+# successfully on Mac (only static) and GNU/Linux (shared and static). But,
+# since it takes a few hours to build, it is not currently a target.
+top-level-libraries = # atlas
+top-level-programs  = astnoisechisel flock metastore unzip zip
+top-level-python    = astroquery matplotlib
+all: $(ddir)/texlive-versions.tex                         \
+     $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
+     $(foreach p, $(top-level-programs),  $(ibdir)/$(p))  \
+     $(foreach p, $(top-level-python),    $(ipydir)/$(p))
 
 # Other basic environment settings: We are only including the host
 # operating system's PATH environment variable (after our own!) for the
@@ -67,16 +76,17 @@ all: $(ddir)/texlive-versions.tex                       \
 .SHELLFLAGS              := --noprofile --norc -ec
 export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir)
-export LD_RUN_PATH       := $(ildir)
-export LD_LIBRARY_PATH   := $(ildir)
 export SHELL             := $(ibdir)/bash
 export CPPFLAGS          := -I$(idir)/include
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
+export LD_RUN_PATH       := $(ildir):$(il64dir)
+export LD_LIBRARY_PATH   := $(ildir):$(il64dir)
 export LDFLAGS           := $(rpath_command) -L$(ildir)
 
 
-
+# Python packages
+include reproduce/src/make/dependencies-python.mk
 
 
 # Tarballs
@@ -90,21 +100,27 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
 tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
+                        atlas-$(atlas-version).tar.bz2                     \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         freetype-$(freetype-version).tar.gz                \
+                        fftw-$(fftw-version).tar.gz                        \
                         ghostscript-$(ghostscript-version).tar.gz          \
                         git-$(git-version).tar.xz                          \
                         gnuastro-$(gnuastro-version).tar.lz                \
                         gsl-$(gsl-version).tar.gz                          \
+                        hdf5-$(hdf5-version).tar.gz                        \
                         install-tl-unx.tar.gz                              \
                         jpegsrc.$(libjpeg-version).tar.gz                  \
+                        lapack-$(lapack-version).tar.gz                    \
                         libbsd-$(libbsd-version).tar.xz                    \
                         libpng-$(libpng-version).tar.xz                    \
                         libtool-$(libtool-version).tar.xz                  \
                         libgit2-$(libgit2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
+                        openmpi-$(openmpi-version).tar.gz                  \
                         unzip-$(unzip-version).tar.gz                      \
+                        openblas-$(openblas-version).tar.gz                \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
                         zip-$(zip-version).tar.gz                          \
@@ -113,12 +129,12 @@ $(tarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
 	  cp $(DEPENDENCIES-DIR)/$* $@
 	else
-          # Remove all numbers, `-' and `.' from the tarball name so we can
-          # search more easily only with the program name.
+	  # Remove all numbers, `-' and `.' from the tarball name so we can
+	  # search more easily only with the program name.
 	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
 	               | awk '{print $$1}' )
 
-          # Set the top download link of the requested tarball.
+	  # Set the top download link of the requested tarball.
 	  mergenames=1
 	  if [ $$n = cfitsio     ]; then
 	    mergenames=0
@@ -129,15 +145,24 @@ $(tarballs): $(tdir)/%:
 	                                 : (l==2 ? "%d00\n"           \
                                             : "%d000\n") ), $$1)}')
 	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
+	  elif [ $$n = atlas       ]; then
+	    mergenames=0
+	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
 	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
+	  elif [ $$n = fftw        ]; then w=ftp://ftp.fftw.org/pub/fftw
 	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
+	  elif [ $$n = hdf         ]; then
+	    mergenames=0
+	    majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
+	    w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://ftp.gnu.org/gnu/gnuastro
 	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
+	  elif [ $$n = lapack      ]; then w=http://www.netlib.org/lapack
 	  elif [ $$n = libbsd      ]; then w=http://libbsd.freedesktop.org/releases
 	  elif [ $$n = libpng      ]; then w=https://download.sourceforge.net/libpng
 	  elif [ $$n = libtool     ]; then w=http://ftp.gnu.org/gnu/libtool
@@ -145,6 +170,13 @@ $(tarballs): $(tdir)/%:
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = openblas    ]; then
+	    mergenames=0
+	    w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
+	  elif [ $$n = openmpi     ]; then
+	    mergenames=0
+	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
+	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = unzip       ]; then w=ftp://ftp.info-zip.org/pub/infozip/src
 	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
@@ -160,20 +192,20 @@ $(tarballs): $(tdir)/%:
 	    exit 1
 	  fi
 
-          # Download the requested tarball. Note that some packages may not
-          # follow our naming convention (where the package name is merged
-          # with its version number). In such cases, `w' will be the full
-          # address, not just the top directory address. But since we are
-          # storing all the tarballs in one directory, we want it to have
-          # the same naming convention, so we'll download it to a temporary
-          # name, then rename that.
+	  # Download the requested tarball. Note that some packages may not
+	  # follow our naming convention (where the package name is merged
+	  # with its version number). In such cases, `w' will be the full
+	  # address, not just the top directory address. But since we are
+	  # storing all the tarballs in one directory, we want it to have
+	  # the same naming convention, so we'll download it to a temporary
+	  # name, then rename that.
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"
 	  else                           tarballurl=$$w
 	  fi
 
-          # If the download fails, Wget will write the error message in the
-          # target file, so Make will think that its done! To avoid this
-          # problem, we'll rename the output.
+	  # If the download fails, Wget will write the error message in the
+	  # target file, so Make will think that its done! To avoid this
+	  # problem, we'll rename the output.
 	  echo "Downloading $$tarballurl"
 	  if ! wget --no-use-server-timestamps -O$@ $$tarballurl; then
 	     rm -f $@
@@ -226,11 +258,25 @@ $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library is built" > $@
 
+$(ilidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
+	$(call gbuild, $<, fftw-$(fftw-version), static,  \
+	               --enable-shared)                   \
+	&& echo "FFTW is built" > $@
+
 # Freetype is necessary to install matplotlib
 $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
 	                $(ilidir)/libpng
 	$(call gbuild, $<, freetype-$(freetype-version), static) \
 	&& echo "freetype is built" > $@
+
+$(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz \
+                $(ilidir)/openmpi
+	export CC=mpicc;                                 \
+	export FC=mpif90;                                \
+	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
+	               --enable-parallel                 \
+	               --enable-fortran, V=1)            \
+	&& echo "HDF5 library is built" > $@
 
 $(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz
 	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
@@ -249,6 +295,100 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 	               --disable-webp --disable-zstd) \
 	&& echo "Libtiff is built" > $@
 
+$(ilidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
+	$(call gbuild, $<, openmpi-$(openmpi-version), static, , V=1) \
+	&& echo "OpenMPI is built" > $@
+
+$(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
+	         $(tdir)/lapack-$(lapack-version).tar.gz
+
+        # Get the operating system specific features (how to get
+        # CPU frequency and the library suffixes). To make the steps
+        # more readable, the different library version suffixes are
+        # named with a single character: `s' for no version in the
+        # name, `m' for the major version suffix, and `f' for the
+        # full version suffix.
+        # GCC in Mac OS doesn't work. To work around this issue, on Mac
+        # systems we force ATLAS to use `clang' instead of `gcc'.
+	if [ x$(on_mac_os) = xyes ]; then
+	  s=dylib
+	  m=3.dylib
+	  f=3.6.1.dylib
+	  core=$$(sysctl hw.cpufrequency | awk '{print $$2/1000000}')
+	  clangflag="--force-clang=$(ibdir)/clang"
+	else
+	  s=so
+	  m=so.3
+	  f=so.3.6.1
+	  clangflag=
+	  core=$$(cat /proc/cpuinfo | grep "cpu MHz" \
+	              | head -n 1                    \
+	              | sed "s/.*: \([0-9.]*\).*/\1/")
+	fi
+
+        # See if the shared libraries should be build for a single CPU
+        # thread or multiple threads.
+	N=$$(nproc)
+	srcdir=$$(pwd)/reproduce/src/make
+	if [ $$N = 1 ]; then
+	  sharedmk=$$srcdir/dependencies-atlas-single.mk
+	else
+	  sharedmk=$$srcdir/dependencies-atlas-multiple.mk
+	fi
+
+        # The linking step here doesn't recognize the `-Wl' in the
+        # `rpath_command'.
+	export LDFLAGS=-L$(ildir)
+	cd $(ddir)                                                \
+	&& tar xf $<                                              \
+	&& cd ATLAS                                               \
+	&& rm -rf build                                           \
+	&& mkdir build                                            \
+	&& cd build                                               \
+	&& ../configure -b 64 -D c -DPentiumCPS=$$core            \
+	             --with-netlib-lapack-tarfile=$(word 2, $^)   \
+	             --cripple-atlas-performance                  \
+	             -Fa alg -fPIC --shared $$clangflag           \
+	             --prefix=$(idir)                             \
+	&& make                                                   \
+	&& if [ "x$(on_mac_os)" != xyes ]; then                   \
+	     cd lib && make -f $$sharedmk && cd ..                \
+	     && for l in lib/*.$$s*; do                           \
+	          patchelf --set-rpath $(ildir) $$l; done         \
+	     && cp -d lib/*.$$s* $(ildir)                         \
+	     && ln -fs $(ildir)/libblas.$$s  $(ildir)/libblas.$$m \
+	     && ln -fs $(ildir)/libf77blas.$$s $(ildir)/libf77blas.$$m \
+	     && ln -fs $(ildir)/liblapack.$$f  $(ildir)/liblapack.$$s \
+	     && ln -fs $(ildir)/liblapack.$$f  $(ildir)/liblapack.$$m; \
+	   fi                                                     \
+	&& make install
+
+        # We need to check the existance of `libptlapack.a', but we can't
+        # do this in the `&&' steps above (it will conflict). So we'll do
+        # the check after seeing if `libtatlas.so' is installed, then we'll
+        # finalize the build (delete the untarred directory).
+	if [ "x$(on_mac_os)" != xyes ]; then                       \
+	  [ -e lib/libptlapack.a ] && cp lib/libptlapack.a $(ildir); \
+	  cd $(ddir);                                              \
+	  rm -rf ATLAS;                                            \
+	fi
+
+        # We'll check the full installation with the static library (not
+        # currently building shared library on Mac.
+	if [ -f $(ildir)/libatlas.a ]; then echo "Atlas is built" > $@; fi
+
+$(ilidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
+	if [ x$(on_mac_os) = xyes ]; then                           \
+	  export CC=clang;                                          \
+	fi;                                                         \
+	cd $(ddir)                                                  \
+	&& tar xf $<                                                \
+	&& cd OpenBLAS-$(openblas-version)                          \
+	&& make                                                     \
+	&& make PREFIX=$(idir) install                              \
+	&& cd ..                                                    \
+	&& rm -rf OpenBLAS-$(openblas-version)                      \
+	&& echo "Libtiff is built" > $@
 
 
 
@@ -333,11 +473,6 @@ $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	make install &&                                            \
 	cd ..&& rm -rf cmake-$(cmake-version)
 
-# Some programs that depend on cURL (in particular CMake) don't necessarily
-# have easiy ways to explicity tell them to also link with libcurl's
-# dependencies (libssl, libcrypto, and libz). So we won't force curl to
-# only be static.
-#
 # cURL (and its library, which is needed by several programs here) can
 # optionally link with many different network-related libraries on the host
 # system that we are not yet building in the pipeline. Many of these are
@@ -363,7 +498,7 @@ $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz
 	               --without-axtls                   \
 	               --disable-ldaps                   \
 	               --disable-ldap                    \
-	               --without-nss )
+	               --without-nss, V=1)
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
 # prefix GNU's libtool executables with `glibtool'.

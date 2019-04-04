@@ -29,51 +29,6 @@
 
 
 
-# Top level environment
-include reproduce/config/pipeline/LOCAL.mk
-include reproduce/src/make/dependencies-build-rules.mk
-include reproduce/config/pipeline/dependency-versions.mk
-
-ddir   = $(BDIR)/dependencies
-tdir   = $(BDIR)/dependencies/tarballs
-idir   = $(BDIR)/dependencies/installed
-ibdir  = $(BDIR)/dependencies/installed/bin
-ildir  = $(BDIR)/dependencies/installed/lib
-ilidir = $(BDIR)/dependencies/installed/lib/built
-ipydir = $(BDIR)/dependencies/installed/lib/built/python
-
-# Define the top-level programs to build (installed in `.local/bin').
-top-level-python   = astroquery matplotlib #scipy
-all: $(foreach p, $(top-level-python), $(ipydir)/$(p))
-
-# Other basic environment settings: We are only including the host
-# operating system's PATH environment variable (after our own!) for the
-# compiler and linker. For the library binaries and headers, we are only
-# using our internally built libraries.
-#
-# To investigate:
-#
-#    1) Set SHELL to `$(ibdir)/env - NAME=VALUE $(ibdir)/bash' and set all
-#       the parameters defined bellow as `NAME=VALUE' statements before
-#       calling Bash. This will enable us to completely ignore the user's
-#       native environment.
-#
-#    2) Add `--noprofile --norc' to `.SHELLFLAGS' so doesn't load the
-#       user's environment.
-.ONESHELL:
-.SHELLFLAGS              := --noprofile --norc -ec
-export CCACHE_DISABLE    := 1
-export PATH              := $(ibdir)
-export LD_RUN_PATH       := $(ildir)
-export LD_LIBRARY_PATH   := $(ildir)
-export SHELL             := $(ibdir)/bash
-export CPPFLAGS          := -I$(idir)/include
-export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
-export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export LDFLAGS           := $(rpath_command) -L$(ildir)
-
-
-
 
 
 # Python enviroment
@@ -84,9 +39,9 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 # systems which might interfere. To be safe, we are removing all their
 # values.
 export PYTHONPATH             := $(installdir)/lib/python/site-packages
+export PYTHONPATH2            := $(PYTHONPATH)
 export PYTHONPATH3            := $(PYTHONPATH)
 export _LMFILES_              :=
-export PYTHONPATH2            :=
 export LOADEDMODULES          :=
 export MPI_PYTHON_SITEARCH    :=
 export MPI_PYTHON2_SITEARCH   :=
@@ -106,7 +61,7 @@ export MPI_PYTHON3_SITEARCH   :=
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz           \
+pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         astroquery-$(astroquery-version).tar.gz           \
                         astropy-$(astropy-version).tar.gz                 \
                         beautifulsoup4-$(beautifulsoup4-version).tar.gz   \
@@ -116,6 +71,7 @@ tarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz           \
                         cryptography-$(cryptography-version).tar.gz       \
                         cycler-$(cycler-version).tar.gz                   \
                         entrypoints-$(entrypoints-version).tar.gz         \
+                        h5py-$(h5py-version).tar.gz                       \
                         html5lib-$(html5lib-version).tar.gz               \
                         idna-$(idna-version).tar.gz                       \
                         jeepney-$(jeepney-version).tar.gz                 \
@@ -123,6 +79,7 @@ tarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz           \
                         keyring-$(keyring-version).tar.gz                 \
                         libffi-$(libffi-version).tar.gz                   \
                         matplotlib-$(matplotlib-version).tar.gz           \
+                        mpi4py-$(mpi4py-version).tar.gz                   \
                         numpy-$(numpy-version).zip                        \
                         pip-$(pip-version).tar.gz                         \
                         pycparser-$(pycparser-version).tar.gz             \
@@ -140,8 +97,8 @@ tarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz           \
                         webencodings-$(webencodings-version).tar.gz       \
                         virtualenv-$(virtualenv-version).tar.gz           \
                       , $(tdir)/$(t) )
-topurl=https://files.pythonhosted.org/packages
-$(tarballs): $(tdir)/%:
+pytopurl=https://files.pythonhosted.org/packages
+$(pytarballs): $(tdir)/%:
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
 	  cp $(DEPENDENCIES-DIR)/$* $@
 	else
@@ -157,7 +114,10 @@ $(tarballs): $(tdir)/%:
           # because the tokenization above will produce `python' as the
           # first string.
 	  if [ $* = python-dateutil-$(python-dateutil-version).tar.gz ]; then
-	        n=dateutil
+	    n=dateutil
+	  elif [ $* = h5py-$(h5py-version).tar.gz ]; then
+	    n=h5py
+
           # elif [ $* = strange-tarball5name-version.tar.gz ]; then
           #  n=strange5-name
 	  else
@@ -180,7 +140,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = secretstorage  ]; then
 	    mergenames=0
 	    hash=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5
-	    h=$(topurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
+	    h=$(pytopurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
 	  elif [ $$n = asn            ]; then h=fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4
 	  elif [ $$n = astroquery     ]; then h=61/50/a7a08f9e54d7d9d97e69433cd88231e1ad2901811c9d1ae9ac7ccaef9396
 	  elif [ $$n = astropy        ]; then h=eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352
@@ -191,13 +151,15 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = cryptography   ]; then h=07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449
 	  elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488
 	  elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c
+	  elif [ $$n = h5py           ]; then h=43/27/a6e7dcb8ae20a4dbf3725321058923fec262b6f7835179d78ccc8d98deec
 	  elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f
 	  elif [ $$n = idna           ]; then h=ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7
 	  elif [ $$n = jeepney        ]; then h=16/1d/74adf3b164a8d19a60d0fcf706a751ffa2a1eaa8e5bbb1b6705c92a05263
 	  elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2
 	  elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864
 	  elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f
-	  elif [ $$n = numpy          ]; then h=2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c
+	  elif [ $$n = mpi            ]; then h=55/a2/c827b196070e161357b49287fa46d69f25641930fd5f854722319d431843
+	  elif [ $$n = numpy          ]; then h=cf/8d/6345b4f32b37945fedc1e027e83970005fc9c699068d2f566b82826515f2
 	  elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af
 	  elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a
 	  elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc
@@ -212,7 +174,7 @@ $(tarballs): $(tdir)/%:
 	  elif [ $$n = urllib         ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1
 	  elif [ $$n = virtualenv     ]; then h=51/aa/c395a6e6eaaedfa5a04723b6446a1df783b16cca6fec66e671cede514688
 	  elif [ $$n = webencodings   ]; then h=0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47
-#         elif [ $$n = strange5-name  ]; then h=XXXXX
+#	  elif [ $$n = strange5-name  ]; then h=XXXXX
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -227,7 +189,7 @@ $(tarballs): $(tdir)/%:
           # storing all the tarballs in one directory, we want it to have
           # the same naming convention, so we'll download it to a temporary
           # name, then rename that.
-	  if [ $$mergenames = 1 ]; then  tarballurl=$(topurl)/$$h/"$*"
+	  if [ $$mergenames = 1 ]; then  tarballurl=$(pytopurl)/$$h/"$*"
 	  else                           tarballurl=$$h
 	  fi
 
@@ -249,18 +211,24 @@ $(tarballs): $(tdir)/%:
 # --------------------
 #
 # To build Python packages with direct access to a `setup.py' (if no direct
-# access to `setup.py' is needed, pip can be used)
+# access to `setup.py' is needed, pip can be used).
 # Arguments of this function are the numbers
 #   1) Unpack command
 #   2) Package name
 #   3) Unpacked directory name after unpacking the tarball
-pybuild = cd $(ddir); rm -rf $(3);                                        \
-	 if ! $(1) $(2); then echo; echo "Tar error"; exit 1; fi;             \
-	 cd $(3);                                                             \
-	 python3 setup.py build &&                                            \
-	 python3 setup.py install &&                                          \
-	 cd .. && rm -rf $(3) &&                                              \
-	 echo "done!" > $@
+#   4) site.cfg file (optional)
+pybuild = cd $(ddir); rm -rf $(3);                                \
+	 if ! $(1) $(2); then echo; echo "Tar error"; exit 1; fi; \
+	 cd $(3);                                                 \
+	 if [ "x$(4)" != x ]; then                                \
+	   sed -e 's|@LIBDIR[@]|'"$(ildir)"'|'                    \
+	       -e 's|@INCDIR[@]|'"$(idir)/include"'|'             \
+	       $(4) > site.cfg;                                   \
+	 fi;                                                      \
+	 python3 setup.py build                                   \
+	 && python3 setup.py install                              \
+	 && cd .. && rm -rf $(3)                                  \
+	 && echo "done!" > $@
 
 
 
@@ -271,23 +239,26 @@ pybuild = cd $(ddir); rm -rf $(3);                                        \
 #
 # While this Makefile is for Python programs, in some cases, we need
 # certain programs (like Python itself), or libraries for the modules.
-$(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz
+$(ilidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
+	$(call gbuild, $<, libffi-$(libffi-version))        \
+	echo "libffi is built" > $@
+
+$(ibdir)/python3: $(tdir)/python-$(python-version).tar.gz \
+                  $(ilidir)/libffi
         # On Mac systems, the build complains about `clang' specific
         # features, so we can't use our own GCC build here.
-#	if [ x$(on_mac_os) = xyes ]; then                   \
-#	  export CC=clang;                                  \
-#	  export CXX=clang++;                               \
-#	fi;                                                 \
-
-	$(call gbuild, $<, Python-$(python-version))        \
+	if [ x$(on_mac_os) = xyes ]; then                   \
+	  export CC=clang;                                  \
+	  export CXX=clang++;                               \
+	fi;                                                 \
+	$(call gbuild, $<, Python-$(python-version),,       \
+	       --without-ensurepip                          \
+	       --with-system-ffi                            \
+	       --enable-shared)                             \
 	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
 	    {printf "%d.%d\n", $$1, $$2}')                  \
 	&& ln -s $(ildir)/python$$v $(ildir)/python         \
 	&& rm -rf $(ipydir) && mkdir $(ipydir)
-
-$(ilidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
-	$(call gbuild, $<, libffi-$(libffi-version))        \
-	echo "libffi is built" > $@
 
 
 
@@ -297,7 +268,7 @@ $(ilidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
 #
 # All the necessary Python modules go here.
 $(ipydir)/asn1crypto: $(tdir)/asn1crypto-$(asn1crypto-version).tar.gz \
-                      $(ibdir)/python3
+                      $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, asn1crypto-$(asn1crypto-version))
 
 $(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz  \
@@ -310,7 +281,9 @@ $(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz  \
 	$(call pybuild, tar xf, $<, astroquery-$(astroquery-version))
 
 $(ipydir)/astropy: $(tdir)/astropy-$(astropy-version).tar.gz \
-                   $(ipydir)/numpy
+                   $(ipydir)/h5py                            \
+                   $(ipydir)/numpy                           \
+                   $(ipydir)/scipy
 	$(call pybuild, tar xf, $<, astropy-$(astropy-version))
 
 $(ipydir)/beautifulsoup4: $(tdir)/beautifulsoup4-$(beautifulsoup4-version).tar.gz \
@@ -318,30 +291,38 @@ $(ipydir)/beautifulsoup4: $(tdir)/beautifulsoup4-$(beautifulsoup4-version).tar.g
 	$(call pybuild, tar xf, $<, beautifulsoup4-$(beautifulsoup4-version))
 
 $(ipydir)/certifi: $(tdir)/certifi-$(certifi-version).tar.gz \
-                   $(ibdir)/python3
+                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, certifi-$(certifi-version))
 
 $(ipydir)/cffi: $(tdir)/cffi-$(cffi-version).tar.gz \
-                $(ipydir)/pycparser                 \
-                $(ilidir)/libffi
+                $(ilidir)/libffi                    \
+                $(ipydir)/pycparser
 	$(call pybuild, tar xf, $<, cffi-$(cffi-version))
 
 $(ipydir)/chardet: $(tdir)/chardet-$(chardet-version).tar.gz \
-                   $(ibdir)/python3
+                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, chardet-$(chardet-version))
 
 $(ipydir)/cryptography: $(tdir)/cryptography-$(cryptography-version).tar.gz \
-                        $(ipydir)/cffi                                      \
-                        $(ipydir)/asn1crypto
+                        $(ipydir)/asn1crypto                                \
+                        $(ipydir)/cffi
 	$(call pybuild, tar xf, $<, cryptography-$(cryptography-version))
 
 $(ipydir)/cycler: $(tdir)/cycler-$(cycler-version).tar.gz \
-                   $(ipydir)/six
+                  $(ipydir)/six
 	$(call pybuild, tar xf, $<, cycler-$(cycler-version))
 
 $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
-                       $(ibdir)/python3
+                       $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, entrypoints-$(entrypoints-version))
+
+$(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
+                $(ipydir)/setuptools                \
+                $(ilidir)/hdf5
+                # $(ipydir)/mpi4py # AFTER its problem is fixed.
+	#export HDF5_MPI=ON;       # AFTER its problem is fixed.
+	export HDF5_DIR=$(ildir); \
+	$(call pybuild, tar xf, $<, h5py-$(h5py-version))
 
 $(ipydir)/html5lib: $(tdir)/html5lib-$(html5lib-version).tar.gz  \
                     $(ipydir)/six                                \
@@ -349,50 +330,68 @@ $(ipydir)/html5lib: $(tdir)/html5lib-$(html5lib-version).tar.gz  \
 	$(call pybuild, tar xf, $<, html5lib-$(html5lib-version))
 
 $(ipydir)/idna: $(tdir)/idna-$(idna-version).tar.gz \
-                $(ibdir)/python3
+                $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, idna-$(idna-version))
 
 $(ipydir)/jeepney: $(tdir)/jeepney-$(jeepney-version).tar.gz \
-                $(ibdir)/python3
+                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, jeepney-$(jeepney-version))
 
 $(ipydir)/keyring: $(tdir)/keyring-$(keyring-version).tar.gz    \
-                   $(ipydir)/setuptools_scm                     \
+                   $(ipydir)/entrypoints                        \
                    $(ipydir)/secretstorage                      \
-                   $(ipydir)/entrypoints
+                   $(ipydir)/setuptools_scm
 	$(call pybuild, tar xf, $<, keyring-$(keyring-version))
 
 $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
-                   $(ipydir)/setuptools
+                      $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, kiwisolver-$(kiwisolver-version))
-
 
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
                       $(ipydir)/cycler                                  \
                       $(ilidir)/freetype                                \
+                      $(ipydir)/kiwisolver                              \
                       $(ipydir)/numpy                                   \
                       $(ipydir)/pyparsing                               \
-                      $(ipydir)/python-dateutil                         \
-                      $(ipydir)/kiwisolver
+                      $(ipydir)/python-dateutil
 	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version))
 
+# Currently mpi4py doesn't build because of some conflict with OpenMPI:
+#
+#  In file included from src/mpi4py.MPI.c:591,
+#                  from src/MPI.c:4:
+#  src/mpi4py.MPI.c: In function '__pyx_f_6mpi4py_3MPI_del_Datatype':
+#  src/mpi4py.MPI.c:15094:36: error: expected expression before '_Static_assert'
+#  __pyx_t_1 = (((__pyx_v_ob[0]) == MPI_UB) != 0);
+#
+# But atleast on my system it fails.
+$(ipydir)/mpi4py: $(tdir)/mpi4py-$(mpi4py-version).tar.gz    \
+                  $(ipydir)/setuptools                       \
+                  $(ilidir)/openmpi
+	$(call pybuild, tar xf, $<, mpi4py-$(mpi4py-version))
+
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
-                 $(ibdir)/python3
-	export BLAS=None; \
-	export ATLAS=None; \
-	export LAPACK=None; \
-	$(call pybuild, unzip, $<, numpy-$(numpy-version))
+                 $(ipydir)/setuptools               \
+                 $(ilidir)/openblas                 \
+                 $(ilidir)/fftw
+	if [ x$(on_mac_os) = xyes ]; then                                    \
+	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle";     \
+	else                                                                 \
+	  export LDFLAGS="$(LDFLAGS) -shared";                               \
+	fi;                                                                  \
+	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
+	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf)
 
 $(ibdir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
-               $(ibdir)/python3
+               $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pip-$(pip-version))
 
 $(ipydir)/pycparser: $(tdir)/pycparser-$(pycparser-version).tar.gz \
-                     $(ibdir)/python3
+                     $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pycparser-$(pycparser-version))
 
 $(ipydir)/pyparsing: $(tdir)/pyparsing-$(pyparsing-version).tar.gz \
-                     $(ibdir)/python3
+                     $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pyparsing-$(pyparsing-version))
 
 $(ipydir)/python-dateutil: $(tdir)/python-dateutil-$(python-dateutil-version).tar.gz  \
@@ -410,7 +409,13 @@ $(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz   \
 
 $(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
                  $(ipydir)/numpy
-	$(call pybuild, tar xf, $<, scipy-$(scipy-version))
+	if [ x$(on_mac_os) = xyes ]; then                                    \
+	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle";     \
+	else                                                                 \
+	  export LDFLAGS="$(LDFLAGS) -shared";                               \
+	fi;                                                                  \
+	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
+	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf)
 
 $(ipydir)/secretstorage: $(tdir)/secretstorage-$(secretstorage-version).tar.gz \
                          $(ipydir)/cryptography                                \
@@ -426,17 +431,17 @@ $(ipydir)/setuptools_scm: $(tdir)/setuptools_scm-$(setuptools_scm-version).tar.g
 	$(call pybuild, tar xf, $<, setuptools_scm-$(setuptools_scm-version))
 
 $(ipydir)/six: $(tdir)/six-$(six-version).tar.gz \
-               $(ibdir)/python3
+               $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, six-$(six-version))
 
 $(ipydir)/soupsieve: $(tdir)/soupsieve-$(soupsieve-version).tar.gz \
-                     $(ibdir)/python3
+                     $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, soupsieve-$(soupsieve-version))
 
 $(ipydir)/urllib3: $(tdir)/urllib3-$(urllib3-version).tar.gz \
-                   $(ibdir)/python3
+                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, urllib3-$(urllib3-version))
 
 $(ipydir)/webencodings: $(tdir)/webencodings-$(webencodings-version).tar.gz \
-                        $(ibdir)/python3
+                        $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, webencodings-$(webencodings-version))

@@ -204,12 +204,13 @@ $(tarballs): $(tdir)/%: $(lockdir)
 # is very annoying and can cause many complications. We thus remove any
 # part of PATH of that has `ccache' in it before making symbolic links to
 # the programs we are not building ourselves.
-makelink = origpath="$$PATH";                                          \
+makelink = origpath="$$PATH";                                      \
 	   export PATH=$$(echo $(syspath) | tr : '\n' | grep -v ccache \
-	                       | paste -s -d:);                        \
+	                       | tr '\n' :);                           \
 	   a=$$(which $(1) 2> /dev/null);                              \
-	   if [ -f $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;         \
-	   if [ x$$a != x ]; then ln -s $$a $(ibdir)/$(1); fi;         \
+	   if [ -e $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;         \
+	   if [ x"$(2)" = xcopy ]; then c=cp; else c="ln -s"; fi;      \
+	   if [ x$$a != x ]; then $$c $$a $(ibdir)/$(1); fi;           \
 	   export PATH="$$origpath"
 $(ibdir) $(ildir):; mkdir $@
 $(ibdir)/low-level-links: | $(ibdir) $(ildir)
@@ -576,8 +577,15 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
 	               --with-zlib-lib=$(ildir)                      \
                        --with-zlib-include=$(idir)/include, , ,      \
 	               ./config ) &&                                 \
-	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem &&              \
-	echo "OpenSSL is built and ready" > $@
+	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem;                \
+	if [ $$? = 0 ]; then                                         \
+	  if [ x$(on_mac_os) = xyes ]; then                          \
+	    echo "No need to fix rpath in libssl";                   \
+	  else                                                       \
+	    patchelf --set-rpath $(ildir) $(ildir)/libssl.so;        \
+	  fi;                                                        \
+	  echo "OpenSSL is built and ready" > $@;                    \
+	fi
 
 # GNU Wget
 #
@@ -734,13 +742,13 @@ $(ibdir)/ld: $(tdir)/binutils-$(binutils-version).tar.lz
 #
 # We are currently having problems installing GCC on macOS, so for the time
 # being, if the pipeline is being run on a macOS, we'll just set a link.
-ifeq ($(on_mac_os),yes)
-gcc-prerequisites =
-else
+#ifeq ($(on_mac_os),yes)
+#gcc-prerequisites =
+#else
 gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
                     $(ilidir)/isl                     \
                     $(ilidir)/mpc
-endif
+#endif
 $(ibdir)/gcc: $(gcc-prerequisites)  \
               $(ibdir)/ls           \
               $(ibdir)/sed          \
@@ -752,24 +760,36 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
               $(ibdir)/which
 
         # On a macOS, we (currently!) won't build GCC because of some
-        # errors we are still trying to fix. So, we'll just make a symbolic
-        # link to the host's executables.
-	if [ "x$(on_mac_os)" = xyes ]; then                                \
+        # errors we are still trying to find. So, we'll just make a
+        # symbolic link to the host's executables.
+        #
+        # GCC builds is own libraries in '$(idir)/lib64'. But all other
+        # libraries are in '$(idir)/lib'. Since this pipeline is only for a
+        # single architecture, we can trick GCC into building its libraries
+        # in '$(idir)/lib' by defining the '$(idir)/lib64' as a symbolic
+        # link to '$(idir)/lib'.
+
+# SO FAR WE HAVEN'T BEEN ABLE TO GET A CONSISTENT BUILD OF GCC ON MAC
+# (SOMETIMES IT CRASHES IN libiberty with g++) AND SOMETIMES IT FINISHES,
+# SO, MORE TESTS ARE NEEDED ON MAC AND WE'LL USE THE HOST'S COMPILER UNTIL
+# THEN.
+	if [ "x$(on_mac_os)" = xyesno ]; then                              \
 	  $(call makelink,gfortran);                                       \
 	  $(call makelink,g++);                                            \
-	  $(call makelink,gcc);                                            \
+	  $(call makelink,gcc,copy);                                       \
 	else                                                               \
-	                                                                   \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
 	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*;            \
 	  rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*;\
 	                                                                   \
+	  ln -fs $(ildir) $(idir)/lib64;                                   \
+	                                                                   \
 	  cd $(ddir);                                                      \
 	  rm -rf gcc-build gcc-$(gcc-version);                             \
-	  tar xf $< &&                                                     \
-	  mkdir $(ddir)/gcc-build &&                                       \
-	  cd $(ddir)/gcc-build &&                                          \
-	  ../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash              \
+	  tar xf $<                                                        \
+	  && mkdir $(ddir)/gcc-build                                       \
+	  && cd $(ddir)/gcc-build                                          \
+	  && ../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash           \
 	                    --prefix=$(idir)                               \
 	                    --with-mpc=$(idir)                             \
 	                    --with-mpfr=$(idir)                            \
@@ -787,9 +807,18 @@ $(ibdir)/gcc: $(gcc-prerequisites)  \
 	                    --enable-default-pie                           \
 	                    --enable-default-ssp                           \
 	                    --enable-cet=auto                              \
-	                    --enable-decimal-float &&                      \
-	  make SHELL=$(ibdir)/bash -j$$(nproc) &&                          \
-	  make SHELL=$(ibdir)/bash install &&                              \
-	  cd .. &&                                                         \
-	  rm -rf gcc-build gcc-$(gcc-version);                             \
+	                    --enable-decimal-float                         \
+	  && make SHELL=$(ibdir)/bash -j$$(nproc)                          \
+	  && make SHELL=$(ibdir)/bash install                              \
+	  && cd ..                                                         \
+	  && rm -rf gcc-build gcc-$(gcc-version)                           \
+	                                                                   \
+	  && if [ "x$(on_mac_os)" != xyes ]; then                          \
+	       for f in $$(find $(idir)/libexec/gcc); do                   \
+	         if ldd $$f &> /dev/null; then                             \
+	           patchelf --set-rpath $(ildir) $$f;                      \
+	         fi;                                                       \
+	       done;                                                       \
+	     fi;                                                           \
 	fi
+
