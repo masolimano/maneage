@@ -254,29 +254,38 @@ will use). Therefore, the pipeline builds its own dependencies during the
 `reproduce/src/make/dependencies-basic.mk` and
 `reproduce/src/make/dependencies.mk`. These Makefiles are called by the
 `./configure` script and not used afterwards. The first is intended for
-downloading and building the most basic tools like GNU Bash, GNU Make, and
-GNU Tar. Therefore it must only contain very basic and portable Make and
-shell features. The second is called after the first, thus enabling usage
-of the modern and advanced features of GNU Bash and GNU Make, similar to
-the rest of the pipeline. Later, if you add a new program/library for your
-research, you will need to include a rule on how to download and build it
-(in `reproduce/src/make/dependencies.mk`).
+downloading and building the most basic tools like GNU Tar, GNU Bash, GNU
+Make, and GNU Compiler Collection (GCC). Therefore it must only contain
+very basic and portable Make and shell features. The second is called after
+the first, thus enabling usage of the modern and advanced features of GNU
+Bash, GNU Make and other low-level GNU tools, similar to the rest of the
+pipeline. Later, if you add a new program/library for your research, you
+will need to include a rule on how to download and build it (in
+`reproduce/src/make/dependencies.mk`).
 
-After it finishes, `./configure` will create a `Makefile` in the top
-directory (a symbolic link to `reproduce/src/make/top.mk`) and a `.local`
-directory (a link for easy access to the custom built software
-packages). The `.local/bin/make` command will then use our custom version
-of GNU Make to do the analysis. The first file that is read by Make is the
-top-level `Makefile`. Therefore, we'll start our navigation/discussion with
-this file. This file is relatively short and heavily commented so hopefully
-the descriptions in each comment will be enough to understand the general
-details. As you read this section, please also look at the contents of the
-mentioned files and directories to fully understand what is going on.
+After it finishes, `./configure` will create the following symbolic links
+in the project's top source directory: 1) `Makefile` in the top directory
+which points to `reproduce/src/make/top.mk`. 2) `.build' which points to
+the top build directory, and 3) `.local` for easy access to the custom
+built software packages installation directory. The first is for practical
+necessity (so you can run `make' from the top source directory), but the
+latter are just for convenience (fast access to the built products and
+software).
+
+Therefore, by running `.local/bin/make` we will build the project with the
+project's custom version of GNU Make, not the host system's Make. The first
+file that is read by Make (the template's starting point) is the top-level
+`Makefile` (also created by `./configure`). Therefore, we'll start
+describing the template's architecture with this file. This file is
+relatively short and heavily commented so hopefully the descriptions in
+each comment will be enough to understand the general details. As you read
+this section, please also look at the contents of the mentioned files and
+directories to fully understand what is going on.
 
 Before starting to look into the top `Makefile`, it is important to recall
 that Make defines dependencies by files. Therefore, the input/prerequisite
 and output of every step/rule must be a file. Also recall that Make will
-use the modification date of the prerequisite and target files to see if
+use the modification date of the prerequisite(s) and target files to see if
 the target must be re-built or not. Therefore during the processing, _many_
 intermediate files will be created (see the tips section below on a good
 strategy to deal with large/huge files).
@@ -287,29 +296,31 @@ intermediate files (it was defined in `./configure`). This directory
 doesn't need to be version controlled or even synchronized, or backed-up in
 other servers: its contents are all products of the pipeline, and can be
 easily re-created any time. As you define targets for your new rules, it is
-thus important to place them all under sub-directories of `$(BDIR)`.
+thus important to place them all under sub-directories of `$(BDIR)`. As
+mentioned above, you always have fast access to this "build"-directory with
+the `.build` symbolic link.
 
 In this architecture, we have two types of Makefiles that are loaded into
 the top `Makefile`: _configuration-Makefiles_ (only independent
 variables/configurations) and _workhorse-Makefiles_ (Makefiles that
-actually contain rules).
+actually contain analysis/processing rules).
 
 The configuration-Makefiles are those that satisfy this wildcard:
 `reproduce/config/pipeline/*.mk`. These Makefiles don't actually have any
 rules, they just have values for various free parameters throughout the
-analysis/processing. Open a few of them to see for your self. These
+analysis/processing. Open a few of them to see for yourself. These
 Makefiles must only contain raw Make variables (pipeline
-configurations). By raw we mean that the Make variables in these files must
-not depend on variables in any other configuration-Makefile. This is
+configurations). By "raw" we mean that the Make variables in these files
+must not depend on variables in any other configuration-Makefile. This is
 because we don't want to assume any order in reading them. It is also very
-important to *not* define any rule, or other Make construct in any of these
+important to *not* define any rule, or other Make construct, in these
 configuration-Makefiles.
 
-These conditions will enable you to set these configure-Makefiles as a
-prerequisite to any target that depends on their variable
-values. Therefore, if you change any of their values, all targets that
-depend on those values will be re-built. This is very convenient as your
-project scales up and gets more complex.
+This enables you to set these configure-Makefiles as a prerequisite to any
+target that depends on their variable values. Therefore, if you change any
+of their values, all targets that depend on those values will be
+re-built. This is very convenient as your project scales up and gets more
+complex.
 
 The workhorse-Makefiles are those satisfying this wildcard
 `reproduce/src/make/*.mk`. They contain the details of the processing steps
@@ -320,17 +331,16 @@ other rules that will be defined prior to them (not a fixed name like
 higher-level ones.
 
 All processing steps are assumed to ultimately (usually after many rules)
-end up in some number, image, figure, or table that are to be included in
-the paper. The writing of these results into the final report/paper is
-managed through separate LaTeX files that only contain macros (a name given
-to a number/string to be used in the LaTeX source, which will be replaced
-when compiling it to the final PDF). So the last target in a
-workhorse-Makefile is a `.tex` file (with the same base-name as the
-Makefile, but in `$(BDIR)/tex/macros`). As a result, if the targets in a
-workhorse-Makefile aren't directly a prerequisite of other
-workhorse-Makefile targets, they can be a pre-requisite of that
-intermediate LaTeX macro file and thus be called when necessary. Otherwise,
-they will be ignored by Make.
+end up in some number, image, figure, or table that will be included in the
+paper. The writing of these results into the final report/paper is managed
+through separate LaTeX files that only contain macros (a name given to a
+number/string to be used in the LaTeX source, which will be replaced when
+compiling it to the final PDF). So the last target in a workhorse-Makefile
+is a `.tex` file (with the same base-name as the Makefile, but in
+`$(BDIR)/tex/macros`). As a result, if the targets in a workhorse-Makefile
+aren't directly a prerequisite of other workhorse-Makefile targets, they
+can be a pre-requisite of that intermediate LaTeX macro file and thus be
+called when necessary. Otherwise, they will be ignored by Make.
 
 This pipeline also has a mode to share the build directory between several
 users of a Unix group (when working on large computer clusters). In this
@@ -339,16 +349,15 @@ the large built files between each other. To do this, it is necessary for
 all built files to give full permission to group members while not allowing
 any other users access to the contents. Therefore the `./configure` and
 Make steps must be called with special conditions which are managed in the
-`for-group` file.
+`for-group` script.
 
-Let's see how this design is implemented. When the `./configure` finishes,
-it a `Makefile` will be placed in the top directory. This `Makefile` is
-just a symbolic link to `reproduce/src/make/top.mk`. Please open and
-inspect it as we go along here. The first step (un-commented line) is to
-import the local configuration (answers to the questions `./configure`
-asked you). They are defined in the configuration-Makefile
-`reproduce/config/pipeline/LOCAL.mk` which was also built by `./configure`
-(based on the `LOCAL.mk.in` template).
+Let's see how this design is implemented. When `./configure` finishes: By
+creating a `Makefile` in the top directory, it allows us to start "making"
+the project. Please open and inspect it as we go along here. The first step
+(un-commented line) is to import the local configuration (answers to the
+questions `./configure` asked you). They are defined in the
+configuration-Makefile `reproduce/config/pipeline/LOCAL.mk` which was also
+built by `./configure` (based on the `LOCAL.mk.in` template).
 
 The next non-commented set of lines define the ultimate target of the whole
 pipeline (`paper.pdf`). But to avoid mistakes, a sanity check is necessary
@@ -358,14 +367,8 @@ the `./for-group` script, but Make isn't). Therefore we use a Make
 conditional to define the `all` target based on the group permissions being
 consistent between the initial configuration and the current run.
 
-If there is a problem `all` will not depend on anything and will just print
-a warning to inform you of the problem. When the group conditions are fine,
-`all` will depend on `paper.pdf` (which is defined in
-`reproduce/src/make/paper.mk` and will be imported into this top Makefile
-later).
-
 Having defined the top target, our next step is to include all the other
-necessary Makefiles. But order matters in the importing of
+necessary Makefiles. However, order matters in the importing of
 workhorse-Makefiles and each must also have a TeX macro file with the same
 base name (without a suffix). Therefore, the next step in the top-level
 Makefile is to define a `makesrc` variable to keep the base names (without
@@ -389,15 +392,16 @@ your rules into as many logically-similar but independent steps as
 possible.
 
 The `reproduce/src/make/paper.mk` Makefile must be the final Makefile that
-is included. It ends with the rule to build `paper.pdf` (final target of
-the whole reproduction pipeline). If look in it, you will notice that it
-starts with a rule to create `$(mtexdir)/pipeline.tex` (`mtexdir` is just a
-shorthand name for `$(BDIR)/tex/macros` mentioned before).
-`$(mtexdir)/pipeline.tex` is the connection between the processing/analysis
-steps of the pipeline, and the steps to build the final PDF. As you see,
-`$(mtexdir)/pipeline.tex` only instruct LaTeX to import the LaTeX macros of
-each high-level processing step during the analysis (the separate
-work-horse Makefiles that you defined and included).
+is included. This workhorse Makefile ends with the rule to build
+`paper.pdf` (final target of the whole reproduction pipeline). If you look
+in it, you will notice that it starts with a rule to create
+`$(mtexdir)/pipeline.tex` (`mtexdir` is just a shorthand name for
+`$(BDIR)/tex/macros` mentioned before).  `$(mtexdir)/pipeline.tex` is the
+connection between the processing/analysis steps of the pipeline, and the
+steps to build the final PDF. As you see, `$(mtexdir)/pipeline.tex` only
+instructs LaTeX to import the LaTeX macros of each high-level processing
+step during the analysis (the separate work-horse Makefiles that you
+defined and included).
 
 During the research, it often happens that you want to test a step that is
 not a prerequisite of any higher-level operation. In such cases, you can
@@ -408,16 +412,6 @@ your research, set it as prerequisites to other rules and remove it from
 the list of prerequisites for TeX macro file. In fact, this is how a
 project is designed to grow in this framework.
 
-When working within a group, more than one person may want to work with the
-pipeline outputs (in the build directory). For example each person is
-developing part of the higher-level steps of the pipeline in their own Git
-branch of the pipeline, but using the same build directory. Therefore, the
-lower-level parts of the built outputs, can be shared between them. In such
-scenarios, this pipeline comes with a `for-group` script (in the top
-directory) which is just a simple wrapper to run the configure and building
-steps. You can specify a group name within this file. Therefore, when you
-use it (fully described in the comments at the start of the file), it will
-ensure that all group members have write access to the created files.
 
 
 

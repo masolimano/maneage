@@ -30,6 +30,7 @@ mmap_*
 .tex
 build
 .local
+.build
 Makefile
 tex/tikz
 .gnuastro
@@ -38,7 +39,6 @@ tex/tikz
 tex/pipeline
 LOCAL_tmp.mk
 LOCAL_old.mk
-reproduce/build
 gnuastro-local.conf
 reproduce/config/pipeline/LOCAL.mk
 

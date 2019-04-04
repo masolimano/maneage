@@ -22,9 +22,6 @@
 # <http://www.gnu.org/licenses/>.
 
 
-
-
-
 # Script settings
 # ---------------
 # Stop the script if there are any errors.
@@ -34,58 +31,33 @@ set -e
 
 
 
+# Default option values
+jobs=0
+build_dir=
+input_dir=
+software_dir=
+existing_conf=0
+minmapsize=10000000000
+
+
+
+
+
 # Output of --help
 # ----------------
 me=$0                           # Executable file name.
-help_print() {
-
-    if [ x"$build_dir" = x ]; then
-        bdir_status="NOT SET"
-    else
-        bdir_status="$build_dir"
-    fi
-
-    if [ x"$input_dir" = x ]; then
-        indir_status="NOT SET"
-    else
-        indir_status="$input_dir"
-    fi
-
-    if [ x"$software_dir" = x ]; then
-        software_status="NOT SET"
-    else
-        software_status="$software_dir"
-    fi
-
-    if [ $in_minmapsize = 0 ]; then
-        mm_status="NOT SET"
-    else
-        mm_status="$in_minmapsize"
-    fi
-
-    if [ $jobs = "0" ]; then
-        jobs_status="NUMBER OF THREADS ON SYSTEM"
-    else
-        jobs_status=$jobs
-    fi
-
-    if [ $existing_conf = 1 ]; then
-        ec_status="ACTIVATED"
-    else
-        ec_status="NOT SET"
-    fi
-
+print_help() {
     # Print the output.
     cat <<EOF
 Usage: $me [OPTION]...
 
-Configure the reproducible paper template for this system (do local
-settings). The local settings can be given on the command-line through the
-options below. If not, the configure script will interactively ask for a
-value to each one (with basic necessary background information printed
-before them). Alternatively, if you have already configured this script for
-your system, you can use the '--existing-conf' to use it and avoid
-re-setting the values.
+Configure the reproducible paper template for this system (set local
+settings for this system). The local settings can be given on the
+command-line through the options below. If not, the configure script will
+interactively ask for a value to each one (with basic necessary background
+information printed before them). Alternatively, if you have already
+configured this script for your system, you can use the '--existing-conf'
+to use its values directly.
 
 RECOMMENDATION: If this is the first time you are running this pipeline,
 please don't use the options and let the script explain each parameter in
@@ -100,31 +72,17 @@ download them.
 With the options below you can modify the default behavior. Just note that
 you should not put an '=' sign between an option name and its value.
 
-Options:
+Configure options:
+ Top-level directory settings:
+  -b, --build-dir=STR     Top directory to build the project in.
+  -i, --input-dir=STR     Directory containing input datasets (optional).
+  -s, --software-dir=STR  Directory containing necessary software tarballs.
 
- -b, --build-dir STR      Top directory to build the project in.
-                          Current value: $bdir_status
-
- -i, --input-dir STR      Directory containing necessary input datasets.
-                          Current value: $indir_status
-
- -s, --software-dir STR   Directory containing necessary software tarballs.
-                          Current value: $software_status
-
- -m, --minmapsize INT     (Specific to Gnuastro) Number of bytes to avoid
-                          using RAM, use HDD/SSD instead of memory.
-                          Current value: $mm_status
-
- -j, --jobs INT           Number of threads to use in building the software
-                          during the pipeline. Note that on MacOS, currently
-                          the first phase will be done on a single thread,
-                          but higher-level software will be built in parallel.
-                          Current value: $jobs_status
-
- -e, --existing-conf      Use (possibly existing) local configuration.
-                          Current value: $ec_status
-
- -h, --help               Print this help list.
+ Operating mode options:
+  -m, --minmapsize=INT    (Gnuastro) Minimum number of bytes to use RAM.
+  -j, --jobs=INT          Number of threads to build the software.
+  -e, --existing-conf     Use (possibly existing) local configuration.
+  -h, --help              Print this help list.
 
 Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
@@ -139,101 +97,72 @@ EOF
 
 
 
-# Parse the arguments
-# -------------------
-jobs=0
-build_dir=
-input_dir=
-software_dir=
-in_minmapsize=0
-existing_conf=0
+# Functions to check option values and complain if necessary.
+function on_off_option_error() {
+    cat <<EOF
+$scriptname: '$1' doesn't take any values.
+EOF
+    exit 1
+}
+
+function check_v() {
+    if [ x"$2" = x ]; then
+        echo "$scriptname: option '$1' requires an argument."
+        echo "Try '$scriptname --help' for more information."
+        exit 1;
+    fi
+}
+
+
+
+
+
+# Separate command-line arguments from options. Then put the option
+# value into the respective variable.
+#
+# Each option has two lines because we want to process both these formats:
+# `--name=value' and `--name value'. The former (with `=') is a single
+# command-line argument, so we just need to shift the counter by one. The
+# latter (without `=') is two arguments, so we'll need two shifts.
 while [[ $# -gt 0 ]]
 do
-    key="$1"
-    case $key in
-        -b|--build-dir)
-            build_dir="$2"
-            if [ x"$build_dir" = x ]; then
-                echo "No argument given to '--build-dir' ('-b')."
-                exit 1;
-            fi
-            shift # past argument
-            shift # past value
-            ;;
-        -i|--input-dir)
-            input_dir="$2"
-            if [ x"$input_dir" = x ]; then
-                echo "No argument given to '--input-dir' ('-i')."
-                exit 1;
-            fi
-            shift # past argument
-            shift # past value
-            ;;
-        -s|--software-dir)
-            software_dir="$2"
-            if [ x"$software_dir" = x ]; then
-                echo "No argument given to '--software-dir' ('-s')."
-                exit 1;
-            fi
-            shift # past argument
-            shift # past value
-            ;;
-        -m|--minmapsize)
-            in_minmapsize="$2"
-            if [ x"$in_minmapsize" = x ]; then
-                echo "No argument given to '--minmapsize' ('-m')."
-                exit 1;
-            fi
-            shift # past argument
-            shift # past value
-            ;;
-        -j|--jobs)
-            jobs="$2"
-            if [ x"$jobs" = x ]; then
-                echo "No argument given to '--jobs' ('-j')."
-                exit 1;
-            fi
-            shift # past argument
-            shift # past value
-            ;;
-        -e|--existing-conf)
-            existing_conf=1
-            shift # past argument
-            ;;
+ case $1 in
+  # Input parameters.
+  -b=*|--build-dir=*)    build_dir="${1#*=}";      check_v $1 "$build_dir";     shift;;
+  -b|--builddir)         build_dir="$2";           check_v $1 "$build_dir";     shift;shift;;
+  -i=*|--inputdir=*)     input_dir="${1#*=}";      check_v $1 "$input_dir";     shift;;
+  -i|--inputdir)         input_dir="$2";           check_v $1 "$input_dir";     shift;shift;;
+  -s=*|--software-dir=*) software_dir="${1#*=}";   check_v $1 "$software_dir";  shift;;
+  -s|--software-dir)     software_dir="$2";        check_v $1 "$software_dir";  shift;shift;;
+  -m=*|--minmapsize=*)   minmapsize="${1#*=}";     check_v $1 "$minmapsize";    shift;;
+  -m|--minmapsize)       minmapsize="$2";          check_v $1 "$minmapsize";    shift;shift;;
 
-        -h|-P|--help|--printparams)
-            help_print
-            exit 0
-            ;;
-#        -V|--version)
-#            echo $version
-#            exit 0
-#            ;;
-        *)    # unknown option
-            cat <<EOF
-Usage: $me [OPTION]...
-'$1' isn't a recognized option. Aborted.
+  # Operating mode options.
+  -j=*|--jobs=*)          jobs="${1#*=}";          check_v $1 "$jobs";          shift;;
+  -j|--jobs)              jobs="$2";               check_v $1 "$jobs";          shift;shift;;
+  -e=*|--existing-conf=*) existing_conf="${1#*=}"; check_v $1 "$existing_conf"; shift;;
+  -e|--existing-conf)     existing_conf="$2";      check_v $1 "$existing_conf"; shift;shift;;
+  -?|--help)              print_help; exit 0;;
 
-Note that for this script, option names (short or long format) and values
-must be separated by atleast one white-space character and MUST NOT have
-an '=' between them.
-EOF
-            exit 1
-            ;;
-    esac
+  # Unrecognized option:
+  -*) echo "$scriptname: unknown option '$1'"; exit 1;;
+
+  # Not an option, an argument.
+  *) echo "The configure script doesn't accept arguments."; exit 1;;
+ esac
 done
 
 
 
 
 
-# Important internal locations
-# ----------------------------
+# Internal directories
+# --------------------
 #
 # These are defined to help make this script more readable.
 topdir=$(pwd)
+lbdir=.build
 installedlink=.local
-lbdir=reproduce/build
 cdir=reproduce/config
 optionaldir="/optional/path"
 
@@ -339,7 +268,6 @@ if [ -f $pconf ] || [ -f $glconf ]; then
         if [ -f $pconf  ]; then rewritepconfig=no; fi
         if [ -f $glconf ]; then rewritegconfig=no; fi
     fi
-    echo
 fi
 
 
@@ -428,12 +356,13 @@ if [ $rewritepconfig = yes ]; then
 Build directory
 ===============
 
-The "source" (this directory) and "build" directories are treated
+The project's "source" (this directory) and "build" directories are treated
 separately. This greatly helps in managing the many intermediate files that
 are created during the build. The intermediate build files don't need to be
-archived or backed up: you can always re-build them with this reproduction
-pipeline. The build directory also needs a relatively large amount of free
-space (atleast serveral Giga-bytes).
+archived or backed up: you can always re-build them with the contents of
+the source directory. The build directory also needs a relatively large
+amount of free space (atleast serveral Giga-bytes), while the source
+directory (all plain text) will usually be a mega-byte or less.
 
 '$lbdir' (a symbolic link to the build directory) will also be created
 during this configuration. It can help encourage you to set the actual
@@ -557,51 +486,6 @@ EOF
     if [ x"$tmpddir" != x ]; then
         ddir=$tmpddir
         echo " -- Using '$ddir'"
-    fi
-fi
-
-
-
-
-
-# Memory mapping minimum size
-# ---------------------------
-#
-# This option is specific to GNU Astronomy Utilities. It is primarily
-# included here as a demonstration option for software that need special
-# local settings (that are irrelevant to their processing, but necessary to
-# set based on local settings). If you do not use Gnuastro, please remove
-# this option from this script.
-if [ x"$in_minmapsize" = x ]; then
-    minmapsize=10000000000
-else
-    minmapsize=$in_minmapsize
-fi
-if [ $rewritegconfig = yes ] && [ $in_minmapsize = 0 ]; then
-    cat <<EOF
-
----------------------------
-Minimum memory mapping size
----------------------------
-
-Some programs (for example Gnuastro) can deal with cases where the local
-system doesn't have enough memory (RAM) to keep large files. For example,
-they will create memory-mapped (mmap) files on the HDD or SSD and
-read/write to/from them instead of RAM. This will ofcourse, slow down the
-processing, but atleast the program won't crash.
-
-Since the memory requirements of different systems are different and it has
-no effect on the software's final result, the minimum size of an allocated
-array to warrant a mapping to HDD/SSD instead of RAM must also be defined
-here. This value will be used in the programs that support this feature.
-
-EOF
-
-    read -p"Minimum memory mapping size in bytes (default: $minmapsize): " \
-         tmpminmapsize
-    if [ x"$tmpminmapsize" != x ]; then
-        minmapsize=$tmpminmapsize
-        echo " -- Using '$minmapsize'"
     fi
 fi
 
