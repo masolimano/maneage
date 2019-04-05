@@ -70,6 +70,7 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         chardet-$(chardet-version).tar.gz                 \
                         cryptography-$(cryptography-version).tar.gz       \
                         cycler-$(cycler-version).tar.gz                   \
+                        Cython-$(cython-version).tar.gz                   \
                         entrypoints-$(entrypoints-version).tar.gz         \
                         h5py-$(h5py-version).tar.gz                       \
                         html5lib-$(html5lib-version).tar.gz               \
@@ -81,6 +82,7 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         matplotlib-$(matplotlib-version).tar.gz           \
                         mpi4py-$(mpi4py-version).tar.gz                   \
                         numpy-$(numpy-version).zip                        \
+                        pkgconfig-$(pypkgconfig-version).tar.gz           \
                         pip-$(pip-version).tar.gz                         \
                         pycparser-$(pycparser-version).tar.gz             \
                         python-$(python-version).tar.gz                   \
@@ -150,6 +152,7 @@ $(pytarballs): $(tdir)/%:
 	  elif [ $$n = chardet        ]; then h=fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d
 	  elif [ $$n = cryptography   ]; then h=07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449
 	  elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488
+	  elif [ $$n = Cython         ]; then h=36/da/fcb979fc8cb486a67a013d6aefefbb95a3e19e67e49dff8a35e014046c5e
 	  elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c
 	  elif [ $$n = h5py           ]; then h=43/27/a6e7dcb8ae20a4dbf3725321058923fec262b6f7835179d78ccc8d98deec
 	  elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f
@@ -161,6 +164,7 @@ $(pytarballs): $(tdir)/%:
 	  elif [ $$n = mpi            ]; then h=55/a2/c827b196070e161357b49287fa46d69f25641930fd5f854722319d431843
 	  elif [ $$n = numpy          ]; then h=cf/8d/6345b4f32b37945fedc1e027e83970005fc9c699068d2f566b82826515f2
 	  elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af
+	  elif [ $$n = pkgconfig      ]; then h=6e/a9/ff67ef67217dfdf2aca847685fe789f82b931a6957a3deac861297585db6
 	  elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a
 	  elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc
 	  elif [ $$n = dateutil       ]; then h=ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c
@@ -322,15 +326,21 @@ $(ipydir)/cycler: $(tdir)/cycler-$(cycler-version).tar.gz \
 	$(call pybuild, tar xf, $<, cycler-$(cycler-version), ,\
 	                Cycler $(cycler-version))
 
+$(ipydir)/cython: $(tdir)/Cython-$(cython-version).tar.gz
+	$(call pybuild, tar xf, $<, Cython-$(cython-version), ,\
+	                Cython $(cython-version))
+
 $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
                        $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, entrypoints-$(entrypoints-version), ,\
 	                EntryPoints $(entrypoints-version))
 
 $(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
-                $(ipydir)/setuptools                \
-                $(ilidir)/hdf5
-                # $(ipydir)/mpi4py # AFTER its problem is fixed.
+                $(ilidir)/hdf5                      \
+                $(ipydir)/cython                    \
+                $(ipydir)/pypkgconfig               \
+                $(ipydir)/setuptools
+                #$(ipydir)/mpi4py # AFTER its problem is fixed.
 	#export HDF5_MPI=ON;       # AFTER its problem is fixed.
 	export HDF5_DIR=$(ildir);                          \
 	$(call pybuild, tar xf, $<, h5py-$(h5py-version), ,\
@@ -406,6 +416,10 @@ $(ibidir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
                 $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pip-$(pip-version), ,\
 	                PiP $(pip-version))
+
+$(ipydir)/pypkgconfig: $(tdir)/pkgconfig-$(pypkgconfig-version).tar.gz
+	$(call pybuild, tar xf, $<, pkgconfig-$(pypkgconfig-version), ,
+	                pkgconfig $(pypkgconfig-version))
 
 $(ipydir)/pycparser: $(tdir)/pycparser-$(pycparser-version).tar.gz \
                      $(ipydir)/setuptools
