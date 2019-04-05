@@ -793,16 +793,35 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
         # single architecture, we can trick GCC into building its libraries
         # in '$(idir)/lib' by defining the '$(idir)/lib64' as a symbolic
         # link to '$(idir)/lib'.
-
-        # SO FAR WE HAVEN'T BEEN ABLE TO GET A CONSISTENT BUILD OF GCC ON
-        # MAC (SOMETIMES IT CRASHES IN libiberty with g++) AND SOMETIMES IT
-        # FINISHES, SO, MORE TESTS ARE NEEDED ON MAC AND WE'LL USE THE
-        # HOST'S COMPILER UNTIL THEN.
+        #
+        # Cases were we currently don't build GCC:
+        #
+        # 1) MacOS: because it crashes sometimes while building libiberty
+        #    with g++.
+        #
+        # 2) GNU/Linux distros that have `multilib' compilers (for 32-bit
+        #    and 64-bit support) need to install a special package to have
+        #    `/usr/include/sys/cdefs.h'. So we are explicitly testing a
+        #    small C program to see if GCC can import it successfully.
 	if [ "x$(on_mac_os)" = xyes ]; then                                \
+	  build=no;                                                        \
+	else                                                               \
+	  tfile=$(ddir)/gcc-cdefs-test.c;                                  \
+	  echo "#include <sys/cdefs.h>"     > $$tfile;                     \
+	  echo "int main(void){return 0;}" >> $$tfile;                     \
+	  if gcc $$tfile &> /dev/null; then                                \
+	       build=yes; rm a.out;                                        \
+	  else build=no;                                                   \
+	  fi;                                                              \
+	  rm $$tfile;                                                      \
+	fi;                                                                \
+                                                                           \
+	if [ $$build = no ]; then                                          \
 	  $(call makelink,g++);                                            \
+	  $(call makelink,gcc);                                            \
 	  $(call makelink,gfortran);                                       \
-	  $(call makelink,gcc,copy);                                       \
-	  echo "" > $@;                                                    \
+	  ccinfo=$$(gcc --version | awk 'NR==1');             \
+	  echo "C compiler (""$$ccinfo"")" > $@; exit 1;                   \
 	else                                                               \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
 	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*;            \

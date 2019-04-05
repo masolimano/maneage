@@ -216,6 +216,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 
           # Download using the script specially defined for this job.
 	  touch $(lockdir)/download
+	  downloader="wget --no-use-server-timestamps -O"
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
 	                     $$tarballurl $@
 	fi

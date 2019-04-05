@@ -70,7 +70,7 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         chardet-$(chardet-version).tar.gz                 \
                         cryptography-$(cryptography-version).tar.gz       \
                         cycler-$(cycler-version).tar.gz                   \
-                        Cython-$(cython-version).tar.gz                   \
+                        cython-$(cython-version).tar.gz                   \
                         entrypoints-$(entrypoints-version).tar.gz         \
                         h5py-$(h5py-version).tar.gz                       \
                         html5lib-$(html5lib-version).tar.gz               \
@@ -133,7 +133,11 @@ $(pytarballs): $(tdir)/%:
           # that have non-standard filenames (differing from our archived
           # tarball names) are treated first, then the standard ones.
 	  mergenames=1
-	  if [ $$n = python           ]; then
+	  if [ $$n = cython         ]; then
+	    mergenames=0
+	    hash=36/da/fcb979fc8cb486a67a013d6aefefbb95a3e19e67e49dff8a35e014046c5e
+	    h=$(pytopurl)/$$hash/Cython-$(cython-version).tar.gz
+	  elif [ $$n = python           ]; then
 	    mergenames=0
 	    h=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
 	  elif [ $$n = libffi         ]; then
@@ -152,7 +156,6 @@ $(pytarballs): $(tdir)/%:
 	  elif [ $$n = chardet        ]; then h=fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d
 	  elif [ $$n = cryptography   ]; then h=07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449
 	  elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488
-	  elif [ $$n = Cython         ]; then h=36/da/fcb979fc8cb486a67a013d6aefefbb95a3e19e67e49dff8a35e014046c5e
 	  elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c
 	  elif [ $$n = h5py           ]; then h=43/27/a6e7dcb8ae20a4dbf3725321058923fec262b6f7835179d78ccc8d98deec
 	  elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f
@@ -199,6 +202,7 @@ $(pytarballs): $(tdir)/%:
 
           # Download using the script specially defined for this job.
 	  touch $(lockdir)/download
+	  downloader="wget --no-use-server-timestamps -O"
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
 	                     $$tarballurl $@
 	fi
@@ -326,7 +330,8 @@ $(ipydir)/cycler: $(tdir)/cycler-$(cycler-version).tar.gz \
 	$(call pybuild, tar xf, $<, cycler-$(cycler-version), ,\
 	                Cycler $(cycler-version))
 
-$(ipydir)/cython: $(tdir)/Cython-$(cython-version).tar.gz
+$(ipydir)/cython: $(tdir)/cython-$(cython-version).tar.gz \
+                  $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, Cython-$(cython-version), ,\
 	                Cython $(cython-version))
 
@@ -417,7 +422,8 @@ $(ibidir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
 	$(call pybuild, tar xf, $<, pip-$(pip-version), ,\
 	                PiP $(pip-version))
 
-$(ipydir)/pypkgconfig: $(tdir)/pkgconfig-$(pypkgconfig-version).tar.gz
+$(ipydir)/pypkgconfig: $(tdir)/pkgconfig-$(pypkgconfig-version).tar.gz \
+                       $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pkgconfig-$(pypkgconfig-version), ,
 	                pkgconfig $(pypkgconfig-version))
 
