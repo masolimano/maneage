@@ -525,7 +525,10 @@ if [ $rewritepconfig = yes ]; then
         $pconf.in >> $pconf
 else
     # Read the values from existing configuration file.
-    inbdir=$(awk     '$1=="BDIR"                     {print $3}' $pconf)
+    inbdir=$(awk '$1=="BDIR" {print $3}' $pconf)
+
+    # Read the software directory.
+    ddir=$(awk '$1=="DEPENDENCIES-DIR" {print $3}' $pconf)
 
     # The downloader command may contain multiple elements, so we'll just
     # change the (in memory) first and second tokens to empty space and
@@ -629,6 +632,21 @@ if ! [ -d $tardir ];  then mkdir $tardir; fi
 instdir=$depdir/installed
 if ! [ -d $instdir ]; then mkdir $instdir; fi
 
+verdir=$instdir/version-info
+if ! [ -d $verdir ]; then mkdir $verdir; fi
+
+ibidir=$verdir/bin
+if ! [ -d $ibidir ]; then mkdir $ibidir; fi
+
+ilidir=$verdir/lib
+if ! [ -d $ilidir ]; then mkdir $ilidir; fi
+
+ipydir=$verdir/python
+if ! [ -d $ipydir ]; then mkdir $ipydir; fi
+
+itidir=$verdir/tex
+if ! [ -d $itidir ]; then mkdir $itidir; fi
+
 texdir=$bdir/tex
 if ! [ -d $texdir ]; then mkdir $texdir; fi
 
@@ -637,7 +655,6 @@ if ! [ -d $mtexdir ]; then mkdir $mtexdir; fi
 
 rm -f $installedlink
 ln -s $instdir $installedlink
-
 # --------- Delete for no Gnuastro ---------
 rm -f .gnuastro
 ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
@@ -803,8 +820,7 @@ fi
 #
 # The reason its sepecial is that we need it to serialize the download
 # process of the dependency tarballs.
-flockversion=$(awk '/flock-version/{print $3}' \
-                   reproduce/config/pipeline/dependency-versions.mk)
+flockversion=$(awk '/flock-version/{print $3}' $pdir/dependency-versions.mk)
 flocktar=flock-$flockversion.tar.gz
 flockurl=http://github.com/discoteq/flock/releases/download/v$flockversion/
 
@@ -825,16 +841,16 @@ if ! [ -f $tardir/$flocktar ]; then
     fi
 fi
 
-# If the tarball is newer than the (possibly existing) program, then delete
-# the program.
+# If the tarball is newer than the (possibly existing) program (the version
+# has changed), then delete the program.
 if [ -f .local/bin/flock ]; then
-    if [ $tardir/$flocktar -nt .local/bin/flock ]; then
-        rm .local/bin/flock
+    if [ $tardir/$flocktar -nt $ibidir/flock ]; then
+        rm $ibidir/flock
     fi
 fi
 
 # Build `flock' if necessary.
-if ! [ -f .local/bin/flock ]; then
+if ! [ -f $ibidir/flock ]; then
     cd $depdir
     tar xf $tardir/$flocktar
     cd flock-$flockversion
@@ -842,6 +858,7 @@ if ! [ -f .local/bin/flock ]; then
     make; make install
     cd $topdir
     rm -rf $depdir/flock-$flockversion
+    echo "Discoteq flock $flockversion" > $ibidir/flock
 fi
 
 
@@ -898,7 +915,6 @@ numthreads=$($instdir/bin/nproc)
 
 
 
-
 # Make sure TeX Live installed successfully
 # -----------------------------------------
 #
@@ -908,7 +924,7 @@ numthreads=$($instdir/bin/nproc)
 # it. It will just stop at the stage when all the processing is complete
 # and it is only necessary to build the PDF.  So we don't want to stop the
 # pipeline if its not present.
-texlive_result=$(cat $instdir/bin/texlive-ready-tlmgr)
+texlive_result=$(cat $itidir/texlive-ready-tlmgr)
 if [ x"$texlive_result" = x"NOT!" ]; then
     cat <<EOF
 
@@ -929,7 +945,7 @@ pipeline, please delete the respective files, then re-run configure as
 shown below. Within configure, answer 'n' (for "no") when asked to re-write
 the configuration files.
 
-    rm .local/bin/texlive-ready-tlmgr
+    rm .local/version-info/tex/texlive-ready-tlmgr
     ./configure
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -940,113 +956,45 @@ fi
 
 
 
+# Put all the names and versions in a human-readable format in LaTeX.
+function prepare_name_version() {
+    # Total number of tools to report.
+    num=$(cat "$@" | wc -l)
 
-
-# Write all the software versions as a LaTeX macro.
-# Versions of programs (same order as 'dependency-versions.mk').
-vertex=$mtexdir/dependency-versions.tex
-function version_in_tex() {
-    v=$(awk '$1=="'"$1"'"{print $3}' $pdir/dependency-versions.mk)
-    if [ x"$v" = x ]; then echo "'$1' not found!"; exit 1; fi
-    echo "\newcommand{\\$2}{$v}" >> $vertex
+    # Put them all in one paragraph.
+    cat "$@"                                              \
+        | sort                                            \
+        | awk 'NF>0{ c++;                                 \
+                     if(c==1)                             \
+                       {                                  \
+                         if('$num'==1) printf("%s", $0); \
+                         else          printf("%s", $0);  \
+                       }                                  \
+                     else if(c=='$num') printf(" and %s\n", $0); \
+                     else printf(", %s", $0)}'
 }
-echo "%% Automatically created list of software versions." > $vertex
-#version_in_tex "atlas-version" atlasversion
-version_in_tex "bash-version" bashversion
-#version_in_tex "binutils-version" binutilsversion
-version_in_tex "cfitsio-version" cfitsioversion
-version_in_tex "cmake-version" cmakeversion
-version_in_tex "coreutils-version" coreutilsversion
-version_in_tex "curl-version" curlversion
-version_in_tex "diffutils-version" diffutilsversion
-version_in_tex "fftw-version" fftwversion
-version_in_tex "findutils-version" findutilsversion
-version_in_tex "flock-version" flockversion
-version_in_tex "freetype-version" freetypeversion
-version_in_tex "gawk-version" gawkversion
-version_in_tex "gcc-version" gccversion
-version_in_tex "ghostscript-version" ghostscriptversion
-version_in_tex "git-version" gitversion
-version_in_tex "gmp-version" gmpversion
-version_in_tex "gnuastro-version" gnuastroversion
-version_in_tex "grep-version" grepversion
-version_in_tex "gsl-version" gslversion
-version_in_tex "gzip-version" gzipversion
-version_in_tex "hdf5-version" hdffiveversion
-version_in_tex "isl-version" islversion
-version_in_tex "libbsd-version" libbsdversion
-version_in_tex "libffi-version" libffiversion
-version_in_tex "libjpeg-version" libjpegversion
-version_in_tex "libpng-version" libpngversion
-version_in_tex "libtiff-version" libtiffversion
-version_in_tex "libtool-version" libtoolversion
-version_in_tex "lzip-version" lzipversion
-version_in_tex "make-version" makeversion
-version_in_tex "metastore-version" metastoreversion
-version_in_tex "mpfr-version" mpfrversion
-version_in_tex "mpc-version" mpcversion
-version_in_tex "ncurses-version" ncursesversion
-version_in_tex "openblas-version" openblasversion
-version_in_tex "openmpi-version" openmpiversion
-version_in_tex "openssl-version" opensslversion
-version_in_tex "patchelf-version" patchelfversion
-version_in_tex "pkgconfig-version" pkgconfigversion
-version_in_tex "python-version" pythonversion
-version_in_tex "readline-version" readlineversion
-version_in_tex "sed-version" sedversion
-version_in_tex "tar-version" tarversion
-version_in_tex "unzip-version" unzipversion
-version_in_tex "wget-version" wgetversion
-version_in_tex "which-version" whichversion
-version_in_tex "xz-version" xzversion
-version_in_tex "zip-version" zipversion
-version_in_tex "zlib-version" zlibversion
 
-# Special libraries.
-version_in_tex "bzip2-version" bziptwoversion
-#version_in_tex "lapack-version" lapackversion
-version_in_tex "libgit2-version" libgittwoversion
-version_in_tex "wcslib-version" wcslibversion
+# Separate the parts by context.
+proglibs=$(prepare_name_version $verdir/bin/* $verdir/lib/*)
+pymodules=$(prepare_name_version $verdir/python/*)
+texpkg=$(prepare_name_version $verdir/tex/texlive)
 
-# Python modules.
-version_in_tex "asn1crypto-version" asncryptoversion
-version_in_tex "astroquery-version" astroqueryversion
-version_in_tex "astropy-version" astropyversion
-version_in_tex "beautifulsoup4-version" beautifulsoupversion
-version_in_tex "certifi-version" certifiversion
-version_in_tex "cffi-version" cffiversion
-version_in_tex "chardet-version" chardetversion
-version_in_tex "cryptography-version" cryptographyversion
-version_in_tex "cycler-version" cyclerversion
-version_in_tex "entrypoints-version" entrypointsversion
-version_in_tex "h5py-version" hpyversion
-version_in_tex "html5lib-version" htmlfivelibversion
-version_in_tex "idna-version" idnaversion
-version_in_tex "jeepney-version" jeepneyversion
-version_in_tex "kiwisolver-version" kiwisolverversion
-version_in_tex "keyring-version" keyringversion
-version_in_tex "matplotlib-version" matplotlibversion
-version_in_tex "mpi4py-version" mpipyversion
-version_in_tex "numpy-version" numpyversion
-#version_in_tex "pip-version" pipversion
-version_in_tex "pycparser-version" pycparserversion
-version_in_tex "pyparsing-version" pyparsingversion
-version_in_tex "python-dateutil-version" pythondateutilversion
-version_in_tex "requests-version" requestsversion
-version_in_tex "scipy-version" scipyversion
-version_in_tex "secretstorage-version" secretstorageversion
-version_in_tex "setuptools-version" setuptoolsversion
-version_in_tex "setuptools_scm-version" setuptoolsscmversion
-version_in_tex "six-version" sixversion
-version_in_tex "soupsieve-version" soupsieveversion
-version_in_tex "urllib3-version" urllibthreeversion
-#version_in_tex "virtualenv-version" virtualenvversion
-version_in_tex "webencodings-version" webencodingsversion
-
-# TeX package versions
-if [ x"$texlive_result" != x"NOT!" ]; then
-    cat $depdir/texlive-versions.tex >> $vertex
+# Write them as one paragraph for LaTeX.
+pkgver=$mtexdir/dependencies.tex
+echo "This research was done with the following free"          > $pkgver
+echo "software programs and libraries: $proglibs."            >> $pkgver
+npython=$(ls $verdir/python/* | wc -l)
+if [ $npython != 0 ]; then
+    echo "Within Python, the following modules were used: "   >> $pkgver
+    echo "$pymodules."                                        >> $pkgver
 fi
+echo "The \LaTeX{} source of the paper was compiled to make"  >> $pkgver
+echo "the PDF using the following packages $texpkg. We are"   >> $pkgver
+echo "very grateful to all their creators for freely"         >> $pkgver
+echo "providing this necessary infrastructure. This "         >> $pkgver
+echo "research (and many others) would not be possible"       >> $pkgver
+echo "without them."                                          >> $pkgver
+
 
 
 

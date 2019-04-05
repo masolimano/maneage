@@ -347,4 +347,4 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Version of the pipeline and build directory (for LaTeX inputs).
 	@v=$$(git describe --dirty --always);
-	echo "\newcommand{\pipelineversion}{$$v}"  > $@
+	echo "\newcommand{\pipelineversion}{$$v}" > $@

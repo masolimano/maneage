@@ -35,14 +35,16 @@ include reproduce/src/make/dependencies-build-rules.mk
 include reproduce/config/pipeline/dependency-texlive.mk
 include reproduce/config/pipeline/dependency-versions.mk
 
-
-ddir   = $(BDIR)/dependencies
-tdir   = $(BDIR)/dependencies/tarballs
-idir   = $(BDIR)/dependencies/installed
-ibdir  = $(BDIR)/dependencies/installed/bin
-ildir  = $(BDIR)/dependencies/installed/lib
-ilidir = $(BDIR)/dependencies/installed/lib/built
-ipydir = $(BDIR)/dependencies/installed/lib/built/python
+lockdir = $(BDIR)/locks
+ddir    = $(BDIR)/dependencies
+tdir    = $(BDIR)/dependencies/tarballs
+idir    = $(BDIR)/dependencies/installed
+ibdir   = $(BDIR)/dependencies/installed/bin
+ildir   = $(BDIR)/dependencies/installed/lib
+ibidir  = $(BDIR)/dependencies/installed/version-info/bin
+ilidir  = $(BDIR)/dependencies/installed/version-info/lib
+itidir  = $(BDIR)/dependencies/installed/version-info/tex
+ipydir  = $(BDIR)/dependencies/installed/version-info/python
 
 # Define the top-level programs to build (installed in `.local/bin').
 #
@@ -51,12 +53,12 @@ ipydir = $(BDIR)/dependencies/installed/lib/built/python
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
 top-level-libraries = # atlas
-top-level-programs  = astnoisechisel flock metastore unzip zip
+top-level-programs  = astnoisechisel metastore unzip zip
 top-level-python    = astroquery matplotlib
-all: $(ddir)/texlive-versions.tex                         \
-     $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
-     $(foreach p, $(top-level-programs),  $(ibdir)/$(p))  \
-     $(foreach p, $(top-level-python),    $(ipydir)/$(p))
+all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
+     $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
+     $(foreach p, $(top-level-python),    $(ipydir)/$(p)) \
+     $(itidir)/texlive
 
 # Other basic environment settings: We are only including the host
 # operating system's PATH environment variable (after our own!) for the
@@ -83,6 +85,15 @@ export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export LD_RUN_PATH       := $(ildir):$(il64dir)
 export LD_LIBRARY_PATH   := $(ildir):$(il64dir)
 export LDFLAGS           := $(rpath_command) -L$(ildir)
+
+
+# We want the download to happen on a single thread. So we need to define a
+# lock, and call a special script we have written for this job. These are
+# placed here because we want them both in the `dependencies.mk' and
+# `dependencies-python.mk'.
+$(lockdir): | $(BDIR); mkdir $@
+downloader="wget --no-use-server-timestamps -O";
+downloadwrapper = ./reproduce/src/bash/download-multi-try
 
 
 # Python packages
@@ -125,7 +136,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         wcslib-$(wcslib-version).tar.bz2                   \
                         zip-$(zip-version).tar.gz                          \
                       , $(tdir)/$(t) )
-$(tarballs): $(tdir)/%:
+$(tarballs): $(tdir)/%: | $(lockdir)
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
 	  cp $(DEPENDENCIES-DIR)/$* $@
 	else
@@ -203,14 +214,10 @@ $(tarballs): $(tdir)/%:
 	  else                           tarballurl=$$w
 	  fi
 
-	  # If the download fails, Wget will write the error message in the
-	  # target file, so Make will think that its done! To avoid this
-	  # problem, we'll rename the output.
-	  echo "Downloading $$tarballurl"
-	  if ! wget --no-use-server-timestamps -O$@ $$tarballurl; then
-	     rm -f $@
-	     echo; echo "DOWNLOAD FAILED: $$tarballurl"; echo; exit 1
-	  fi
+          # Download using the script specially defined for this job.
+	  touch $(lockdir)/download
+	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
+	                     $$tarballurl $@
 	fi
 
 
@@ -232,7 +239,7 @@ $(tarballs): $(tdir)/%:
 # simple plain text file in it with the basic library name (an no prefix)
 # and create/write into it when the library is successfully built.
 $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
-                   $(ibdir)/curl
+                   $(ibidir)/curl
 
         # CFITSIO hard-codes the absolute address of cURL's `curl-config'
         # program (which gives the necessary header and linking
@@ -252,22 +259,22 @@ $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 	$(call gbuild, $$customtar, cfitsio, static,     \
 	               --enable-sse2 --enable-reentrant) \
 	&& rm $$customtar                                \
-	&& echo "CFITSIO is built" > $@
+	&& echo "CFITSIO $(cfitsio-version)" > $@
 
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
-	&& echo "GNU Scientific Library is built" > $@
+	&& echo "GNU Scientific Library $(gsl-version)" > $@
 
 $(ilidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
 	$(call gbuild, $<, fftw-$(fftw-version), static,  \
 	               --enable-shared)                   \
-	&& echo "FFTW is built" > $@
+	&& echo "FFTW $(fftw-version)" > $@
 
 # Freetype is necessary to install matplotlib
 $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
 	                $(ilidir)/libpng
 	$(call gbuild, $<, freetype-$(freetype-version), static) \
-	&& echo "freetype is built" > $@
+	&& echo "FreeType $(freetype-version)" > $@
 
 $(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz \
                 $(ilidir)/openmpi
@@ -276,28 +283,29 @@ $(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz \
 	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
 	               --enable-parallel                 \
 	               --enable-fortran, V=1)            \
-	&& echo "HDF5 library is built" > $@
+	&& echo "HDF5 library $(hdf5-version)" > $@
 
 $(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz
 	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
-	&& echo "libbsd is built" > $@
+	&& echo "Libbsd $(libbsd-version)" > $@
 
 $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
-	$(call gbuild, $<, jpeg-9b, static) && echo "Libjpeg is built" > $@
+	$(call gbuild, $<, jpeg-9b, static) \
+	&& echo "Libjpeg $(libjpeg-version)" > $@
 
 $(ilidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
 	$(call gbuild, $<, libpng-$(libpng-version), static) \
-	&& echo "Libpng is built" > $@
+	&& echo "Libpng $(libpng-version)" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ilidir)/libjpeg
 	$(call gbuild, $<, tiff-$(libtiff-version), static, \
 	               --disable-webp --disable-zstd) \
-	&& echo "Libtiff is built" > $@
+	&& echo "Libtiff $(libtiff-version)" > $@
 
 $(ilidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
 	$(call gbuild, $<, openmpi-$(openmpi-version), static, , V=1) \
-	&& echo "OpenMPI is built" > $@
+	&& echo "OpenMPI $(openmpi-version)" > $@
 
 $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
@@ -375,7 +383,9 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 
         # We'll check the full installation with the static library (not
         # currently building shared library on Mac.
-	if [ -f $(ildir)/libatlas.a ]; then echo "Atlas is built" > $@; fi
+	if [ -f $(ildir)/libatlas.a ]; then   \
+	  echo "ATLAS $(atlas-version)" > $@; \
+	fi
 
 $(ilidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	if [ x$(on_mac_os) = xyes ]; then                           \
@@ -388,7 +398,7 @@ $(ilidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	&& make PREFIX=$(idir) install                              \
 	&& cd ..                                                    \
 	&& rm -rf OpenBLAS-$(openblas-version)                      \
-	&& echo "Libtiff is built" > $@
+	&& echo "OpenBLAS $(openblas-version)" > $@
 
 
 
@@ -411,8 +421,8 @@ $(ilidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 # problem we have been having so far with Mac systems:
 # https://libgit2.org/docs/guides/build-and-link
 $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
-                   $(ibdir)/cmake                            \
-                   $(ibdir)/curl
+                   $(ibidir)/cmake                            \
+                   $(ibidir)/curl
         # Build and install the library.
 	$(call cbuild, $<, libgit2-$(libgit2-version), static,  \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF            \
@@ -425,7 +435,7 @@ $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
 	fi
 
         # Write the target file.
-	echo "Libgit2 is built" > $@
+	echo "Libgit2 $(libgit2-version)" > $@
 
 $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                   $(ilidir)/cfitsio
@@ -443,7 +453,7 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 	fi
 
         # Write the target file.
-	echo "WCSLIB is built" > $@
+	echo "WCSLIB $(wcslib-version)" > $@
 
 
 
@@ -453,8 +463,8 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 # --------
 #
 # CMake can be built with its custom `./bootstrap' script.
-$(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
-                $(ibdir)/curl
+$(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
+                 $(ibidir)/curl
         # After searching in `bootstrap', I couldn't find `LIBS', only
         # `LDFLAGS'. So the extra libraries are being added to `LDFLAGS',
         # not `LIBS'.
@@ -465,13 +475,16 @@ $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	  export CC=clang;                                         \
 	  export CXX=clang++;                                      \
 	fi;                                                        \
-	cd $(ddir) && rm -rf cmake-$(cmake-version) &&             \
-	tar xf $< && cd cmake-$(cmake-version) &&                  \
-	./bootstrap --prefix=$(idir) --system-curl --system-zlib   \
-	            --system-bzip2 --system-liblzma --no-qt-gui && \
-	make LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1 &&         \
-	make install &&                                            \
-	cd ..&& rm -rf cmake-$(cmake-version)
+	cd $(ddir)                                                 \
+	&& rm -rf cmake-$(cmake-version)                           \
+	&& tar xf $< && cd cmake-$(cmake-version)                  \
+	&& ./bootstrap --prefix=$(idir) --system-curl --system-zlib\
+	               --system-bzip2 --system-liblzma --no-qt-gui \
+	&& make LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1         \
+	&& make install                                            \
+	&& cd ..                                                   \
+	&& rm -rf cmake-$(cmake-version)                           \
+	&& echo "CMake $(cmake-version)" > $@
 
 # cURL (and its library, which is needed by several programs here) can
 # optionally link with many different network-related libraries on the host
@@ -481,7 +494,7 @@ $(ibdir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 # that if it does link with them, the pipeline will crash when the library
 # is updated/changed by the host, and the whole purpose of this pipeline is
 # avoid dependency on the host as much as possible.
-$(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz
+$(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz
 	$(call gbuild, $<, curl-$(curl-version), ,       \
 	               LIBS="-pthread"                   \
 	               --with-zlib=$(ildir)              \
@@ -498,22 +511,26 @@ $(ibdir)/curl: $(tdir)/curl-$(curl-version).tar.gz
 	               --without-axtls                   \
 	               --disable-ldaps                   \
 	               --disable-ldap                    \
-	               --without-nss, V=1)
+	               --without-nss, V=1)               \
+	&& echo "cURL $(curl-version)" > $@
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
 # prefix GNU's libtool executables with `glibtool'.
-$(ibdir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz
+$(ibidir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz
 	$(call gbuild, $<, libtool-$(libtool-version), static, \
-                       --program-prefix=g)
+                       --program-prefix=g)                     \
+	&& echo "GNU Libtool $(libtool-version)" > $@
 
-$(ibdir)/gs: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
-	$(call gbuild, $<, ghostscript-$(ghostscript-version))
+$(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
+	$(call gbuild, $<, ghostscript-$(ghostscript-version)) \
+	&& echo "GPL Ghostscript $(ghostscript-version)" > $@
 
-$(ibdir)/git: $(tdir)/git-$(git-version).tar.xz \
-              $(ibdir)/curl
+$(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
+               $(ibidir)/curl
 	$(call gbuild, $<, git-$(git-version), static,             \
                        --without-tcltk --with-shell=$(ibdir)/bash, \
-	               V=1)
+	               V=1)                                        \
+	&& echo "Git $(git-version)" > $@
 
 # Metastore is used (through a Git hook) to restore the source modification
 # dates of files after a Git checkout. Another Git hook saves all file
@@ -533,9 +550,9 @@ needlibbsd =
 else
 needlibbsd = $(ilidir)/libbsd
 endif
-$(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
-                    $(needlibbsd)                                 \
-                    $(ibdir)/git
+$(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
+                     $(needlibbsd)                                 \
+                     $(ibidir)/git
 
         # The build command below will change the current directory of this
         # build, so we'll fix its value here.
@@ -559,7 +576,7 @@ $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 	user=$$(whoami)
 	group=$$(groups | awk '{print $$1}')
 	cd $$current_dir
-	if [ -f $@ ]; then
+	if [ -f $(ibdir)/metastore ]; then
 	  for f in pre-commit post-checkout; do
 	    sed -e's|@USER[@]|'$$user'|g'                         \
 	        -e's|@GROUP[@]|'$$group'|g'                       \
@@ -567,6 +584,7 @@ $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 	        -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g'       \
 	        reproduce/src/bash/git-$$f > .git/hooks/$$f
 	    chmod +x .git/hooks/$$f
+	    echo "Metastore (forked) $(metastore-version)" > $@
 	  done
 	else
 	  echo; echo; echo;
@@ -584,36 +602,39 @@ $(ibdir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 # build. Also, Ghostscript and GSL are relatively large packages. So when
 # building in parallel, its better to have these packages start building
 # early.
-$(ibdir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
-                         $(ilidir)/libgit2 \
-                         $(ibdir)/gs       \
-                         $(ilidir)/gsl     \
-                         $(ibdir)/glibtool \
-                         $(ilidir)/libjpeg \
-                         $(ilidir)/libtiff \
-                         $(ilidir)/wcslib
+$(ibidir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
+                          $(ilidir)/gsl      \
+                          $(ilidir)/wcslib   \
+                          $(ilidir)/libjpeg  \
+                          $(ilidir)/libtiff  \
+                          $(ilidir)/libgit2  \
+                          $(ibidir)/glibtool \
+                          $(ibidir)/ghostscript
 ifeq ($(static_build),yes)
 	staticopts="--enable-static=yes --enable-shared=no";
 endif
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
 	               $$staticopts, -j$(numthreads),                \
-	               make check -j$(numthreads))
+	               make check -j$(numthreads))                   \
+	&& echo "GNU Astronomy Utilities $(gnuastro-version)" > $@
 
-$(ibdir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
+$(ibidir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
 	v=$$(echo $(unzip-version) | sed -e's/\.//')
-	$(call gbuild, $<, unzip$$v, static,,          \
-	               -f unix/Makefile generic_gcc    \
-	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
-	               -f unix/Makefile                \
-	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 )
+	$(call gbuild, $<, unzip$$v, static,,                    \
+	               -f unix/Makefile generic_gcc              \
+	               CFLAGS="-DBIG_MEM -DMMAP",,pwd,           \
+	               -f unix/Makefile                          \
+	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
+	&& echo "Unzip $(unzip-version)" > $@
 
-$(ibdir)/zip: $(tdir)/zip-$(zip-version).tar.gz
+$(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 	v=$$(echo $(zip-version) | sed -e's/\.//')
-	$(call gbuild, $<, zip$$v, static,,            \
-	               -f unix/Makefile generic_gcc    \
-	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
-	               -f unix/Makefile                \
-	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 )
+	$(call gbuild, $<, zip$$v, static,,                      \
+	               -f unix/Makefile generic_gcc              \
+	               CFLAGS="-DBIG_MEM -DMMAP",,pwd,           \
+	               -f unix/Makefile                          \
+	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
+	&& echo "Zip $(zip-version)" > $@
 
 
 
@@ -626,8 +647,8 @@ $(ibdir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 # of the final PDF). So we'll make a simple ASCII file called
 # `texlive-ready-tlmgr' and use its contents to mark if we can use it or
 # not.
-$(ibdir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
-                              reproduce/config/pipeline/texlive.conf
+$(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
+                               reproduce/config/pipeline/texlive.conf
 
         # Unpack, enter the directory, and install based on the given
         # configuration (prerequisite of this rule).
@@ -668,11 +689,11 @@ $(ibdir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
 # To keep things modular and simple, we'll break up the installation of TeX
 # Live itself (only very basic TeX and LaTeX) and the installation of its
 # necessary packages into two packages.
-$(ddir)/texlive-versions.tex: reproduce/config/pipeline/dependency-texlive.mk \
-	                      $(ibdir)/texlive-ready-tlmgr
+$(itidir)/texlive: reproduce/config/pipeline/dependency-texlive.mk \
+                   $(itidir)/texlive-ready-tlmgr
 
         # To work with TeX live installation, we'll need the internet.
-	@res=$$(cat $(ibdir)/texlive-ready-tlmgr)
+	@res=$$(cat $(itidir)/texlive-ready-tlmgr)
 	if [ x"$$res" = x"NOT!" ]; then
 	  echo "" > $@
 	else
@@ -688,7 +709,6 @@ $(ddir)/texlive-versions.tex: reproduce/config/pipeline/dependency-texlive.mk \
           #
           # We are putting a notice, because if there is no internet,
           # `tlmgr' just hangs waiting.
-	  echo; echo; echo "Downloading necessary TeX packages..."; echo;
 	  tlmgr install $(texlive-packages)
 
           # Make a symbolic link of all the TeX Live executables in the bin
@@ -698,15 +718,13 @@ $(ddir)/texlive-versions.tex: reproduce/config/pipeline/dependency-texlive.mk \
           # Get all the necessary versions.
 	  texlive=$$(pdflatex --version | awk 'NR==1' | sed 's/.*(\(.*\))/\1/' \
 	                      | awk '{print $$NF}');
-	  echo "\newcommand{\\texliveversion}{$$texlive}" > $@
 
-          # LaTeX Package versions.
+          # Package names and versions.
 	  tlmgr info $(texlive-packages) --only-installed | awk                \
 	       '$$1=="package:" {version=0;                                    \
 	                         if($$NF=="tex-gyre") name="texgyre";          \
 	                         else                 name=$$NF}               \
 	        $$1=="cat-version:" {version=$$NF}                             \
 	        $$1=="cat-date:" {if(version==0) version=$$2;                  \
-	                          printf("\\newcommand{\\tex%sversion}{%s}\n", \
-	                          name, version)}' >> $@
+	                          printf("%s %s\n", name, version)}' >> $@
 	fi
