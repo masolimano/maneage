@@ -516,18 +516,20 @@ advanced in later stages of your work.
      git remote add origin XXXXXXXXXX
      ```
 
- - **Copyright**, **name** and **date**: Go over the existing scripting
-     files and add your name and email to the copyright notice. You can
-     find the files by searching for the placeholder email
-     `your@email.address` (which you should change) with the command below
-     (you can ignore this file, and any in the `tex/` directory). Don't
-     forget to add your name after the copyright year also. When making new
-     files, always remember to add a similar copyright statement at the top
-     of the file and also ask your colleagues to do so when they edit a
-     file. This is very important.
+ - **Copyright**, **name** and **date**: All the "copyrightable" files
+     (those larger than 10 lines) must have a copyright statement and
+     license notice. As you progress with the project and modify files to
+     customize for your project change the copyright owner to your self
+     (since this template is free software, you can do this after you edit
+     any part of it). Also, don't forget to add similar notices to new
+     files you add for your own project. You can always find the files
+     without a copyright notice using this command:
 
      ```shell
-     $ grep -r your@email.address ./*
+     find . -type f ! -path ./.git/\* \
+       | while read i; do \
+           grep -qi 'copyright \((c)\|[&]copy;\|@copyright\)' $i || echo $i;\
+         done
      ```
 
  - **Title**, **short description** and **author** in source files: In this

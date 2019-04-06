@@ -3,6 +3,8 @@
 # The example hook script to store the metadata information of version
 # controlled files (with each commit) using the `metastore' program.
 #
+# Copyright (C) 2018-2019 Mohammad Akhlaghi.
+#
 # This script is taken from the `examples/hooks/pre-commit' file of the
 # `metastore' package (installed within the pipeline, with an MIT license
 # for copyright). We have just changed the name of the `MSFILE' and also

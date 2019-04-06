@@ -1,8 +1,8 @@
-Copyright (C) 2018-2019 Mohammad Akhlaghi.
-See the end of the file for license conditions.
-
 Reproduction pipeline for paper XXXXXXX
 =======================================
+
+Copyright (C) 2018-2019 Mohammad Akhlaghi.
+See the end of the file for license conditions.
 
 This is the reproduction pipeline for the paper titled "**XXXXXX**", by
 XXXXXXXX et al. (**IN PREPARATION**). To learn more about the purpose,
@@ -90,6 +90,9 @@ Copyright information
 ---------------------
 This file is part of the reproducible paper template
    https://gitlab.com/makhlaghi/reproducible-paper
+
+Copyright (C) 2018-2019 Mohammad Akhlaghi.
+See the end of the file for license conditions.
 
 This template is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free
