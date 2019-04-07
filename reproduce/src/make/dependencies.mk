@@ -53,7 +53,7 @@ ipydir  = $(BDIR)/dependencies/installed/version-info/python
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
 top-level-libraries = # atlas
-top-level-programs  = astnoisechisel metastore unzip zip
+top-level-programs  = gnuastro metastore unzip zip
 top-level-python    = astroquery matplotlib
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
@@ -603,14 +603,14 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 # build. Also, Ghostscript and GSL are relatively large packages. So when
 # building in parallel, its better to have these packages start building
 # early.
-$(ibidir)/astnoisechisel: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
-                          $(ilidir)/gsl      \
-                          $(ilidir)/wcslib   \
-                          $(ilidir)/libjpeg  \
-                          $(ilidir)/libtiff  \
-                          $(ilidir)/libgit2  \
-                          $(ibidir)/glibtool \
-                          $(ibidir)/ghostscript
+$(ibidir)/gnuastro: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
+                    $(ilidir)/gsl      \
+                    $(ilidir)/wcslib   \
+                    $(ilidir)/libjpeg  \
+                    $(ilidir)/libtiff  \
+                    $(ilidir)/libgit2  \
+                    $(ibidir)/glibtool \
+                    $(ibidir)/ghostscript
 ifeq ($(static_build),yes)
 	staticopts="--enable-static=yes --enable-shared=no";
 endif
