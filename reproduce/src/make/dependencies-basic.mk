@@ -713,8 +713,16 @@ $(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
 
 $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
                       $(ibidir)/bash
-	$(call gbuild, $<, pkg-config-$(pkgconfig-version), static, \
-                       --with-internal-glib --with-pc-path=$(ildir)/pkgconfig) \
+        # Some Mac OS systems may have a version of the GNU C Compiler
+        # (GCC) installed that doesn't support some necessary features of
+        # building Glib (as part of pkg-config). So to be safe, for Mac
+        # systems, we'll make sure it will use LLVM's Clang.
+	if [ x$(on_mac_os) = xyes ]; then export compiler="CC=clang"; \
+	else                              export compiler="";         \
+	fi;                                                           \
+	$(call gbuild, $<, pkg-config-$(pkgconfig-version), static,   \
+	               $$compiler --with-internal-glib                \
+	               --with-pc-path=$(ildir)/pkgconfig)             \
 	&& echo "pkg-config $(pkgconfig-version)" > $@
 
 $(ibidir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
