@@ -884,33 +884,35 @@ fi
 # explicitly testing a small C program here to see if the host's C compiler
 # won't have any problems in building GCC.
 if [ $host_cc = 0 ]; then
-    tfile=$bdir/gcc-cdefs-test.c;
-    echo "#include <sys/cdefs.h>"     > $$tfile;
-    echo "int main(void){return 0;}" >> $$tfile;
-    if gcc $$tfile -o $bdir/gcc-cdefs-test &> /dev/null; then
-        rm $bdir/gcc-cdefs-test*;
+    tfile=$depdir/gcc-cdefs-test.c;
+    echo "#include <sys/cdefs.h>"     > $tfile;
+    echo "int main(void){return 0;}" >> $tfile;
+    if gcc $tfile -o $depdir/gcc-cdefs-test &> /dev/null; then
+        rm $depdir/gcc-cdefs-test*;
     else
         host_cc=1
     fi;
-    rm $$tfile;
+    rm -f $tfile;
 
     if [ $host_cc = 1 ]; then
         cat <<EOF
 
-!!!!!!!!!!!!!!!!!!!!!!!!
-WARNING: Can't build GCC
-!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 This system's C compiler (called with 'gcc') can't include
-'sys/cdefs.h. Because of this, we can't build our custom GCC. We strongly
-recommend installing the proper package (for your operating system) that
-installs this header file. For example on some Debian-based GNU/Linux
-distros, you need these two packages: 'gcc-multilib' and 'g++-multilib'.
+'sys/cdefs.h. Because of this, this pipeline can't build its custom GCC to
+ensure better reproducibility. We strongly recommend installing the proper
+package (for your operating system) that installs this necessary file. For
+example on some Debian-based GNU/Linux distros, you need these two
+packages: 'gcc-multilib' and 'g++-multilib'.
 
 However, since GCC is pretty low-level, this configuration script will
 continue in 5 seconds and use your system's C compiler (it won't build a
 custom GCC). But please consider installing the necessary package to
 complete your C compiler, then re-run the pipeline.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EOF
         sleep 5

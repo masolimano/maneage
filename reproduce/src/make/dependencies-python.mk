@@ -257,7 +257,7 @@ $(ibidir)/python3: $(tdir)/python-$(python-version).tar.gz \
 pybuild = cd $(ddir); rm -rf $(3);                                \
 	 if ! $(1) $(2); then echo; echo "Tar error"; exit 1; fi; \
 	 cd $(3);                                                 \
-	 if [ "x$(4)" != x ]; then                                \
+	 if [ "x$(strip $(4))" != x ]; then                       \
 	   sed -e 's|@LIBDIR[@]|'"$(ildir)"'|'                    \
 	       -e 's|@INCDIR[@]|'"$(idir)/include"'|'             \
 	       $(4) > site.cfg;                                   \
@@ -282,12 +282,12 @@ $(ipydir)/asn1crypto: $(tdir)/asn1crypto-$(asn1crypto-version).tar.gz \
 	                Asn1crypto $(asn1crypto-version))
 
 $(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz  \
-                      $(ipydir)/astropy                                \
                       $(ipydir)/beautifulsoup4                         \
                       $(ipydir)/html5lib                               \
+                      $(ipydir)/requests                               \
+                      $(ipydir)/astropy                                \
                       $(ipydir)/keyring                                \
-                      $(ipydir)/numpy                                  \
-                      $(ipydir)/requests
+                      $(ipydir)/numpy
 	$(call pybuild, tar xf, $<, astroquery-$(astroquery-version), ,\
 	                Astroquery $(astroquery-version))
 
@@ -295,8 +295,11 @@ $(ipydir)/astropy: $(tdir)/astropy-$(astropy-version).tar.gz \
                    $(ipydir)/h5py                            \
                    $(ipydir)/numpy                           \
                    $(ipydir)/scipy
-	$(call pybuild, tar xf, $<, astropy-$(astropy-version), ,\
-	                "Astropy $(astropy-version) \citep{astropy2013,astropy2018}")
+        # Since we have two citations in Astropy (with the `,' character
+        # which can be confused in Make), its easier to just re-write the
+        # full version after the build.
+	$(call pybuild, tar xf, $<, astropy-$(astropy-version)) \
+	&& echo "Astropy $(astropy-version) \citep{astropy2013,astropy2018}" > $@
 
 $(ipydir)/beautifulsoup4: $(tdir)/beautifulsoup4-$(beautifulsoup4-version).tar.gz \
                           $(ipydir)/soupsieve
