@@ -126,7 +126,6 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         lapack-$(lapack-version).tar.gz                    \
                         libbsd-$(libbsd-version).tar.xz                    \
                         libpng-$(libpng-version).tar.xz                    \
-                        libtool-$(libtool-version).tar.xz                  \
                         libgit2-$(libgit2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
                         openmpi-$(openmpi-version).tar.gz                  \
@@ -176,7 +175,6 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = lapack      ]; then w=http://www.netlib.org/lapack
 	  elif [ $$n = libbsd      ]; then w=http://libbsd.freedesktop.org/releases
 	  elif [ $$n = libpng      ]; then w=https://download.sourceforge.net/libpng
-	  elif [ $$n = libtool     ]; then w=http://ftp.gnu.org/gnu/libtool
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
@@ -515,13 +513,6 @@ $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz
 	               --without-nss, V=1)               \
 	&& echo "cURL $(curl-version)" > $@
 
-# On Mac OS, libtool does different things, so to avoid confusion, we'll
-# prefix GNU's libtool executables with `glibtool'.
-$(ibidir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz
-	$(call gbuild, $<, libtool-$(libtool-version), static, \
-                       --program-prefix=g)                     \
-	&& echo "GNU Libtool $(libtool-version)" > $@
-
 $(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 	$(call gbuild, $<, ghostscript-$(ghostscript-version)) \
 	&& echo "GPL Ghostscript $(ghostscript-version)" > $@
@@ -609,7 +600,6 @@ $(ibidir)/gnuastro: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                     $(ilidir)/libjpeg  \
                     $(ilidir)/libtiff  \
                     $(ilidir)/libgit2  \
-                    $(ibidir)/glibtool \
                     $(ibidir)/ghostscript
 ifeq ($(static_build),yes)
 	staticopts="--enable-static=yes --enable-shared=no";

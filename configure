@@ -1048,7 +1048,7 @@ if [ $npython != 0 ]; then
     echo "$pymodules."                                        >> $pkgver
 fi
 echo "The \LaTeX{} source of the paper was compiled to make"  >> $pkgver
-echo "the PDF using the following packages $texpkg. We are"   >> $pkgver
+echo "the PDF using the following packages: $texpkg. We are"  >> $pkgver
 echo "very grateful to all their creators for freely"         >> $pkgver
 echo "providing this necessary infrastructure. This "         >> $pkgver
 echo "research (and many others) would not be possible"       >> $pkgver

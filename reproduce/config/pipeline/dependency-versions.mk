@@ -50,6 +50,7 @@ libpng-version             = 1.6.36
 libtiff-version            = 4.0.10
 libtool-version            = 2.4.6
 lzip-version               = 1.20
+m4-version                 = 1.4.18
 make-version               = 4.2.90
 metastore-version          = 1.1.2-23-fa9170b
 mpfr-version               = 4.0.2

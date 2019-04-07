@@ -111,7 +111,9 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         grep-$(grep-version).tar.xz                         \
                         gzip-$(gzip-version).tar.gz                         \
                         isl-$(isl-version).tar.bz2                          \
+                        libtool-$(libtool-version).tar.xz                   \
                         lzip-$(lzip-version).tar.gz                         \
+                        m4-$(m4-version).tar.gz                             \
                         make-$(make-version).tar.lz                         \
                         mpfr-$(mpfr-version).tar.xz                         \
                         mpc-$(mpc-version).tar.gz                           \
@@ -136,52 +138,56 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	               | awk '{print $$1}' );                               \
 	                                                                    \
 	  mergenames=1;                                                     \
-          if   [ $$n = bash      ]; then w=http://ftp.gnu.org/gnu/bash;     \
-          elif [ $$n = binutils  ]; then w=http://ftp.gnu.org/gnu/binutils; \
-          elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
-          elif [ $$n = cert      ]; then w=http://akhlaghi.org/src;         \
-          elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
-          elif [ $$n = diffutils ]; then w=http://ftp.gnu.org/gnu/diffutils;\
-          elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
-          elif [ $$n = gawk      ]; then w=http://ftp.gnu.org/gnu/gawk;     \
-          elif [ $$n = gcc       ]; then w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
-          elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
-          elif [ $$n = grep      ]; then w=http://ftp.gnu.org/gnu/grep;     \
-          elif [ $$n = gzip      ]; then w=http://ftp.gnu.org/gnu/gzip;     \
-          elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
-          elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
-          elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
-          elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
-          elif [ $$n = mpc       ]; then w=http://ftp.gnu.org/gnu/mpc;      \
-          elif [ $$n = ncurses   ]; then w=http://ftp.gnu.org/gnu/ncurses;  \
-          elif [ $$n = openssl   ]; then w=http://www.openssl.org/source;   \
-          elif [ $$n = patchelf  ]; then w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version); \
-          elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
-          elif [ $$n = readline  ]; then w=http://ftp.gnu.org/gnu/readline; \
-          elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed;      \
-          elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar;      \
-          elif [ $$n = wget      ]; then w=http://ftp.gnu.org/gnu/wget;     \
-          elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which;    \
-          elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
-          elif [ $$n = zlib      ]; then w=http://www.zlib.net;             \
-          else                                                              \
-            echo; echo; echo;                                               \
-            echo "'$$n' not a basic dependency name (for downloading)."     \
-            echo; echo; echo;                                               \
-            exit 1;                                                         \
-          fi;                                                               \
+	  if   [ $$n = bash      ]; then w=http://ftp.gnu.org/gnu/bash;     \
+	  elif [ $$n = binutils  ]; then w=http://ftp.gnu.org/gnu/binutils; \
+	  elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = cert      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
+	  elif [ $$n = diffutils ]; then w=http://ftp.gnu.org/gnu/diffutils;\
+	  elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = gawk      ]; then w=http://ftp.gnu.org/gnu/gawk;     \
+	  elif [ $$n = gcc       ]; then w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
+	  elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
+	  elif [ $$n = grep      ]; then w=http://ftp.gnu.org/gnu/grep;     \
+	  elif [ $$n = gzip      ]; then w=http://ftp.gnu.org/gnu/gzip;     \
+	  elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
+	  elif [ $$n = libtool   ]; then w=http://ftp.gnu.org/gnu/libtool;  \
+	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
+	  elif [ $$n = m         ]; then                                    \
+	    mergenames=0;                                                   \
+	    w=http://akhlaghi.org/src/m4-1.4.18-patched.tar.gz;             \
+	  elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
+	  elif [ $$n = mpc       ]; then w=http://ftp.gnu.org/gnu/mpc;      \
+	  elif [ $$n = ncurses   ]; then w=http://ftp.gnu.org/gnu/ncurses;  \
+	  elif [ $$n = openssl   ]; then w=http://www.openssl.org/source;   \
+	  elif [ $$n = patchelf  ]; then w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version); \
+	  elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
+	  elif [ $$n = readline  ]; then w=http://ftp.gnu.org/gnu/readline; \
+	  elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed;      \
+	  elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar;      \
+	  elif [ $$n = wget      ]; then w=http://ftp.gnu.org/gnu/wget;     \
+	  elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which;    \
+	  elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
+	  elif [ $$n = zlib      ]; then w=http://www.zlib.net;             \
+	  else                                                              \
+	    echo; echo; echo;                                               \
+	    echo "'$$n' not a basic dependency name (for downloading)."     \
+	    echo; echo; echo;                                               \
+	    exit 1;                                                         \
+	  fi;                                                               \
 	                                                                    \
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*";               \
-          else                           tarballurl=$$w;                    \
-          fi;                                                               \
-                                                                            \
+	  else                           tarballurl=$$w;                    \
+	  fi;                                                               \
+	                                                                   \
 	  echo "Downloading $$tarballurl";                                  \
 	  if [ -f $(ibdir)/wget ]; then                                     \
 	    downloader="wget --no-use-server-timestamps -O";                \
 	  else                                                              \
 	    downloader="$(DOWNLOADER)";                                     \
 	  fi;                                                               \
-                                                                            \
+	                                                                    \
 	  touch $(lockdir)/download;                                        \
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download             \
 	                     $$tarballurl $@;                               \
@@ -251,9 +257,6 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
 
         # GNU Gettext (translate messages)
 	$(call makelink,msgfmt)
-
-        # GNU M4 (for managing building macros)
-	$(call makelink,m4,mandatory)
 
         # Needed by TeXLive specifically.
 	$(call makelink,perl)
@@ -645,9 +648,23 @@ $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 
 
 
-# Basic command-line programs necessary in build process of the
-# higher-level dependencies: Note that during the building of those
-# programs, there is no access to the system's PATH.
+# Basic command-line tools
+# ------------------------
+#
+# These are basic programs which are commonly necessary in the build
+# process of the higher-level programs and libraries. Note that during the
+# building of those higher-level programs (after this Makefile finishes),
+# there is no access to the system's PATH.
+$(ibidir)/coreutils: $(tdir)/coreutils-$(coreutils-version).tar.xz \
+                     $(ilidir)/openssl
+        # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
+        # See Tar's comments for the `-j' option.
+	$(call gbuild, $<, coreutils-$(coreutils-version), static,           \
+	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)"           \
+	               --enable-rpath --disable-silent-rules --with-openssl, \
+	               -j$(numthreads))                                      \
+	&& echo "GNU Coreutils $(coreutils-version)" > $@
+
 $(ibidir)/diffutils: $(tdir)/diffutils-$(diffutils-version).tar.xz \
                      $(ibidir)/bash
 	$(call gbuild, $<, diffutils-$(diffutils-version), static, , V=1) \
@@ -676,20 +693,23 @@ $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
 	  fi;                                                               \
 	fi
 
+# On Mac OS, libtool does different things, so to avoid confusion, we'll
+# prefix GNU's libtool executables with `glibtool'.
+$(ibidir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz \
+                    $(ibidir)/m4
+	$(call gbuild, $<, libtool-$(libtool-version), static, \
+                       --program-prefix=g)                     \
+	&& echo "GNU Libtool $(libtool-version)" > $@
+
 $(ibidir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
-               $(ibidir)/bash
+                $(ibidir)/bash
 	$(call gbuild, $<, grep-$(grep-version), static) \
 	&& echo "GNU Grep $(grep-version)" > $@
 
-$(ibidir)/coreutils: $(tdir)/coreutils-$(coreutils-version).tar.xz \
-                     $(ilidir)/openssl
-        # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
-        # See Tar's comments for the `-j' option.
-	$(call gbuild, $<, coreutils-$(coreutils-version), static,           \
-	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)"           \
-	               --enable-rpath --disable-silent-rules --with-openssl, \
-	               -j$(numthreads))                                      \
-	&& echo "GNU Coreutils $(coreutils-version)" > $@
+$(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
+              $(ibidir)/bash
+	$(call gbuild, $<, m4-$(m4-version), static) \
+	&& echo "GNU M4 $(m4-version)" > $@
 
 $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
                       $(ibidir)/bash
@@ -787,6 +807,7 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
                $(ibidir)/grep         \
                $(ibidir)/bash         \
                $(ibidir)/which        \
+               $(ibidir)/glibtool     \
                $(ibidir)/findutils    \
                $(ibidir)/diffutils    \
                $(ibidir)/coreutils
