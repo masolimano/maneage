@@ -35,6 +35,7 @@ set -e
 jobs=0
 build_dir=
 input_dir=
+host_cc=0
 software_dir=
 existing_conf=0
 minmapsize=10000000000
@@ -79,6 +80,7 @@ Configure options:
   -s, --software-dir=STR  Directory containing necessary software tarballs.
 
  Operating mode options:
+      --host-cc           Use host system's C compiler, don't build GCC.
   -m, --minmapsize=INT    (Gnuastro) Minimum number of bytes to use RAM.
   -j, --jobs=INT          Number of threads to build the software.
   -e, --existing-conf     Use (possibly existing) local configuration.
@@ -148,6 +150,8 @@ do
   -m*)                   minmapsize=$(echo   "$1" | sed -e's/-m//'); check_v "$1" "$minmapsize";   shift;;
 
   # Operating mode options
+  --host-cc)              host_cc=1;                                                shift;;
+  --host-cc=*)            on_off_option_error --host-cc;;
   -j|--jobs)              jobs="$2";                          check_v "$1" "$jobs"; shift;shift;;
   -j=*|--jobs=*)          jobs="${1#*=}";                     check_v "$1" "$jobs"; shift;;
   -j*)                    jobs=$(echo "$1" | sed -e's/-j//'); check_v "$1" "$jobs"; shift;;
@@ -800,7 +804,12 @@ fi
 # For the time being, we'll use the existance of `otool' to see if we are
 # on a Mac OS system or not. Some tools (for example OpenSSL) need to know
 # this.
+#
+# On Mac OS, the building of GCC crashes sometimes while building libiberty
+# with CLang's `g++'. Until we find a solution, we'll just use the host's C
+# compiler.
 if type otool > /dev/null 2>/dev/null; then
+    host_cc=1
     on_mac_os=yes
 else
     on_mac_os=no
@@ -865,6 +874,53 @@ fi
 
 
 
+# See if GCC can be built
+# -----------------------
+#
+# On some GNU/Linux distros, the C compiler is broken into `multilib' (for
+# 32-bit and 64-bit support, with their own headers). On these systems,
+# `sys/cdefs.h' is not available by default. So if the user hasn't manually
+# installed it before this configure script, GCC won't build. We are thus
+# explicitly testing a small C program here to see if the host's C compiler
+# won't have any problems in building GCC.
+if [ $host_cc = 0 ]; then
+    tfile=$bdir/gcc-cdefs-test.c;
+    echo "#include <sys/cdefs.h>"     > $$tfile;
+    echo "int main(void){return 0;}" >> $$tfile;
+    if gcc $$tfile -o $bdir/gcc-cdefs-test &> /dev/null; then
+        rm $bdir/gcc-cdefs-test*;
+    else
+        host_cc=1
+    fi;
+    rm $$tfile;
+
+    if [ $host_cc = 1 ]; then
+        cat <<EOF
+
+!!!!!!!!!!!!!!!!!!!!!!!!
+WARNING: Can't build GCC
+!!!!!!!!!!!!!!!!!!!!!!!!
+
+This system's C compiler (called with 'gcc') can't include
+'sys/cdefs.h. Because of this, we can't build our custom GCC. We strongly
+recommend installing the proper package (for your operating system) that
+installs this header file. For example on some Debian-based GNU/Linux
+distros, you need these two packages: 'gcc-multilib' and 'g++-multilib'.
+
+However, since GCC is pretty low-level, this configuration script will
+continue in 5 seconds and use your system's C compiler (it won't build a
+custom GCC). But please consider installing the necessary package to
+complete your C compiler, then re-run the pipeline.
+
+EOF
+        sleep 5
+    fi
+fi
+
+
+
+
+
 # Build Basic dependencies
 # ------------------------
 #
@@ -890,6 +946,7 @@ make -f reproduce/src/make/dependencies-basic.mk \
      needs_ldl=$needs_ldl                        \
      on_mac_os=$on_mac_os                        \
      numthreads=$numthreads                      \
+     host_cc=$host_cc                            \
      -j$numthreads
 
 

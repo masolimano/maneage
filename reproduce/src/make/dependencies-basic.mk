@@ -210,8 +210,15 @@ makelink = origpath="$$PATH";                                      \
 	                       | tr '\n' :);                           \
 	   a=$$(which $(1) 2> /dev/null);                              \
 	   if [ -e $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi;         \
-	   if [ x"$(2)" = xcopy ]; then c=cp; else c="ln -s"; fi;      \
-	   if [ x$$a != x ]; then $$c $$a $(ibdir)/$(1); fi;           \
+	   if [ x$$a = x ]; then                                       \
+	     if [ "x$(strip $(2))" = xmandatory ]; then                \
+	       echo "'$(1)' is necessary for higher-level tools.";     \
+	       echo "Please install it for the pipeline to continue."; \
+	       exit 1;                                                 \
+	     fi;                                                       \
+	   else                                                        \
+	     ln -s $$a $(ibdir)/$(1);                                  \
+	   fi;                                                         \
 	   export PATH="$$origpath"
 $(ibdir) $(ildir):; mkdir $@
 $(ibidir)/low-level-links: | $(ibdir) $(ildir)
@@ -246,7 +253,7 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
 	$(call makelink,msgfmt)
 
         # GNU M4 (for managing building macros)
-	$(call makelink,m4)
+	$(call makelink,m4,mandatory)
 
         # Needed by TeXLive specifically.
 	$(call makelink,perl)
@@ -767,7 +774,7 @@ $(ibidir)/binutils: $(tdir)/binutils-$(binutils-version).tar.lz
 #
 # We are currently having problems installing GCC on macOS, so for the time
 # being, if the pipeline is being run on a macOS, we'll just set a link.
-ifeq ($(on_mac_os),yes)
+ifeq ($(host_cc),1)
 gcc-prerequisites =
 else
 gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
@@ -784,44 +791,17 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
                $(ibidir)/diffutils    \
                $(ibidir)/coreutils
 
-        # On a macOS, we (currently!) won't build GCC because of some
-        # errors we are still trying to find. So, we'll just make a
-        # symbolic link to the host's executables.
-        #
         # GCC builds is own libraries in '$(idir)/lib64'. But all other
         # libraries are in '$(idir)/lib'. Since this pipeline is only for a
         # single architecture, we can trick GCC into building its libraries
         # in '$(idir)/lib' by defining the '$(idir)/lib64' as a symbolic
         # link to '$(idir)/lib'.
-        #
-        # Cases were we currently don't build GCC:
-        #
-        # 1) MacOS: because it crashes sometimes while building libiberty
-        #    with g++.
-        #
-        # 2) GNU/Linux distros that have `multilib' compilers (for 32-bit
-        #    and 64-bit support) need to install a special package to have
-        #    `/usr/include/sys/cdefs.h'. So we are explicitly testing a
-        #    small C program to see if GCC can import it successfully.
-	if [ "x$(on_mac_os)" = xyes ]; then                                \
-	  build=no;                                                        \
-	else                                                               \
-	  tfile=$(ddir)/gcc-cdefs-test.c;                                  \
-	  echo "#include <sys/cdefs.h>"     > $$tfile;                     \
-	  echo "int main(void){return 0;}" >> $$tfile;                     \
-	  if gcc $$tfile &> /dev/null; then                                \
-	       build=yes; rm a.out;                                        \
-	  else build=no;                                                   \
-	  fi;                                                              \
-	  rm $$tfile;                                                      \
-	fi;                                                                \
-                                                                           \
-	if [ $$build = no ]; then                                          \
-	  $(call makelink,g++);                                            \
+	if [ $(host_cc) = 1 ]; then                                        \
 	  $(call makelink,gcc);                                            \
-	  $(call makelink,gfortran);                                       \
-	  ccinfo=$$(gcc --version | awk 'NR==1');             \
-	  echo "C compiler (""$$ccinfo"")" > $@; exit 1;                   \
+	  $(call makelink,g++,mandatory);                                  \
+	  $(call makelink,gfortran,mandatory);                             \
+	  ccinfo=$$(gcc --version | awk 'NR==1');                          \
+	  echo "C compiler (""$$ccinfo"")" > $@;                           \
 	else                                                               \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
 	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*;            \
