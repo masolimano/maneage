@@ -39,6 +39,7 @@ host_cc=0
 software_dir=
 existing_conf=0
 minmapsize=10000000000
+scriptname="./configure"
 
 
 
@@ -46,11 +47,10 @@ minmapsize=10000000000
 
 # Output of --help
 # ----------------
-me=$0                           # Executable file name.
 print_help() {
     # Print the output.
     cat <<EOF
-Usage: $me [OPTION]...
+Usage: $scriptname [OPTION]...
 
 Configure the reproducible paper template for this system (set local
 settings for this system). The local settings can be given on the
@@ -101,9 +101,11 @@ EOF
 
 # Functions to check option values and complain if necessary.
 function on_off_option_error() {
-    cat <<EOF
-$scriptname: '$1' doesn't take any values.
-EOF
+    if [ "x$2" = x ]; then
+        echo "$scriptname: '$1' doesn't take any values."
+    else
+        echo "$scriptname: '$1' (or '$2') doesn't take any values."
+    fi
     exit 1
 }
 
@@ -156,9 +158,9 @@ do
   -j=*|--jobs=*)          jobs="${1#*=}";                     check_v "$1" "$jobs"; shift;;
   -j*)                    jobs=$(echo "$1" | sed -e's/-j//'); check_v "$1" "$jobs"; shift;;
   -e|--existing-conf)     existing_conf=1;                                          shift;;
-  -e*|--existing-conf=*)  on_off_option_error --existing-conf;;
+  -e*|--existing-conf=*)  on_off_option_error --existing-conf -e;;
   -?|--help)              print_help; exit 0;;
-  -?*|--help=*)           on_off_option_error --help;;
+  -'?'*|--help=*)         on_off_option_error --help -?;;
 
   # Unrecognized option:
   -*) echo "$scriptname: unknown option '$1'"; exit 1;;
@@ -1015,55 +1017,62 @@ fi
 
 
 
+
+
 # Put all the names and versions in a human-readable format in LaTeX.
 function prepare_name_version() {
+
     # Total number of tools to report.
-    num=$(cat "$@" | wc -l)
+    num=$(.local/bin/cat "$@" | .local/bin/wc -l)
 
     # Put them all in one paragraph.
-    cat "$@"                                              \
-        | sort                                            \
-        | awk 'NF>0{ c++;                                 \
-                     if(c==1)                             \
-                       {                                  \
-                         if('$num'==1) printf("%s", $0); \
-                         else          printf("%s", $0);  \
-                       }                                  \
-                     else if(c=='$num') printf(" and %s\n", $0); \
-                     else printf(", %s", $0)}'
+    .local/bin/cat "$@"                                   \
+        | .local/bin/sort                                 \
+        | .local/bin/awk 'NF>0 {                          \
+              c++;                                        \
+              if(c==1)                                    \
+               {                                          \
+                 if('$num'==1) printf("%s", $0);          \
+                 else          printf("%s", $0);          \
+               }                                          \
+              else if(c=='$num') printf(" and %s\n", $0); \
+              else printf(", %s", $0)                     \
+            }'
 }
 
-# Separate the parts by context.
+# Report the different software in separate contexts (separating Python and
+# TeX packages from the C/C++ programs and libraries).
 proglibs=$(prepare_name_version $verdir/bin/* $verdir/lib/*)
 pymodules=$(prepare_name_version $verdir/python/*)
 texpkg=$(prepare_name_version $verdir/tex/texlive)
 
 # Write them as one paragraph for LaTeX.
 pkgver=$mtexdir/dependencies.tex
-echo "This research was done with the following free"          > $pkgver
-echo "software programs and libraries: $proglibs."            >> $pkgver
-npython=$(ls $verdir/python/* | wc -l)
+.local/bin/echo "This research was done with the following free" > $pkgver
+.local/bin/echo "software programs and libraries: $proglibs."   >> $pkgver
+npython=$(.local/bin/ls $verdir/python/* | .local/bin/wc -l)
 if [ $npython != 0 ]; then
-    echo "Within Python, the following modules were used: "   >> $pkgver
-    echo "$pymodules."                                        >> $pkgver
+    .local/bin/echo "Within Python, the following modules"      >> $pkgver
+    echo "were used: $pymodules."                               >> $pkgver
 fi
-echo "The \LaTeX{} source of the paper was compiled to make"  >> $pkgver
-echo "the PDF using the following packages: $texpkg. We are"  >> $pkgver
-echo "very grateful to all their creators for freely"         >> $pkgver
-echo "providing this necessary infrastructure. This "         >> $pkgver
-echo "research (and many others) would not be possible"       >> $pkgver
-echo "without them."                                          >> $pkgver
+.local/bin/echo "The \LaTeX{} source of the paper was compiled" >> $pkgver
+.local/bin/echo "to make the PDF using the following packages:" >> $pkgver
+.local/bin/echo "$texpkg. We are very grateful to all their"    >> $pkgver
+.local/bin/echo "creators for freely providing this necessary"  >> $pkgver
+.local/bin/echo "infrastructure. This research (and many "      >> $pkgver
+.local/bin/echo "others) would not be possible without them."   >> $pkgver
 
 
 
 
 
-# Final step: the Makefile
-# --------------------------
+# Final step: available Makefile
+# ------------------------------
 #
-# To see why this is the last step of the configuration, see above (when we
-# delete the top-level Makefile at the start of this script).
-ln -s $(pwd)/reproduce/src/make/top.mk Makefile
+# We only want `make' to work after the configuration is complete. So we
+# will only put in the top-level Makefile after all the steps above are
+# done.
+.local/bin/ln -s $(pwd)/reproduce/src/make/top.mk Makefile
 
 
 
