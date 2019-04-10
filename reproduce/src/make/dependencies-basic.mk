@@ -531,8 +531,9 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
         # default. So, we have to manually include it, currently we are
         # only doing this on GNU/Linux systems (using the `patchelf'
         # program).
-	if [ "x$(needpatchelf)" != x ]; then                               \
-	  if [ -f $@ ]; then $(ibdir)/patchelf --set-rpath $(ildir) $@; fi \
+	if [ "x$(needpatchelf)" != x ]; then                         \
+	  if [ -f $(ibdir)/bash ]; then                              \
+	    $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/bash; fi \
 	fi
 
         # To be generic, some systems use the `sh' command to call the
@@ -595,12 +596,12 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
 	  copt="shared no-ssl2 no-ssl3 enable-ec_nistp_64_gcc_128";  \
 	fi;                                                          \
 	$(call gbuild, $<, openssl-$(openssl-version), ,             \
-                       zlib                                          \
+                   zlib                                          \
 	               $$copt                                        \
-                       $(rpath_command)                              \
-                       --openssldir=$(idir)/etc/ssl                  \
+                   $(rpath_command)                              \
+                   --openssldir=$(idir)/etc/ssl                  \
 	               --with-zlib-lib=$(ildir)                      \
-                       --with-zlib-include=$(idir)/include, , ,      \
+                   --with-zlib-include=$(idir)/include, , ,      \
 	               ./config ) &&                                 \
 	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem;                \
 	if [ $$? = 0 ]; then                                         \
@@ -686,11 +687,11 @@ $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
         # manually include it using the `patchelf' program. Just note that
         # AWK produces two executables (for example `gawk-4.2.1' and
         # `gawk') and a symbolic link `awk' to one of those executables.
-	if [ "x$(needpatchelf)" != x ]; then                                \
-	  if [ -f $@ ]; then $(ibdir)/patchelf --set-rpath $(ildir) $@; fi; \
-	  if [ -f $@-$(awk-version) ]; then                                 \
-	    $(ibdir)/patchelf --set-rpath $(ildir) $@-$(awk-version);       \
-	  fi;                                                               \
+	if [ "x$(needpatchelf)" != x ]; then                                     \
+	  if [ -f $(ibdir)/gawk ]; then $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/gawk; fi; \
+	  if [ -f $(ibdir)/gawk-$(awk-version) ]; then                           \
+	    $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/gawk-$(awk-version); \
+	  fi;                                                                    \
 	fi
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
