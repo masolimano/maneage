@@ -531,8 +531,9 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
         # default. So, we have to manually include it, currently we are
         # only doing this on GNU/Linux systems (using the `patchelf'
         # program).
-	if [ "x$(needpatchelf)" != x ]; then                               \
-	  if [ -f $@ ]; then $(ibdir)/patchelf --set-rpath $(ildir) $@; fi \
+	if [ "x$(needpatchelf)" != x ]; then                         \
+	  if [ -f $(ibdir)/bash ]; then                              \
+	    $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/bash; fi \
 	fi
 
         # To be generic, some systems use the `sh' command to call the
@@ -595,12 +596,12 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
 	  copt="shared no-ssl2 no-ssl3 enable-ec_nistp_64_gcc_128";  \
 	fi;                                                          \
 	$(call gbuild, $<, openssl-$(openssl-version), ,             \
-                       zlib                                          \
+                   zlib                                          \
 	               $$copt                                        \
-                       $(rpath_command)                              \
-                       --openssldir=$(idir)/etc/ssl                  \
+                   $(rpath_command)                              \
+                   --openssldir=$(idir)/etc/ssl                  \
 	               --with-zlib-lib=$(ildir)                      \
-                       --with-zlib-include=$(idir)/include, , ,      \
+                   --with-zlib-include=$(idir)/include, , ,      \
 	               ./config ) &&                                 \
 	cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem;                \
 	if [ $$? = 0 ]; then                                         \
@@ -648,8 +649,8 @@ $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 
 
 
-# Basic command-line tools
-# ------------------------
+# Basic command-line tools and their dependencies
+# -----------------------------------------------
 #
 # These are basic programs which are commonly necessary in the build
 # process of the higher-level programs and libraries. Note that during the
@@ -676,22 +677,31 @@ $(ibidir)/findutils: $(tdir)/findutils-$(findutils-version).tar.lz \
 	&& echo "GNU Findutils $(findutils-version)" > $@
 
 $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
-                $(ibidir)/bash
-        # Build the main program.
-	$(call gbuild, $<, gawk-$(gawk-version), static, \
-	               --with-readline=$(idir))          \
+                $(ibidir)/bash                      \
+                $(ilidir)/mpfr                      \
+                $(ilidir)/gmp
+        # AWK doesn't include RPATH by default, so we'll have to manually
+        # include it using the `patchelf' program (which was a dependency
+        # of Bash). Just note that AWK produces two executables (for
+        # example `gawk-4.2.1' and `gawk') and a symbolic link `awk' to one
+        # of those executables.
+	$(call gbuild, $<, gawk-$(gawk-version), static,              \
+	               --with-readline=$(idir))                       \
+	&& if [ "x$(needpatchelf)" != x ]; then                       \
+	     if [ -f $(ibdir)/gawk ]; then                            \
+	       $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/gawk;  \
+	     fi;                                                      \
+	     if [ -f $(ibdir)/gawk-$(gawk-version) ]; then            \
+	       $(ibdir)/patchelf --set-rpath $(ildir)                 \
+	                         $(ibdir)/gawk-$(gawk-version);       \
+	    fi;                                                       \
+	   fi                                                         \
 	&& echo "GNU AWK $(gawk-version)" > $@
 
-        # Since AWK doesn't include RPATH by default, we'll have to
-        # manually include it using the `patchelf' program. Just note that
-        # AWK produces two executables (for example `gawk-4.2.1' and
-        # `gawk') and a symbolic link `awk' to one of those executables.
-	if [ "x$(needpatchelf)" != x ]; then                                \
-	  if [ -f $@ ]; then $(ibdir)/patchelf --set-rpath $(ildir) $@; fi; \
-	  if [ -f $@-$(awk-version) ]; then                                 \
-	    $(ibdir)/patchelf --set-rpath $(ildir) $@-$(awk-version);       \
-	  fi;                                                               \
-	fi
+$(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
+               $(ibidir)/bash
+	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
+	&& echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
 # prefix GNU's libtool executables with `glibtool'.
@@ -710,6 +720,11 @@ $(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
               $(ibidir)/bash
 	$(call gbuild, $<, m4-$(m4-version), static) \
 	&& echo "GNU M4 $(m4-version)" > $@
+
+$(ilidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
+                $(ilidir)/gmp
+	$(call gbuild, $<, mpfr-$(mpfr-version), static, , , make check)  \
+	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
 $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
                       $(ibidir)/bash
@@ -744,28 +759,9 @@ $(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
 
 
 
-# GCC prerequisites
-# -----------------
-$(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
-               $(ibidir)/bash
-	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
-	&& echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
-
-$(ilidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
-                $(ilidir)/gmp
-	$(call gbuild, $<, mpfr-$(mpfr-version), static, , , make check)  \
-	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
-
-$(ilidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
-               $(ilidir)/mpfr
-	$(call gbuild, $<, mpc-$(mpc-version), static, , , make check)  \
-	&& echo "GNU Multiple Precision Complex library" > $@
-
-$(ilidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
-               $(ilidir)/gmp
-	$(call gbuild, $<, isl-$(isl-version), static)  \
-	&& echo "GNU Integer Set Library $(isl-version)" > $@
-
+# GCC and its prerequisites
+# -------------------------
+#
 # Binutils' linker `ld' is apparently only good for GNU/Linux systems and
 # other OSs have their own. So for now we aren't actually building
 # Binutils (`ld' isn't a prerequisite of GCC).
@@ -773,32 +769,26 @@ $(ibidir)/binutils: $(tdir)/binutils-$(binutils-version).tar.lz
 	$(call gbuild, $<, binutils-$(binutils-version), static) \
 	&& echo "GNU Binutils $(binutils-version)" > $@
 
+$(ilidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
+               $(ilidir)/gmp
+	$(call gbuild, $<, isl-$(isl-version), static)  \
+	&& echo "GNU Integer Set Library $(isl-version)" > $@
 
+$(ilidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
+               $(ilidir)/mpfr
+	$(call gbuild, $<, mpc-$(mpc-version), static, , , make check)  \
+	&& echo "GNU Multiple Precision Complex library" > $@
 
-
-
-
-
-
-
-
-# (CURRENTLY IGNORED) Build GCC
-# -----------------------------
-#
-# The building is currently ignored because GNU Binutils currently doesn't
-# install critical components of building a compiler on Mac systems. So we
-# can install and use the GNU C compiler, but we're still going to have the
-# crazy issues with linking on a Mac OS. Since almost no natural science
-# paper's processing depends so strongly on the compiler used, for now,
-# we'll just use the host operating system's C library, compiler, and
-# linker.
+# We are having issues with `libiberty' (part of GCC) on Mac. So for now,
+# GCC won't be built there. Since almost no natural science paper's
+# processing depends so strongly on the compiler used, for now, this isn't
+# a bad assumption, but we are indeed searching for a solution.
 #
 # Based on the GCC manual, the GCC build can benefit from a GNU
 # environment. So, we'll build GCC after building all the basic tools that
 # are often used in a configure and build scripts of GCC components.
 #
-# Including Objective C and Objective C++ is necessary for installing
-# `matplotlib'.
+# Objective C and Objective C++ is necessary for installing `matplotlib'.
 #
 # We are currently having problems installing GCC on macOS, so for the time
 # being, if the pipeline is being run on a macOS, we'll just set a link.
