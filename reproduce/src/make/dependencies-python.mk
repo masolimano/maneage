@@ -410,7 +410,8 @@ $(ipydir)/mpi4py: $(tdir)/mpi4py-$(mpi4py-version).tar.gz    \
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ipydir)/setuptools               \
                  $(ilidir)/openblas                 \
-                 $(ilidir)/fftw
+                 $(ilidir)/fftw                     \
+                 $(ibidir)/unzip
 	if [ x$(on_mac_os) = xyes ]; then                                    \
 	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle";     \
 	else                                                                 \
@@ -473,7 +474,8 @@ $(ipydir)/secretstorage: $(tdir)/secretstorage-$(secretstorage-version).tar.gz \
 	                SecretStorage $(secretstorage-version))
 
 $(ipydir)/setuptools: $(tdir)/setuptools-$(setuptools-version).zip \
-                      $(ibidir)/python3
+                      $(ibidir)/python3                            \
+                      $(ibidir)/unzip
 	$(call pybuild, unzip, $<, setuptools-$(setuptools-version), ,\
 	                Setuptools $(setuptools-version))
 
