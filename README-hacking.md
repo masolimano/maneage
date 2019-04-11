@@ -516,22 +516,6 @@ advanced in later stages of your work.
      git remote add origin XXXXXXXXXX
      ```
 
- - **Copyright**, **name** and **date**: All the "copyrightable" files
-     (those larger than 10 lines) must have a copyright statement and
-     license notice. As you progress with the project and modify files to
-     customize for your project change the copyright owner to your self
-     (since this template is free software, you can do this after you edit
-     any part of it). Also, don't forget to add similar notices to new
-     files you add for your own project. You can always find the files
-     without a copyright notice using this command:
-
-     ```shell
-     find . -type f ! -path ./.git/\* \
-       | while read i; do \
-           grep -qi 'copyright \((c)\|[&]copy;\|@copyright\)' $i || echo $i;\
-         done
-     ```
-
  - **Title**, **short description** and **author** in source files: In this
      raw skeleton, the title or short description of your project should be
      added in the following two files: `reproduce/src/make/top.mk` (the
@@ -612,6 +596,22 @@ advanced in later stages of your work.
      file. Therefore, make it as easy as possible for them to start
      with. Also check and update this file one last time when you are ready
      to publish your work (and its reproduction pipeline).
+
+ - **Copyright**: All the "copyrightable" files (those larger than 10
+     lines) must have a copyright statement and license notice. As you
+     progress with the project and modify files to customize for your
+     project change the copyright owner to your self (since this template
+     is free software, you can do this after you edit any part of
+     it). Also, don't forget to add similar notices to new files you add
+     for your own project. You can always find the files without a
+     copyright notice using this command:
+
+     ```shell
+     find . -type f ! -path ./.git/\* \
+       | while read i; do \
+           grep -qi 'copyright \((c)\|[&]copy;\|@copyright\)' $i || echo $i;\
+         done
+     ```
 
  - **Your first commit**: You have already made some small and basic
      changes in the steps above and you are in the `master` branch. So, you

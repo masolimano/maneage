@@ -88,11 +88,13 @@ This pipeline was designed to have as few dependencies as possible.
 
 Copyright information
 ---------------------
-This file is part of the reproducible paper template
-   https://gitlab.com/makhlaghi/reproducible-paper
+
+This file and `.file-metadata' (a binary file, used by Metastore to store
+file dates when doing Git checkouts) are part of the reproducible paper
+template (https://gitlab.com/makhlaghi/reproducible-paper) and share the
+same copyright below.
 
 Copyright (C) 2018-2019 Mohammad Akhlaghi.
-See the end of the file for license conditions.
 
 This template is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free
