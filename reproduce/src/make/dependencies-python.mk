@@ -254,7 +254,7 @@ $(ibidir)/python3: $(tdir)/python-$(python-version).tar.gz \
 #   3) Unpacked directory name after unpacking the tarball
 #   4) site.cfg file (optional)
 #   5) Official software name.(for paper).
-pybuild = cd $(ddir); rm -rf $(3);                                \
+pybuild = cd $(ddir); rm -rf $(3);                            \
 	 if ! $(1) $(2); then echo; echo "Tar error"; exit 1; fi; \
 	 cd $(3);                                                 \
 	 if [ "x$(strip $(4))" != x ]; then                       \
@@ -335,8 +335,8 @@ $(ipydir)/cycler: $(tdir)/cycler-$(cycler-version).tar.gz \
 
 $(ipydir)/cython: $(tdir)/cython-$(cython-version).tar.gz \
                   $(ipydir)/setuptools
-	$(call pybuild, tar xf, $<, Cython-$(cython-version), ,\
-	                Cython $(cython-version))
+	$(call pybuild, tar xf, $<, Cython-$(cython-version)) \
+	&& echo "Cython $(cython-version) \citep{cython2011}" > $@
 
 $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
                        $(ipydir)/setuptools
@@ -389,8 +389,8 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
                       $(ipydir)/numpy                                   \
                       $(ipydir)/pyparsing                               \
                       $(ipydir)/python-dateutil
-	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version), ,\
-	                Matplotlib $(matplotlib-version))
+	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version))       \
+	&& echo "Matplotlib $(matplotlib-version) \citep{matplotlib2007}" > $@
 
 # Currently mpi4py doesn't build because of some conflict with OpenMPI:
 #
@@ -404,8 +404,8 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
 $(ipydir)/mpi4py: $(tdir)/mpi4py-$(mpi4py-version).tar.gz    \
                   $(ipydir)/setuptools                       \
                   $(ilidir)/openmpi
-	$(call pybuild, tar xf, $<, mpi4py-$(mpi4py-version), ,\
-	                mpi4py $(mpi4py-version))
+	$(call pybuild, tar xf, $<, mpi4py-$(mpi4py-version))    \
+	&& echo "mpi4py $(mpi4py-version) \citep{mpi4py2011}" > $@
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ipydir)/setuptools               \
@@ -418,8 +418,9 @@ $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
 	  export LDFLAGS="$(LDFLAGS) -shared";                               \
 	fi;                                                                  \
 	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
-	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf, \
-	                Numpy $(numpy-version))
+	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf,            \
+	                Numpy $(numpy-version))                              \
+	&& echo "Numpy $(numpy-version) \citep{numpy2011}" > $@
 
 $(ibidir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
                 $(ipydir)/setuptools
@@ -464,8 +465,8 @@ $(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
 	  export LDFLAGS="$(LDFLAGS) -shared";                               \
 	fi;                                                                  \
 	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
-	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf,\
-	                Scipy $(scipy-version))
+	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf)           \
+	&& echo "Scipy $(scipy-version) \citep{scipy2001}" > $@
 
 $(ipydir)/secretstorage: $(tdir)/secretstorage-$(secretstorage-version).tar.gz \
                          $(ipydir)/cryptography                                \
