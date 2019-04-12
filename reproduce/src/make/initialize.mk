@@ -252,6 +252,7 @@ $(packagecontents): | $(texdir)
 	cp tex/tikz/*.pdf                        $$dir/tex/tikz
 	cp -r reproduce/!(build)                 $$dir/reproduce
 	cp -r tex/pipeline/!($(packagebasename)) $$dir/tex/pipeline
+	cp -r tex/dependencies                   $$dir/tex/dependencies
 
         # Clean up un-necessary/local files: 1) the $(texdir)/build*
         # directories (when building in a group structure, there will be

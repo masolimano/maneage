@@ -67,7 +67,7 @@ export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
 # Define the programs that don't depend on any other.
-top-level-programs = low-level-links wget gcc file
+top-level-programs = low-level-links wget gcc
 all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 
 
@@ -815,9 +815,9 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
                $(ibidir)/grep         \
                $(ibidir)/which        \
                $(ibidir)/glibtool     \
-               $(ibidir)/findutils    \
+               $(ibidir)/coreutils    \
                $(ibidir)/diffutils    \
-               $(ibidir)/coreutils
+               $(ibidir)/findutils
 
         # GCC builds is own libraries in '$(idir)/lib64'. But all other
         # libraries are in '$(idir)/lib'. Since this pipeline is only for a
