@@ -654,7 +654,7 @@ itidir=$verdir/tex
 if ! [ -d $itidir ]; then mkdir $itidir; fi
 
 texdir=$bdir/tex
-if ! [ -d $texdir ]; then mkdir $texdir; fi
+if ! [ -d $texdir ]; then mkdir $texdir; ln -s $texdir tex/pipeline; fi
 
 mtexdir=$texdir/macros
 if ! [ -d $mtexdir ]; then mkdir $mtexdir; fi
@@ -1019,25 +1019,40 @@ fi
 
 
 
-# Put all the names and versions in a human-readable format in LaTeX.
+# Put all the names and versions in a human-readable paragraph.
 function prepare_name_version() {
 
-    # Total number of tools to report.
-    num=$(.local/bin/cat "$@" | .local/bin/wc -l)
+    # First see if the (possible) `*' in the input arguments corresponds to
+    # anything. Note that some of the given directories may be empty (no
+    # software installed).
+    hasfiles=0
+    for f in $@; do
+        if [ -f $f ]; then hasfiles=1; break; fi;
+    done
 
-    # Put them all in one paragraph.
-    .local/bin/cat "$@"                                   \
-        | .local/bin/sort                                 \
-        | .local/bin/awk 'NF>0 {                          \
-              c++;                                        \
-              if(c==1)                                    \
-               {                                          \
-                 if('$num'==1) printf("%s", $0);          \
-                 else          printf("%s", $0);          \
-               }                                          \
-              else if(c=='$num') printf(" and %s\n", $0); \
-              else printf(", %s", $0)                     \
-            }'
+    # If there are any files, merge all the names in a paragraph.
+    if [ $hasfiles = 1 ]; then
+
+        # Count how many names there are. This is necessary to identify the
+        # last element.
+        num=$(.local/bin/cat $@               \
+                  | .local/bin/sed '/^\s*$/d' \
+                  | .local/bin/wc -l)
+
+        # Put them all in one paragraph.
+        .local/bin/cat $@                                     \
+            | .local/bin/sort                                 \
+            | .local/bin/awk 'NF>0 {                          \
+                  c++;                                        \
+                  if(c==1)                                    \
+                    {                                         \
+                      if('$num'==1) printf("%s", $0);         \
+                      else          printf("%s", $0);         \
+                    }                                         \
+                  else if(c=='$num') printf(" and %s\n", $0); \
+                  else printf(", %s", $0)                     \
+                }'
+    fi
 }
 
 # Report the different software in separate contexts (separating Python and
@@ -1050,8 +1065,7 @@ texpkg=$(prepare_name_version $verdir/tex/texlive)
 pkgver=$mtexdir/dependencies.tex
 .local/bin/echo "This research was done with the following free" > $pkgver
 .local/bin/echo "software programs and libraries: $proglibs."   >> $pkgver
-npython=$(.local/bin/ls $verdir/python/* | .local/bin/wc -l)
-if [ $npython != 0 ]; then
+if [ x$pymodules != x ]; then
     .local/bin/echo "Within Python, the following modules"      >> $pkgver
     echo "were used: $pymodules."                               >> $pkgver
 fi
