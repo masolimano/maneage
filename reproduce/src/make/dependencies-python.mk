@@ -466,7 +466,7 @@ $(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
 	fi;                                                                  \
 	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
 	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf)           \
-	&& echo "Scipy $(scipy-version) \citep{scipy2001}" > $@
+	&& echo "Scipy $(scipy-version) \citep{scipy2007,scipy2011}" > $@
 
 $(ipydir)/secretstorage: $(tdir)/secretstorage-$(secretstorage-version).tar.gz \
                          $(ipydir)/cryptography                                \
