@@ -607,7 +607,7 @@ endif
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
 	               $$staticopts, -j$(numthreads),                \
 	               make check -j$(numthreads))                   \
-	&& echo "GNU Astronomy Utilities $(gnuastro-version)" > $@
+	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
 $(ibidir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
 	v=$$(echo $(unzip-version) | sed -e's/\.//')
