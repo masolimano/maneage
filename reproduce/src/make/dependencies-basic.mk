@@ -67,7 +67,7 @@ export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 
 # Define the programs that don't depend on any other.
-top-level-programs = low-level-links wget gcc
+top-level-programs = low-level-links wget gcc file
 all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 
 
@@ -104,6 +104,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         cert.pem                                            \
                         coreutils-$(coreutils-version).tar.xz               \
                         diffutils-$(diffutils-version).tar.xz               \
+                        file-$(file-version).tar.gz                         \
                         findutils-$(findutils-version).tar.lz               \
                         gawk-$(gawk-version).tar.lz                         \
                         gcc-$(gcc-version).tar.xz                           \
@@ -144,6 +145,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = cert      ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
 	  elif [ $$n = diffutils ]; then w=http://ftp.gnu.org/gnu/diffutils;\
+	  elif [ $$n = file      ]; then w=ftp://ftp.astron.com/pub/file;   \
 	  elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = gawk      ]; then w=http://ftp.gnu.org/gnu/gawk;     \
 	  elif [ $$n = gcc       ]; then w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
@@ -769,6 +771,12 @@ $(ibidir)/binutils: $(tdir)/binutils-$(binutils-version).tar.lz
 	$(call gbuild, $<, binutils-$(binutils-version), static) \
 	&& echo "GNU Binutils $(binutils-version)" > $@
 
+# `file' is not a prerequisite of GCC. However, since it is low level, it is
+# set as a prerequisite of GCC to have it installed.
+$(ibidir)/file: $(tdir)/file-$(file-version).tar.gz
+	$(call gbuild, $<, file-$(file-version), static) \
+	&& echo "File $(file-version)" > $@
+
 $(ilidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
                $(ilidir)/gmp
 	$(call gbuild, $<, isl-$(isl-version), static)  \
@@ -801,9 +809,10 @@ gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
 endif
 $(ibidir)/gcc: $(gcc-prerequisites)   \
                $(ibidir)/sed          \
+               $(ibidir)/bash         \
+               $(ibidir)/file         \
                $(ibidir)/gawk         \
                $(ibidir)/grep         \
-               $(ibidir)/bash         \
                $(ibidir)/which        \
                $(ibidir)/glibtool     \
                $(ibidir)/findutils    \
