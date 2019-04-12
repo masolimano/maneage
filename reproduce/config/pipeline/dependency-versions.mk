@@ -29,6 +29,7 @@ coreutils-version          = 8.30
 curl-version               = 7.63.0
 diffutils-version          = 3.7
 fftw-version               = 3.3.8
+file-version               = 5.36
 findutils-version          = 4.6.0.199-e3fc
 flock-version              = 0.2.3
 freetype-version           = 2.9
