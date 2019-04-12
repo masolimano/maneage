@@ -48,7 +48,7 @@
     url=false,
     dashed=false,
     eprint=false,
-    maxbibnames=4,
+    maxbibnames=2,
     minbibnames=1,
     hyperref=true,
     maxcitenames=2,
@@ -59,6 +59,7 @@
 \DeclareFieldFormat[article]{pages}{#1}
 \DeclareFieldFormat{pages}{\mkfirstpage[{\mkpageprefix[bookpagination]}]{#1}}
 \addbibresource{tex/src/references.tex}
+\addbibresource{tex/pipeline/macros/dependencies-bib.tex}
 \renewbibmacro{in:}{}
 \renewcommand*{\bibfont}{\footnotesize}
 \DefineBibliographyStrings{english}{references = {References}}

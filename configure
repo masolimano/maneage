@@ -650,6 +650,9 @@ if ! [ -d $ilidir ]; then mkdir $ilidir; fi
 ipydir=$verdir/python
 if ! [ -d $ipydir ]; then mkdir $ipydir; fi
 
+ictdir=$verdir/cite
+if ! [ -d $ictdir ]; then mkdir $ictdir; fi
+
 itidir=$verdir/tex
 if ! [ -d $itidir ]; then mkdir $itidir; fi
 
@@ -1019,7 +1022,11 @@ fi
 
 
 
-# Put all the names and versions in a human-readable paragraph.
+# Citation of installed software
+#
+# After everything is installed, we'll put all the names and versions in a
+# human-readable paragraph and also prepare the BibTeX citation for the
+# software.
 function prepare_name_version() {
 
     # First see if the (possible) `*' in the input arguments corresponds to
@@ -1065,7 +1072,7 @@ texpkg=$(prepare_name_version $verdir/tex/texlive)
 pkgver=$mtexdir/dependencies.tex
 .local/bin/echo "This research was done with the following free" > $pkgver
 .local/bin/echo "software programs and libraries: $proglibs."   >> $pkgver
-if [ x$pymodules != x ]; then
+if [ x"$pymodules" != x ]; then
     .local/bin/echo "Within Python, the following modules"      >> $pkgver
     echo "were used: $pymodules."                               >> $pkgver
 fi
@@ -1076,6 +1083,23 @@ fi
 .local/bin/echo "infrastructure. This research (and many "      >> $pkgver
 .local/bin/echo "others) would not be possible without them."   >> $pkgver
 
+# Prepare the BibTeX entries for the used software (if there are any).
+hasentry=0
+bibfiles="$ictdir/*"
+for f in $bibfiles; do if [ -f $f ]; then hasentry=1; break; fi; done;
+
+# Make sure we start with an empty file.
+pkgbib=$mtexdir/dependencies-bib.tex
+echo "" > $pkgbib
+
+# Fill it in with all the BibTeX entries in this directory. We'll just
+# avoid writing any comments (usually copyright notices) and also put an
+# empty line after each file's contents to make the output more readable.
+if [ $hasentry = 1 ]; then
+    for f in $bibfiles; do
+        awk '!/^%/{print} END{print ""}' $f >> $pkgbib
+    done
+fi
 
 
 

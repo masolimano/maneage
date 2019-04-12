@@ -37,6 +37,7 @@ include reproduce/config/pipeline/dependency-versions.mk
 
 lockdir = $(BDIR)/locks
 ddir    = $(BDIR)/dependencies
+dtexdir = $(shell pwd)/tex/dependencies
 tdir    = $(BDIR)/dependencies/tarballs
 idir    = $(BDIR)/dependencies/installed
 ibdir   = $(BDIR)/dependencies/installed/bin
@@ -44,6 +45,7 @@ ildir   = $(BDIR)/dependencies/installed/lib
 ibidir  = $(BDIR)/dependencies/installed/version-info/bin
 ilidir  = $(BDIR)/dependencies/installed/version-info/lib
 itidir  = $(BDIR)/dependencies/installed/version-info/tex
+ictdir  = $(BDIR)/dependencies/installed/version-info/cite
 ipydir  = $(BDIR)/dependencies/installed/version-info/python
 
 # Define the top-level programs to build (installed in `.local/bin').
@@ -604,9 +606,10 @@ $(ibidir)/gnuastro: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
 ifeq ($(static_build),yes)
 	staticopts="--enable-static=yes --enable-shared=no";
 endif
-	$(call gbuild, $<, gnuastro-$(gnuastro-version), static,     \
-	               $$staticopts, -j$(numthreads),                \
-	               make check -j$(numthreads))                   \
+	$(call gbuild, $<, gnuastro-$(gnuastro-version), static, \
+	               $$staticopts, -j$(numthreads),            \
+	               make check -j$(numthreads))               \
+	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/                 \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
 $(ibidir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
