@@ -1,7 +1,7 @@
 Reproduction pipeline for paper XXXXXXX
 =======================================
 
-Copyright (C) 2018-2019 Mohammad Akhlaghi.
+Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 See the end of the file for license conditions.
 
 This is the reproduction pipeline for the paper titled "**XXXXXX**", by
@@ -92,9 +92,7 @@ Copyright information
 This file and `.file-metadata' (a binary file, used by Metastore to store
 file dates when doing Git checkouts) are part of the reproducible paper
 template (https://gitlab.com/makhlaghi/reproducible-paper) and share the
-same copyright below.
-
-Copyright (C) 2018-2019 Mohammad Akhlaghi.
+same copyright (below).
 
 This template is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free

@@ -1,8 +1,8 @@
-Copyright (C) 2018-2019 Mohammad Akhlaghi.
-See the end of the file for license conditions.
-
 Reproducible paper template
 ===========================
+
+Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+See the end of the file for license conditions.
 
 This project contains a **fully working template** for a high-level
 research reproduction pipeline, or reproducible paper, as defined in the
@@ -179,7 +179,7 @@ used as a good working model to build your own.
  - Section 7.3 of Bacon et
    al. ([2017](http://adsabs.harvard.edu/abs/2017A%26A...608A...1B), A&A
    608, A1): The version controlled reproduction pipeline is available [on
-   Gitlab](https://gitlab.com/makhlaghi/muse-udf-origin-only-hst-magnitudes)
+   GitLab](https://gitlab.com/makhlaghi/muse-udf-origin-only-hst-magnitudes)
    and a snapshot of the pipeline along with all the necessary input
    datasets and outputs is available in
    [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774).
@@ -187,7 +187,7 @@ used as a good working model to build your own.
  - Section 4 of Bacon et
    al. ([2017](http://adsabs.harvard.edu/abs/2017A%26A...608A...1B), A&A,
    608, A1): The version controlled reproduction pipeline is available [on
-   Gitlab](https://gitlab.com/makhlaghi/muse-udf-photometry-astrometry) and
+   GitLab](https://gitlab.com/makhlaghi/muse-udf-photometry-astrometry) and
    a snapshot of the pipeline along with all the necessary input datasets
    is available in
    [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746).
@@ -195,7 +195,7 @@ used as a good working model to build your own.
  - Akhlaghi & Ichikawa
    ([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS, 220,
    1): The version controlled reproduction pipeline is available [on
-   Gitlab](https://gitlab.com/makhlaghi/NoiseChisel-paper). This is the
+   GitLab](https://gitlab.com/makhlaghi/NoiseChisel-paper). This is the
    very first (and much less mature) implementation of this pipeline: the
    history of this template pipeline started more than two years after that
    paper was published. It is a very rudimentary/initial implementation,
@@ -380,7 +380,7 @@ Finally, we'll just import all the configuration-Makefiles with a wildcard
 workhorse-Makefiles are imported in the proper order using a Make `foreach`
 loop. This finishes the general view of the pipeline's implementation.
 
-In short, to keep things modular, readable and managable, follow these
+In short, to keep things modular, readable and manageable, follow these
 recommendations: 1) Set clear-to-understand names for the
 configuration-Makefiles, and workhorse-Makefiles, 2) Only import other
 Makefiles from top Makefile. These will let you know/remember generally
@@ -597,20 +597,23 @@ advanced in later stages of your work.
      with. Also check and update this file one last time when you are ready
      to publish your work (and its reproduction pipeline).
 
- - **Copyright**: All the "copyrightable" files (those larger than 10
-     lines) must have a copyright statement and license notice. As you
-     progress with the project and modify files to customize for your
-     project change the copyright owner to your self (since this template
-     is free software, you can do this after you edit any part of
-     it). Also, don't forget to add similar notices to new files you add
-     for your own project. You can always find the files without a
-     copyright notice using this command:
+ - **Copyright and License notice**: To be usable/modifiable by others
+     after publication, _all_ the "copyright-able" files in your project
+     (those larger than 10 lines) must have a copyright notice and license
+     notice. Please take a moment to look at several existing files to see
+     a few examples. The copyright notice is usually close to the start of
+     the file, it is the line starting with `Copyright (C)` and containing
+     a year and the author's name. The License notice is a short (or full,
+     when its not too long, like the MIT license) description of the
+     copyright license, usually less than three paragraphs. Don't forget to
+     add these _two_ notices to any new file you add to this template for
+     your project. When you modify an existing template file (which already
+     has the notices), just add a copyright notice in your name under the
+     existing one(s), like the line below:
 
-     ```shell
-     find . -type f ! -path ./.git/\* \
-       | while read i; do \
-           grep -qi 'copyright \((c)\|[&]copy;\|@copyright\)' $i || echo $i;\
-         done
+     ```
+     Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+     Copyright (C) 2019 YOUR NAME <YOUR@EMAIL.ADDRESS>
      ```
 
  - **Your first commit**: You have already made some small and basic

@@ -9,7 +9,8 @@
 ;;
 ;; For more information see (info "(emacs) Directory Variables")
 ;;
-;; Copyright (C) 2018-2019 Mohammad Akhlaghi.
+;; Copyright (C) 2017 Mosè Giordano <mose@gnu.org>
+;; Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 ;;
 ;; Copying and distribution of this file, with or without modification,
 ;; are permitted in any medium without royalty provided the copyright

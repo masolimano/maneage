@@ -16,11 +16,7 @@
 #   1) Group owner will be the group specified in the command-line.
 #   2) The permission flags give write access to the group members.
 #
-# Original author:
-#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Contributing author(s):
-#     Your name <your@email.address>
-# Copyright (C) 2019, Mohammad Akhlaghi.
+# Copyright (C) 2019, Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
