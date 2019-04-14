@@ -1,4 +1,4 @@
-# A ONE-LINE DESCRIPTION OF THE WHOLE PIPELINE
+# Top-level Makefile (first to be loaded).
 #
 # Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
@@ -26,22 +26,21 @@ include reproduce/config/pipeline/LOCAL.mk
 
 
 
-# Ultimate target of this pipeline
-# --------------------------------
+# Ultimate target of this project
+# -------------------------------
 #
-# The final paper/report (`paper.pdf') is the main target of this whole
-# reproduction pipeline. So as defined in the Make paradigm, it is the
-# first target that we define (immediately after loading the local
-# configuration settings, necessary for a group building scenario mentioned
-# next).
+# The final paper/report (`paper.pdf') is the main target of this
+# project. As defined in the Make paradigm, it must be the first target
+# that Make encounters (immediately after loading the local configuration
+# settings, necessary for a group building scenario mentioned next).
 #
 #
 # Group build
 # -----------
 #
-# This pipeline can also be configured to have a shared build directory
+# This project can also be configured to have a shared build directory
 # between multiple users. In this scenario, many users (on a server) can
-# have their own/separate version controlled pipeline source, but share the
+# have their own/separate version controlled project source, but share the
 # same build outputs (in a common directory). This will allow a group to
 # work separately, on parallel parts of the analysis that don't
 # interfere. It is thus very useful in cases were special storage
@@ -55,8 +54,8 @@ include reproduce/config/pipeline/LOCAL.mk
 #     was used to call Make).
 #
 # The analysis is only done when both have the same group name. Note that
-# when the pipeline isn't being built for a group, both variables will be
-# an empty string.
+# when the project isn't being built for a group, both variables will be an
+# empty string.
 #
 #
 # Only processing, no LaTeX PDF
@@ -70,10 +69,10 @@ all: paper.pdf
 else
 all:
 	@if [ "x$(GROUP-NAME)" = x ]; then                          \
-	  echo "Pipeline is NOT configured for groups, please run"; \
+	  echo "Project is NOT configured for groups, please run"; \
 	  echo "   $$ .local/bin/make";                             \
 	else                                                        \
-	  echo "Pipeline is configured for groups, please run";     \
+	  echo "Project is configured for groups, please run";     \
 	  echo "   $$ ./for-group $(GROUP-NAME) make -j8";          \
 	fi
 endif
@@ -106,7 +105,7 @@ endif
 # include Makefiles from any other Makefile.
 #
 # IMPORTANT NOTE: order matters in the inclusion of the processing
-# Makefiles. As the pipeline grows, some Makefiles will define
+# Makefiles. As the project grows, some Makefiles will define
 # variables/dependencies that later Makefiles need. Therefore we are using
 # a `foreach' loop in the next step to explicitly request loading them in
 # the same order that they are defined here (we aren't just using a
@@ -131,6 +130,6 @@ makesrc = initialize                    \
 #      above.
 #
 #   2) Then, we'll import the workhorse-Makefiles which contain rules to
-#      actually do the processing of this pipeline.
+#      actually do this project's processing.
 include $(filter-out %LOCAL.mk, reproduce/config/pipeline/*.mk)
 include $(foreach s,$(makesrc), reproduce/src/make/$(s).mk)

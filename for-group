@@ -6,12 +6,13 @@
 #    $ ./for-group group_name make [OPTIONS]
 #
 # This is a wrapper for the configure and Make steps designed for a group
-# of users (sharing the same group name) using this pipeline on the same
+# of users (sharing the same group name) working on the project in the same
 # build directory.
 #
 # When the configuration (normally done with `./configure') and build
 # (normally done with `.local/bin/make') steps are done with this script,
-# all the files that are created within the pipeline have these properties:
+# all the files that are created within the project will have these
+# properties:
 #
 #   1) Group owner will be the group specified in the command-line.
 #   2) The permission flags give write access to the group members.

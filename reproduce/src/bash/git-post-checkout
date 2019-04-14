@@ -7,7 +7,7 @@
 # Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This script is taken from the `examples/hooks/pre-commit' file of the
-# `metastore' package (installed within the pipeline, with an MIT license
+# `metastore' package (installed within the project, with an MIT license
 # for copyright). We have just changed the name of the `MSFILE' and also
 # set special characters for the installation location of meta-store so our
 # own installation is found by Git.

@@ -1,4 +1,4 @@
-# Attempt downloading multiple times before crashing whole pipeline. From
+# Attempt downloading multiple times before crashing whole project. From
 # the top project directory (for the shebang above), this script must be
 # run like this:
 #
@@ -10,13 +10,13 @@
 #
 # Due to temporary network problems, a download may fail suddenly, but
 # succeed in a second try a few seconds later. Without this script that
-# temporary glitch in the network will permanently crash the pipeline and
+# temporary glitch in the network will permanently crash the project and
 # it can't continue. The job of this script is to be patient and try the
-# download multiple times before crashing the whole pipeline.
+# download multiple times before crashing the whole project.
 #
 # LOCK FILE: Since there is ultimately only one network port to the outside
 # world, downloading is done much faster in serial, not in parallel. But
-# the pipeline's processing may be done in parallel (with multiple threads
+# the project's processing may be done in parallel (with multiple threads
 # needing to download different files at the same time). Therefore, this
 # script uses the `flock' program to only do one download at a time. To
 # benefit from it, any call to this script must be given the same lock

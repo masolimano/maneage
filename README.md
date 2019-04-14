@@ -1,11 +1,11 @@
-Reproduction pipeline for paper XXXXXXX
-=======================================
+Reproducible source for paper XXXXXXX
+=====================================
 
 Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 See the end of the file for license conditions.
 
-This is the reproduction pipeline for the paper titled "**XXXXXX**", by
-XXXXXXXX et al. (**IN PREPARATION**). To learn more about the purpose,
+This is the reproducible project source for the paper titled "**XXXXXX**",
+by XXXXXXXX et al. (**IN PREPARATION**). To learn more about the purpose,
 principles and technicalities of this reproducible paper, please see
 `README-hacking.md`.
 
@@ -24,7 +24,7 @@ $ .local/bin/make -j8
 ```
 
 For a general introduction to reproducible science as implemented in this
-pipeline, please see the [principles of reproducible
+project, please see the [principles of reproducible
 science](http://akhlaghi.org/reproducible-science.html), and a
 [reproducible paper
 template](https://gitlab.com/makhlaghi/reproducible-paper) that is based on
@@ -34,24 +34,24 @@ it.
 
 
 
-Running the pipeline
+Building the project
 --------------------
 
-This pipeline was designed to have as few dependencies as possible.
+This project was designed to have as few dependencies as possible.
 
 1. Necessary dependencies:
 
    1.1: Minimal software building tools like C compiler, Make, and other
         tools found on any Unix-like operating system (GNU/Linux, BSD, Mac
         OS, and others). All necessary dependencies will be built from
-        source (for use only within this pipeline) by the `./configure'
+        source (for use only within this project) by the `./configure'
         script (next step).
 
    1.2: (OPTIONAL) Tarball of dependencies. If they are already present (in
         a directory given at configuration time), they will be
         used. Otherwise, a downloader (`wget` or `curl`) will be necessary
         to download any necessary tarball. The necessary tarballs are also
-        collected in the link below for easy download. [[TO PIPELINE
+        collected in the link below for easy download. [[TO PROJECT
         DESIGNERS: it is STRONGLY RECOMMENDED to keep a backup of all the
         necessary software tarballs you need for the project (possibly in
         another Git repository). For example see [this template's
@@ -65,8 +65,8 @@ This pipeline was designed to have as few dependencies as possible.
    recommended to set directories outside the current directory. Please
    read the description of each necessary input clearly and set the best
    value. Note that the configure script also downloads, builds and locally
-   installs (only for this pipeline, no root privileges necessary) many
-   programs (pipeline dependencies). So it may take a while to complete.
+   installs (only for this project, no root privileges necessary) many
+   programs (project dependencies). So it may take a while to complete.
 
      ```shell
      $ ./configure

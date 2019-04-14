@@ -1,4 +1,4 @@
-# Build the reproduction pipeline dependencies (programs and libraries).
+# Build the project's dependencies (programs and libraries).
 #
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!
@@ -46,7 +46,7 @@ ipydir  = $(BDIR)/dependencies/installed/version-info/python
 
 # Define the top-level programs to build (installed in `.local/bin').
 #
-# About ATLAS: currently the core pipeline does not depend on ATLAS but many
+# About ATLAS: currently the template does not depend on ATLAS but many
 # high level software depend on it. The current rule for ATLAS is tested
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
@@ -486,12 +486,12 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 
 # cURL (and its library, which is needed by several programs here) can
 # optionally link with many different network-related libraries on the host
-# system that we are not yet building in the pipeline. Many of these are
+# system that we are not yet building in the template. Many of these are
 # not relevant to most science projects, so we are explicitly using
 # `--without-XXX' or `--disable-XXX' so cURL doesn't link with them. Note
-# that if it does link with them, the pipeline will crash when the library
-# is updated/changed by the host, and the whole purpose of this pipeline is
-# avoid dependency on the host as much as possible.
+# that if it does link with them, the configuration will crash when the
+# library is updated/changed by the host, and the whole purpose of this
+# project is avoid dependency on the host as much as possible.
 $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz
 	$(call gbuild, $<, curl-$(curl-version), ,       \
 	               LIBS="-pthread"                   \
@@ -526,7 +526,7 @@ $(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
 # Metastore is used (through a Git hook) to restore the source modification
 # dates of files after a Git checkout. Another Git hook saves all file
 # metadata just before a commit (to allow restoration after a
-# checkout). Since this pipeline is managed in Makefiles, file modification
+# checkout). Since this project is managed in Makefiles, file modification
 # dates are critical to not having to redo the whole analysis after
 # checking out between branches.
 #
@@ -583,8 +583,8 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 	  echo "metastore couldn't be installed!"
 	  echo
 	  echo "Its used for preserving timestamps on Git commits."
-	  echo "Its useful for development, not simple running of the pipeline."
-	  echo "So we won't stop the pipeline because it wasn't built."
+	  echo "Its useful for development, not simple running of the project."
+	  echo "So we won't stop the configuration because it wasn't built."
 	  echo "*****************"
 	fi
 
@@ -634,8 +634,8 @@ $(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 # Since we want to avoid complicating the PATH, we are putting a symbolic
 # link of all the TeX Live executables in $(ibdir). But symbolic links are
 # hard to track for Make (as a target). Also, TeX in general is optional
-# for the pipeline (the processing is the main target, not the generation
-# of the final PDF). So we'll make a simple ASCII file called
+# for the project (the processing is the main target, not the generation of
+# the final PDF). So we'll make a simple ASCII file called
 # `texlive-ready-tlmgr' and use its contents to mark if we can use it or
 # not.
 $(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
@@ -648,7 +648,7 @@ $(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
 	rm -rf install-tl-*
 	tar xf $(tdir)/install-tl-unx.tar.gz
 	cd install-tl-*
-	sed -e's|@installdir[@]|$(idir)|g' -e's|@topdir[@]|'"$$topdir"'|g' \
+	sed -e's|@installdir[@]|$(idir)|g' \
 	    $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
 
         # TeX Live's installation may fail due to any reason. But TeX Live
@@ -688,9 +688,6 @@ $(itidir)/texlive: reproduce/config/pipeline/dependency-texlive.mk \
 	if [ x"$$res" = x"NOT!" ]; then
 	  echo "" > $@
 	else
-          # The current directory is necessary later.
-	  topdir=$$(pwd)
-
           # Install all the extra necessary packages. If LaTeX complains
           # about not finding a command/file/what-ever/XXXXXX, simply run
           # the following command to find which package its in, then add it

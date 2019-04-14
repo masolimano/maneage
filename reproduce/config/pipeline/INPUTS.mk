@@ -1,4 +1,4 @@
-# Input files necessary for this pipeline.
+# Input files necessary for this project.
 #
 # This file is read by the configure script and running Makefiles.
 #

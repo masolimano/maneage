@@ -22,9 +22,8 @@
 # ----------------------
 #
 # To report the input settings and results, the final report's PDF (final
-# target of this reproduction pipeline) uses macros generated from various
-# steps of the pipeline. All these macros are defined in
-# `$(mtexdir)/pipeline.tex'.
+# target of this project) uses macros generated from various steps of the
+# project. All these macros are defined in `$(mtexdir)/pipeline.tex'.
 #
 # `$(mtexdir)/pipeline.tex' is actually just a combination of separate
 # files that keep the LaTeX macros related to each workhorse Makefile (in
@@ -32,7 +31,7 @@
 # `$(mtexdir)/pipeline.tex'. The only workhorse Makefile that doesn't need
 # to produce LaTeX macros is this Makefile (`reproduce/src/make/paper.mk').
 #
-# This file is thus the interface between the pipeline scripts and the
+# This file is thus the interface between the processing scripts and the
 # final PDF: when we get to this point, all the processing has been
 # completed.
 #
@@ -61,13 +60,13 @@ $(mtexdir)/pipeline.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s
 	  echo "LaTeX-built PDF paper will not be built."
 	  echo
 	  if [ x$(more-on-building-pdf) = x1 ]; then
-	    echo "To do so, make sure you have LaTeX within the pipeline (you"
+	    echo "To do so, make sure you have LaTeX within the project (you"
 	    echo "can check by running './.local/bin/latex --version'), _AND_"
 	    echo "make sure that the 'pdf-build-final' variable has a value."
 	    echo "'pdf-build-final' is defined in: "
 	    echo     "'reproduce/config/pipeline/pdf-build.mk'."
 	    echo
-	    echo "If you don't have LaTeX within the pipeline, please re-run"
+	    echo "If you don't have LaTeX within the project, please re-run"
 	    echo "'./configure' when you have internet access. To speed it up,"
 	    echo "you can keep the previous configuration files (answer 'n'"
 	    echo "when it asks about re-writing previous configuration files)."
@@ -120,8 +119,8 @@ $(texbdir)/paper.bbl: tex/src/references.tex                         \
 # Run LaTeX in the `$(texbdir)' directory so all the intermediate and
 # auxiliary files stay there and keep the top directory clean. To be able
 # to run everything cleanly from there, it is necessary to add the current
-# directory (top reproduction pipeline directory) to the `TEXINPUTS'
-# environment variable.
+# directory (top project directory) to the `TEXINPUTS' environment
+# variable.
 paper.pdf: $(mtexdir)/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
 	   | $(tikzdir) $(texbdir)
 
@@ -135,7 +134,7 @@ paper.pdf: $(mtexdir)/pipeline.tex paper.tex $(texbdir)/paper.bbl       \
 	  cd $(texbdir)
 	  pdflatex -shell-escape -halt-on-error $$p/paper.tex
 
-          # Come back to the top pipeline directory and copy the built PDF
+          # Come back to the top project directory and copy the built PDF
           # file here.
 	  cd $$p
 	  cp $(texbdir)/$@ $(final-paper)

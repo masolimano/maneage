@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Necessary preparations/configurations for the reproduction pipeline.
+# Necessary preparations/configurations for the reproducible project.
 #
 # Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
@@ -56,15 +56,15 @@ information printed before them). Alternatively, if you have already
 configured this script for your system, you can use the '--existing-conf'
 to use its values directly.
 
-RECOMMENDATION: If this is the first time you are running this pipeline,
+RECOMMENDATION: If this is the first time you are running this template,
 please don't use the options and let the script explain each parameter in
 full detail by simply running './configure'.
 
-The only mandatory value for this script is the local build directory. This
-is where all the pipeline's outputs will be stored. Optionally, you can
-also provide directories that host input data, or software source codes. If
-the necessary files don't exist there, the template will automatically
-download them.
+The only mandatory value is the local build directory. This is where all
+the (temporary) built files will be stored. Optionally, you can also
+provide directories that host input data, or software source codes. If the
+necessary files don't exist there, the template will automatically download
+them.
 
 With the options below you can modify the default behavior. Just note that
 you should not put an '=' sign between an option name and its value.
@@ -216,14 +216,13 @@ function create_file_with_notice() {
     if echo "# IMPORTANT: file can be RE-WRITTEN after './configure'"  > "$1"
     then
         echo "#"                                                      >> "$1"
-        echo "# This file was created during the reproduction"        >> "$1"
-        echo "# pipeline's configuration ('./configure'). Therefore," >> "$1"
-        echo "# it is not under version control and any manual "      >> "$1"
-        echo "# changes to it will be over-written if the pipeline "  >> "$1"
-        echo "# is re-configured."                                    >> "$1"
+        echo "# This file was created during configuration"           >> "$1"
+        echo "# ('./configure'). Therefore, it is not under version"  >> "$1"
+        echo "# control and any manual changes to it will be"         >> "$1"
+        echo "# over-written if the project re-configured."           >> "$1"
         echo "#"                                                      >> "$1"
     else
-        echo; echo "Can't write to "$1""; echo;
+        echo; echo "Can't write to $1"; echo;
         exit 1
     fi
 }
@@ -256,15 +255,13 @@ function absolute_dir() {
 # on and is prepared on what will happen next.
 cat <<EOF
 
------------------------------------------
-Reproduction pipeline local configuration
------------------------------------------
+-----------------------------
+Project's local configuration
+-----------------------------
 
 Local configuration includes things like top-level directories, or
-processing steps.
-
-It is STRONGLY recommended to read the comments, and set the best values
-for your system (where necessary).
+processing steps. It is STRONGLY recommended to read the comments, and set
+the best values for your system (where necessary).
 
 EOF
 
@@ -275,7 +272,7 @@ EOF
 # What to do with possibly existing configuration file
 # ----------------------------------------------------
 #
-# `LOCAL.mk' is the top-most local configuration for the pipeline. If it
+# `LOCAL.mk' is the top-most local configuration for the project. If it
 # already exists when this script is run, we'll make a copy of it as backup
 # (for example the user might have ran `./configure' by mistake).
 printnotice=yes
@@ -309,7 +306,7 @@ if [ $rewritepconfig = no ]; then
             status="configured for '$oldgroupname' group"
             confcommand="./for-group $oldgroupname configure"
         fi
-        echo "Previous pipeline was $status!"
+        echo "Project was previously $status!"
         echo "Either enable re-write of this configuration file,"
         echo "or re-run this configuration like this:"
         echo
@@ -353,7 +350,7 @@ if [ $rewritepconfig = yes ]; then
 Couldn't find GNU Wget, or cURL on this system. These programs are used for
 downloading necessary programs and data if they aren't already present (in
 directories that you can specify with this configure script). Therefore if
-the necessary files are not present, the pipeline will crash.
+the necessary files are not present, the project will crash.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -444,7 +441,7 @@ if [ $rewritepconfig = yes ] && [ x"$input_dir" = x ]; then
 (OPTIONAL) Input dataset directory
 ----------------------------------
 
-This pipeline needs the dataset(s) listed below. If you already have them,
+This project needs the dataset(s) listed below. If you already have them,
 please specify the directory hosting them on this system. If you don't,
 they will be downloaded automatically. Each file is shown with its total
 volume and its 128-bit MD5 checksum in parenthesis.
@@ -491,14 +488,14 @@ if [ $rewritepconfig = yes ] && [ x"$software_dir" = x ]; then
 (OPTIONAL) Software tarball directory
 ---------------------------------------
 
-To ensure an identical build environment, the pipeline will use its own
+To ensure an identical build environment, the project will use its own
 build of the programs it needs. Therefore the tarball of the relevant
-programs are necessary for this pipeline. If a tarball isn't present in the
-specified directory, *IT WILL BE DOWNLOADED* by the pipeline.
+programs are necessary. If a tarball isn't present in the specified
+directory, *IT WILL BE DOWNLOADED* automatically.
 
-Therefore, if you don't specify any directory here, or it doesn't contain
-the tarball of a dependency, it is necessary to have an internet
-connection. The pipeline will download the tarballs it needs automatically.
+If you don't specify any directory here, or it doesn't contain the tarball
+of a dependency, it is necessary to have an internet connection. The
+project will download the tarballs it needs automatically.
 
 EOF
     read -p"(OPTIONAL) Directory of dependency tarballs ($ddir): " tmpddir
@@ -515,7 +512,7 @@ fi
 # Write the parameters into the local configuration file.
 if [ $rewritepconfig = yes ]; then
 
-    # Make the pipeline configuration's initial comments.
+    # Add commented notice.
     create_file_with_notice $pconf
 
     # Write the values.
@@ -601,16 +598,20 @@ if [ $rewritegconfig = yes ]; then
 else
     ingversion=$(awk '$1=="onlyversion" {print $NF}' $glconf)
     if [ x$ingversion != x$gversion ]; then
-        echo "______________________________________________________"
-        echo "!!!!!!!!!!!!!!!!!!CONFIGURATION ERROR!!!!!!!!!!!!!!!!!"
-        echo
-        echo "Gnuastro's version in '$glconf' ($ingversion) doesn't match the tarball version that this pipeline was designed to use in '$depverfile' ($gversion). Please re-run after removing the former file:"
-        echo
-        echo "   $ rm $glconf"
-        echo "   $ ./configure"
-        echo
-        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        echo
+           cat <<EOF
+______________________________________________________
+!!!!!!!!!!!!!!!!!!CONFIGURATION ERROR!!!!!!!!!!!!!!!!!
+
+Gnuastro's version in '$glconf' ($ingversion) doesn't match the tarball
+version that this project was designed to use in '$depverfile'
+($gversion). Please re-run after removing the former file:
+
+   $ rm $glconf
+   $ ./configure
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
         exit 1
     fi
 fi
@@ -786,8 +787,8 @@ Building dependencies ...
 Necessary dependency programs and libraries will be built in $tsec sec.
 
 NOTE: the built software will NOT BE INSTALLED on your system (no root
-access is required). They are only for local usage by this reproduction
-pipeline. They will be installed in:
+access is required). They are only for local usage by this project. They
+will be installed in:
 
   $depdir/installed
 
@@ -823,10 +824,10 @@ fi
 # Build `flock' as first program
 # ------------------------------
 #
-# Flock (or file-lock) is a unique program in the pipeline that is
-# necessary to serialize the (generally parallel) processing of make when
-# necessary. GNU/Linux machines have it as part of their `util-linux'
-# programs. But to be consistent, we will be using our own build.
+# Flock (or file-lock) is a unique program that is necessary to serialize
+# the (generally parallel) processing of make when necessary. GNU/Linux
+# machines have it as part of their `util-linux' programs. But to be
+# consistent in non-GNU/Linux systems, we will be using our own build.
 #
 # The reason its sepecial is that we need it to serialize the download
 # process of the dependency tarballs.
@@ -903,7 +904,7 @@ if [ $host_cc = 0 ]; then
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 This system's C compiler (called with 'gcc') can't include
-'sys/cdefs.h. Because of this, this pipeline can't build its custom GCC to
+'sys/cdefs.h. Because of this, the project can't build its custom GCC to
 ensure better reproducibility. We strongly recommend installing the proper
 package (for your operating system) that installs this necessary file. For
 example on some Debian-based GNU/Linux distros, you need these two
@@ -911,8 +912,8 @@ packages: 'gcc-multilib' and 'g++-multilib'.
 
 However, since GCC is pretty low-level, this configuration script will
 continue in 5 seconds and use your system's C compiler (it won't build a
-custom GCC). But please consider installing the necessary package to
-complete your C compiler, then re-run the pipeline.
+custom GCC). But please consider installing the necessary package(s) to
+complete your C compiler, then re-run './configure'.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EOF
@@ -980,10 +981,10 @@ numthreads=$($instdir/bin/nproc)
 #
 # TeX Live is managed over the internet, so if there isn't any, or it
 # suddenly gets cut, it can't be built. However, when TeX Live isn't
-# installed, the pipeline and can do all its processing independent of
-# it. It will just stop at the stage when all the processing is complete
-# and it is only necessary to build the PDF.  So we don't want to stop the
-# pipeline if its not present.
+# installed, the project can do all its processing independent of it. It
+# will just stop at the stage when all the processing is complete and it is
+# only necessary to build the PDF.  So we don't want to stop the project's
+# configuration and building if its not present.
 texlive_result=$(cat $itidir/texlive-ready-tlmgr)
 if [ x"$texlive_result" = x"NOT!" ]; then
     cat <<EOF
@@ -1001,9 +1002,9 @@ Therefore, if you don't need the final PDF, and just want to do the
 analysis, you can safely ignore this warning and continue.
 
 If you later have internet access and would like to add TeX live to your
-pipeline, please delete the respective files, then re-run configure as
-shown below. Within configure, answer 'n' (for "no") when asked to re-write
-the configuration files.
+project, please delete the respective files, then re-run configure as shown
+below. Within configure, answer 'n' (for "no") when asked to re-write the
+configuration files.
 
     rm .local/version-info/tex/texlive-ready-tlmgr
     ./configure
@@ -1125,7 +1126,7 @@ fi
 cat <<EOF
 
 ----------------
-The reproduction pipeline and its environment are configured with no errors.
+The project and its environment are configured with no errors.
 
 Please run the following command to start.
 (Replace '8' with the number of CPU threads)

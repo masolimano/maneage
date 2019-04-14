@@ -25,8 +25,8 @@
 # --------------------
 #
 # The input dataset properties are defined in `$(pconfdir)/INPUTS.mk'. For
-# this template pipeline we only have one dataset to enable easy
-# processing, so all the extra checks in this rule may seem redundant.
+# this template we only have one dataset to enable easy processing, so all
+# the extra checks in this rule may seem redundant.
 #
 # In a real project, you will need more than one dataset. In that case,
 # just add them to the target list and add an `elif' statement to define it
@@ -35,7 +35,7 @@
 # Files in a server usually have very long names, which are mainly designed
 # for helping in data-base management and being generic. Since Make uses
 # file names to identify which rule to execute, and the scope of this
-# research pipeline is much less than the generic survey/dataset, it is
+# research project is much less than the generic survey/dataset, it is
 # easier to have a simple/short name for the input dataset and work with
 # that. In the first condition of the recipe below, we connect the short
 # name with the raw database name of the dataset.

@@ -4,49 +4,48 @@ Reproducible paper template
 Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 See the end of the file for license conditions.
 
-This project contains a **fully working template** for a high-level
-research reproduction pipeline, or reproducible paper, as defined in the
-link below. If the link below is not accessible at the time of reading,
-please see the appendix at the end of this file for a portion of its
-introduction. Some [slides](http://akhlaghi.org/pdf/reproducible-paper.pdf)
-are also available to help demonstrate the concept implemented here.
+This project contains a **fully working template** for doing reproducible
+research (or writing a reproducible paper) as defined in the link below. If
+the link below is not accessible at the time of reading, please see the
+appendix at the end of this file for a portion of its introduction. Some
+[slides](http://akhlaghi.org/pdf/reproducible-paper.pdf) are also available
+to help demonstrate the concept implemented here.
 
   http://akhlaghi.org/reproducible-science.html
 
 This template is created with the aim of supporting reproducible research
 by making it easy to start a project in this framework. As shown below, it
-is very easy to customize this template reproducible paper pipeline for any
-particular research/job and expand it as it starts and evolves. It can be
-run with no modification (as described in `README.md`) as a demonstration
-and customized for use in any project as fully described below.
+is very easy to customize this reproducible paper template for any
+particular (research) project and expand it as it starts and evolves. It
+can be run with no modification (as described in `README.md`) as a
+demonstration and customized for use in any project as fully described
+below.
 
-The pipeline will download and build all the necessary libraries and
-programs for working in a closed environment (highly independent of the
-host operating system) with fixed versions of the necessary
-dependencies. The tarballs for building the local environment are also
-collected in a [separate
+A project designed using this template will download and build all the
+necessary libraries and programs for working in a closed environment
+(highly independent of the host operating system) with fixed versions of
+the necessary dependencies. The tarballs for building the local environment
+are also collected in a [separate
 repository](https://gitlab.com/makhlaghi/reproducible-paper-dependencies). The
-[final reproducible paper
-output](https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf)
-of this pipeline is also present in [a separate
-repository](https://gitlab.com/makhlaghi/reproducible-paper-output). Notice
-the last paragraph of the Acknowledgments where all the dependencies are
-mentioned with their versions.
+final output of the project is [a
+paper](https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf).
+Notice the last paragraph of the Acknowledgments where all the necessary
+software are mentioned with their versions.
 
 Below, we start with a discussion of why Make was chosen as the high-level
-language/framework for this research reproduction pipeline and how to learn
-and master Make easily (and freely). The general architecture and design of
-the pipeline is then discussed to help you navigate the files and their
-contents. This is followed by a checklist for the easy/fast customization
-of this pipeline to your exciting research. We continue with some tips and
-guidelines on how to manage or extend the pipeline as your research grows
-based on our experiences with it so far. The main body concludes with a
-description of possible future improvements that are planned for the
-pipeline (but not yet implemented). As discussed above, we end with a short
-introduction on the necessity of reproducible science in the appendix.
+language/framework for project management and how to learn and master Make
+easily (and freely). The general architecture and design of the project is
+then discussed to help you navigate the files and their contents. This is
+followed by a checklist for the easy/fast customization of this template to
+your exciting research. We continue with some tips and guidelines on how to
+manage or extend your project as it grows based on our experiences with it
+so far. The main body concludes with a description of possible future
+improvements that are planned for the template (but not yet
+implemented). As discussed above, we end with a short introduction on the
+necessity of reproducible science in the appendix.
 
 Please don't forget to share your thoughts, suggestions and criticisms on
-this pipeline. Maintaining and designing this pipeline is itself a separate
+this template. Maintaining and designing this template is itself a separate
 project, so please join us if you are interested. Once it is mature enough,
 we will describe it in a paper (written by all contributors) for a formal
 introduction to the community.
@@ -59,7 +58,7 @@ Why Make?
 ---------
 
 When batch processing is necessary (no manual intervention, as in a
-reproduction pipeline), shell scripts are usually the first solution that
+reproducible project), shell scripts are usually the first solution that
 come to mind. However, the inherent complexity and non-linearity of
 progress in a scientific project (where experimentation is key) make it
 hard to manage the script(s) as the project evolves. For example, a script
@@ -79,18 +78,18 @@ to find in the end.
 
 The Make paradigm, on the other hand, starts from the end: the final
 *target*. It builds a dependency tree internally, and finds where it should
-start each time the pipeline is run. Therefore, in the scenario above, a
+start each time the project is run. Therefore, in the scenario above, a
 researcher that has just added the final 10% of steps of her research to
 her Makefile, will only have to run those extra steps. With Make, it is
 also trivial to change the processing of any intermediate (already written)
 *rule* (or step) in the middle of an already written analysis: the next
 time Make is run, only rules that are affected by the changes/additions
-will be re-run, not the whole analysis/pipeline.
+will be re-run, not the whole analysis/project.
 
 This greatly speeds up the processing (enabling creative changes), while
 keeping all the dependencies clearly documented (as part of the Make
 language), and most importantly, enabling full reproducibility from scratch
-with no changes in the pipeline code that was working during the
+with no changes in the project code that was working during the
 research. This will allow robust results and let the scientists get to what
 they do best: experiment and be critical to the methods/analysis without
 having to waste energy and time on technical problems that come up as a
@@ -117,9 +116,9 @@ Make is a +40 year old software that is still evolving, therefore many
 implementations of Make exist. The only difference in them is some extra
 features over the [standard
 definition](https://pubs.opengroup.org/onlinepubs/009695399/utilities/make.html)
-(which is shared in all of them). This pipeline has been created for GNU
+(which is shared in all of them). This template has been created for GNU
 Make which is the most common, most actively developed, and most advanced
-implementation. Just note that this pipeline downloads, builds, internally
+implementation. Just note that this template downloads, builds, internally
 installs, and uses its own dependencies (including GNU Make), so you don't
 have to have it installed before you try it out.
 
@@ -168,41 +167,38 @@ your hands off the keyboard!).
 
 
 
-Published works using this pipeline
+Published works using this template
 -----------------------------------
 
 The links below will guide you to some of the works that have already been
-published using the method of this pipeline. Note that this pipeline is
-evolving, so some small details may be different in them, but they can be
-used as a good working model to build your own.
+published with (earlier versions of) this template. Note that this template
+is evolving, so some small details may be different in them, but they can
+be used as a good working model to build your own.
 
  - Section 7.3 of Bacon et
    al. ([2017](http://adsabs.harvard.edu/abs/2017A%26A...608A...1B), A&A
-   608, A1): The version controlled reproduction pipeline is available [on
+   608, A1): The version controlled project source is available [on
    GitLab](https://gitlab.com/makhlaghi/muse-udf-origin-only-hst-magnitudes)
-   and a snapshot of the pipeline along with all the necessary input
+   and a snapshot of the project along with all the necessary input
    datasets and outputs is available in
    [zenodo.1164774](https://doi.org/10.5281/zenodo.1164774).
 
  - Section 4 of Bacon et
    al. ([2017](http://adsabs.harvard.edu/abs/2017A%26A...608A...1B), A&A,
-   608, A1): The version controlled reproduction pipeline is available [on
+   608, A1): The version controlled project is available [on
    GitLab](https://gitlab.com/makhlaghi/muse-udf-photometry-astrometry) and
-   a snapshot of the pipeline along with all the necessary input datasets
-   is available in
-   [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746).
+   a snapshot of the project along with all the necessary input datasets is
+   available in [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746).
 
  - Akhlaghi & Ichikawa
    ([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS, 220,
-   1): The version controlled reproduction pipeline is available [on
+   1): The version controlled project is available [on
    GitLab](https://gitlab.com/makhlaghi/NoiseChisel-paper). This is the
-   very first (and much less mature) implementation of this pipeline: the
-   history of this template pipeline started more than two years after that
-   paper was published. It is a very rudimentary/initial implementation,
-   thus it is only included here for historical reasons. However, the
-   pipeline is complete and accurate and uploaded to arXiv along with the
-   paper. See the more recent implementations if you want to get ideas for
-   your version of this pipeline.
+   very first (and much less mature!) implementation of this template: the
+   history of this template started more than two years after this paper
+   was published. It is a very rudimentary/initial implementation, thus it
+   is only included here for historical reasons. However, the project
+   source is complete, accurate and uploaded to arXiv along with the paper.
 
 
 
@@ -211,22 +207,21 @@ used as a good working model to build your own.
 Citation
 --------
 
-A paper will be published to fully describe this reproduction
-pipeline. Until then, if this pipeline is useful in your work, please cite
-the paper that implemented the first version of this pipeline: Akhlaghi &
-Ichikawa ([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS,
-220, 1).
+A paper will be published to fully describe this reproducible paper
+template. Until then, if you used this template in your work, please cite
+the paper that implemented its first version: Akhlaghi & Ichikawa
+([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS, 220, 1).
 
 The experience gained with this template after several more implementations
-will be used to make this pipeline robust enough for a complete and useful
-paper to introduce to the community afterwards.
+will be used to make it robust enough for a complete and useful paper to
+introduce to the community afterwards.
 
 Also, when your paper is published, don't forget to add a notice in your
 own paper (in coordination with the publishing editor) that the paper is
 fully reproducible and possibly add a sentence or paragraph in the end of
 the paper shortly describing the concept. This will help spread the word
-and encourage other scientists to also publish their reproduction
-pipelines.
+and encourage other scientists to also manage and publish their projects in
+a reproducible manner.
 
 
 
@@ -237,19 +232,19 @@ pipelines.
 
 
 
-Reproduction pipeline architecture
-==================================
+Project architecture
+====================
 
-In order to adopt this pipeline to your research, it is important to first
-understand its architecture so you can navigate your way in the directories
-and understand how to implement your research project within its
-framework. But before reading this theoretical discussion, please run the
-pipeline (described in `README.md`: first run `./configure`, then
+In order to customize this template to your research, it is important to
+first understand its architecture so you can navigate your way in the
+directories and understand how to implement your research project within
+its framework. But before reading this theoretical discussion, please run
+the template (described in `README.md`: first run `./configure`, then
 `.local/bin/make -j8`) without any change, just to see how it works.
 
 In order to obtain a reproducible result it is important to have an
 identical environment (for example same versions of the programs that it
-will use). Therefore, the pipeline builds its own dependencies during the
+will use). Therefore, the projects builds its own dependencies during the
 `./configure` step. Building of the dependencies is managed by
 `reproduce/src/make/dependencies-basic.mk` and
 `reproduce/src/make/dependencies.mk`. These Makefiles are called by the
@@ -258,10 +253,9 @@ downloading and building the most basic tools like GNU Tar, GNU Bash, GNU
 Make, and GNU Compiler Collection (GCC). Therefore it must only contain
 very basic and portable Make and shell features. The second is called after
 the first, thus enabling usage of the modern and advanced features of GNU
-Bash, GNU Make and other low-level GNU tools, similar to the rest of the
-pipeline. Later, if you add a new program/library for your research, you
-will need to include a rule on how to download and build it (in
-`reproduce/src/make/dependencies.mk`).
+Bash, GNU Make and other low-level GNU tools. Later, if you add a new
+program/library for your research, you will need to include a rule on how
+to download and build it (mostly in `reproduce/src/make/dependencies.mk`).
 
 After it finishes, `./configure` will create the following symbolic links
 in the project's top source directory: 1) `Makefile` in the top directory
@@ -294,11 +288,11 @@ To keep the source and (intermediate) built files separate, you _must_
 define a top-level build directory variable (or `$(BDIR)`) to host all the
 intermediate files (it was defined in `./configure`). This directory
 doesn't need to be version controlled or even synchronized, or backed-up in
-other servers: its contents are all products of the pipeline, and can be
-easily re-created any time. As you define targets for your new rules, it is
-thus important to place them all under sub-directories of `$(BDIR)`. As
-mentioned above, you always have fast access to this "build"-directory with
-the `.build` symbolic link.
+other servers: its contents are all products, and can be easily re-created
+any time. As you define targets for your new rules, it is thus important to
+place them all under sub-directories of `$(BDIR)`. As mentioned above, you
+always have fast access to this "build"-directory with the `.build`
+symbolic link.
 
 In this architecture, we have two types of Makefiles that are loaded into
 the top `Makefile`: _configuration-Makefiles_ (only independent
@@ -309,11 +303,11 @@ The configuration-Makefiles are those that satisfy this wildcard:
 `reproduce/config/pipeline/*.mk`. These Makefiles don't actually have any
 rules, they just have values for various free parameters throughout the
 analysis/processing. Open a few of them to see for yourself. These
-Makefiles must only contain raw Make variables (pipeline
-configurations). By "raw" we mean that the Make variables in these files
-must not depend on variables in any other configuration-Makefile. This is
-because we don't want to assume any order in reading them. It is also very
-important to *not* define any rule, or other Make construct, in these
+Makefiles must only contain raw Make variables (project configurations). By
+"raw" we mean that the Make variables in these files must not depend on
+variables in any other configuration-Makefile. This is because we don't
+want to assume any order in reading them. It is also very important to
+*not* define any rule, or other Make construct, in these
 configuration-Makefiles.
 
 This enables you to set these configure-Makefiles as a prerequisite to any
@@ -342,13 +336,13 @@ aren't directly a prerequisite of other workhorse-Makefile targets, they
 can be a pre-requisite of that intermediate LaTeX macro file and thus be
 called when necessary. Otherwise, they will be ignored by Make.
 
-This pipeline also has a mode to share the build directory between several
+This template also has a mode to share the build directory between several
 users of a Unix group (when working on large computer clusters). In this
-scenario, each user can have their own cloned pipeline source, but share
-the large built files between each other. To do this, it is necessary for
-all built files to give full permission to group members while not allowing
-any other users access to the contents. Therefore the `./configure` and
-Make steps must be called with special conditions which are managed in the
+scenario, each user can have their own cloned project source, but share the
+large built files between each other. To do this, it is necessary for all
+built files to give full permission to group members while not allowing any
+other users access to the contents. Therefore the `./configure` and Make
+steps must be called with special conditions which are managed in the
 `for-group` script.
 
 Let's see how this design is implemented. When `./configure` finishes: By
@@ -360,9 +354,9 @@ configuration-Makefile `reproduce/config/pipeline/LOCAL.mk` which was also
 built by `./configure` (based on the `LOCAL.mk.in` template).
 
 The next non-commented set of lines define the ultimate target of the whole
-pipeline (`paper.pdf`). But to avoid mistakes, a sanity check is necessary
+project (`paper.pdf`). But to avoid mistakes, a sanity check is necessary
 to see if Make is being run with the same group settings as the configure
-script (for example when the pipeline is configured for group access using
+script (for example when the project is configured for group access using
 the `./for-group` script, but Make isn't). Therefore we use a Make
 conditional to define the `all` target based on the group permissions being
 consistent between the initial configuration and the current run.
@@ -378,7 +372,7 @@ proper order.
 Finally, we'll just import all the configuration-Makefiles with a wildcard
 (while ignoring `LOCAL.mk` that was imported before). Also, all
 workhorse-Makefiles are imported in the proper order using a Make `foreach`
-loop. This finishes the general view of the pipeline's implementation.
+loop. This finishes the general view of the template's implementation.
 
 In short, to keep things modular, readable and manageable, follow these
 recommendations: 1) Set clear-to-understand names for the
@@ -393,15 +387,14 @@ possible.
 
 The `reproduce/src/make/paper.mk` Makefile must be the final Makefile that
 is included. This workhorse Makefile ends with the rule to build
-`paper.pdf` (final target of the whole reproduction pipeline). If you look
-in it, you will notice that it starts with a rule to create
-`$(mtexdir)/pipeline.tex` (`mtexdir` is just a shorthand name for
-`$(BDIR)/tex/macros` mentioned before).  `$(mtexdir)/pipeline.tex` is the
-connection between the processing/analysis steps of the pipeline, and the
-steps to build the final PDF. As you see, `$(mtexdir)/pipeline.tex` only
-instructs LaTeX to import the LaTeX macros of each high-level processing
-step during the analysis (the separate work-horse Makefiles that you
-defined and included).
+`paper.pdf` (final target of the whole project). If you look in it, you
+will notice that it starts with a rule to create `$(mtexdir)/pipeline.tex`
+(`mtexdir` is just a shorthand name for `$(BDIR)/tex/macros` mentioned
+before).  `$(mtexdir)/pipeline.tex` is the connection between the
+processing/analysis steps of the project, and the steps to build the final
+PDF. As you see, `$(mtexdir)/pipeline.tex` only instructs LaTeX to import
+the LaTeX macros of each high-level processing step during the analysis
+(the separate work-horse Makefiles that you defined and included).
 
 During the research, it often happens that you want to test a step that is
 not a prerequisite of any higher-level operation. In such cases, you can
@@ -449,54 +442,54 @@ mind are listed below.
 
 
 
-Checklist to customize the pipeline
-===================================
+Customization checklist
+=======================
 
-Take the following steps to fully customize this pipeline for your research
+Take the following steps to fully customize this template for your research
 project. After finishing the list, be sure to run `./configure` and `make`
 to see if everything works correctly before expanding it. If you notice
 anything missing or any in-correct part (probably a change that has not
 been explained here), please let us know to correct it.
 
-As described above, the concept of a reproduction pipeline heavily relies
-on [version
+As described above, the concept of reproducibility (during a project)
+heavily relies on [version
 control](https://en.wikipedia.org/wiki/Version_control). Currently this
-pipeline uses Git as its main version control system. If you are not already
-familiar with Git, please read the first three chapters of the [ProGit
-book](https://git-scm.com/book/en/v2) which provides a wonderful practical
-understanding of the basics. You can read later chapters as you get more
-advanced in later stages of your work.
+template uses Git as its main version control system. If you are not
+already familiar with Git, please read the first three chapters of the
+[ProGit book](https://git-scm.com/book/en/v2) which provides a wonderful
+practical understanding of the basics. You can read later chapters as you
+get more advanced in later stages of your work.
 
  - **Get this repository and its history** (if you don't already have it):
      Arguably the easiest way to start is to clone this repository as shown
-     below. The main branch of this pipeline is called `pipeline`. This
+     below. The main branch of this template is called `template`. This
      allows you to use the common branch name `master` for your own
-     research, while keeping up to date with improvements in the pipeline.
+     research, while keeping up to date with improvements in the template.
 
      ```shell
-     $ git clone https://gitlab.com/makhlaghi/reproducible-paper.git
+     $ git clone git://git.sv.gnu.org/reproduce
      $ mv reproducible-paper my-project-name      # Your own directory name.
      $ cd my-project-name                         # Go into the cloned directory.
-     $ git tag | xargs git tag -d                 # Delete all pipeline tags.
-     $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from this pipeline.
-     $ git remote rename origin pipeline-origin   # Rename the pipeline's remote.
+     $ git tag | xargs git tag -d                 # Delete all template tags.
+     $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from this template.
+     $ git remote rename origin template-origin   # Rename the template's remote.
      $ git checkout -b master                     # Create, enter master branch.
      ```
 
- - **Test the pipeline**: Before making any changes, it is important to
-     test the pipeline and see if everything works properly with the
-     commands below. If there is any problem in the `./configure` or `make`
-     steps, please contact us to fix the problem before continuing. Since
-     the building of dependencies in `./configure` can take long, you can
-     take the next few steps (editing the files) while its working (they
-     don't affect the configuration). After `make` is finished, open
-     `paper.pdf` and if it looks fine, you are ready to start customizing
-     the pipeline for your project. But before that, clean all the extra
-     pipeline outputs with `make clean` as shown below.
+ - **Test the template**: Before making any changes, it is important to
+     test it and see if everything works properly with the commands
+     below. If there is any problem in the `./configure` or `make` steps,
+     please contact us to fix the problem before continuing. Since the
+     building of dependencies in `./configure` can take long, you can take
+     the next few steps (editing the files) while its working (they don't
+     affect the configuration). After `make` is finished, open `paper.pdf`
+     and if it looks fine, you are ready to start customizing the template
+     for your project. But before that, clean all the extra template
+     outputs with `make clean` as shown below.
 
      ```shell
      $ ./configure              # Set top directories and build dependencies.
-     $ .local/bin/make          # Run the pipeline.
+     $ .local/bin/make          # Do the (mainly symbolic) processing and build paper
 
      # Open 'paper.pdf' and see if everything is ok.
      $ .local/bin/make clean    # Delete high-level outputs.
@@ -526,7 +519,7 @@ advanced in later stages of your work.
      finishing this checklist and doing your first commit.
 
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
-     dependency of the pipeline which will be built and used. The main
+     dependency of the template which will be built and used. The main
      reason for this is to demonstrate how critically important it is to
      version your scientific tools. If you don't need Gnuastro for your
      research, you can simply remove the parts enclosed in marked parts in
@@ -550,10 +543,10 @@ advanced in later stages of your work.
      through the `reproduce/config/pipeline/INPUTS.mk` file. It is best to
      gather all the information regarding all the input datasets into this
      one central file. To ensure that the proper dataset is being
-     downloaded and used by the pipeline, it is also recommended get an
-     [MD5 checksum](https://en.wikipedia.org/wiki/MD5) of the file and
-     include that in `INPUTS.mk` so you can check it in the pipeline. The
-     preparation of the input datasets is done in
+     downloaded and used by the project, it is also recommended get an [MD5
+     checksum](https://en.wikipedia.org/wiki/MD5) of the file and include
+     that in `INPUTS.mk` so the project can check it automatically. The
+     preparation/downloading of the input datasets is done in
      `reproduce/src/make/download.mk`. Have a look there to see how these
      values are to be used. This information about the input datasets is
      also used in the initial `configure` script (to inform the users), so
@@ -565,15 +558,15 @@ advanced in later stages of your work.
      $ grep -ir wfpc2 ./*
      ```
 
- - **Delete dummy parts (can be done later)**: The template pipeline
-     contains some parts that are only for the initial/test run, mainly as
-     a demonstration of important steps. They not for any real
-     analysis. You can remove these parts in the file below
+ - **Delete dummy parts (can be done later)**: The template contains some
+     parts that are only for the initial/test run, mainly as a
+     demonstration of important steps. They not for any real analysis. You
+     can remove these parts in the file below
 
      - `paper.tex`: Delete the text of the abstract and the paper's main
-       body, *except* the "Acknowledgments" section. This reproduction
-       pipeline was designed by funding from many grants, so its necessary
-       to acknowledge them in your final research.
+       body, *except* the "Acknowledgments" section. This tempmlate was
+       designed by funding from many grants, so its necessary to
+       acknowledge them in your final research.
 
      - `Makefile`: Delete the lines containing `delete-me` in the `foreach`
        loop. Just make sure the other lines that end in `\` are immediately
@@ -588,14 +581,14 @@ advanced in later stages of your work.
        ```
 
  - **`README.md`**: Correct all the `XXXXX` place holders (name of your
-     project, your own name, address of pipeline's online/remote
+     project, your own name, address of the template's online/remote
      repository, link to download dependencies and etc). Generally, read
      over the text and update it where necessary to fit your project. Don't
      forget that this is the first file that is displayed on your online
      repository and also your colleagues will first be drawn to read this
      file. Therefore, make it as easy as possible for them to start
      with. Also check and update this file one last time when you are ready
-     to publish your work (and its reproduction pipeline).
+     to publish your project's paper/source.
 
  - **Copyright and License notice**: To be usable/modifiable by others
      after publication, _all_ the "copyright-able" files in your project
@@ -620,16 +613,16 @@ advanced in later stages of your work.
      changes in the steps above and you are in the `master` branch. So, you
      can officially make your first commit in your project's history. But
      before that you need to make sure that there are no problems in the
-     pipeline (this is a good habit to always re-build the system before a
+     project (this is a good habit to always re-build the system before a
      commit to be sure it works as expected).
 
      ```shell
      $ .local/bin/make clean      # Delete outputs ('make distclean' for everything)
-     $ .local/bin/make            # Build the pipeline to ensure everything is fine.
+     $ .local/bin/make            # Build the project to ensure everything is fine.
      $ git add -u                 # Stage all the changes.
      $ git status                 # Make sure everything is fine.
      $ git commit                 # Your first commit, add a nice description.
-     $ git tag -a v0              # Tag this as the zero-th version of your pipeline.
+     $ git tag -a v0              # Tag this as the zero-th version of your project.
      ```
 
  - **Push to the remote**: Push your first commit and its tag to the remote
@@ -648,46 +641,46 @@ advanced in later stages of your work.
      questions. Any time you are ready to push your commits to the remote
      repository, you can simply use `git push`.
 
- - **Feedback**: As you use the pipeline you will notice many things that
+ - **Feedback**: As you use the template you will notice many things that
      if implemented from the start would have been very useful for your
      work. This can be in the actual scripting and architecture of the
-     pipeline or in useful implementation and usage tips, like those
+     template, or useful implementation and usage tips, like those
      below. In any case, please share your thoughts and suggestions with
      us, so we can add them here for everyone's benefit.
 
- - **Keep pipeline up-to-date**: In time, this pipeline is going to become
+ - **Keep template up-to-date**: In time, this template is going to become
      more and more mature and robust (thanks to your feedback and the
      feedback of other users). Bugs will be fixed and new/improved features
      will be added. So every once and a while, you can run the commands
-     below to pull new work that is done in this pipeline. If the changes
-     are useful for your work, you can merge them with your own customized
-     pipeline to benefit from them. Just pay **very close attention** to
-     resolving possible **conflicts** which might happen in the merge
-     (updated general pipeline settings that you have customized).
+     below to pull new work that is done in this template. If the changes
+     are useful for your work, you can merge them with your project to
+     benefit from them. Just pay **very close attention** to resolving
+     possible **conflicts** which might happen in the merge (updated
+     settings that you have customized in the template).
 
      ```shell
-     $ git checkout pipeline
-     $ git pull pipeline-origin pipeline   # Get recent work in this pipeline.
+     $ git checkout template
+     $ git pull template-origin template   # Get recent work in the template
      $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
      $ git log --oneline --graph --decorate --all # General view of branches.
      $ git checkout master                 # Go to your top working branch.
-     $ git merge pipeline                  # Import all the work into master.
+     $ git merge template                  # Import all the work into master.
      ```
 
- - **Adding this project to a fork of your pipeline**: As you and your
-     colleagues continue your project in this pipeline, it will be
-     necessary to have separate forks/clones of it. But when you clone your
-     own project on a different system, or a colleague clones it to
-     collaborate with you, the clone won't have the `pipeline-origin`
-     remote that you started the project with. As shown in the previous
-     point, you need this remote to be able to pull recent updates from
-     this pipeline. The steps below, will setup the `pipeline-origin`
-     remote, and a `pipeline` branch to track it, on the new clone.
+ - **Adding this project to a fork of your project**: As you and your
+     colleagues continue your project, it will be necessary to have
+     separate forks/clones of it. But when you clone your own project on a
+     different system, or a colleague clones it to collaborate with you,
+     the clone won't have the `template-origin` remote that you started the
+     project with. As shown in the previous point, you need this remote to
+     be able to pull recent updates from this template. The steps below,
+     will setup the `template-origin` remote, and a `templage` branch to
+     track it, on the new clone.
 
      ```shell
-     $ git remote add pipeline-origin https://gitlab.com/makhlaghi/reproducible-paper.git
-     $ git fetch pipeline-origin
-     $ git checkout --track pipeline-origin/pipeline
+     $ git remote add template-origin git://git.sv.gnu.org/reproduce
+     $ git fetch template-origin
+     $ git checkout --track template-origin/template
      ```
 
  - **Pre-publication: add notice on reproducibility**: Add a notice
@@ -704,13 +697,14 @@ advanced in later stages of your work.
 
 
 
-Usage tips: designing your pipeline/workflow
-============================================
+Tips for designing your project
+===============================
 
 The following is a list of design points, tips, or recommendations that
-have been learned after some experience with this pipeline. Please don't
-hesitate to share any experience you gain after using this pipeline with
-us. In this way, we can add it here for the benefit of others.
+have been learned after some experience with this type of project
+management. Please don't hesitate to share any experience you gain after
+using it with us. In this way, we can add it here (with full giving credit)
+for the benefit of others.
 
  - **Modularity**: Modularity is the key to easy and clean growth of a
      project. So it is always best to break up a job into as many
@@ -721,17 +715,17 @@ us. In this way, we can add it here for the benefit of others.
       a good sign that you should break up the rule into its main
       components. Try to only have one major processing step per rule.
 
-   - *Context-based (many) Makefiles*: This pipeline is designed to allow
-      the easy inclusion of many Makefiles (in `reproduce/src/make/*.mk`)
-      for maximal modularity. So keep the rules for closely related parts
-      of the processing in separate Makefiles.
+   - *Context-based (many) Makefiles*: This design allows easy inclusion of
+      many Makefiles (in `reproduce/src/make/*.mk`) for maximal
+      modularity. So keep the rules for closely related parts of the
+      processing in separate Makefiles.
 
    - *Descriptive names*: Be very clear and descriptive with the naming of
       the files and the variables because a few months after the
       processing, it will be very hard to remember what each one was
       for. Also this helps others (your collaborators or other people
-      reading the pipeline after it is published) to more easily understand
-      your work and find their way around.
+      reading the project source after it is published) to more easily
+      understand your work and find their way around.
 
    - *Naming convention*: As the project grows, following a single standard
       or convention in naming the files is very useful. Try best to use
@@ -773,7 +767,7 @@ us. In this way, we can add it here for the benefit of others.
       doing something, how you are doing it, and what you expect the result
       to be. Write the comments as if it was what you would say to describe
       the variable, recipe or rule to a friend sitting beside you. When
-      writing the pipeline it is very tempting to just steam ahead with
+      writing the project it is very tempting to just steam ahead with
       commands and codes, but be patient and write comments before the
       rules or recipes. This will also allow you to think more about what
       you should be doing. Also, in several months when you come back to
@@ -825,8 +819,8 @@ us. In this way, we can add it here for the benefit of others.
       multiple copies of them for intermediate steps is not possible), one
       solution is the following strategy. Set a small plain text file as
       the actual target and delete the large file when it is no longer
-      needed by the pipeline (in the last rule that needs it). Below is a
-      simple demonstration of doing this, where we use Gnuastro's
+      needed by the project (in the last rule that needs it). Below is a
+      simple demonstration of doing this. In it, we use Gnuastro's
       Arithmetic program to add all pixels of the input image with 2 and
       create `large1.fits`. We then subtract 2 from `large1.fits` to create
       `large2.fits` and delete `large1.fits` in the same rule (when its no
@@ -846,35 +840,36 @@ us. In this way, we can add it here for the benefit of others.
      to define a wrapper in `reproduce/src/make/initialize.mk`. This
      wrapper will replace `$(subst .txt,,XXXXX)`. Therefore, it will be
      possible to greatly simplify this repetitive statement and make the
-     code even more readable throughout the whole pipeline.
+     code even more readable throughout the whole project.
 
 
- - **Dependencies**: It is critically important to exactly document, keep
-   and check the versions of the programs you are using in the pipeline.
+ - **Software tarballs and raw inputs**: It is critically important to
+     document the raw inputs to your project (software tarballs and raw
+     input data):
 
-   - *Check versions*: In `reproduce/src/make/initialize.mk`, check the
-      versions of the programs you are using.
-
-   - *Keep the source tarball of dependencies*: keep a tarball of the
-      necessary version of all your dependencies (and also a copy of the
-      higher-level libraries they depend on). Software evolves very fast
-      and only in a few years, a feature might be changed or removed from
-      the mainstream version or the software server might go down. To be
-      safe, keep a copy of the tarballs. Software tarballs are rarely over
-      a few megabytes, very insignificant compared to the data. If you
-      intend to release the pipeline in a place like Zenodo, then you can
-      create your submission early (before public release) and upload/keep
-      all the necessary tarballs (and data)
-      there. [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746) is
+   - *Keep the source tarball of dependencies*: After configuration
+      finishes, the `.build/dependencies/tarballs` directory will contain
+      all the software tarballs that were necessary for your project. You
+      can mirror the contents of this directory to keep a backup of all the
+      software tarballs used in your project (possibly as another version
+      controlled repository) that is also published with your project. Note
+      that software webpages are not written in stone and can suddenly go
+      offline or not be accessible in some conditions. This backup is thus
+      very important. If you intend to release your project in a place like
+      Zenodo, you can upload/keep all the necessary tarballs (and data)
+      there with your
+      project. [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746) is
       one example of how the data, Gnuastro (main software used) and all
-      major Gnuastro's dependencies have been uploaded with the pipeline.
+      major Gnuastro's dependencies have been uploaded with the project's
+      source. Just note that this is only possible for free and open-source
+      software.
 
    - *Keep your input data*: The input data is also critical to the
-      pipeline, so like the above for software, make sure you have a backup
-      of them.
+      project's reproducibility, so like the above for software, make sure
+      you have a backup of them, or their persistent identifiers (PIDs).
 
  - **Version control**: It is important (and extremely useful) to have the
-   history of your pipeline under version control. So try to make commits
+   history of your project under version control. So try to make commits
    regularly (after any meaningful change/step/result), while not
    forgetting the following notes.
 
@@ -882,36 +877,38 @@ us. In this way, we can add it here for the benefit of others.
       make a more human-friendly output of `git describe`: for example
       `v1-4-gaafdb04` states that we are on commit `aafdb04` which is 4
       commits after tag `v1`. The output of `git describe` is included in
-      your final PDF as part of this pipeline. Also, if you use
+      your final PDF as part of this project. Also, if you use
       reproducibility-friendly software like Gnuastro, this value will also
       be included in all output files, see the description of `COMMIT` in
       [Output
       headers](https://www.gnu.org/software/gnuastro/manual/html_node/Output-headers.html).
-      In the checklist above, we tagged the first commit of your pipeline
+      In the checklist above, you tagged the first commit of your project
       with `v0`. Here is one suggestion on when to tag: when you have fully
-      adopted the pipeline and have got the first (initial) results, you
+      adopted the template and have got the first (initial) results, you
       can make a `v1` tag. Subsequently when you first start reporting the
-      results to your colleagues, you can tag the commit as `v2`. Afterwards
-      when you submit to a paper, it can be tagged `v3` and so on.
+      results to your colleagues, you can tag the commit as `v2` and
+      increment the version on every later circulation, or referee
+      submission.
 
-   - *Pipeline outputs*: During your research, it is possible to checkout a
+   - *Project outputs*: During your research, it is possible to checkout a
       specific commit and reproduce its results. However, the processing
       can be time consuming. Therefore, it is useful to also keep track of
-      the final outputs of your pipeline (at minimum, the paper's PDF) in
+      the final outputs of your project (at minimum, the paper's PDF) in
       important points of history.  However, keeping a snapshot of these
       (most probably large volume) outputs in the main history of the
-      pipeline can unreasonably bloat it. It is thus recommended to make a
-      separate Git repo to keep those files and keep this pipeline's volume
-      as small as possible. For example if your main pipeline is called
-      `my-exciting-project`, the name of the outputs pipeline can be
+      project can unreasonably bloat it. It is thus recommended to make a
+      separate Git repo to keep those files and keep your project's source
+      as small as possible. For example if your project is called
+      `my-exciting-project`, the name of the outputs repository can be
       `my-exciting-project-output`. This enables easy sharing of the output
       files with your co-authors (with necessary permissions) and not
-      having to bloat your email archive with extra attachments (you can
-      just share the link to the online repo in your communications). After
-      the research is published, you can also release the outputs pipeline,
-      or you can just delete it if it is too large or un-necessary (it was
-      just for convenience, and fully reproducible after all). This
-      pipeline's output is available for demonstration in the separate
+      having to bloat your email archive with extra attachments also (you
+      can just share the link to the online repo in your
+      communications). After the research is published, you can also
+      release the outputs repository, or you can just delete it if it is
+      too large or un-necessary (it was just for convenience, and fully
+      reproducible after all). For example this template's output is
+      available for demonstration in the separate
       [reproducible-paper-output](https://gitlab.com/makhlaghi/reproducible-paper-output)
       repository.
 
@@ -934,15 +931,14 @@ future are listed below, please join us if you are interested.
 Package management
 ------------------
 
-It is important to have control of the environment of the reproduction
-pipeline. The current reproducible paper template builds the higher-level
-programs (for example GNU Bash, GNU Make, GNU AWK and domain-specific
-software) it needs, then sets `PATH` so the analysis is done only with the
-pipeline's built software. But currently the configuration of each program
-is in the Makefile rules that build it. This is not good because a change
-in the build configuration does not automatically cause a re-build. Also,
-each separate project on a system needs to have its own built tools (that
-can waste a lot of space).
+It is important to have control of the environment of the project. The
+current template builds the higher-level programs (for example GNU Bash,
+GNU Make, GNU AWK and domain-specific software) it needs, then sets `PATH`
+so the analysis is done only with the project's built software. But
+currently the configuration of each program is in the Makefile rules that
+build it. This is not good because a change in the build configuration does
+not automatically cause a re-build. Also, each separate project on a system
+needs to have its own built tools (that can waste a lot of space).
 
 A good solution is based on the [Nix package
 manager](https://nixos.org/nix/about.html): a separate file is present for
@@ -961,9 +957,9 @@ webpage):
 /nix/store/b6gvzjyb2pg0kjfwrjmg1vfhh54ad73z-firefox-33.1/
 ```
 
-The important thing is that the "store" is *not* in the pipeline's search
+The important thing is that the "store" is *not* in the project's search
 path. After the complete installation of the software, symbolic links are
-made to populate the pipeline's program and library search paths without a
+made to populate each project's program and library search paths without a
 hash. This hash will be unique to that particular software and its
 particular configuration. So simply by searching for this hash in the
 installed directory, we can find the installed files of that software to
@@ -985,8 +981,8 @@ Appendix: Necessity of exact reproduction in scientific research
 
 In case [the link above](http://akhlaghi.org/reproducible-science.html) is
 not accessible at the time of reading, here is a copy of the introduction
-of that link, describing the necessity for a reproduction pipeline like
-this (copied on February 7th, 2018):
+of that link, describing the necessity for a reproducible project like this
+(copied on February 7th, 2018):
 
 The most important element of a "scientific" statement/result is the fact
 that others should be able to falsify it. The Tsunami of data that has
@@ -1021,7 +1017,7 @@ order of operations: this is contrary to the scientific spirit.
 Copyright information
 ---------------------
 This file is part of the reproducible paper template
-   https://gitlab.com/makhlaghi/reproducible-paper
+   http://savannah.nongnu.org/projects/reproduce
 
 This template is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free

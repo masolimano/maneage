@@ -1,4 +1,4 @@
-# Initialize the reproduction pipeline.
+# Project initialization.
 #
 # Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
@@ -22,14 +22,14 @@
 # High-level directory definitions
 # --------------------------------
 #
-# Basic directories that are used throughout the whole pipeline.
+# Basic directories that are used throughout the project.
 #
 # Locks are used to make sure that an operation is done in series not in
 # parallel (even if Make is run in parallel with the `-j' option). The most
 # common case is downloads which are better done in series and not in
 # parallel. Also, some programs may not be thread-safe, therefore it will
-# be necessary to put a lock on them. This pipeline uses the `flock'
-# program to achieve this.
+# be necessary to put a lock on them. This project uses the `flock' program
+# to achieve this.
 texdir      = $(BDIR)/tex
 srcdir      = reproduce/src
 lockdir     = $(BDIR)/locks
@@ -48,7 +48,7 @@ gconfdir    = reproduce/config/gnuastro
 # TeX build directory
 # ------------------
 #
-# In scenarios where multiple users are working on the pipeline
+# In scenarios where multiple users are working on the project
 # simultaneously, they can't all build the final paper together, there will
 # be conflicts! It is possible to manage the working on the analysis, so no
 # conflict is caused in that phase, but it would be very slow to only let
@@ -99,7 +99,7 @@ curdir   := $(shell echo $$(pwd))
 # want Make to run the specific version of Bash that we have installed
 # during `./configure' time.
 #
-# Regarding the directories, this pipeline builds its major dependencies
+# Regarding the directories, this project builds its major dependencies
 # itself and doesn't use the local system's default tools. With these
 # environment variables, we are setting it to prefer the software we have
 # build here.
@@ -143,18 +143,12 @@ export MPI_PYTHON3_SITEARCH   :=
 # directories (or possible sub-directories) for individual steps will be
 # defined and added within their own Makefiles.
 #
-# IMPORTANT NOTE for $(BDIR)'s dependency: it only depends on the existance
-# (not the time-stamp) of `$(pconfdir)/LOCAL.mk'. So the user can make any
-# changes within that file and if they don't affect the pipeline. For
-# example a change of the top $(BDIR) name, while the contents are the same
-# as before.
-#
 # The `.SUFFIXES' rule with no prerequisite is defined to eliminate all the
 # default implicit rules. The default implicit rules are to do with
 # programming (for example converting `.c' files to `.o' files). The
 # problem they cause is when you want to debug the make command with `-d'
 # option: they add too many extra checks that make it hard to find what you
-# are looking for in this pipeline.
+# are looking for in the outputs.
 .SUFFIXES:
 $(lockdir): | $(BDIR); mkdir $@
 $(texbdir): | $(texdir); mkdir $@
@@ -172,8 +166,8 @@ $(tikzdir): | $(texbdir); mkdir $@ && ln -fs $@ tex/tikz
 #
 # Only `$(mtexdir)/initialize.tex' corresponds to a file. This is because
 # we want to ensure that the file is always built in every run: it contains
-# the pipeline version which may change between two separate runs, even
-# when no file actually differs.
+# the project version which may change between two separate runs, even when
+# no file actually differs.
 packagebasename := $(shell echo paper-$$(git describe --dirty --always))
 packagecontents = $(texdir)/$(packagebasename)
 .PHONY: all clean dist dist-zip distclean clean-mmap $(packagecontents) \
@@ -260,7 +254,7 @@ $(packagecontents): | $(texdir)
 	rm $$dir/reproduce/config/pipeline/LOCAL.mk
 	rm $$dir/reproduce/config/gnuastro/gnuastro-local.conf
 
-        # PIPELINE SPECIFIC: under this comment, copy any other file for
+        # PROJECT SPECIFIC: under this comment, copy any other file for
         # packaging, or remove any of the copied files above to suite your
         # project.
 
@@ -313,7 +307,7 @@ pvcheck = prog="$(strip $(1))";                                          \
 	  if [ "x$$verop" = x ]; then V="--version"; else V=$$verop; fi; \
 	  v=$$($$prog $$V | awk '/'$$ver'/{print "y"; exit 0}');         \
 	  if [ x$$v != xy ]; then                                        \
-	    echo; echo "PIPELINE ERROR: Not running $$name $$ver"; echo; \
+	    echo; echo "PROJECT ERROR: Not running $$name $$ver"; echo;  \
 	    exit 1;                                                      \
 	  fi;                                                            \
 	  echo "\newcommand{\\$$macro}{$$ver}" >> $@
@@ -325,7 +319,7 @@ lvcheck = idir=$(BDIR)/dependencies/installed/include;                   \
 	  macro="$(strip $(4))";                                         \
 	  v=$$(awk '/^\#/&&/define/&&/'$$ver'/{print "y";exit 0}' $$f);  \
 	  if [ x$$v != xy ]; then                                        \
-	    echo; echo "PIPELINE ERROR: Not linking with $$name $$ver";  \
+	    echo; echo "PROJECT ERROR: Not linking with $$name $$ver";   \
 	    echo; exit 1;                                                \
 	  fi;                                                            \
 	  echo "\newcommand{\\$$macro}{$$ver}" >> $@
@@ -333,15 +327,15 @@ lvcheck = idir=$(BDIR)/dependencies/installed/include;                   \
 
 
 
-# Pipeline initialization results
-# -------------------------------
+# Project initialization results
+# ------------------------------
 #
-# This file will store some basic info about the pipeline that is necessary
+# This file will store some basic info about the project that is necessary
 # for the final PDF. Since these are not version controlled, it must be
-# calculated everytime the pipeline is run. So even though this file
+# calculated everytime the project is run. So even though this file
 # actually exists, it is also aded as a `.PHONY' target above.
 $(mtexdir)/initialize.tex: | $(mtexdir)
 
-        # Version of the pipeline and build directory (for LaTeX inputs).
+        # Version of the project.
 	@v=$$(git describe --dirty --always);
 	echo "\newcommand{\pipelineversion}{$$v}" > $@

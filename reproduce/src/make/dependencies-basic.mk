@@ -1,5 +1,5 @@
-# Build the VERY BASIC reproduction pipeline dependencies before everything
-# else using minimum Make and Shell.
+# Build the VERY BASIC project dependencies before everything else assuming
+# minimal/generic Make and Shell.
 #
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!
@@ -52,8 +52,8 @@ ilidir  = $(BDIR)/dependencies/installed/version-info/lib
 # won't be building ourselves.
 syspath         := $(PATH)
 
-# As we build more programs, we want to use our own pipeline's built
-# programs and libraries, not the host's.
+# As we build more programs, we want to use this project's built programs
+# and libraries, not the host's.
 export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir):$(PATH)
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
@@ -217,7 +217,7 @@ makelink = origpath="$$PATH";                                      \
 	   if [ x$$a = x ]; then                                       \
 	     if [ "x$(strip $(2))" = xmandatory ]; then                \
 	       echo "'$(1)' is necessary for higher-level tools.";     \
-	       echo "Please install it for the pipeline to continue."; \
+	       echo "Please install it for the configuration to continue."; \
 	       exit 1;                                                 \
 	     fi;                                                       \
 	   else                                                        \
@@ -231,7 +231,7 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
 	$(call makelink,as)
 
         # Compiler (Cmake needs the clang compiler which we aren't building
-        # yet in the pipeline).
+        # yet in the project).
 	$(call makelink,clang)
 	$(call makelink,clang++)
 
@@ -351,7 +351,7 @@ $(ibidir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 	       $(ibidir)/lzip                    \
 	       $(ibidir)/gzip                    \
 	       $(ibidir)/xz
-        # Since all later programs depend on Tar, the pipeline will be
+        # Since all later programs depend on Tar, the configuration will be
         # stuck here, only making Tar. So its more efficient to built it on
         # multiple threads (when the user's Make doesn't pass down the
         # number of threads).
@@ -394,8 +394,8 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
         # Delete the (possibly existing) low-level programs that depend on
         # `readline', and thus `ncurses'. Since these programs are actually
         # used during the building of `ncurses', we need to delete them so
-        # the build process doesn't use the pipeline's Bash and AWK, but
-        # the host systems.
+        # the build process doesn't use the project's Bash and AWK, but the
+        # host's.
 	rm -f $(ibdir)/bash* $(ibdir)/awk* $(ibdir)/gawk*
 
         # Standard build process.
@@ -489,8 +489,8 @@ $(ibidir)/patchelf: $(tdir)/patchelf-$(patchelf-version).tar.gz \
 # of Readline, that we build below as a prerequisite or AWK, is used) and
 # you run `ldd $(ibdir)/bash' on the resulting binary, it will say that it
 # is linking with the system's `readline'. But if you run that same command
-# within a rule in this reproduction pipeline, you'll see that it is indeed
-# linking with our own built readline.
+# within a rule in this project, you'll see that it is indeed linking with
+# our own built readline.
 ifeq ($(on_mac_os),yes)
 needpatchelf =
 else
@@ -570,7 +570,7 @@ $(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
 # build libssl (and libcrypto) dynamically also.
 #
 # Until we find a nice and generic way to create an updated CA file in the
-# pipeline, the certificates will be available in a file for this pipeline
+# project, the certificates will be available in a file for this pipeline
 # along with the other tarballs.
 #
 # In case you do want a static OpenSSL and libcrypto, then uncomment the
@@ -621,7 +621,7 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
 # gives a segmentation fault when built statically.
 #
 # There are many network related libraries that we are currently not
-# building as part of this pipeline. So to avoid too much dependency on the
+# building as part of this project. So to avoid too much dependency on the
 # host system (especially a crash when these libraries are updated on the
 # host), they are disabled here.
 $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
@@ -795,7 +795,7 @@ $(ilidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
 # Objective C and Objective C++ is necessary for installing `matplotlib'.
 #
 # We are currently having problems installing GCC on macOS, so for the time
-# being, if the pipeline is being run on a macOS, we'll just set a link.
+# being, if the project is being run on a macOS, we'll just set a link.
 ifeq ($(host_cc),1)
 gcc-prerequisites =
 else
@@ -816,7 +816,7 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
                $(ibidir)/findutils
 
         # GCC builds is own libraries in '$(idir)/lib64'. But all other
-        # libraries are in '$(idir)/lib'. Since this pipeline is only for a
+        # libraries are in '$(idir)/lib'. Since this project is only for a
         # single architecture, we can trick GCC into building its libraries
         # in '$(idir)/lib' by defining the '$(idir)/lib64' as a symbolic
         # link to '$(idir)/lib'.

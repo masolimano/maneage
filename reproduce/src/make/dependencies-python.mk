@@ -1,4 +1,4 @@
-# Build the reproduction pipeline Python dependencies.
+# Build the project's Python dependencies.
 #
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!

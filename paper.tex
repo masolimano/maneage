@@ -37,27 +37,28 @@
 %% Start writing.
 \begin{document}
 
-%% Abstract, keywords and reproduction pipeline notice.
+%% Project abstract and keywords.
 \includeabstract{
 
-  You have completed the reproduction pipeline and are ready to configure
-  and implement it for your own research. This template reproduction
-  pipeline and document contains almost all the elements that you will need
-  in a research project containing the downloading of raw data, processing
-  it, including them in plots and report, including this abstract, figures
-  and bibliography. If you use this pipeline in your work, don't forget to
-  add a notice to clearly let the readers know that your work is
-  reproducible. If this pipeline proves useful in your research, please
-  cite \citet{gnuastro}.
+  You have completed the reproducible paper template and are ready to
+  configure and implement it for your own research. This template contains
+  almost all the elements that you will need in a research project
+  containing the downloading of raw data and necessary software, building
+  the software, and processing the data with the software in a
+  highly-controlled environment. It then allows including the results in
+  plots and producing the final report, including this abstract, figures
+  and bibliography. If you design your project with this template's
+  infra-structure in your work, don't forget to add a notice and clearly
+  let the readers know that your work is reproducible. If this template
+  proves useful in your research, please cite \citet{gnuastro}.
 
   \vspace{0.25cm}
 
   \textsl{Keywords}: Add some keywords for your research here.
 
   \textsl{Reproducible paper}: All quantitave results (numbers and plots)
-  in this paper are exactly reproducible with reproduction pipeline
-  \pipelineversion{}
-  (\url{https://gitlab.com/makhlaghi/reproducible-paper}).}
+  in this paper are exactly reproducible (version \pipelineversion{},
+  \url{https://gitlab.com/makhlaghi/reproducible-paper}).}
 
 %% To add the first page's headers.
 \thispagestyle{firststyle}
@@ -68,19 +69,18 @@
 
 %% Start of the main body of text.
 \section{Congratulations!}
-Congratulations on running the reproduction pipeline! You can now follow
-the checklist in the \texttt{README.md} file to customize this pipeline to
-your exciting research project.
+Congratulations on running the raw template project! You can now follow the
+checklist in the \texttt{README.md} file to customize this template to your
+exciting research project.
 
 Just don't forget to \emph{never} use numbers or fixed strings (for example
 database urls like \url{\wfpctwourl}) directly within your \LaTeX{}
-source. Read them directly from your configuration files or outputs of the
-programs as part of the reproduction pipeline and import them into \LaTeX{}
-as macros through the \texttt{tex/pipeline/macros/pipeline.tex} file
-(created after running the pipeline). See the several examples within the
-pipeline for a demonstration. For some recent real-world examples, the
-reproduction pipelines for Sections 4 and 7.3 of \citet{bacon17} are
-available at
+source. Read them directly from your configuration files, or processing
+outputs, and import them into \LaTeX{} as macros through the
+\texttt{tex/pipeline/macros/pipeline.tex} file (created after running the
+project). See the several existing examples within the template for a
+demonstration. For some recent real-world examples, the reproducible
+project sources for Sections 4 and 7.3 of \citet{bacon17} are available at
 \href{https://doi.org/10.5281/zenodo.1164774}{zenodo.1164774}\footnote{\url{https://gitlab.com/makhlaghi/muse-udf-origin-only-hst-magnitudes}},
 or
 \href{https://doi.org/10.5281/zenodo.1163746}{zenodo.1163746}\footnote{\url{https://gitlab.com/makhlaghi/muse-udf-photometry-astrometry}}. Working
@@ -126,15 +126,15 @@ histogram and basic statstics were generated with Gnuastro's
 
 {\small PGFP}lots\footnote{\url{https://ctan.org/pkg/pgfplots}} is a great
 tool to build the plots within \LaTeX{} and removes the necessity to add
-further dependencies (to create the plots) to your reproduction
-pipeline. There are high-level language libraries like Matplotlib which
-also generate plots. However, the problem is that they require many
-dependencies (Python, Numpy and etc). Installing these dependencies from
-source, is not easy and will harm the reproducibility of your paper. Note
-that after several years, the binary files of these high-level libraries,
-that you easily install today, will no longer be available in common
-repositories. Therefore building the libraries from source is the only
-option to reproduce your results.
+further dependencies (to create the plots) to your project. There are
+high-level language libraries like Matplotlib which also generate
+plots. However, the problem is that they require many dependencies (Python,
+Numpy and etc). Installing these dependencies from source, is not easy and
+will harm the reproducibility of your paper. Note that after several years,
+the binary files of these high-level libraries, that you easily install
+today, will no longer be available in common repositories. Therefore
+building the libraries from source is the only option to reproduce your
+results.
 
 Furthermore, since {\small PGFP}lots is built by \LaTeX{} it respects all
 the properties of your text (for example line width and fonts and
@@ -142,7 +142,7 @@ etc). Therefore the final plot blends in your paper much more nicely. It
 also has a wonderful
 manual\footnote{\url{http://mirrors.ctan.org/graphics/pgf/contrib/pgfplots/doc/pgfplots.pdf}}.
 
-This pipeline also defines two \LaTeX{} macros that allow you to mark text
+This template also defines two \LaTeX{} macros that allow you to mark text
 within your document as \emph{new} and \emph{notes}. For example, \new{this
   text has been marked as \texttt{new}.} \tonote{While this one is marked
   as \texttt{tonote}.} If you comment the line (by adding a `\texttt{\%}'
@@ -173,13 +173,12 @@ please add a notice close to the start of your paper or in the end of the
 abstract clearly mentioning that your work is fully reproducible.
 
 For the time being, we haven't written a specific paper only for this
-reproduction pipeline, so until then, we would be grateful if you could
-cite the first paper that used the first version of this pipeline:
-\citet{gnuastro}.
+template. Until then, we would be grateful if you could cite the first
+paper that used the early versions of this template: \citet{gnuastro}.
 
 After publication, don't forget to upload all the necessary data, software
-source code and the reproduction pipeline to a long-lasting host like
-Zenodo (\url{https://zenodo.org}).
+source code and the project's source to a long-lasting host like Zenodo
+(\url{https://zenodo.org}).
 
 
 
@@ -187,21 +186,22 @@ Zenodo (\url{https://zenodo.org}).
 
 \section{Acknowledgements}
 \new{Please include the following two paragraphs in the Acknowledgement
-  section of your paper. This reproduction pipeline was developed in
+  section of your paper. This reproducible paper template was developed in
   parallel with Gnuastro, so it benefited from the same grants. If you
-  don't use any of these packages in the final/customized pipeline, please
-  remove them. }
+  don't use Gnuastro in your final/customized project, please remove it
+  from the paragraph below, only mentioning the reproducible paper
+  template.}
 
 This research was partly done using GNU Astronomy Utilities (Gnuastro,
-ascl.net/1801.009), and reproduction pipeline \pipelineversion. Work on
-Gnuastro and the reproduction pipeline has been funded by the Japanese
-Ministry of Education, Culture, Sports, Science, and Technology (MEXT)
-scholarship and its Grant-in-Aid for Scientific Research (21244012,
-24253003), the European Research Council (ERC) advanced grant
-339659-MUSICOS, European Union’s Horizon 2020 research and innovation
-programme under Marie Sklodowska-Curie grant agreement No 721463 to the
-SUNDIAL ITN, and from the Spanish Ministry of Economy and Competitiveness
-(MINECO) under grant number AYA2016-76219-P.
+ascl.net/1801.009), and the reproducible paper template
+\pipelineversion. Work on Gnuastro and the reproducible paper template has
+been funded by the Japanese Ministry of Education, Culture, Sports,
+Science, and Technology (MEXT) scholarship and its Grant-in-Aid for
+Scientific Research (21244012, 24253003), the European Research Council
+(ERC) advanced grant 339659-MUSICOS, European Union’s Horizon 2020 research
+and innovation programme under Marie Sklodowska-Curie grant agreement No
+721463 to the SUNDIAL ITN, and from the Spanish Ministry of Economy and
+Competitiveness (MINECO) under grant number AYA2016-76219-P.
 
 \input{tex/pipeline/macros/dependencies.tex}
 
