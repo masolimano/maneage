@@ -265,7 +265,8 @@ $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 $(ilidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
 	$(call gbuild, $<, fftw-$(fftw-version), static,  \
 	               --enable-shared)                   \
-	&& echo "FFTW $(fftw-version)" > $@
+	&& cp $(dtexdir)/fftw.tex $(ictdir)/              \
+	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
 # Freetype is necessary to install matplotlib
 $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
