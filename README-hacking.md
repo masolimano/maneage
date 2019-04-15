@@ -516,7 +516,7 @@ get more advanced in later stages of your work.
      (usually starting with `git@` and ending in `.git`), put this URL in
      place of `XXXXXXXXXX` in the first command below. With the second
      command, "push" your `master` branch to your `origin` remote, and
-     (with the `--set-upstream' option) set them to track/follow each
+     (with the `--set-upstream` option) set them to track/follow each
      other. However, the `template` branch is currently tracking/following
      your `template-origin` remote (automatically set when you cloned the
      template). So when pushing the `template` branch to your `origin`
@@ -552,7 +552,11 @@ get more advanced in later stages of your work.
 
    - Delete marked part(s) in `configure`.
    - Delete the `reproduce/software/config/gnuastro` directory.
-   - Delete `gnuastro` from the value of `top-level-programs` in `reproduce/software/make/high-level.mk`. You can keep the rule to build `gnuastro`, since its not in the `top-level-programs` list, it (and all the dependencies that are only needed by Gnuastro) will be ignored.
+   - Delete `gnuastro` from the value of `top-level-programs` in
+     `reproduce/software/make/high-level.mk`. You can keep the rule to
+     build `gnuastro`, since its not in the `top-level-programs` list, it
+     (and all the dependencies that are only needed by Gnuastro) will be
+     ignored.
    - Delete marked parts in `reproduce/analysis/make/initialize.mk`.
 
  - **Other dependencies**: If there are any more software that you don't
@@ -650,7 +654,7 @@ get more advanced in later stages of your work.
 
  - **Push to the remote**: Push your first commit and its tag to your
      remote repository with these commands. Since we have setup your
-     `master' branch to follow `origin/master`, you can just use `git push`
+     `master` branch to follow `origin/master`, you can just use `git push`
      from now on.
 
      ```shell
