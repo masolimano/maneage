@@ -469,18 +469,18 @@ get more advanced in later stages of your work.
      below. As you see, after the cloning some further corrections to your
      clone's Git settings are necessary: first, you need to remove all
      possibly existing Git tags from the template's history. Then you need
-     to rename conventional `origin` remote server, and the `master`
-     branch. This is because managing your project will be much more easier
-     if you follow the conventions and point these names to your project's
-     man branch and remote server.
+     to rename the conventional `origin` remote server, and the `master`
+     branch. This renaming allows you to use these standard names for your
+     own customized project (which greatly helps because this convention is
+     widely used).
 
      ```shell
-     $ git clone git://git.sv.gnu.org/reproduce
+     $ git clone git://git.sv.gnu.org/reproduce   # Clone/copy the project and its history.
      $ mv reproduce my-project                    # Change the name to your project's name.
      $ cd my-project                              # Go into the cloned directory.
      $ git tag | xargs git tag -d                 # Delete all template tags.
      $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from this template.
-     $ git remote rename origin template          # Rename current/only remote to "template".
+     $ git remote rename origin template-origin   # Rename current/only remote to "template-origin".
      $ git branch -m template                     # Rename current/only branch to "template".
      $ git checkout -b master                     # Create and enter new "master" branch.
      ```
@@ -518,15 +518,16 @@ get more advanced in later stages of your work.
      command, "push" your `master` branch to your `origin` remote, and
      (with the `--set-upstream' option) set them to track/follow each
      other. However, the `template` branch is currently tracking/following
-     your `template` remote (automatically set when you cloned the
+     your `template-origin` remote (automatically set when you cloned the
      template). So when pushing the `template` branch to your `origin`
-     remote, you shouldn't use `--set-upstream`. With the last command, you
-     can actually check this.
+     remote, you _shouldn't_ use `--set-upstream`. With the last command,
+     you can actually check this (which local and remote branches are
+     tracking each other).
 
      ```shell
      git remote add origin XXXXXXXXXX        # Newly created repo is now called 'origin'.
-     git push --set-upstream origin master   # Push 'master' to 'origin' (enable tracking).
-     git push origin template                # Push 'template' to 'origin' (no tracking).
+     git push --set-upstream origin master   # Push 'master' branch to 'origin' (enable tracking).
+     git push origin template                # Push 'template' branch to 'origin' (no tracking).
      git branch -vv                          # Just to check of the trackings.
      ```
 
@@ -662,8 +663,7 @@ get more advanced in later stages of your work.
      exciting research steps. You can use the "published works" section in
      the introduction (above) as some fully working models to learn
      from. Also, don't hesitate to contact us if you have any
-     questions. Any time you are ready to push your commits to the remote
-     repository, you can simply use `git push`.
+     questions.
 
  - **Feedback**: As you use the template you will notice many things that
      if implemented from the start would have been very useful for your
@@ -684,7 +684,7 @@ get more advanced in later stages of your work.
 
      ```shell
      $ git checkout template
-     $ git pull template template          # Get recent work in the template
+     $ git pull                            # Get recent work in the template
      $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
      $ git log --oneline --graph --decorate --all # General view of branches.
      $ git checkout master                 # Go to your top working branch.
@@ -695,16 +695,16 @@ get more advanced in later stages of your work.
      colleagues continue your project, it will be necessary to have
      separate forks/clones of it. But when you clone your own project on a
      different system, or a colleague clones it to collaborate with you,
-     the clone won't have the `template` remote that you started the
-     project with. As shown in the previous point, you need this remote to
-     be able to pull recent updates from the template. The steps below,
-     will setup the `template` remote, and a `template` branch to track it,
-     on the new clone.
+     the clone won't have the `template-origin` remote that you started the
+     project with. As shown in the previous item above, you need this
+     remote to be able to pull recent updates from the template. The steps
+     below will setup the `template-origin` remote, and a local `template`
+     branch to track it, on the new clone.
 
      ```shell
-     $ git remote add template git://git.sv.gnu.org/reproduce
-     $ git fetch template
-     $ git checkout --track template/template
+     $ git remote add template-origin git://git.sv.gnu.org/reproduce
+     $ git fetch template-origin
+     $ git checkout -b template --track template-origin/master
      ```
 
  - **Pre-publication: add notice on reproducibility**: Add a notice
