@@ -1,20 +1,17 @@
-# Build the VERY BASIC project dependencies before everything else assuming
+# Build the VERY BASIC project software before higher-level ones. Assuming
 # minimal/generic Make and Shell.
 #
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!
 #
 # This Makefile will be run by the initial `./configure' script. It is not
-# included into the reproduction pipe after that.
+# included into the project after that.
 #
-# This Makefile builds very low-level and basic tools like GNU Tar, and
-# various compression programs, GNU Bash, and GNU Make. Therefore this is
-# the only Makefile in the reproduction pipeline where you MUST NOT assume
-# that modern GNU Bash or GNU Make are used. After this Makefile, other
-# Makefiles can safely assume the fixed version of all these software.
-#
-# This Makefile is a very simplified version of `dependencies.mk' in the
-# same directory. See there for more comments.
+# This Makefile builds very low-level and basic tools like GNU Tar, GNU
+# Bash, GNU Make, GCC and etc. Therefore this is the only Makefile in the
+# project where you CANNOT assume that GNU Bash or GNU Make are used. After
+# this Makefile (where GNU Bash and GNU Make are built), other Makefiles
+# can safely assume the fixed version of all these software.
 #
 # ------------------------------------------------------------------------
 #
@@ -35,18 +32,18 @@
 
 
 # Top level environment
-include reproduce/config/pipeline/LOCAL.mk
-include reproduce/src/make/dependencies-build-rules.mk
-include reproduce/config/pipeline/dependency-versions.mk
+include reproduce/software/make/build-rules.mk
+include reproduce/software/config/installation/LOCAL.mk
+include reproduce/software/config/installation/versions.mk
 
 lockdir = $(BDIR)/locks
-ddir    = $(BDIR)/dependencies
-tdir    = $(BDIR)/dependencies/tarballs
-idir    = $(BDIR)/dependencies/installed
-ibdir   = $(BDIR)/dependencies/installed/bin
-ildir   = $(BDIR)/dependencies/installed/lib
-ibidir  = $(BDIR)/dependencies/installed/version-info/bin
-ilidir  = $(BDIR)/dependencies/installed/version-info/lib
+tdir    = $(BDIR)/software/tarballs
+ddir    = $(BDIR)/software/build-tmp
+idir    = $(BDIR)/software/installed
+ibdir   = $(BDIR)/software/installed/bin
+ildir   = $(BDIR)/software/installed/lib
+ibidir  = $(BDIR)/software/installed/version-info/bin
+ilidir  = $(BDIR)/software/installed/version-info/lib
 
 # We'll need the system's PATH for making links to low-level programs we
 # won't be building ourselves.
@@ -58,11 +55,11 @@ export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir):$(PATH)
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export LDFLAGS           := $(rpath_command) -L$(ildir) $(LDFLAGS)
-export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
+export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
+export LDFLAGS           := $(rpath_command) -L$(ildir) $(LDFLAGS)
 
-# Define the programs that don't depend on any other.
+# Define the top-level programs (that don't depend on any other).
 top-level-programs = low-level-links wget gcc
 all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 
@@ -73,10 +70,10 @@ all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 # Tarballs
 # --------
 #
-# Prepare tarballs. Difference with that in `dependencies.mk': `.ONESHELL'
-# is not recognized by some versions of Make (even older GNU Makes). So
-# we'll have to make sure the recipe doesn't break into multiple shell
-# calls (so we can preserve the variables).
+# Prepare tarballs. Difference with that in `high-level.mk': `.ONESHELL' is
+# not recognized by some versions of Make (even older GNU Makes). So we'll
+# have to make sure the recipe doesn't break into multiple shell calls (so
+# we can preserve the variables).
 #
 # Software hosted at akhlaghi.org/src: As of our latest check (November
 # 2018) their major release tarballs either crash or don't build on some
@@ -93,7 +90,7 @@ all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 # However, downloading from this link is slow (because its just a link). So
 # its easier to just keep a with the others.
 $(lockdir): | $(BDIR); mkdir $@
-downloadwrapper = ./reproduce/src/bash/download-multi-try
+downloadwrapper = ./reproduce/analysis/bash/download-multi-try
 tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         binutils-$(binutils-version).tar.lz                 \
                         bzip2-$(bzip2-version).tar.gz                       \
@@ -121,9 +118,11 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         readline-$(readline-version).tar.gz                 \
                         sed-$(sed-version).tar.xz                           \
                         tar-$(tar-version).tar.gz                           \
+                        unzip-$(unzip-version).tar.gz                       \
                         wget-$(wget-version).tar.lz                         \
                         which-$(which-version).tar.gz                       \
                         xz-$(xz-version).tar.gz                             \
+                        zip-$(zip-version).tar.gz                           \
                         zlib-$(zlib-version).tar.gz                         \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
@@ -164,9 +163,15 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = readline  ]; then w=http://ftp.gnu.org/gnu/readline; \
 	  elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed;      \
 	  elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar;      \
+	  elif [ $$n = unzip     ]; then                                    \
+	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//');     \
+	    w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz;          \
 	  elif [ $$n = wget      ]; then w=http://ftp.gnu.org/gnu/wget;     \
 	  elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which;    \
 	  elif [ $$n = xz        ]; then w=http://tukaani.org/xz;           \
+	  elif [ $$n = zip       ]; then                                    \
+	    mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//');       \
+	    w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz;            \
 	  elif [ $$n = zlib      ]; then w=http://www.zlib.net;             \
 	  else                                                              \
 	    echo; echo; echo;                                               \
@@ -178,7 +183,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*";               \
 	  else                           tarballurl=$$w;                    \
 	  fi;                                                               \
-	                                                                   \
+	                                                                    \
 	  echo "Downloading $$tarballurl";                                  \
 	  if [ -f $(ibdir)/wget ]; then                                     \
 	    downloader="wget --no-use-server-timestamps -O";                \
@@ -344,18 +349,51 @@ $(ibidir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	&& ln -fs libbz2.so.1.0 libbz2.so                             \
 	&& echo "Bzip2 $(bzip2-version)" > $@
 
+$(ibidir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
+	v=$$(echo $(unzip-version) | sed -e's/\.//');            \
+	$(call gbuild, $<, unzip$$v, static,,                    \
+	               -f unix/Makefile generic_gcc              \
+	               CFLAGS="-DBIG_MEM -DMMAP",,pwd,           \
+	               -f unix/Makefile                          \
+	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
+	&& echo "Unzip $(unzip-version)" > $@
+
+$(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
+	v=$$(echo $(zip-version) | sed -e's/\.//');              \
+	$(call gbuild, $<, zip$$v, static,,                      \
+	               -f unix/Makefile generic_gcc              \
+	               CFLAGS="-DBIG_MEM -DMMAP",,pwd,           \
+	               -f unix/Makefile                          \
+	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
+	&& echo "Zip $(zip-version)" > $@
+
+# Some programs (like Wget and CMake) that use zlib need it to be dynamic
+# so they use our custom build. So we won't force a static-only build.
+#
+# Note for a static-only build: Zlib's `./configure' doesn't use Autoconf's
+# configure script, it just accepts a direct `--static' option.
+$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
+	$(call gbuild, $<, zlib-$(zlib-version)) \
+	&& echo "Zlib $(zlib-version)" > $@
+
 # GNU Tar: When built statically, tar gives a segmentation fault on
-# unpacking Bash. So we'll build it dynamically.
+# unpacking Bash. So we'll build it dynamically. Note that technically, zip
+# and unzip aren't dependencies of Tar, but for a clean build, we'll set
+# Tar to be the last compression-related software (the first-set of
+# software to be built).
 $(ibidir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 	       $(ibidir)/bzip2                   \
-	       $(ibidir)/lzip                    \
+	       $(ibidir)/unzip                   \
 	       $(ibidir)/gzip                    \
+	       $(ibidir)/lzip                    \
+               $(ilidir)/zlib                    \
+	       $(ibidir)/zip                     \
 	       $(ibidir)/xz
         # Since all later programs depend on Tar, the configuration will be
         # stuck here, only making Tar. So its more efficient to built it on
         # multiple threads (when the user's Make doesn't pass down the
         # number of threads).
-	$(call gbuild, $<, tar-$(tar-version), , , -j$(numthreads)) \
+	$(call gbuild, $<, tar-$(tar-version), , , -j$(numthreads) V=1) \
 	&& echo "GNU Tar $(tar-version)" > $@
 
 
@@ -555,22 +593,11 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 # Downloader
 # ----------
 #
-# Some programs (like Wget and CMake) that use zlib need it to be dynamic
-# so they use our custom build. So we won't force a static-only build.
-#
-# Note for a static-only build: Zlib's `./configure' doesn't use Autoconf's
-# configure script, it just accepts a direct `--static' option.
-$(idir)/etc:; mkdir $@
-$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
-                $(ibidir)/bash
-	$(call gbuild, $<, zlib-$(zlib-version)) \
-	&& echo "Zlib $(zlib-version)" > $@
-
 # OpenSSL: Some programs/libraries later need dynamic linking. So we'll
 # build libssl (and libcrypto) dynamically also.
 #
 # Until we find a nice and generic way to create an updated CA file in the
-# project, the certificates will be available in a file for this pipeline
+# project, the certificates will be available in a file for this project
 # along with the other tarballs.
 #
 # In case you do want a static OpenSSL and libcrypto, then uncomment the
@@ -579,9 +606,10 @@ $(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz \
 #ifeq ($(static_build),yes)
 #openssl-static = no-dso no-dynamic-engine no-shared
 #endif
+$(idir)/etc:; mkdir $@
 $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
                    $(tdir)/cert.pem                                  \
-                   $(ilidir)/zlib | $(idir)/etc
+                   $(ibidir)/bash | $(idir)/etc
         # According to OpenSSL's Wiki (link bellow), it can't automatically
         # detect Mac OS's structure. It will need some help. So we'll use
         # the `on_mac_os' Make variable that we defined in the configure
@@ -763,13 +791,15 @@ $(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
 # Binutils' linker `ld' is apparently only good for GNU/Linux systems and
 # other OSs have their own. So for now we aren't actually building
 # Binutils (`ld' isn't a prerequisite of GCC).
-$(ibidir)/binutils: $(tdir)/binutils-$(binutils-version).tar.lz
+$(ibidir)/binutils: $(tdir)/binutils-$(binutils-version).tar.lz \
+                    $(ibidir)/bash
 	$(call gbuild, $<, binutils-$(binutils-version), static) \
 	&& echo "GNU Binutils $(binutils-version)" > $@
 
 # `file' is not a prerequisite of GCC. However, since it is low level, it is
 # set as a prerequisite of GCC to have it installed.
-$(ibidir)/file: $(tdir)/file-$(file-version).tar.gz
+$(ibidir)/file: $(tdir)/file-$(file-version).tar.gz \
+                $(ibidir)/bash
 	$(call gbuild, $<, file-$(file-version), static) \
 	&& echo "File $(file-version)" > $@
 

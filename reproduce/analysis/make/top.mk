@@ -20,7 +20,7 @@
 
 
 # Load the local configuration (created after running `./configure').
-include reproduce/config/pipeline/LOCAL.mk
+include reproduce/software/config/installation/LOCAL.mk
 
 
 
@@ -63,7 +63,7 @@ include reproduce/config/pipeline/LOCAL.mk
 #
 # If you are just interested in the processing and don't want to build the
 # PDF, you can skip the creatation of the final PDF by removing the value
-# of `pdf-build-final' in `reproduce/config/pipeline/pdf-build.mk'.
+# of `pdf-build-final' in `reproduce/analysis/config/pdf-build.mk'.
 ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
 all: paper.pdf
 else
@@ -119,17 +119,18 @@ makesrc = initialize                    \
 
 
 
-# Include all Makefiles
-# ---------------------
+# Include all analysis Makefiles
+# ------------------------------
 #
-# We have two classes of Makefiles, separated by context and their location:
+#   1) All the analysis configuration-Makefiles (Makefiles that only define
+#      variables with no rules or order).
 #
-#   1) First, we'll include all the configuration-Makefiles. These
-#      Makefiles only define variables with no rules or order. We just
-#      won't include `LOCAL.mk' because it has already been included
-#      above.
+#   2) From the software configuration-Makefiles, we only include the one
+#      containing software versions, just incase its necessary to
+#      use/report outside of the acknowledgments section of the paper.
 #
-#   2) Then, we'll import the workhorse-Makefiles which contain rules to
-#      actually do this project's processing.
-include $(filter-out %LOCAL.mk, reproduce/config/pipeline/*.mk)
-include $(foreach s,$(makesrc), reproduce/src/make/$(s).mk)
+#   3) Finally, we'll import all the analysis workhorse-Makefiles which
+#      contain rules to actually do this project's processing.
+include reproduce/analysis/config/*.mk
+include reproduce/software/config/installation/versions.mk
+include $(foreach s,$(makesrc), reproduce/analysis/make/$(s).mk)

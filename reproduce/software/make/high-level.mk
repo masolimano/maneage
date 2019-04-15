@@ -26,23 +26,23 @@
 
 
 # Top level environment
-include reproduce/config/pipeline/LOCAL.mk
-include reproduce/src/make/dependencies-build-rules.mk
-include reproduce/config/pipeline/dependency-texlive.mk
-include reproduce/config/pipeline/dependency-versions.mk
+include reproduce/software/make/build-rules.mk
+include reproduce/software/config/installation/LOCAL.mk
+include reproduce/software/config/installation/texlive.mk
+include reproduce/software/config/installation/versions.mk
 
 lockdir = $(BDIR)/locks
-ddir    = $(BDIR)/dependencies
-dtexdir = $(shell pwd)/tex/dependencies
-tdir    = $(BDIR)/dependencies/tarballs
-idir    = $(BDIR)/dependencies/installed
-ibdir   = $(BDIR)/dependencies/installed/bin
-ildir   = $(BDIR)/dependencies/installed/lib
-ibidir  = $(BDIR)/dependencies/installed/version-info/bin
-ilidir  = $(BDIR)/dependencies/installed/version-info/lib
-itidir  = $(BDIR)/dependencies/installed/version-info/tex
-ictdir  = $(BDIR)/dependencies/installed/version-info/cite
-ipydir  = $(BDIR)/dependencies/installed/version-info/python
+tdir    = $(BDIR)/software/tarballs
+ddir    = $(BDIR)/software/build-tmp
+idir    = $(BDIR)/software/installed
+ibdir   = $(BDIR)/software/installed/bin
+ildir   = $(BDIR)/software/installed/lib
+dtexdir = $(shell pwd)/reproduce/software/bibtex
+ibidir  = $(BDIR)/software/installed/version-info/bin
+ilidir  = $(BDIR)/software/installed/version-info/lib
+itidir  = $(BDIR)/software/installed/version-info/tex
+ictdir  = $(BDIR)/software/installed/version-info/cite
+ipydir  = $(BDIR)/software/installed/version-info/python
 
 # Define the top-level programs to build (installed in `.local/bin').
 #
@@ -51,8 +51,8 @@ ipydir  = $(BDIR)/dependencies/installed/version-info/python
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
 top-level-libraries = # atlas
-top-level-programs  = gnuastro metastore unzip zip
 top-level-python    = astroquery matplotlib
+top-level-programs  = gnuastro metastore
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
      $(foreach p, $(top-level-python),    $(ipydir)/$(p)) \
@@ -87,15 +87,21 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 
 # We want the download to happen on a single thread. So we need to define a
 # lock, and call a special script we have written for this job. These are
-# placed here because we want them both in the `dependencies.mk' and
-# `dependencies-python.mk'.
+# placed here because we want them both in the `high-level.mk' and
+# `python.mk'.
 $(lockdir): | $(BDIR); mkdir $@
 downloader="wget --no-use-server-timestamps -O";
-downloadwrapper = ./reproduce/src/bash/download-multi-try
+downloadwrapper = ./reproduce/analysis/bash/download-multi-try
+
+
+
 
 
 # Python packages
-include reproduce/src/make/dependencies-python.mk
+include reproduce/software/make/python.mk
+
+
+
 
 
 # Tarballs
@@ -127,11 +133,9 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         libgit2-$(libgit2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
                         openmpi-$(openmpi-version).tar.gz                  \
-                        unzip-$(unzip-version).tar.gz                      \
                         openblas-$(openblas-version).tar.gz                \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
-                        zip-$(zip-version).tar.gz                          \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -156,7 +160,12 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = atlas       ]; then
 	    mergenames=0
 	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
-	  elif [ $$n = cmake       ]; then w=https://cmake.org/files/v3.12
+	  elif [ $$n = cmake       ]; then
+	    mergenames=0
+	    majv=$$(echo $(cmake-version) \
+	                 | sed -e's/\./ /' \
+	                 | awk '{printf("%d.%d", $$1, $$2)}')
+	    w=https://cmake.org/files/v$$majv/cmake-$(cmake-version).tar.gz
 	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = fftw        ]; then w=ftp://ftp.fftw.org/pub/fftw
 	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
@@ -185,13 +194,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
-	  elif [ $$n = unzip       ]; then w=ftp://ftp.info-zip.org/pub/infozip/src
-	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
-	    w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
-	  elif [ $$n = zip         ]; then
-	    mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//')
-	    w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -469,19 +472,20 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
         #
         # On Mac systems, the build complains about `clang' specific
         # features, so we can't use our own GCC build here.
-	if [ x$(on_mac_os) = xyes ]; then                          \
-	  export CC=clang;                                         \
-	  export CXX=clang++;                                      \
-	fi;                                                        \
-	cd $(ddir)                                                 \
-	&& rm -rf cmake-$(cmake-version)                           \
-	&& tar xf $< && cd cmake-$(cmake-version)                  \
-	&& ./bootstrap --prefix=$(idir) --system-curl --system-zlib\
-	               --system-bzip2 --system-liblzma --no-qt-gui \
-	&& make LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1         \
-	&& make install                                            \
-	&& cd ..                                                   \
-	&& rm -rf cmake-$(cmake-version)                           \
+	if [ x$(on_mac_os) = xyes ]; then                            \
+	  export CC=clang;                                           \
+	  export CXX=clang++;                                        \
+	fi;                                                          \
+	cd $(ddir)                                                   \
+	&& rm -rf cmake-$(cmake-version)                             \
+	&& tar xf $<                                                 \
+	&& cd cmake-$(cmake-version)                                 \
+	&& ./bootstrap --prefix=$(idir) --system-curl --system-zlib  \
+	               --system-bzip2 --system-liblzma --no-qt-gui   \
+	&& make LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1           \
+	&& make install                                              \
+	&& cd ..                                                     \
+	&& rm -rf cmake-$(cmake-version)                             \
 	&& echo "CMake $(cmake-version)" > $@
 
 # cURL (and its library, which is needed by several programs here) can
@@ -573,7 +577,7 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 	        -e's|@GROUP[@]|'$$group'|g'                       \
 	        -e's|@BINDIR[@]|$(ibdir)|g'                       \
 	        -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g'       \
-	        reproduce/src/bash/git-$$f > .git/hooks/$$f
+	        reproduce/software/bash/git-$$f > .git/hooks/$$f
 	    chmod +x .git/hooks/$$f
 	    echo "Metastore (forked) $(metastore-version)" > $@
 	  done
@@ -609,23 +613,20 @@ endif
 	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/                 \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
-$(ibidir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
-	v=$$(echo $(unzip-version) | sed -e's/\.//')
-	$(call gbuild, $<, unzip$$v, static,,                    \
-	               -f unix/Makefile generic_gcc              \
-	               CFLAGS="-DBIG_MEM -DMMAP",,pwd,           \
-	               -f unix/Makefile                          \
-	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
-	&& echo "Unzip $(unzip-version)" > $@
 
-$(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
-	v=$$(echo $(zip-version) | sed -e's/\.//')
-	$(call gbuild, $<, zip$$v, static,,                      \
-	               -f unix/Makefile generic_gcc              \
-	               CFLAGS="-DBIG_MEM -DMMAP",,pwd,           \
-	               -f unix/Makefile                          \
-	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
-	&& echo "Zip $(zip-version)" > $@
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -639,7 +640,7 @@ $(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 # `texlive-ready-tlmgr' and use its contents to mark if we can use it or
 # not.
 $(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
-                               reproduce/config/pipeline/texlive.conf
+                    reproduce/software/config/installation/texlive.conf
 
         # Unpack, enter the directory, and install based on the given
         # configuration (prerequisite of this rule).
@@ -649,7 +650,8 @@ $(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
 	tar xf $(tdir)/install-tl-unx.tar.gz
 	cd install-tl-*
 	sed -e's|@installdir[@]|$(idir)|g' \
-	    $$topdir/reproduce/config/pipeline/texlive.conf > texlive.conf
+	    $$topdir/reproduce/software/config/installation/texlive.conf \
+	    > texlive.conf
 
         # TeX Live's installation may fail due to any reason. But TeX Live
         # is optional (only necessary for building the final PDF). So we
@@ -680,7 +682,7 @@ $(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
 # To keep things modular and simple, we'll break up the installation of TeX
 # Live itself (only very basic TeX and LaTeX) and the installation of its
 # necessary packages into two packages.
-$(itidir)/texlive: reproduce/config/pipeline/dependency-texlive.mk \
+$(itidir)/texlive: reproduce/software/config/installation/texlive.mk \
                    $(itidir)/texlive-ready-tlmgr
 
         # To work with TeX live installation, we'll need the internet.

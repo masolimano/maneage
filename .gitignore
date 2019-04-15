@@ -33,6 +33,7 @@ mmap_*
 build
 .local
 .build
+LOCAL.mk
 Makefile
 tex/tikz
 .gnuastro
@@ -42,7 +43,6 @@ tex/pipeline
 LOCAL_tmp.mk
 LOCAL_old.mk
 gnuastro-local.conf
-reproduce/config/pipeline/LOCAL.mk
 
 reproduce/BDIR/
 reproduce/SURVEY/

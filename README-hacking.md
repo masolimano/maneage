@@ -238,38 +238,38 @@ Project architecture
 In order to customize this template to your research, it is important to
 first understand its architecture so you can navigate your way in the
 directories and understand how to implement your research project within
-its framework. But before reading this theoretical discussion, please run
-the template (described in `README.md`: first run `./configure`, then
-`.local/bin/make -j8`) without any change, just to see how it works.
+its framework: where to add new files and which existing files to modify
+for what purpose. But before reading this theoretical discussion, please
+run the template (described in `README.md`: first run `./configure`, then
+`.local/bin/make -j8`) without any change, just to see how it works (note
+that the configure step builds all necessary software, so it can take long,
+but you can read along while its working).
 
-In order to obtain a reproducible result it is important to have an
-identical environment (for example same versions of the programs that it
-will use). Therefore, the projects builds its own dependencies during the
-`./configure` step. Building of the dependencies is managed by
-`reproduce/src/make/dependencies-basic.mk` and
-`reproduce/src/make/dependencies.mk`. These Makefiles are called by the
-`./configure` script and not used afterwards. The first is intended for
-downloading and building the most basic tools like GNU Tar, GNU Bash, GNU
-Make, and GNU Compiler Collection (GCC). Therefore it must only contain
-very basic and portable Make and shell features. The second is called after
-the first, thus enabling usage of the modern and advanced features of GNU
-Bash, GNU Make and other low-level GNU tools. Later, if you add a new
-program/library for your research, you will need to include a rule on how
-to download and build it (mostly in `reproduce/src/make/dependencies.mk`).
+The project has two top-level directories: `reproduce` and
+`tex`. `reproduce` hosts all the software building and analysis
+steps. `tex` contains all the final paper's components to be compiled into
+a PDF using LaTeX.
+
+The `reproduce` directory has two sub-directories: `software` and
+`analysis`. As the name says, the former contains all the instructions to
+download, build and install (independent of the host operating system) the
+necessary software (these are called by the `./configure` script). The
+latter contains instructions on how to use those software to do your
+project's analysis.
 
 After it finishes, `./configure` will create the following symbolic links
 in the project's top source directory: 1) `Makefile` in the top directory
-which points to `reproduce/src/make/top.mk`. 2) `.build' which points to
-the top build directory, and 3) `.local` for easy access to the custom
-built software packages installation directory. The first is for practical
-necessity (so you can run `make' from the top source directory), but the
-latter are just for convenience (fast access to the built products and
-software).
+(which points to `reproduce/analysis/make/top.mk`). 2) `.build` which
+points to the top build directory.And 3) `.local` for easy access to the
+custom built software packages installation directory. The first is for
+practical necessity (so you can run `make` from the top source directory),
+but the latter is just for convenience (fast access to the built outputs
+and software).
 
-Therefore, by running `.local/bin/make` we will build the project with the
-project's custom version of GNU Make, not the host system's Make. The first
-file that is read by Make (the template's starting point) is the top-level
-`Makefile` (also created by `./configure`). Therefore, we'll start
+Therefore, by running `.local/bin/make` we are doing the project's analysis
+with its own custom version of GNU Make, not the host system's Make. The
+first file that is read by Make (the template's starting point) is the
+top-level `Makefile` (created by `./configure`). Therefore, we'll start
 describing the template's architecture with this file. This file is
 relatively short and heavily commented so hopefully the descriptions in
 each comment will be enough to understand the general details. As you read
@@ -286,7 +286,7 @@ strategy to deal with large/huge files).
 
 To keep the source and (intermediate) built files separate, you _must_
 define a top-level build directory variable (or `$(BDIR)`) to host all the
-intermediate files (it was defined in `./configure`). This directory
+intermediate files (you defined it during `./configure`). This directory
 doesn't need to be version controlled or even synchronized, or backed-up in
 other servers: its contents are all products, and can be easily re-created
 any time. As you define targets for your new rules, it is thus important to
@@ -299,30 +299,32 @@ the top `Makefile`: _configuration-Makefiles_ (only independent
 variables/configurations) and _workhorse-Makefiles_ (Makefiles that
 actually contain analysis/processing rules).
 
-The configuration-Makefiles are those that satisfy this wildcard:
-`reproduce/config/pipeline/*.mk`. These Makefiles don't actually have any
-rules, they just have values for various free parameters throughout the
-analysis/processing. Open a few of them to see for yourself. These
-Makefiles must only contain raw Make variables (project configurations). By
-"raw" we mean that the Make variables in these files must not depend on
-variables in any other configuration-Makefile. This is because we don't
-want to assume any order in reading them. It is also very important to
-*not* define any rule, or other Make construct, in these
-configuration-Makefiles.
+The configuration-Makefiles are those that satisfy these two wildcards:
+`reproduce/software/config/installation/*.mk` (for building the necessary
+software when you run `./configure`) and `reproduce/analysis/config/*.mk`
+(for the high-level analysis, when you run `.local/bin/make`). These
+Makefiles don't actually have any rules, they just have values for various
+free parameters throughout the configuration or analysis. Open a few of
+them to see for yourself. These Makefiles must only contain raw Make
+variables (project configurations). By "raw" we mean that the Make
+variables in these files must not depend on variables in any other
+configuration-Makefile. This is because we don't want to assume any order
+in reading them. It is also very important to *not* define any rule, or
+other Make construct, in these configuration-Makefiles.
 
-This enables you to set these configure-Makefiles as a prerequisite to any
-target that depends on their variable values. Therefore, if you change any
-of their values, all targets that depend on those values will be
-re-built. This is very convenient as your project scales up and gets more
-complex.
+Following this rule-of-thumb enables you to set these configure-Makefiles
+as a prerequisite to any target that depends on their variable
+values. Therefore, if you change any of their values, all targets that
+depend on those values will be re-built. This is very convenient as your
+project scales up and gets more complex.
 
 The workhorse-Makefiles are those satisfying this wildcard
-`reproduce/src/make/*.mk`. They contain the details of the processing steps
-(Makefiles containing rules). Therefore, in this phase *order is
-important*, because the prerequisites of most rules will be the targets of
-other rules that will be defined prior to them (not a fixed name like
-`paper.pdf`). The lower-level rules must be imported into Make before the
-higher-level ones.
+`reproduce/software/make/*.mk` and `reproduce/analysis/make/*.mk`. They
+contain the details of the processing steps (Makefiles containing
+rules). Therefore, in this phase *order is important*, because the
+prerequisites of most rules will be the targets of other rules that will be
+defined prior to them (not a fixed name like `paper.pdf`). The lower-level
+rules must be imported into Make before the higher-level ones.
 
 All processing steps are assumed to ultimately (usually after many rules)
 end up in some number, image, figure, or table that will be included in the
@@ -345,34 +347,36 @@ other users access to the contents. Therefore the `./configure` and Make
 steps must be called with special conditions which are managed in the
 `for-group` script.
 
-Let's see how this design is implemented. When `./configure` finishes: By
-creating a `Makefile` in the top directory, it allows us to start "making"
-the project. Please open and inspect it as we go along here. The first step
-(un-commented line) is to import the local configuration (answers to the
-questions `./configure` asked you). They are defined in the
-configuration-Makefile `reproduce/config/pipeline/LOCAL.mk` which was also
-built by `./configure` (based on the `LOCAL.mk.in` template).
+Let's see how this design is implemented. The `./configure` script's final
+step is to put a `Makefile` in the top directory. This allows us to start
+"making" the project. Please open and inspect it as we go along here. The
+first step (un-commented line) is to import the local configuration
+(answers to the questions `./configure` asked you). They are defined in the
+configuration-Makefile `reproduce/software/config/installation/LOCAL.mk`
+which was also built by `./configure` (based on the `LOCAL.mk.in` template
+of the same directory).
 
-The next non-commented set of lines define the ultimate target of the whole
-project (`paper.pdf`). But to avoid mistakes, a sanity check is necessary
-to see if Make is being run with the same group settings as the configure
-script (for example when the project is configured for group access using
-the `./for-group` script, but Make isn't). Therefore we use a Make
-conditional to define the `all` target based on the group permissions being
-consistent between the initial configuration and the current run.
+The next non-commented set of the top `Makefile` defines the ultimate
+target of the whole project (`paper.pdf`). But to avoid mistakes, a sanity
+check is necessary to see if Make is being run with the same group settings
+as the configure script (for example when the project is configured for
+group access using the `./for-group` script, but Make isn't). Therefore we
+use a Make conditional to define the `all` target based on the group
+permissions.
 
-Having defined the top target, our next step is to include all the other
-necessary Makefiles. However, order matters in the importing of
+Having defined the top/ultimate target, our next step is to include all the
+other necessary Makefiles. However, order matters in the importing of
 workhorse-Makefiles and each must also have a TeX macro file with the same
 base name (without a suffix). Therefore, the next step in the top-level
-Makefile is to define a `makesrc` variable to keep the base names (without
-a `.mk` suffix) of the workhorse-Makefiles that must be imported, in the
-proper order.
+Makefile is to define the `makesrc` variable to keep the base names
+(without a `.mk` suffix) of the workhorse-Makefiles that must be imported,
+in the proper order.
 
-Finally, we'll just import all the configuration-Makefiles with a wildcard
-(while ignoring `LOCAL.mk` that was imported before). Also, all
-workhorse-Makefiles are imported in the proper order using a Make `foreach`
-loop. This finishes the general view of the template's implementation.
+Finally, we import all the necessary remaining Makefiles: 1) All the
+analysis configuration-Makefiles with a wildcard. 2) The software
+configuration-Makefile that contains their versiosn (just incase its
+necessary). 3) All workhorse-Makefiles in the proper order using a Make
+`foreach` loop.
 
 In short, to keep things modular, readable and manageable, follow these
 recommendations: 1) Set clear-to-understand names for the
@@ -385,14 +389,14 @@ manage/understand (even for yourself). As a general rule of thumb, break
 your rules into as many logically-similar but independent steps as
 possible.
 
-The `reproduce/src/make/paper.mk` Makefile must be the final Makefile that
-is included. This workhorse Makefile ends with the rule to build
+The `reproduce/analysis/make/paper.mk` Makefile must be the final Makefile
+that is included. This workhorse Makefile ends with the rule to build
 `paper.pdf` (final target of the whole project). If you look in it, you
-will notice that it starts with a rule to create `$(mtexdir)/pipeline.tex`
+will notice that it starts with a rule to create `$(mtexdir)/project.tex`
 (`mtexdir` is just a shorthand name for `$(BDIR)/tex/macros` mentioned
-before).  `$(mtexdir)/pipeline.tex` is the connection between the
+before).  `$(mtexdir)/project.tex` is the connection between the
 processing/analysis steps of the project, and the steps to build the final
-PDF. As you see, `$(mtexdir)/pipeline.tex` only instructs LaTeX to import
+PDF. As you see, `$(mtexdir)/project.tex` only instructs LaTeX to import
 the LaTeX macros of each high-level processing step during the analysis
 (the separate work-horse Makefiles that you defined and included).
 
@@ -415,8 +419,8 @@ Summary
 Based on the explanation above, some major design points you should have in
 mind are listed below.
 
- - Define new `reproduce/src/make/XXXXXX.mk` workhorse-Makefile(s) with
-   good and human-friendly name(s) replacing `XXXXXX`.
+ - Define new `reproduce/analysis/make/XXXXXX.mk` workhorse-Makefile(s)
+   with good and human-friendly name(s) replacing `XXXXXX`.
 
  - Add `XXXXXX`, as a new line, to the values in `makesrc` of the top-level
    `Makefile`.
@@ -424,13 +428,13 @@ mind are listed below.
  - Do not use any constant numbers (or important names like filter names)
    in the workhorse-Makefiles or paper's LaTeX source. Define such
    constants as logically-grouped, separate configuration-Makefiles in
-   `reproduce/config/pipeline`. Then set the respective
+   `reproduce/analysis/config/XXXXX.mk`. Then set this
    configuration-Makefiles file as a pre-requisite to any rule that uses
    the variable defined in it.
 
  - Through any number of intermediate prerequisites, all processing steps
-   should end in (be a prerequisite of) `$(mtexdir)/pipeline.tex` (defined
-   in `reproduce/src/make/paper.mk`). `$(mtexdir)/pipeline.tex` is the
+   should end in (be a prerequisite of) `$(mtexdir)/project.tex` (defined
+   in `reproduce/analysis/make/paper.mk`). `$(mtexdir)/project.tex` is the
    bridge between the processing steps and PDF-building steps.
 
 
@@ -511,12 +515,12 @@ get more advanced in later stages of your work.
 
  - **Title**, **short description** and **author** in source files: In this
      raw skeleton, the title or short description of your project should be
-     added in the following two files: `reproduce/src/make/top.mk` (the
-     first line), and `tex/preamble-header.tex`. In both cases, the texts
-     you should replace are all in capital letters to make them easier to
-     identify. Of course, if you use a different LaTeX method of managing
-     the title and authors, please feel free to use your own methods after
-     finishing this checklist and doing your first commit.
+     added in the following two files: `reproduce/analysis/make/top.mk`
+     (the first line), and `tex/src/preamble-header.tex`. In both cases,
+     the texts you should replace are all in capital letters to make them
+     easier to identify. Of course, if you use a different LaTeX method of
+     managing the title and authors, please feel free to use your own
+     methods after finishing this checklist and doing your first commit.
 
  - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
      dependency of the template which will be built and used. The main
@@ -529,28 +533,29 @@ get more advanced in later stages of your work.
      them.
 
    - Delete marked part(s) in `configure`.
-   - Delete the `reproduce/config/gnuastro` directory.
-   - Delete `astnoisechisel` from the value of `top-level-programs` in `reproduce/src/make/dependencies.mk`. You can keep the rule to build `astnoisechisel`, since its not in the `top-level-programs` list, it (and all the dependencies that are only needed by Gnuastro) will be ignored.
-   - Delete marked parts in `reproduce/src/make/initialize.mk`.
+   - Delete the `reproduce/software/config/gnuastro` directory.
+   - Delete `gnuastro` from the value of `top-level-programs` in `reproduce/software/make/high-level.mk`. You can keep the rule to build `gnuastro`, since its not in the `top-level-programs` list, it (and all the dependencies that are only needed by Gnuastro) will be ignored.
+   - Delete marked parts in `reproduce/analysis/make/initialize.mk`.
 
- - **Other dependencies**: If there are any more of the dependencies that
-     you don't use (or others that you need), then remove (or add) them in
-     the respective parts of `reproduce/src/make/dependencies.mk`. It is
-     commented thoroughly and reading over the comments should guide you on
-     what to add/remove and where.
+ - **Other dependencies**: If there are any more software that you don't
+     use (or others that you need), then remove (or add) them in the
+     respective parts of `top-level-programs` of
+     `reproduce/software/make/high-level`. It is commented thoroughly and
+     reading over the comments should guide you on what to add/remove and
+     where.
 
  - **Input dataset (can be done later)**: The input datasets are managed
-     through the `reproduce/config/pipeline/INPUTS.mk` file. It is best to
+     through the `reproduce/analysis/config/INPUTS.mk` file. It is best to
      gather all the information regarding all the input datasets into this
      one central file. To ensure that the proper dataset is being
      downloaded and used by the project, it is also recommended get an [MD5
      checksum](https://en.wikipedia.org/wiki/MD5) of the file and include
      that in `INPUTS.mk` so the project can check it automatically. The
      preparation/downloading of the input datasets is done in
-     `reproduce/src/make/download.mk`. Have a look there to see how these
-     values are to be used. This information about the input datasets is
-     also used in the initial `configure` script (to inform the users), so
-     also modify that file. You can find all occurrences of the template
+     `reproduce/analysis/make/download.mk`. Have a look there to see how
+     these values are to be used. This information about the input datasets
+     is also used in the initial `configure` script (to inform the users),
+     so also modify that file. You can find all occurrences of the template
      dataset with the command below and replace it with your input's
      dataset.
 
@@ -575,9 +580,9 @@ get more advanced in later stages of your work.
      - Delete all `delete-me*` files in the following directories:
 
        ```shell
-       $ rm tex/delete-me*
-       $ rm reproduce/src/make/delete-me*
-       $ rm reproduce/config/pipeline/delete-me*
+       $ rm tex/src/delete-me*
+       $ rm reproduce/analysis/make/delete-me*
+       $ rm reproduce/analysis/config/delete-me*
        ```
 
  - **`README.md`**: Correct all the `XXXXX` place holders (name of your
@@ -715,10 +720,12 @@ for the benefit of others.
       a good sign that you should break up the rule into its main
       components. Try to only have one major processing step per rule.
 
-   - *Context-based (many) Makefiles*: This design allows easy inclusion of
-      many Makefiles (in `reproduce/src/make/*.mk`) for maximal
-      modularity. So keep the rules for closely related parts of the
-      processing in separate Makefiles.
+   - *Context-based (many) Makefiles*: For maximum modularity, this design
+      allows easy inclusion of many Makefiles: in
+      `reproduce/analysis/make/*.mk` for analysis steps, and
+      `reproduce/software/make/*.mk` for building software. So keep the
+      rules for closely related parts of the processing in separate
+      Makefiles.
 
    - *Descriptive names*: Be very clear and descriptive with the naming of
       the files and the variables because a few months after the
@@ -734,23 +741,24 @@ for the benefit of others.
       creating a catalog and another two for processing it under models A
       and B, you can name them like this: `catalog-create.mk`,
       `catalog-model-a.mk` and `catalog-model-b.mk`. In this way, when
-      listing the contents of `reproduce/src/make` to see all the
+      listing the contents of `reproduce/analysis/make` to see all the
       Makefiles, those related to the catalog will all be close to each
       other and thus easily found. This also helps in auto-completions by
       the shell or text editors like Emacs.
 
    - *Source directories*: If you need to add files in other languages for
-      example in shell, Python, AWK or C, keep them in a separate directory
-      under `reproduce/src`, with the appropriate name.
+      example in shell, Python, AWK or C, keep the files in the same
+      language in a separate directory under `reproduce/analysis`, with the
+      appropriate name.
 
    - *Configuration files*: If your research uses special programs as part
       of the processing, put all their configuration files in a devoted
       directory (with the program's name) within
-      `reproduce/config`. Similar to the `reproduce/config/gnuastro`
-      directory (which is put in the template as a demo in case you use GNU
-      Astronomy Utilities). It is much cleaner and readable (thus less
-      buggy) to avoid mixing the configuration files, even if there is no
-      technical necessity.
+      `reproduce/software/config`. Similar to the
+      `reproduce/software/config/gnuastro` directory (which is put in the
+      template as a demo in case you use GNU Astronomy Utilities). It is
+      much cleaner and readable (thus less buggy) to avoid mixing the
+      configuration files, even if there is no technical necessity.
 
 
  - **Contents**: It is good practice to follow the following
@@ -837,7 +845,7 @@ for the benefit of others.
         ```
      A more advanced Make programmer will use Make's [call
      function](https://www.gnu.org/software/make/manual/html_node/Call-Function.html)
-     to define a wrapper in `reproduce/src/make/initialize.mk`. This
+     to define a wrapper in `reproduce/analysis/make/initialize.mk`. This
      wrapper will replace `$(subst .txt,,XXXXX)`. Therefore, it will be
      possible to greatly simplify this repetitive statement and make the
      code even more readable throughout the whole project.
@@ -848,9 +856,9 @@ for the benefit of others.
      input data):
 
    - *Keep the source tarball of dependencies*: After configuration
-      finishes, the `.build/dependencies/tarballs` directory will contain
-      all the software tarballs that were necessary for your project. You
-      can mirror the contents of this directory to keep a backup of all the
+      finishes, the `.build/software/tarballs` directory will contain all
+      the software tarballs that were necessary for your project. You can
+      mirror the contents of this directory to keep a backup of all the
       software tarballs used in your project (possibly as another version
       controlled repository) that is also published with your project. Note
       that software webpages are not written in stone and can suddenly go

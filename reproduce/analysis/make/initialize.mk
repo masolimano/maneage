@@ -31,14 +31,14 @@
 # be necessary to put a lock on them. This project uses the `flock' program
 # to achieve this.
 texdir      = $(BDIR)/tex
-srcdir      = reproduce/src
 lockdir     = $(BDIR)/locks
 indir       = $(BDIR)/inputs
 mtexdir     = $(texdir)/macros
-pconfdir    = reproduce/config/pipeline
-installdir  = $(BDIR)/dependencies/installed
+bashdir     = reproduce/analysis/bash
+pconfdir    = reproduce/analysis/config
+installdir  = $(BDIR)/software/installed
 # --------- Delete for no Gnuastro ---------
-gconfdir    = reproduce/config/gnuastro
+gconfdir    = reproduce/software/config/gnuastro
 # ------------------------------------------
 
 
@@ -233,16 +233,14 @@ $(packagecontents): | $(texdir)
 	cp configure COPYING for-group README.md README-hacking.md $$dir/
 
         # Build the top-level directories.
-	mkdir $$dir/reproduce $$dir/tex $$dir/tex/tikz $$dir/tex/pipeline
+	mkdir $$dir/reproduce $$dir/tex $$dir/tex/tikz $$dir/tex/build
 
-        # Copy all the `reproduce' contents except for the `build' symbolic
-        # link.
+        # Copy all the necessary `reproduce' and `tex' contents.
 	shopt -s extglob
 	cp -r tex/src                            $$dir/tex/src
 	cp tex/tikz/*.pdf                        $$dir/tex/tikz
-	cp -r reproduce/!(build)                 $$dir/reproduce
-	cp -r tex/pipeline/!($(packagebasename)) $$dir/tex/pipeline
-	cp -r tex/dependencies                   $$dir/tex/dependencies
+	cp -r reproduce/                         $$dir/reproduce
+	cp -r tex/build/!($(packagebasename))    $$dir/tex/build
 
         # Clean up un-necessary/local files: 1) the $(texdir)/build*
         # directories (when building in a group structure, there will be
@@ -250,9 +248,9 @@ $(packagecontents): | $(texdir)
         # build files and don't have any relevant/hand-written files in
         # them. 2) The `LOCAL.mk' and `gnuastro-local.conf' files just have
         # this machine's local settings and are irrelevant for anyone else.
-	rm -rf $$dir/tex/pipeline/build*
-	rm $$dir/reproduce/config/pipeline/LOCAL.mk
-	rm $$dir/reproduce/config/gnuastro/gnuastro-local.conf
+	rm -rf $$dir/tex/build/build*
+	rm $$dir/reproduce/software/config/installation/LOCAL.mk
+	rm $$dir/reproduce/software/config/gnuastro/gnuastro-local.conf
 
         # PROJECT SPECIFIC: under this comment, copy any other file for
         # packaging, or remove any of the copied files above to suite your
@@ -338,4 +336,4 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Version of the project.
 	@v=$$(git describe --dirty --always);
-	echo "\newcommand{\pipelineversion}{$$v}" > $@
+	echo "\newcommand{\projectversion}{$$v}" > $@

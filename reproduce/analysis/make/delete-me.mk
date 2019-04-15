@@ -82,7 +82,7 @@ $(histogram): $(dddemodir)/%-hist.txt: $(indir)/%.fits | $(dddemodir)
 # ----------------
 #
 # This is just as a demonstration on how to get analysic configuration
-# parameters from variables defined in `reproduce/config/pipeline'.
+# parameters from variables defined in `reproduce/analysis/config/'.
 stats = $(dddemodir)/wfpc2-stats.txt
 $(stats): $(dddemodir)/%-stats.txt: $(indir)/%.fits | $(dddemodir)
 	aststatistics $< -h0 --mean --median > $@

@@ -4,15 +4,15 @@
 #
 # Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
-# This script is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# This script is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
 #
 # This script is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+# Public License for more details.
 #
 # A copy of the GNU General Public License is available at
 # <http://www.gnu.org/licenses/>.
@@ -178,13 +178,16 @@ done
 topdir=$(pwd)
 lbdir=.build
 installedlink=.local
-cdir=reproduce/config
 optionaldir="/optional/path"
+adir=reproduce/analysis/config
+cdir=reproduce/software/config
 
-pdir=$cdir/pipeline
-pconf=$pdir/LOCAL.mk
-ptconf=$pdir/LOCAL_tmp.mk
-poconf=$pdir/LOCAL_old.mk
+sbdir=$cdir/installation
+
+pconf=$sbdir/LOCAL.mk
+ptconf=$sbdir/LOCAL_tmp.mk
+poconf=$sbdir/LOCAL_old.mk
+depverfile=$cdir/installation/versions.mk
 # --------- Delete for no Gnuastro ---------
 glconf=$cdir/gnuastro/gnuastro-local.conf
 # ------------------------------------------
@@ -430,10 +433,10 @@ if [ x"$input_dir" = x ]; then
 else
     indir=$input_dir
 fi
-wfpc2name=$(awk '!/^#/ && $1=="WFPC2IMAGE" {print $3}' $pdir/INPUTS.mk)
-wfpc2md5=$(awk  '!/^#/ && $1=="WFPC2MD5"   {print $3}' $pdir/INPUTS.mk)
-wfpc2size=$(awk '!/^#/ && $1=="WFPC2SIZE"  {print $3}' $pdir/INPUTS.mk)
-wfpc2url=$(awk  '!/^#/ && $1=="WFPC2URL"   {print $3}' $pdir/INPUTS.mk)
+wfpc2name=$(awk '!/^#/ && $1=="WFPC2IMAGE" {print $3}' $adir/INPUTS.mk)
+wfpc2md5=$(awk  '!/^#/ && $1=="WFPC2MD5"   {print $3}' $adir/INPUTS.mk)
+wfpc2size=$(awk '!/^#/ && $1=="WFPC2SIZE"  {print $3}' $adir/INPUTS.mk)
+wfpc2url=$(awk  '!/^#/ && $1=="WFPC2URL"   {print $3}' $adir/INPUTS.mk)
 if [ $rewritepconfig = yes ] && [ x"$input_dir" = x ]; then
     cat <<EOF
 
@@ -584,7 +587,6 @@ fi
 
 # --------- Delete for no Gnuastro ---------
 # Get the version of Gnuastro that must be used.
-depverfile=reproduce/config/pipeline/dependency-versions.mk
 gversion=$(awk '$1=="gnuastro-version" {print $NF}' $depverfile)
 
 # Gnuastro's local configuration settings
@@ -626,14 +628,17 @@ fi
 rm -f $lbdir
 ln -s $bdir $lbdir
 
-depdir=$bdir/dependencies
-if ! [ -d $depdir ];  then mkdir $depdir; fi
+sdir=$bdir/software
+if ! [ -d $sdir ];  then mkdir $sdir; fi
 
-tardir=$depdir/tarballs
+tardir=$sdir/tarballs
 if ! [ -d $tardir ];  then mkdir $tardir; fi
 
-instdir=$depdir/installed
+instdir=$sdir/installed
 if ! [ -d $instdir ]; then mkdir $instdir; fi
+
+tmpblddir=$sdir/build-tmp
+if ! [ -d $tmpblddir ]; then mkdir $tmpblddir; fi
 
 verdir=$instdir/version-info
 if ! [ -d $verdir ]; then mkdir $verdir; fi
@@ -654,7 +659,7 @@ itidir=$verdir/tex
 if ! [ -d $itidir ]; then mkdir $itidir; fi
 
 texdir=$bdir/tex
-if ! [ -d $texdir ]; then mkdir $texdir; ln -s $texdir tex/pipeline; fi
+if ! [ -d $texdir ]; then mkdir $texdir; ln -s $texdir tex/build; fi
 
 mtexdir=$texdir/macros
 if ! [ -d $mtexdir ]; then mkdir $mtexdir; fi
@@ -663,7 +668,7 @@ rm -f $installedlink
 ln -s $instdir $installedlink
 # --------- Delete for no Gnuastro ---------
 rm -f .gnuastro
-ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
+ln -s $topdir/reproduce/software/config/gnuastro .gnuastro
 # ------------------------------------------
 
 
@@ -685,8 +690,8 @@ ln -s $(pwd)/reproduce/config/gnuastro .gnuastro
 # the library came from the system or our build.
 static_build=no
 
-#oprog=$depdir/static-test
-#cprog=$depdir/static-test.c
+#oprog=$sdir/static-test
+#cprog=$sdir/static-test.c
 #echo "#include <stdio.h>"          > $cprog
 #echo "int main(void) {return 0;}" >> $cprog
 #if [ x$CC = x ]; then CC=gcc; fi;
@@ -733,8 +738,8 @@ static_build=no
 # `-rpath-link' is used to write the information of the linked shared
 # library into the shared object (library or program). But some versions of
 # LLVM's linker don't accept it an can cause problems.
-oprog=$depdir/rpath-test
-cprog=$depdir/rpath-test.c
+oprog=$sdir/rpath-test
+cprog=$sdir/rpath-test.c
 echo "#include <stdio.h>"          > $cprog
 echo "int main(void) {return 0;}" >> $cprog
 if [ x$CC = x ]; then CC=gcc; fi;
@@ -754,10 +759,10 @@ rm -f $oprog $cprog
 #
 # Some programs (like Wget) need dynamic loading (using `libdl'). On
 # GNU/Linux systems, we'll need the `-ldl' flag to link such programs.  But
-# Mac OS doesn't need any explicit calling. So we'll check here to use in
-# the building of programs.
-oprog=$depdir/ldl-test
-cprog=$depdir/ldl-test.c
+# Mac OS doesn't need any explicit linking. So we'll check here to see if
+# it is present (thus necessary) or not.
+oprog=$sdir/ldl-test
+cprog=$sdir/ldl-test.c
 cat > $cprog <<EOF
 #include <stdio.h>
 #include <dlfcn.h>
@@ -790,7 +795,7 @@ NOTE: the built software will NOT BE INSTALLED on your system (no root
 access is required). They are only for local usage by this project. They
 will be installed in:
 
-  $depdir/installed
+  $sdir/installed
 
 EOF
     sleep $tsec
@@ -821,17 +826,17 @@ fi
 
 
 
-# Build `flock' as first program
-# ------------------------------
+# Build `flock'
+# -------------
 #
 # Flock (or file-lock) is a unique program that is necessary to serialize
 # the (generally parallel) processing of make when necessary. GNU/Linux
 # machines have it as part of their `util-linux' programs. But to be
 # consistent in non-GNU/Linux systems, we will be using our own build.
 #
-# The reason its sepecial is that we need it to serialize the download
-# process of the dependency tarballs.
-flockversion=$(awk '/flock-version/{print $3}' $pdir/dependency-versions.mk)
+# The reason that `flock' is sepecial is that we need it to serialize the
+# download process of the software tarballs.
+flockversion=$(awk '/flock-version/{print $3}' $depverfile)
 flocktar=flock-$flockversion.tar.gz
 flockurl=http://github.com/discoteq/flock/releases/download/v$flockversion/
 
@@ -862,13 +867,14 @@ fi
 
 # Build `flock' if necessary.
 if ! [ -f $ibidir/flock ]; then
-    cd $depdir
+    cd $tmpblddir
     tar xf $tardir/$flocktar
     cd flock-$flockversion
     ./configure --prefix=$instdir
-    make; make install
+    make
+    make install
     cd $topdir
-    rm -rf $depdir/flock-$flockversion
+    rm -rf $tmpblddir/flock-$flockversion
     echo "Discoteq flock $flockversion" > $ibidir/flock
 fi
 
@@ -886,11 +892,11 @@ fi
 # explicitly testing a small C program here to see if the host's C compiler
 # won't have any problems in building GCC.
 if [ $host_cc = 0 ]; then
-    tfile=$depdir/gcc-cdefs-test.c;
+    tfile=$sdir/gcc-cdefs-test.c;
     echo "#include <sys/cdefs.h>"     > $tfile;
     echo "int main(void){return 0;}" >> $tfile;
-    if gcc $tfile -o $depdir/gcc-cdefs-test &> /dev/null; then
-        rm $depdir/gcc-cdefs-test*;
+    if gcc $tfile -o $sdir/gcc-cdefs-test &> /dev/null; then
+        rm $sdir/gcc-cdefs-test*;
     else
         host_cc=1
     fi;
@@ -925,8 +931,8 @@ fi
 
 
 
-# Build Basic dependencies
-# ------------------------
+# Number of threads for basic builds
+# ----------------------------------
 #
 # Since the system might not have GNU Make at this stage, and other Make
 # implementations can't deal with parallel build properly, we'll just
@@ -935,7 +941,7 @@ fi
 # I found out its because of too many threads. GNU Make will be present on
 # GNU systems (that have `nproc', part of GNU Coreutils). So to simplify
 # the test for GNU Make, we'll just try running `nproc'.
-if which nproc > /dev/null 2>/dev/null; then
+if which nproc &> /dev/null; then
     if [ $jobs = 0 ]; then
         numthreads=$(nproc --all);
     else
@@ -944,28 +950,43 @@ if which nproc > /dev/null 2>/dev/null; then
 else
     numthreads=1;
 fi
-make -f reproduce/src/make/dependencies-basic.mk \
-     rpath_command=$rpath_command                \
-     static_build=$static_build                  \
-     needs_ldl=$needs_ldl                        \
-     on_mac_os=$on_mac_os                        \
-     numthreads=$numthreads                      \
-     host_cc=$host_cc                            \
+
+
+
+
+
+# Build basic software
+# --------------------
+#
+# When building these software we don't have our own un-packing software,
+# Bash, Make, or AWK. In this step, we'll install such low-level basic
+# tools, but we have to be very portable (and use minimal features in all).
+make -f reproduce/software/make/basic.mk \
+     rpath_command=$rpath_command        \
+     static_build=$static_build          \
+     needs_ldl=$needs_ldl                \
+     on_mac_os=$on_mac_os                \
+     numthreads=$numthreads              \
+     host_cc=$host_cc                    \
      -j$numthreads
 
 
 
 
 
-# Rest of dependencies
-# --------------------
+# All other software
+# ------------------
 #
 # We will be making all the dependencies before running the top-level
 # Makefile. To make the job easier, we'll do it in a Makefile, not a
 # script. Bash and Make were the tools we need to run Makefiles, so we had
 # to build them in this script. But after this, we can rely on Makefiles.
-numthreads=$($instdir/bin/nproc)
-./.local/bin/make -f reproduce/src/make/dependencies.mk    \
+if [ $jobs = 0 ]; then
+    numthreads=$($instdir/bin/nproc --all)
+else
+    numthreads=$jobs
+fi
+./.local/bin/make -f reproduce/software/make/high-level.mk \
                   rpath_command=$rpath_command             \
                   static_build=$static_build               \
                   on_mac_os=$on_mac_os                     \
@@ -1101,13 +1122,25 @@ fi
 
 
 
+
+# Clean the temporary build directory
+# ---------------------------------
+#
+# By the time the script reaches here the temporary software build
+# directory should be empty, so just delete it.
+rm -rf $tmpblddir
+
+
+
+
+
 # Final step: available Makefile
 # ------------------------------
 #
 # We only want `make' to work after the configuration is complete. So we
 # will only put in the top-level Makefile after all the steps above are
 # done.
-.local/bin/ln -s $(pwd)/reproduce/src/make/top.mk Makefile
+.local/bin/ln -s $topdir/reproduce/analysis/make/top.mk Makefile
 
 
 

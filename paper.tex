@@ -57,7 +57,7 @@
   \textsl{Keywords}: Add some keywords for your research here.
 
   \textsl{Reproducible paper}: All quantitave results (numbers and plots)
-  in this paper are exactly reproducible (version \pipelineversion{},
+  in this paper are exactly reproducible (version \projectversion{},
   \url{https://gitlab.com/makhlaghi/reproducible-paper}).}
 
 %% To add the first page's headers.
@@ -77,7 +77,7 @@ Just don't forget to \emph{never} use numbers or fixed strings (for example
 database urls like \url{\wfpctwourl}) directly within your \LaTeX{}
 source. Read them directly from your configuration files, or processing
 outputs, and import them into \LaTeX{} as macros through the
-\texttt{tex/pipeline/macros/pipeline.tex} file (created after running the
+\texttt{tex/build/macros/project.tex} file (created after running the
 project). See the several existing examples within the template for a
 demonstration. For some recent real-world examples, the reproducible
 project sources for Sections 4 and 7.3 of \citet{bacon17} are available at
@@ -194,7 +194,7 @@ source code and the project's source to a long-lasting host like Zenodo
 
 This research was partly done using GNU Astronomy Utilities (Gnuastro,
 ascl.net/1801.009), and the reproducible paper template
-\pipelineversion. Work on Gnuastro and the reproducible paper template has
+\projectversion. Work on Gnuastro and the reproducible paper template has
 been funded by the Japanese Ministry of Education, Culture, Sports,
 Science, and Technology (MEXT) scholarship and its Grant-in-Aid for
 Scientific Research (21244012, 24253003), the European Research Council
@@ -203,7 +203,7 @@ and innovation programme under Marie Sklodowska-Curie grant agreement No
 721463 to the SUNDIAL ITN, and from the Spanish Ministry of Economy and
 Competitiveness (MINECO) under grant number AYA2016-76219-P.
 
-\input{tex/pipeline/macros/dependencies.tex}
+\input{tex/build/macros/dependencies.tex}
 
 %% Tell BibLaTeX to put the bibliography list here.
 \printbibliography

@@ -20,7 +20,7 @@
   %% The displayed WFPC2 image.
   \node[anchor=south west] (img) at (0,0)
        {\includegraphics[width=0.5\linewidth]
-         {tex/pipeline/delete-me-demo/wfpc2.pdf}};
+         {tex/build/delete-me-demo/wfpc2.pdf}};
 
   %% Its label
   \node[anchor=south west] at (0.45\linewidth,0.45\linewidth)
@@ -42,7 +42,7 @@
       ]
     \addplot [const plot mark mid, fill=red]
     table [x index=0, y index=1]
-    {tex/pipeline/delete-me-demo/wfpc2-hist.txt}
+    {tex/build/delete-me-demo/wfpc2-hist.txt}
     \closedcycle;
   \end{axis}
 

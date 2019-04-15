@@ -415,7 +415,7 @@ $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
 	else                                                                 \
 	  export LDFLAGS="$(LDFLAGS) -shared";                               \
 	fi;                                                                  \
-	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
+	conf="$$(pwd)/reproduce/software/config/installation/numpy-scipy.cfg"; \
 	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf,            \
 	                Numpy $(numpy-version))                              \
 	&& cp $(dtexdir)/numpy.tex $(ictdir)/                                \
@@ -463,7 +463,7 @@ $(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
 	else                                                                 \
 	  export LDFLAGS="$(LDFLAGS) -shared";                               \
 	fi;                                                                  \
-	conf="$$(pwd)/reproduce/config/pipeline/dependency-numpy-scipy.cfg"; \
+	conf="$$(pwd)/reproduce/software/config/installation/numpy-scipy.cfg"; \
 	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf)           \
 	&& cp $(dtexdir)/scipy.tex $(ictdir)/                                \
 	&& echo "Scipy $(scipy-version) \citep{scipy2007,scipy2011}" > $@
