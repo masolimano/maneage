@@ -466,18 +466,23 @@ get more advanced in later stages of your work.
 
  - **Get this repository and its history** (if you don't already have it):
      Arguably the easiest way to start is to clone this repository as shown
-     below. The main branch of this template is called `template`. This
-     allows you to use the common branch name `master` for your own
-     research, while keeping up to date with improvements in the template.
+     below. As you see, after the cloning some further corrections to your
+     clone's Git settings are necessary: first, you need to remove all
+     possibly existing Git tags from the template's history. Then you need
+     to rename conventional `origin` remote server, and the `master`
+     branch. This is because managing your project will be much more easier
+     if you follow the conventions and point these names to your project's
+     man branch and remote server.
 
      ```shell
      $ git clone git://git.sv.gnu.org/reproduce
-     $ mv reproducible-paper my-project-name      # Your own directory name.
-     $ cd my-project-name                         # Go into the cloned directory.
+     $ mv reproduce my-project                    # Change the name to your project's name.
+     $ cd my-project                              # Go into the cloned directory.
      $ git tag | xargs git tag -d                 # Delete all template tags.
      $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from this template.
-     $ git remote rename origin template-origin   # Rename the template's remote.
-     $ git checkout -b master                     # Create, enter master branch.
+     $ git remote rename origin template          # Rename current/only remote to "template".
+     $ git branch -m template                     # Rename current/only branch to "template".
+     $ git checkout -b master                     # Create and enter new "master" branch.
      ```
 
  - **Test the template**: Before making any changes, it is important to
@@ -503,14 +508,26 @@ get more advanced in later stages of your work.
      facility](https://en.wikipedia.org/wiki/Comparison_of_source_code_hosting_facilities)
      that supports Git to keep an online copy of your project's version
      controlled history. We recommend [GitLab](https://gitlab.com) because
-     it allows any number of private repositories for free and because you
-     can host GitLab on your own server. Create an account in your favorite
-     hosting facility (if you don't already have one), and define a new
-     project there. It will give you a link (ending in `.git`) that you can
-     put in place of `XXXXXXXXXX` in the command below.
+     it is [more ethical (although not
+     perfect)](https://www.gnu.org/software/repo-criteria-evaluation.html),
+     and later you can also host GitLab on your own server. Anyway, create
+     an account in your favorite hosting facility (if you don't already
+     have one), and define a new project there. It will give you a URL
+     (usually starting with `git@` and ending in `.git`), put this URL in
+     place of `XXXXXXXXXX` in the first command below. With the second
+     command, "push" your `master` branch to your `origin` remote, and
+     (with the `--set-upstream' option) set them to track/follow each
+     other. However, the `template` branch is currently tracking/following
+     your `template` remote (automatically set when you cloned the
+     template). So when pushing the `template` branch to your `origin`
+     remote, you shouldn't use `--set-upstream`. With the last command, you
+     can actually check this.
 
      ```shell
-     git remote add origin XXXXXXXXXX
+     git remote add origin XXXXXXXXXX        # Newly created repo is now called 'origin'.
+     git push --set-upstream origin master   # Push 'master' to 'origin' (enable tracking).
+     git push origin template                # Push 'template' to 'origin' (no tracking).
+     git branch -vv                          # Just to check of the trackings.
      ```
 
  - **Title**, **short description** and **author** in source files: In this
@@ -630,12 +647,14 @@ get more advanced in later stages of your work.
      $ git tag -a v0              # Tag this as the zero-th version of your project.
      ```
 
- - **Push to the remote**: Push your first commit and its tag to the remote
-     repository with these commands:
+ - **Push to the remote**: Push your first commit and its tag to your
+     remote repository with these commands. Since we have setup your
+     `master' branch to follow `origin/master`, you can just use `git push`
+     from now on.
 
      ```shell
-     git push -u origin --all
-     git push -u origin --tags
+     git push
+     git push --tags
      ```
 
  - **Start your exciting research**: You are now ready to add flesh and
@@ -665,7 +684,7 @@ get more advanced in later stages of your work.
 
      ```shell
      $ git checkout template
-     $ git pull template-origin template   # Get recent work in the template
+     $ git pull template template          # Get recent work in the template
      $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
      $ git log --oneline --graph --decorate --all # General view of branches.
      $ git checkout master                 # Go to your top working branch.
@@ -676,16 +695,16 @@ get more advanced in later stages of your work.
      colleagues continue your project, it will be necessary to have
      separate forks/clones of it. But when you clone your own project on a
      different system, or a colleague clones it to collaborate with you,
-     the clone won't have the `template-origin` remote that you started the
+     the clone won't have the `template` remote that you started the
      project with. As shown in the previous point, you need this remote to
-     be able to pull recent updates from this template. The steps below,
-     will setup the `template-origin` remote, and a `templage` branch to
-     track it, on the new clone.
+     be able to pull recent updates from the template. The steps below,
+     will setup the `template` remote, and a `template` branch to track it,
+     on the new clone.
 
      ```shell
-     $ git remote add template-origin git://git.sv.gnu.org/reproduce
-     $ git fetch template-origin
-     $ git checkout --track template-origin/template
+     $ git remote add template git://git.sv.gnu.org/reproduce
+     $ git fetch template
+     $ git checkout --track template/template
      ```
 
  - **Pre-publication: add notice on reproducibility**: Add a notice
