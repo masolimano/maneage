@@ -51,7 +51,7 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
 top-level-libraries = # atlas
-top-level-programs  = gnuastro metastore netpbm
+top-level-programs  = astrometry-net gnuastro metastore
 top-level-python    = astroquery matplotlib
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
@@ -114,7 +114,8 @@ include reproduce/software/make/python.mk
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
+tarballs = $(foreach t, astrometry.net-$(astrometry-version).tar.gz        \
+                        cfitsio-$(cfitsio-version).tar.gz                  \
                         atlas-$(atlas-version).tar.bz2                     \
                         cairo-$(cairo-version).tar.bz2                     \
                         cmake-$(cmake-version).tar.gz                      \
@@ -138,6 +139,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
                         pixman-$(pixman-version).tar.gz                    \
+                        swig-$(swig-version).tar.gz                        \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
                       , $(tdir)/$(t) )
@@ -161,6 +163,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	                                 : (l==2 ? "%d00\n"           \
                                             : "%d000\n") ), $$1)}')
 	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
+	  elif [ $$n = astrometry  ]; then w=http://astrometry.net/downloads
 	  elif [ $$n = atlas       ]; then
 	    mergenames=0
 	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
@@ -203,6 +206,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
+	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  else
@@ -495,6 +499,35 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 # Programs
 # --------
 #
+# Astrometry-net contains a lot of programs. We need to specify the
+# installation directory and the Python executable (by default it will look
+# for /usr/bin/python)
+$(ibidir)/astrometry-net: $(tdir)/astrometry.net-$(astrometry-version).tar.gz \
+                          $(ilidir)/cairo                                     \
+                          $(ilidir)/cfitsio                                   \
+                          $(ilidir)/gsl                                       \
+                          $(ilidir)/libjpeg                                   \
+                          $(ilidir)/libpng                                    \
+                          $(ibidir)/netpbm                                    \
+                          $(ipydir)/numpy                                     \
+                          $(ibidir)/python                                    \
+                          $(ibidir)/swig                                      \
+                          $(ilidir)/wcslib
+	cd $(ddir)                                                            \
+    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi            \
+    && cd astrometry.net-$(astrometry-version)                            \
+    && make                                                               \
+    && make py                                                            \
+    && make extra                                                         \
+    && make install INSTALL_DIR=$(idir) PYTHON_SCRIPT="$(ibdir)/python"   \
+    && cd ..                                                              \
+    && rm -rf astrometry.net-$(astrometry-version)                        \
+	&& cp $(dtexdir)/astrometry-net.tex $(ictdir)/                        \
+    && echo "Astrometry-net $(astrometry-version)" > $@
+
+
+
+
 # CMake can be built with its custom `./bootstrap' script.
 $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
                  $(ibidir)/curl
@@ -664,19 +697,25 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
     fi;                                                                    \
     cd $(ddir)                                                             \
     && unpackdir=netpbm-$(netpbm-version)                                  \
-    && echo "rm -rf $$unpackdir                                            \
-    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi"            \
+    && rm -rf $$unpackdir                                                  \
+    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi             \
     && cd $$unpackdir                                                      \
-    && echo "printf "$$answers" | ./configure                              \
+    && printf "$$answers" | ./configure                                    \
     && make                                                                \
     && rm -rf $(ddir)/$$unpackdir/install                                  \
-    && make package pkgdir=$(ddir)/$$unpackdir/install"                    \
+    && make package pkgdir=$(ddir)/$$unpackdir/install                     \
     && printf "$(ddir)/$$unpackdir/install\n$(idir)\n\n\nN\n\n\n\n\nN\n\n" \
               | ./installnetpbm                                            \
     && cd ..                                                               \
     && rm -rf $$unpackdir                                                  \
     && echo "Netpbm $(netpbm-version)" > $@
 
+$(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
+	# Option --without-pcre was a suggestion once the configure step was
+	# tried and it failed. It was not recommended but it works!
+	# pcr is a dependency of swig
+	$(call gbuild, $<, swig-$(swig-version), static, --without-pcre) \
+	&& echo "Swig $(swig-version)" > $@
 
 
 
