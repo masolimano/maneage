@@ -50,7 +50,7 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # high level software depend on it. The current rule for ATLAS is tested
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
-top-level-libraries = # atlas
+top-level-libraries = cairo pixman # atlas
 top-level-python    = astroquery matplotlib
 top-level-programs  = gnuastro metastore
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
@@ -116,6 +116,7 @@ include reproduce/software/make/python.mk
 # downloaded file has our desired format.
 tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         atlas-$(atlas-version).tar.bz2                     \
+                        cairo-$(cairo-version).tar.bz2                     \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         freetype-$(freetype-version).tar.gz                \
@@ -134,6 +135,7 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
+                        pixman-$(pixman-version).tar.gz                    \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
                       , $(tdir)/$(t) )
@@ -160,6 +162,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = atlas       ]; then
 	    mergenames=0
 	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
+	  elif [ $$n = cairo       ]; then w=https://www.cairographics.org/releases
 	  elif [ $$n = cmake       ]; then
 	    mergenames=0
 	    majv=$$(echo $(cmake-version) \
@@ -193,6 +196,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    mergenames=0
 	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
+	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  else
@@ -261,6 +265,13 @@ $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 	&& rm $$customtar                                \
 	&& echo "CFITSIO $(cfitsio-version)" > $@
 
+$(ilidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz    \
+                 $(ilidir)/freetype                       \
+                 $(ilidir)/libpng                         \
+                 $(ilidir)/pixman
+       $(call gbuild, $<, cairo-$(cairo-version), static) \
+       && echo "Cairo $(cairo-version)" > $@
+
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library $(gsl-version)" > $@
@@ -297,6 +308,10 @@ $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 $(ilidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
 	$(call gbuild, $<, libpng-$(libpng-version), static) \
 	&& echo "Libpng $(libpng-version)" > $@
+
+$(ilidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
+       $(call gbuild, $<, pixman-$(pixman-version), static) \
+       && echo "Pixman $(pixman-version)" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ilidir)/libjpeg

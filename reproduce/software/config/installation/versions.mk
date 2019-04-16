@@ -20,6 +20,7 @@
 atlas-version              = 3.10.3
 bash-version               = 5.0
 binutils-version           = 2.31.1
+cairo-version              = 1.16.0
 cfitsio-version            = 3.45
 cmake-version              = 3.14.2
 coreutils-version          = 8.31
@@ -58,6 +59,7 @@ openblas-version           = 0.3.5
 openmpi-version            = 4.0.1
 openssl-version            = 1.1.1a
 patchelf-version           = 0.9
+pixman-version             = 0.38.0
 pkgconfig-version          = 0.29.2
 python-version             = 3.7.3
 readline-version           = 8.0
