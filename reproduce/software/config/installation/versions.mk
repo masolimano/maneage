@@ -45,9 +45,9 @@ isl-version                = 0.18
 libbsd-version             = 0.9.1
 libffi-version             = 3.2.1
 libjpeg-version            = v9b
-libpng-version             = 1.6.36
 libtiff-version            = 4.0.10
 libtool-version            = 2.4.6
+libxml2-version            = 2.9.9
 lzip-version               = 1.20
 m4-version                 = 1.4.18
 make-version               = 4.2.90
@@ -55,6 +55,7 @@ metastore-version          = 1.1.2-23-fa9170b
 mpfr-version               = 4.0.2
 mpc-version                = 1.1.0
 ncurses-version            = 6.1
+netpbm-version             = 10.47.72
 openblas-version           = 0.3.5
 openmpi-version            = 4.0.1
 openssl-version            = 1.1.1a
@@ -77,10 +78,12 @@ zlib-version               = 1.2.11
 #
 # When updating the version of these libraries, please look into the build
 # rule first: In one way or another, the version string becomes necessary
-# during their build and must be accounted for.
+# during their build and must be accounted for. In particular:
+#  `libpng' is downgraded because `netpbm' requires `libpng' version < 1.5
 bzip2-version              = 1.0.6
 lapack-version             = 3.8.0
 libgit2-version            = 0.26.0
+libpng-version             = 1.4.22
 wcslib-version             = 6.2
 
 # Python packages

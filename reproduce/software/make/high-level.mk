@@ -50,9 +50,9 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # high level software depend on it. The current rule for ATLAS is tested
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
-top-level-libraries = cairo pixman # atlas
+top-level-libraries = # atlas
+top-level-programs  = gnuastro metastore netpbm
 top-level-python    = astroquery matplotlib
-top-level-programs  = gnuastro metastore
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
      $(foreach p, $(top-level-python),    $(ipydir)/$(p)) \
@@ -132,7 +132,9 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         libbsd-$(libbsd-version).tar.xz                    \
                         libpng-$(libpng-version).tar.xz                    \
                         libgit2-$(libgit2-version).tar.gz                  \
+                        libxml2-$(libxml2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
+                        netpbm-$(netpbm-version).tar.gz                    \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
                         pixman-$(pixman-version).tar.gz                    \
@@ -188,7 +190,11 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
+	  elif [ $$n = libxml      ]; then w=ftp://xmlsoft.org/libxml2
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = netpbm      ]; then
+	    mergenames=0
+		w=https://sourceforge.net/projects/netpbm/files/super_stable/$(netpbm-version)/netpbm-$(netpbm-version).tgz/download
 	  elif [ $$n = openblas    ]; then
 	    mergenames=0
 	    w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
@@ -308,6 +314,17 @@ $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 $(ilidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
 	$(call gbuild, $<, libpng-$(libpng-version), static) \
 	&& echo "Libpng $(libpng-version)" > $@
+
+$(ilidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
+       # The libxml2 tarball also contains Python bindings which are built and
+       # installed to a system directory by default. If you don't need the Python
+       # bindings, the easiest solution is to compile without Python support:
+       # ./configure --without-python
+       # If you really need the Python bindings, try the
+       # --with-python-install-dir=DIR option
+       $(call gbuild, $<, libxml2-$(libxml2-version), static, \
+                      --without-python)                       \
+       && echo "Libxml2 $(libxml2-version)" > $@
 
 $(ilidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
        $(call gbuild, $<, pixman-$(pixman-version), static) \
@@ -628,15 +645,37 @@ endif
 	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/                 \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
-
-
-
-
-
-
-
-
-
+# Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
+# This program has a crazy dialogue installation which is override using the
+# printf statment. Each `\n' is a new question that the installation process
+# ask to the user. We give all answers with a pipe to the scripts (configure
+# and install). The questions are different depending on the system (tested
+# on GNU/Linux and Mac OS).
+$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
+                  $(ilidir)/libjpeg                      \
+                  $(ilidir)/libpng                       \
+                  $(ilidir)/libtiff                      \
+                  $(ilidir)/libxml2                      \
+                  $(ibidir)/unzip
+	if [ x$(on_mac_os) = xyes ]; then                                      \
+      answers='\n\n\n\n\n\n\n\n\n\n\n\nnone\n\n\n';                        \
+    else                                                                   \
+      answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n';                       \
+    fi;                                                                    \
+    cd $(ddir)                                                             \
+    && unpackdir=netpbm-$(netpbm-version)                                  \
+    && echo "rm -rf $$unpackdir                                            \
+    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi"            \
+    && cd $$unpackdir                                                      \
+    && echo "printf "$$answers" | ./configure                              \
+    && make                                                                \
+    && rm -rf $(ddir)/$$unpackdir/install                                  \
+    && make package pkgdir=$(ddir)/$$unpackdir/install"                    \
+    && printf "$(ddir)/$$unpackdir/install\n$(idir)\n\n\nN\n\n\n\n\nN\n\n" \
+              | ./installnetpbm                                            \
+    && cd ..                                                               \
+    && rm -rf $$unpackdir                                                  \
+    && echo "Netpbm $(netpbm-version)" > $@
 
 
 
