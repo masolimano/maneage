@@ -854,7 +854,7 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
 	  $(call makelink,gcc);                                            \
 	  $(call makelink,g++,mandatory);                                  \
 	  $(call makelink,gfortran,mandatory);                             \
-	  ln -sf $(which gcc) $(ibdir)/cc;                                 \
+	  ln -sf $$(which gcc) $(ibdir)/cc;                                \
 	  ccinfo=$$(gcc --version | awk 'NR==1');                          \
 	  echo "C compiler (""$$ccinfo"")" > $@;                           \
 	else                                                               \
@@ -899,7 +899,7 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
 	           patchelf --set-rpath $(ildir) $$f;                      \
 	         fi;                                                       \
 	       done;                                                       \
-	     fi                                                            \
-	  ln -sf $(ibdir)/gcc $(ibdir)/cc;                                 \
+	     fi;                                                           \
+	  ln -sf $(ibdir)/gcc $(ibdir)/cc                                  \
 	  && echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@;     \
 	fi

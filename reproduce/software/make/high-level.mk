@@ -117,7 +117,7 @@ include reproduce/software/make/python.mk
 tarballs = $(foreach t, astrometry.net-$(astrometry-version).tar.gz        \
                         cfitsio-$(cfitsio-version).tar.gz                  \
                         atlas-$(atlas-version).tar.bz2                     \
-                        cairo-$(cairo-version).tar.bz2                     \
+                        cairo-$(cairo-version).tar.xz                      \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         freetype-$(freetype-version).tar.gz                \
@@ -135,7 +135,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometry-version).tar.gz        \
                         libgit2-$(libgit2-version).tar.gz                  \
                         libxml2-$(libxml2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
-                        netpbm-$(netpbm-version).tar.gz                    \
+                        netpbm-$(netpbm-version).tgz                       \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
                         pixman-$(pixman-version).tar.gz                    \
@@ -279,8 +279,8 @@ $(ilidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz    \
                  $(ilidir)/freetype                       \
                  $(ilidir)/libpng                         \
                  $(ilidir)/pixman
-       $(call gbuild, $<, cairo-$(cairo-version), static) \
-       && echo "Cairo $(cairo-version)" > $@
+	$(call gbuild, $<, cairo-$(cairo-version), static)    \
+	&& echo "Cairo $(cairo-version)" > $@
 
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
@@ -298,7 +298,7 @@ $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
 	$(call gbuild, $<, freetype-$(freetype-version), static) \
 	&& echo "FreeType $(freetype-version)" > $@
 
-$(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz \
+$(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
                 $(ilidir)/openmpi
 	export CC=mpicc;                                 \
 	export FC=mpif90;                                \
@@ -326,13 +326,13 @@ $(ilidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
        # ./configure --without-python
        # If you really need the Python bindings, try the
        # --with-python-install-dir=DIR option
-       $(call gbuild, $<, libxml2-$(libxml2-version), static, \
-                      --without-python)                       \
-       && echo "Libxml2 $(libxml2-version)" > $@
+	$(call gbuild, $<, libxml2-$(libxml2-version), static, \
+                   --without-python)                       \
+	&& echo "Libxml2 $(libxml2-version)" > $@
 
 $(ilidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
-       $(call gbuild, $<, pixman-$(pixman-version), static) \
-       && echo "Pixman $(pixman-version)" > $@
+	$(call gbuild, $<, pixman-$(pixman-version), static) \
+	&& echo "Pixman $(pixman-version)" > $@
 
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ilidir)/libjpeg
@@ -342,7 +342,7 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 
 $(ilidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
 	$(call gbuild, $<, openmpi-$(openmpi-version), static, , V=1) \
-	&& echo "OpenMPI $(openmpi-version)" > $@
+	&& echo "Open MPI $(openmpi-version)" > $@
 
 $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
