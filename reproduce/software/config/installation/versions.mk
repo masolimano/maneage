@@ -66,6 +66,7 @@ pkgconfig-version          = 0.29.2
 python-version             = 3.7.3
 readline-version           = 8.0
 sed-version                = 4.7
+sextractor-version         = 2.25.0
 swarp-version              = 2.38.0
 swig-version               = 3.0.12
 tar-version                = 1.32

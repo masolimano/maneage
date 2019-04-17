@@ -51,7 +51,7 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
 top-level-libraries = # atlas
-top-level-programs  = astrometrynet gnuastro metastore swarp
+top-level-programs  = astrometrynet gnuastro metastore sextractor swarp
 top-level-python    = astroquery matplotlib
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
@@ -139,6 +139,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometry-version).tar.gz        \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
                         pixman-$(pixman-version).tar.gz                    \
+                        sextractor-$(sextractor-version).tar.lz            \
                         swarp-$(swarp-version).tar.gz                      \
                         swig-$(swig-version).tar.gz                        \
                         tiff-$(libtiff-version).tar.gz                     \
@@ -207,6 +208,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
+	  elif [ $$n = sextractor  ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = swarp       ]; then w=https://www.astromatic.net/download/swarp
 	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
@@ -711,6 +713,21 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
     && cd ..                                                               \
     && rm -rf $$unpackdir                                                  \
     && echo "Netpbm $(netpbm-version)" > $@
+
+# Sextractor crashes complaining about not linking with some ATLAS
+# libraries. But we can override this issue since we have Openblas
+# installed, it is just necessary to explicity tell sextractor to use it in
+# the configuration step.
+$(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
+                      $(ilidir)/openblas                              \
+                      $(ilidir)/fftw
+	$(call gbuild, $<, sextractor-$(sextractor-version), static,      \
+                   --enable-threads --enable-openblas                 \
+                   --with-openblas-libdir=$(ildir)                    \
+                   --with-openblas-incdir=$(idir)/include)            \
+    && ln -fs $(ibdir)/sex $(ibdir)/sextractor                        \
+    && cp $(dtexdir)/sextractor.tex $(ictdir)/                        \
+    && echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
 
 $(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
                  $(ilidir)/fftw
