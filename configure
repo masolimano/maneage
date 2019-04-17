@@ -1106,7 +1106,7 @@ hasentry=0
 bibfiles="$ictdir/*"
 for f in $bibfiles; do if [ -f $f ]; then hasentry=1; break; fi; done;
 
-# Make sure we start with an empty file.
+# Make sure we start with an empty output file.
 pkgbib=$mtexdir/dependencies-bib.tex
 echo "" > $pkgbib
 

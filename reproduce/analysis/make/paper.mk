@@ -90,7 +90,7 @@ $(mtexdir)/project.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s)
 # recipe and the `paper.pdf' recipe. But if `tex/src/references.tex' hasn't
 # been modified, we don't want to re-build the bibliography, only the final
 # PDF.
-$(texbdir)/paper.bbl: tex/src/references.tex                         \
+$(texbdir)/paper.bbl: tex/src/references.tex $(mtexdir)/dependencies-bib.tex \
                       | $(tikzdir) $(texbdir) $(mtexdir)/project.tex
         # If `$(mtexdir)/project.tex' is empty, don't build PDF.
 	@macros=$$(cat $(mtexdir)/project.tex)
