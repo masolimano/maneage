@@ -17,7 +17,7 @@
 # <http://www.gnu.org/licenses/>.
 
 # C/C++ programs and libraries.
-astrometry-version         = 0.77
+astrometrynet-version      = 0.77
 atlas-version              = 3.10.3
 bash-version               = 5.0
 binutils-version           = 2.31.1
@@ -66,6 +66,7 @@ pkgconfig-version          = 0.29.2
 python-version             = 3.7.3
 readline-version           = 8.0
 sed-version                = 4.7
+swarp-version              = 2.38.0
 swig-version               = 3.0.12
 tar-version                = 1.32
 unzip-version              = 6.0

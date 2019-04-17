@@ -51,7 +51,7 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
 top-level-libraries = # atlas
-top-level-programs  = astrometry-net gnuastro metastore
+top-level-programs  = astrometrynet gnuastro metastore swarp
 top-level-python    = astroquery matplotlib
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
@@ -139,6 +139,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometry-version).tar.gz        \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
                         pixman-$(pixman-version).tar.gz                    \
+                        swarp-$(swarp-version).tar.gz                      \
                         swig-$(swig-version).tar.gz                        \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
@@ -206,6 +207,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
+	  elif [ $$n = swarp       ]; then w=https://www.astromatic.net/download/swarp
 	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
@@ -502,28 +504,28 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 # Astrometry-net contains a lot of programs. We need to specify the
 # installation directory and the Python executable (by default it will look
 # for /usr/bin/python)
-$(ibidir)/astrometry-net: $(tdir)/astrometry.net-$(astrometry-version).tar.gz \
-                          $(ilidir)/cairo                                     \
-                          $(ilidir)/cfitsio                                   \
-                          $(ilidir)/gsl                                       \
-                          $(ilidir)/libjpeg                                   \
-                          $(ilidir)/libpng                                    \
-                          $(ibidir)/netpbm                                    \
-                          $(ipydir)/numpy                                     \
-                          $(ibidir)/python                                    \
-                          $(ibidir)/swig                                      \
-                          $(ilidir)/wcslib
+$(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz \
+                         $(ilidir)/cairo                                        \
+                         $(ilidir)/cfitsio                                      \
+                         $(ilidir)/gsl                                          \
+                         $(ilidir)/libjpeg                                      \
+                         $(ilidir)/libpng                                       \
+                         $(ibidir)/netpbm                                       \
+                         $(ipydir)/numpy                                        \
+                         $(ibidir)/python                                       \
+                         $(ibidir)/swig                                         \
+                         $(ilidir)/wcslib
 	cd $(ddir)                                                            \
     && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi            \
-    && cd astrometry.net-$(astrometry-version)                            \
+    && cd astrometry.net-$(astrometrynet-version)                         \
     && make                                                               \
     && make py                                                            \
     && make extra                                                         \
     && make install INSTALL_DIR=$(idir) PYTHON_SCRIPT="$(ibdir)/python"   \
     && cd ..                                                              \
-    && rm -rf astrometry.net-$(astrometry-version)                        \
-	&& cp $(dtexdir)/astrometry-net.tex $(ictdir)/                        \
-    && echo "Astrometry-net $(astrometry-version)" > $@
+    && rm -rf astrometry.net-$(astrometrynet-version)                     \
+    && cp $(dtexdir)/astrometrynet.tex $(ictdir)/                         \
+    && echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
 
 
 
@@ -709,6 +711,13 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
     && cd ..                                                               \
     && rm -rf $$unpackdir                                                  \
     && echo "Netpbm $(netpbm-version)" > $@
+
+$(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
+                 $(ilidir)/fftw
+	$(call gbuild, $<, swarp-$(swarp-version), static, \
+                   --enable-threads)                   \
+    && cp $(dtexdir)/swarp.tex $(ictdir)/              \
+    && echo "SWarp $(swarp-version) \citep{swarp}" > $@
 
 $(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
 	# Option --without-pcre was a suggestion once the configure step was
