@@ -28,6 +28,7 @@
 # Top level environment
 include reproduce/software/make/build-rules.mk
 include reproduce/software/config/installation/LOCAL.mk
+include reproduce/software/config/installation/TARGETS.mk
 include reproduce/software/config/installation/texlive.mk
 include reproduce/software/config/installation/versions.mk
 
@@ -38,32 +39,13 @@ idir    = $(BDIR)/software/installed
 ibdir   = $(BDIR)/software/installed/bin
 ildir   = $(BDIR)/software/installed/lib
 dtexdir = $(shell pwd)/reproduce/software/bibtex
-ibidir  = $(BDIR)/software/installed/version-info/bin
-ilidir  = $(BDIR)/software/installed/version-info/lib
 itidir  = $(BDIR)/software/installed/version-info/tex
 ictdir  = $(BDIR)/software/installed/version-info/cite
 ipydir  = $(BDIR)/software/installed/version-info/python
+ibidir  = $(BDIR)/software/installed/version-info/proglib
 
-# Define the top-level programs to build (installed in `.local/bin').
-#
-# About ATLAS: currently the template does not depend on ATLAS but many
-# high level software depend on it. The current rule for ATLAS is tested
-# successfully on Mac (only static) and GNU/Linux (shared and static). But,
-# since it takes a few hours to build, it is not currently a target.
-
-# About available software/libraries: currently the template has rules for
-# installing software that are widely used in science, and in particular in
-# astrophysics.  However, not all of these software will be used for all
-# people interested in this template.  Due to that, we put some of what we
-# consider the main software as optional software of the template (to see a
-# complete list of all software/libraries, look at the version number
-# Makefile). If that software is needed, just remove the comment `#' to
-# install it.
-top-level-libraries =                       # atlas
-top-level-programs  = gnuastro              # astrometrynet scamp sextractor swarp
-top-level-python    = numpy                 # astropy astroquery matplotlib scipy
-all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
-     $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
+# Set the top-level software to build.
+all: $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
      $(foreach p, $(top-level-python),    $(ipydir)/$(p)) \
      $(itidir)/texlive
 
@@ -261,7 +243,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # for us here. So, we'll make an `$(ildir)/built' directory and make a
 # simple plain text file in it with the basic library name (an no prefix)
 # and create/write into it when the library is successfully built.
-$(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
+$(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
                    $(ibidir)/curl
 
         # CFITSIO hard-codes the absolute address of cURL's `curl-config'
@@ -284,31 +266,31 @@ $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 	&& rm $$customtar                                \
 	&& echo "CFITSIO $(cfitsio-version)" > $@
 
-$(ilidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz    \
-                 $(ilidir)/freetype                       \
-                 $(ilidir)/libpng                         \
-                 $(ilidir)/pixman
+$(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz    \
+                 $(ibidir)/freetype                       \
+                 $(ibidir)/libpng                         \
+                 $(ibidir)/pixman
 	$(call gbuild, $<, cairo-$(cairo-version), static)    \
 	&& echo "Cairo $(cairo-version)" > $@
 
-$(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
+$(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library $(gsl-version)" > $@
 
-$(ilidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
+$(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
 	$(call gbuild, $<, fftw-$(fftw-version), static,  \
 	               --enable-shared)                   \
 	&& cp $(dtexdir)/fftw.tex $(ictdir)/              \
 	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
 # Freetype is necessary to install matplotlib
-$(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
-	                $(ilidir)/libpng
+$(ibidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
+	                $(ibidir)/libpng
 	$(call gbuild, $<, freetype-$(freetype-version), static) \
 	&& echo "FreeType $(freetype-version)" > $@
 
-$(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
-                $(ilidir)/openmpi
+$(ibidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
+                $(ibidir)/openmpi
 	export CC=mpicc;                                 \
 	export FC=mpif90;                                \
 	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
@@ -316,15 +298,15 @@ $(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
 	               --enable-fortran, V=1)            \
 	&& echo "HDF5 library $(hdf5-version)" > $@
 
-$(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
+$(ibidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) \
 	&& echo "Libjpeg $(libjpeg-version)" > $@
 
-$(ilidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
+$(ibidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
 	$(call gbuild, $<, libpng-$(libpng-version), static) \
 	&& echo "Libpng $(libpng-version)" > $@
 
-$(ilidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
+$(ibidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
        # The libxml2 tarball also contains Python bindings which are built and
        # installed to a system directory by default. If you don't need the Python
        # bindings, the easiest solution is to compile without Python support:
@@ -335,21 +317,21 @@ $(ilidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
                    --without-python)                       \
 	&& echo "Libxml2 $(libxml2-version)" > $@
 
-$(ilidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
+$(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
 	$(call gbuild, $<, pixman-$(pixman-version), static) \
 	&& echo "Pixman $(pixman-version)" > $@
 
-$(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
-                   $(ilidir)/libjpeg
+$(ibidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
+                   $(ibidir)/libjpeg
 	$(call gbuild, $<, tiff-$(libtiff-version), static, \
 	               --disable-webp --disable-zstd) \
 	&& echo "Libtiff $(libtiff-version)" > $@
 
-$(ilidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
+$(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
 	$(call gbuild, $<, openmpi-$(openmpi-version), static, , V=1) \
 	&& echo "Open MPI $(openmpi-version)" > $@
 
-$(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
+$(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
 
         # Get the operating system specific features (how to get
@@ -429,7 +411,7 @@ $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	  echo "ATLAS $(atlas-version)" > $@; \
 	fi
 
-$(ilidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
+$(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	if [ x$(on_mac_os) = xyes ]; then                           \
 	  export CC=clang;                                          \
 	fi;                                                         \
@@ -462,7 +444,7 @@ $(ilidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 # libraries at runtime can be extremely problematic.". This is a major
 # problem we have been having so far with Mac systems:
 # https://libgit2.org/docs/guides/build-and-link
-$(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
+$(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
                    $(ibidir)/cmake                            \
                    $(ibidir)/curl
         # Build and install the library.
@@ -479,8 +461,8 @@ $(ilidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
         # Write the target file.
 	echo "Libgit2 $(libgit2-version)" > $@
 
-$(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
-                  $(ilidir)/cfitsio
+$(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
+                  $(ibidir)/cfitsio
         # Build and install the library.
 	$(call gbuild, $<, wcslib-$(wcslib-version), ,               \
 	               LIBS="-pthread -lcurl -lm"                    \
@@ -508,16 +490,16 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 # installation directory and the Python executable (by default it will look
 # for /usr/bin/python)
 $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz \
-                         $(ilidir)/cairo                                        \
-                         $(ilidir)/cfitsio                                      \
-                         $(ilidir)/gsl                                          \
-                         $(ilidir)/libjpeg                                      \
-                         $(ilidir)/libpng                                       \
+                         $(ibidir)/cairo                                        \
+                         $(ibidir)/cfitsio                                      \
+                         $(ibidir)/gsl                                          \
+                         $(ibidir)/libjpeg                                      \
+                         $(ibidir)/libpng                                       \
                          $(ibidir)/netpbm                                       \
                          $(ipydir)/numpy                                        \
                          $(ibidir)/python                                       \
                          $(ibidir)/swig                                         \
-                         $(ilidir)/wcslib
+                         $(ibidir)/wcslib
 	cd $(ddir)                                                            \
     && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi            \
     && cd astrometry.net-$(astrometrynet-version)                         \
@@ -584,11 +566,11 @@ $(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 # building in parallel, its better to have these packages start building
 # early.
 $(ibidir)/gnuastro: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
-                    $(ilidir)/gsl      \
-                    $(ilidir)/wcslib   \
-                    $(ilidir)/libjpeg  \
-                    $(ilidir)/libtiff  \
-                    $(ilidir)/libgit2  \
+                    $(ibidir)/gsl      \
+                    $(ibidir)/wcslib   \
+                    $(ibidir)/libjpeg  \
+                    $(ibidir)/libtiff  \
+                    $(ibidir)/libgit2  \
                     $(ibidir)/ghostscript
 ifeq ($(static_build),yes)
 	staticopts="--enable-static=yes --enable-shared=no";
@@ -606,10 +588,10 @@ endif
 # and install). The questions are different depending on the system (tested
 # on GNU/Linux and Mac OS).
 $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
-                  $(ilidir)/libjpeg                      \
-                  $(ilidir)/libpng                       \
-                  $(ilidir)/libtiff                      \
-                  $(ilidir)/libxml2                      \
+                  $(ibidir)/libjpeg                      \
+                  $(ibidir)/libpng                       \
+                  $(ibidir)/libtiff                      \
+                  $(ibidir)/libxml2                      \
                   $(ibidir)/unzip
 	if [ x$(on_mac_os) = xyes ]; then                                      \
       answers='\n\n\n\n\n\n\n\n\n\n\n\nnone\n\n\n';                        \
@@ -637,8 +619,8 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
 # the option --enable-openblas and it worked (same issue happened with
 # `sextractor'.
 $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz                \
-                      $(ilidir)/fftw                                  \
-                      $(ilidir)/openblas                              \
+                      $(ibidir)/fftw                                  \
+                      $(ibidir)/openblas                              \
                       $(ibidir)/cdsclient
 	$(call gbuild, $<, scamp-$(scamp-version), static,                \
                    --enable-threads --enable-openblas                 \
@@ -654,8 +636,8 @@ $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz                \
 # installed, it is just necessary to explicity tell sextractor to use it in
 # the configuration step.
 $(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
-                      $(ilidir)/openblas                              \
-                      $(ilidir)/fftw
+                      $(ibidir)/openblas                              \
+                      $(ibidir)/fftw
 	$(call gbuild, $<, sextractor-$(sextractor-version), static,      \
                    --enable-threads --enable-openblas                 \
                    --with-openblas-libdir=$(ildir)                    \
@@ -665,7 +647,7 @@ $(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
     && echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
 
 $(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
-                 $(ilidir)/fftw
+                 $(ibidir)/fftw
 	$(call gbuild, $<, swarp-$(swarp-version), static, \
                    --enable-threads)                   \
     && cp $(dtexdir)/swarp.tex $(ictdir)/              \

@@ -643,11 +643,8 @@ if ! [ -d $tmpblddir ]; then mkdir $tmpblddir; fi
 verdir=$instdir/version-info
 if ! [ -d $verdir ]; then mkdir $verdir; fi
 
-ibidir=$verdir/bin
+ibidir=$verdir/proglib
 if ! [ -d $ibidir ]; then mkdir $ibidir; fi
-
-ilidir=$verdir/lib
-if ! [ -d $ilidir ]; then mkdir $ilidir; fi
 
 ipydir=$verdir/python
 if ! [ -d $ipydir ]; then mkdir $ipydir; fi
@@ -1082,7 +1079,7 @@ function prepare_name_version() {
 
 # Report the different software in separate contexts (separating Python and
 # TeX packages from the C/C++ programs and libraries).
-proglibs=$(prepare_name_version $verdir/bin/* $verdir/lib/*)
+proglibs=$(prepare_name_version $verdir/proglib/*)
 pymodules=$(prepare_name_version $verdir/python/*)
 texpkg=$(prepare_name_version $verdir/tex/texlive)
 

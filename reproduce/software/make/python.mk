@@ -213,12 +213,12 @@ $(pytarballs): $(tdir)/%:
 #
 # While this Makefile is for Python programs, in some cases, we need
 # certain programs (like Python itself), or libraries for the modules.
-$(ilidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
+$(ibidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
 	$(call gbuild, $<, libffi-$(libffi-version)) \
 	echo "Libffi $(libffi-version)" > $@
 
 $(ibidir)/python: $(tdir)/python-$(python-version).tar.gz \
-                  $(ilidir)/libffi
+                  $(ibidir)/libffi
 	# On Mac systems, the build complains about `clang' specific
 	# features, so we can't use our own GCC build here.
 	if [ x$(on_mac_os) = xyes ]; then                   \
@@ -308,7 +308,7 @@ $(ipydir)/certifi: $(tdir)/certifi-$(certifi-version).tar.gz \
 	                Certifi $(certifi-version))
 
 $(ipydir)/cffi: $(tdir)/cffi-$(cffi-version).tar.gz \
-                $(ilidir)/libffi                    \
+                $(ibidir)/libffi                    \
                 $(ipydir)/pycparser
 	$(call pybuild, tar xf, $<, cffi-$(cffi-version), ,\
 	                cffi $(cffi-version))
@@ -341,7 +341,7 @@ $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
 	                EntryPoints $(entrypoints-version))
 
 $(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
-                $(ilidir)/hdf5                      \
+                $(ibidir)/hdf5                      \
                 $(ipydir)/cython                    \
                 $(ipydir)/pypkgconfig               \
                 $(ipydir)/setuptools
@@ -381,7 +381,7 @@ $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
 
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
                       $(ipydir)/cycler                                  \
-                      $(ilidir)/freetype                                \
+                      $(ibidir)/freetype                                \
                       $(ipydir)/kiwisolver                              \
                       $(ipydir)/numpy                                   \
                       $(ipydir)/pyparsing                               \
@@ -401,15 +401,14 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
 # But atleast on my system it fails.
 $(ipydir)/mpi4py: $(tdir)/mpi4py-$(mpi4py-version).tar.gz    \
                   $(ipydir)/setuptools                       \
-                  $(ilidir)/openmpi
+                  $(ibidir)/openmpi
 	$(call pybuild, tar xf, $<, mpi4py-$(mpi4py-version)) \
 	&& cp $(dtexdir)/mpi4py.tex $(ictdir)/                \
 	&& echo "mpi4py $(mpi4py-version) \citep{mpi4py2011}" > $@
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ipydir)/setuptools               \
-                 $(ilidir)/openblas                 \
-                 $(ilidir)/fftw                     \
+                 $(ibidir)/openblas                 \
                  $(ibidir)/unzip
 	if [ x$(on_mac_os) = xyes ]; then                                    \
 	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle";     \

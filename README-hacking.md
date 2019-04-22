@@ -497,7 +497,7 @@ get more advanced in later stages of your work.
      outputs with `make clean` as shown below.
 
      ```shell
-     $ ./configure              # Set top directories and build dependencies.
+     $ ./configure --host-cc    # Set top directories and build dependencies (except for GCC which can take long).
      $ .local/bin/make          # Do the (mainly symbolic) processing and build paper
 
      # Open 'paper.pdf' and see if everything is ok.
@@ -540,31 +540,23 @@ get more advanced in later stages of your work.
      managing the title and authors, please feel free to use your own
      methods after finishing this checklist and doing your first commit.
 
- - **Gnuastro**: GNU Astronomy Utilities (Gnuastro) is currently a
-     dependency of the template which will be built and used. The main
-     reason for this is to demonstrate how critically important it is to
-     version your scientific tools. If you don't need Gnuastro for your
-     research, you can simply remove the parts enclosed in marked parts in
-     the relevant files of the list below. The marks are comments, which
-     you can find by searching for "Gnuastro". If you will be using
-     Gnuastro, then remove the commented marks and keep the code within
-     them.
-
-   - Delete marked part(s) in `configure`.
-   - Delete the `reproduce/software/config/gnuastro` directory.
-   - Delete `gnuastro` from the value of `top-level-programs` in
-     `reproduce/software/make/high-level.mk`. You can keep the rule to
-     build `gnuastro`, since its not in the `top-level-programs` list, it
-     (and all the dependencies that are only needed by Gnuastro) will be
-     ignored.
-   - Delete marked parts in `reproduce/analysis/make/initialize.mk`.
-
- - **Other dependencies**: If there are any more software that you don't
-     use (or others that you need), then remove (or add) them in the
-     respective parts of `top-level-programs` of
-     `reproduce/software/make/high-level`. It is commented thoroughly and
-     reading over the comments should guide you on what to add/remove and
-     where.
+ - **High-level software**: The template installs all the software that
+     your project needs. You can specify which software your project needs
+     in the `reproduce/software/config/installation/TARGETS.mk`. The
+     necessary software are classified into two classes: 1) programs or
+     libraries (usually written in C/C++) which are run directly by the
+     operating system. 2) Python modules/libraires that are run within
+     Python. By default `TARGETS.mk` only has GNU Astronomy Utilities
+     (Gnuastro) as one scientific program and Astropy as one scientific
+     Python module. Both have many dependencies which will be installed
+     into your project before they are. To see a list of software that are
+     currently ready to be built in the template, see
+     `reproduce/software/config/installation/versions.mk` (which has their
+     versions also), the comments in `TARGETS.mk` describe how to use the
+     software name from `versions.mk`. Currently the raw pipeline just uses
+     Gnuastro to make the demonstration plots. Therefore if you don't need
+     Gnuastro, go through the analysis steps in `reproduce/analysis` and
+     remove all its use cases (clearly marked).
 
  - **Input dataset (can be done later)**: The input datasets are managed
      through the `reproduce/analysis/config/INPUTS.mk` file. It is best to

@@ -42,8 +42,7 @@ ddir    = $(BDIR)/software/build-tmp
 idir    = $(BDIR)/software/installed
 ibdir   = $(BDIR)/software/installed/bin
 ildir   = $(BDIR)/software/installed/lib
-ibidir  = $(BDIR)/software/installed/version-info/bin
-ilidir  = $(BDIR)/software/installed/version-info/lib
+ibidir  = $(BDIR)/software/installed/version-info/proglib
 
 # We'll need the system's PATH for making links to low-level programs we
 # won't be building ourselves.
@@ -240,20 +239,10 @@ makelink = origpath="$$PATH";                                      \
 $(ibdir) $(ildir):; mkdir $@
 $(ibidir)/low-level-links: | $(ibdir) $(ildir)
 
-        # The Assembler
-	$(call makelink,as)
-
-        # Compiler (Cmake needs the clang compiler which we aren't building
-        # yet in the project).
+        # Not-installed (but necessary in some cases) compilers.
+        #  Clang is necessary for CMake.
 	$(call makelink,clang)
 	$(call makelink,clang++)
-
-        # The linker
-	$(call makelink,ar)
-	$(call makelink,ld)
-	$(call makelink,nm)
-	$(call makelink,ps)
-	$(call makelink,ranlib)
 
         # Mac OS specific
 	$(call makelink,sysctl)
@@ -380,7 +369,7 @@ $(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 #
 # Note for a static-only build: Zlib's `./configure' doesn't use Autoconf's
 # configure script, it just accepts a direct `--static' option.
-$(ilidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
+$(ibidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
 	$(call gbuild, $<, zlib-$(zlib-version)) \
 	&& echo "Zlib $(zlib-version)" > $@
 
@@ -394,7 +383,7 @@ $(ibidir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 	       $(ibidir)/unzip                   \
 	       $(ibidir)/gzip                    \
 	       $(ibidir)/lzip                    \
-               $(ilidir)/zlib                    \
+               $(ibidir)/zlib                    \
 	       $(ibidir)/zip                     \
 	       $(ibidir)/xz
         # Since all later programs depend on Tar, the configuration will be
@@ -430,7 +419,7 @@ $(ibidir)/make: $(tdir)/make-$(make-version).tar.lz \
 	$(call gbuild, $<, make-$(make-version), , , -j$(numthreads)) \
 	&& echo "GNU Make $(make-version)" > $@
 
-$(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
+$(ibidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
                    $(ibidir)/make
 
         # Delete the library that will be installed (so we can make sure
@@ -516,8 +505,8 @@ $(ilidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
 	  exit 1;                                                          \
 	fi
 
-$(ilidir)/readline: $(tdir)/readline-$(readline-version).tar.gz      \
-                    $(ilidir)/ncurses
+$(ibidir)/readline: $(tdir)/readline-$(readline-version).tar.gz      \
+                    $(ibidir)/ncurses
 	$(call gbuild, $<, readline-$(readline-version), static,     \
 	                --with-curses --disable-install-examples,    \
 	                SHLIB_LIBS="-lncursesw" )                    \
@@ -543,7 +532,7 @@ else
 needpatchelf = $(ibidir)/patchelf
 endif
 $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
-                $(ilidir)/readline                  \
+                $(ibidir)/readline                  \
                 $(needpatchelf)
 
         # Delete the (possibly) existing Bash executable.
@@ -611,7 +600,7 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 # when the library is updated/changed by the host, and the whole purpose of
 # this project is avoid dependency on the host as much as possible.
 $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
-                $(ilidir)/openssl
+                $(ibidir)/openssl
 	$(call gbuild, $<, curl-$(curl-version), ,       \
 	               LIBS="-pthread"                   \
 	               --with-zlib=$(ildir)              \
@@ -647,7 +636,7 @@ $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
 #openssl-static = no-dso no-dynamic-engine no-shared
 #endif
 $(idir)/etc:; mkdir $@
-$(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
+$(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
                    $(tdir)/cert.pem                                  \
                    $(ibidir)/bash | $(idir)/etc
         # According to OpenSSL's Wiki (link bellow), it can't automatically
@@ -694,7 +683,7 @@ $(ilidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz         \
 # host), they are disabled here.
 $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
                 $(ibidir)/pkg-config                \
-                $(ilidir)/openssl
+                $(ibidir)/openssl
 	libs="-pthread";                                          \
 	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi; \
 	$(call gbuild, $<, wget-$(wget-version), ,                \
@@ -725,7 +714,7 @@ $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 # building of those higher-level programs (after this Makefile finishes),
 # there is no access to the system's PATH.
 $(ibidir)/coreutils: $(tdir)/coreutils-$(coreutils-version).tar.xz \
-                     $(ilidir)/openssl
+                     $(ibidir)/openssl
         # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
         # See Tar's comments for the `-j' option.
 	$(call gbuild, $<, coreutils-$(coreutils-version), static,           \
@@ -746,8 +735,8 @@ $(ibidir)/findutils: $(tdir)/findutils-$(findutils-version).tar.lz \
 
 $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
                 $(ibidir)/bash                      \
-                $(ilidir)/mpfr                      \
-                $(ilidir)/gmp
+                $(ibidir)/mpfr                      \
+                $(ibidir)/gmp
         # AWK doesn't include RPATH by default, so we'll have to manually
         # include it using the `patchelf' program (which was a dependency
         # of Bash). Just note that AWK produces two executables (for
@@ -773,7 +762,7 @@ $(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
 	               V=1)                                        \
 	&& echo "Git $(git-version)" > $@
 
-$(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
+$(ibidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
                $(ibidir)/bash
 	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
@@ -791,7 +780,7 @@ $(ibidir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
 	$(call gbuild, $<, grep-$(grep-version), static) \
 	&& echo "GNU Grep $(grep-version)" > $@
 
-$(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz \
+$(ibidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz \
                   $(ibidir)/bash
 	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
 	&& echo "Libbsd $(libbsd-version)" > $@
@@ -817,7 +806,7 @@ $(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
 ifeq ($(on_mac_os),yes)
 needlibbsd =
 else
-needlibbsd = $(ilidir)/libbsd
+needlibbsd = $(ibidir)/libbsd
 endif
 $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
                      $(needlibbsd)                                 \
@@ -842,32 +831,33 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
         # Note that the -O and -G options used here are currently only in a
         # fork of `metastore' currently hosted at:
         # https://github.com/mohammad-akhlaghi/metastore
-	user=$$(whoami)
-	group=$$(groups | awk '{print $$1}')
-	cd $$current_dir
-	if [ -f $(ibdir)/metastore ]; then
-	  for f in pre-commit post-checkout; do
+	user=$$(whoami);                                          \
+	group=$$(groups | awk '{print $$1}');                     \
+	cd $$current_dir;                                         \
+	if [ -f $(ibdir)/metastore ]; then                        \
+	  for f in pre-commit post-checkout; do                   \
 	    sed -e's|@USER[@]|'$$user'|g'                         \
 	        -e's|@GROUP[@]|'$$group'|g'                       \
 	        -e's|@BINDIR[@]|$(ibdir)|g'                       \
 	        -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g'       \
-	        reproduce/software/bash/git-$$f > .git/hooks/$$f
-	    chmod +x .git/hooks/$$f
-	    echo "Metastore (forked) $(metastore-version)" > $@
-	  done
-	else
-	  echo; echo; echo;
-	  echo "*****************"
-	  echo "metastore couldn't be installed!"
-	  echo
-	  echo "Its used for preserving timestamps on Git commits."
-	  echo "Its useful for development, not simple running of the project."
-	  echo "So we won't stop the configuration because it wasn't built."
-	  echo "*****************"
+	        reproduce/software/bash/git-$$f > .git/hooks/$$f; \
+	    chmod +x .git/hooks/$$f;                              \
+	    echo "Metastore (forked) $(metastore-version)" > $@;  \
+	  done;                                                   \
+	else                                                      \
+	  echo; echo; echo;                                       \
+	  echo "*****************";                               \
+	  echo "metastore couldn't be installed!";                \
+	  echo;                                                   \
+	  echo "Its used for preserving timestamps on Git commits."; \
+	  echo "Its useful for development, not simple running of "; \
+	  echo "the project. So we won't stop the configuration "; \
+	  echo "because it wasn't built.";                        \
+	  echo "*****************";                               \
 	fi
 
-$(ilidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
-                $(ilidir)/gmp
+$(ibidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
+                $(ibidir)/gmp
 	$(call gbuild, $<, mpfr-$(mpfr-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
@@ -907,13 +897,28 @@ $(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
 # GCC and its prerequisites
 # -------------------------
 #
-# Binutils' linker `ld' is apparently only good for GNU/Linux systems and
-# other OSs have their own. So for now we aren't actually building
-# Binutils (`ld' isn't a prerequisite of GCC).
-$(ibidir)/binutils: $(tdir)/binutils-$(binutils-version).tar.lz \
-                    $(ibidir)/bash
-	$(call gbuild, $<, binutils-$(binutils-version), static) \
-	&& echo "GNU Binutils $(binutils-version)" > $@
+# Binutils' assembler (`as') and linker (`ld') will conflict with other
+# compilers. So until then, on Mac systems we'll use the host opertating
+# system's Binutils equivalents by just making links.
+ifeq ($(on_mac_os),yes)
+binutils-prerequisites =
+else
+binutils-prerequisites = $(tdir)/binutils-$(binutils-version).tar.lz \
+                         $(ibidir)/bash
+endif
+$(ibidir)/binutils: $(binutils-prerequisites)
+	if [ x$(on_mac_os) = xyes ]; then                          \
+	  $(call makelink,as)                                      \
+	  $(call makelink,ar)                                      \
+	  $(call makelink,ld)                                      \
+	  $(call makelink,nm)                                      \
+	  $(call makelink,ps)                                      \
+	  $(call makelink,ranlib)                                  \
+          echo "" > $@;                                            \
+	else                                                       \
+	  $(call gbuild, $<, binutils-$(binutils-version), static) \
+	  && echo "GNU Binutils $(binutils-version)" > $@;         \
+	fi
 
 # `file' is not a prerequisite of GCC. However, since it is low level, it is
 # set as a prerequisite of GCC to have it installed.
@@ -922,13 +927,13 @@ $(ibidir)/file: $(tdir)/file-$(file-version).tar.gz \
 	$(call gbuild, $<, file-$(file-version), static) \
 	&& echo "File $(file-version)" > $@
 
-$(ilidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
-               $(ilidir)/gmp
+$(ibidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
+               $(ibidir)/gmp
 	$(call gbuild, $<, isl-$(isl-version), static)  \
 	&& echo "GNU Integer Set Library $(isl-version)" > $@
 
-$(ilidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
-               $(ilidir)/mpfr
+$(ibidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
+               $(ibidir)/mpfr
 	$(call gbuild, $<, mpc-$(mpc-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Complex library" > $@
 
@@ -950,8 +955,8 @@ gcc-prerequisites =
 else
 gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
                     $(ibidir)/binutils                \
-                    $(ilidir)/isl                     \
-                    $(ilidir)/mpc
+                    $(ibidir)/isl                     \
+                    $(ibidir)/mpc
 endif
 $(ibidir)/gcc: $(gcc-prerequisites)   \
                $(ibidir)/sed          \
@@ -961,6 +966,7 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
                $(ibidir)/grep         \
                $(ibidir)/which        \
                $(ibidir)/glibtool     \
+               $(ibidir)/binutils     \
                $(ibidir)/coreutils    \
                $(ibidir)/diffutils    \
                $(ibidir)/findutils

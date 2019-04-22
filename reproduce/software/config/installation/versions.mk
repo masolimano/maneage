@@ -16,40 +16,27 @@
 # A copy of the GNU General Public License is available at
 # <http://www.gnu.org/licenses/>.
 
-# C/C++ programs and libraries.
-astrometrynet-version      = 0.77
-atlas-version              = 3.10.3
+
+
+
+
+# Basic/low-level programs and libraires (installed in any case)
+# --------------------------------------------------------------
 bash-version               = 5.0
 binutils-version           = 2.31.1
-cairo-version              = 1.16.0
-cdsclient-version          = 3.84
-cfitsio-version            = 3.45
-cmake-version              = 3.14.2
 coreutils-version          = 8.31
 curl-version               = 7.63.0
 diffutils-version          = 3.7
-fftw-version               = 3.3.8
 file-version               = 5.36
 findutils-version          = 4.6.0.199-e3fc
-flock-version              = 0.2.3
-freetype-version           = 2.9
 gawk-version               = 5.0.0
 gcc-version                = 8.3.0
-ghostscript-version        = 9.26
 git-version                = 2.21.0
 gmp-version                = 6.1.2
-gnuastro-version           = 0.8
 grep-version               = 3.3
-gsl-version                = 2.5
 gzip-version               = 1.10
-hdf5-version               = 1.10.5
 isl-version                = 0.18
 libbsd-version             = 0.9.1
-libffi-version             = 3.2.1
-libjpeg-version            = v9b
-libtiff-version            = 4.0.10
-libtool-version            = 2.4.6
-libxml2-version            = 2.9.9
 lzip-version               = 1.20
 m4-version                 = 1.4.18
 make-version               = 4.2.90
@@ -57,20 +44,11 @@ metastore-version          = 1.1.2-23-fa9170b
 mpfr-version               = 4.0.2
 mpc-version                = 1.1.0
 ncurses-version            = 6.1
-netpbm-version             = 10.47.72
-openblas-version           = 0.3.5
-openmpi-version            = 4.0.1
 openssl-version            = 1.1.1a
 patchelf-version           = 0.9
-pixman-version             = 0.38.0
 pkgconfig-version          = 0.29.2
-python-version             = 3.7.3
 readline-version           = 8.0
-scamp-version              = 2.6.7
 sed-version                = 4.7
-sextractor-version         = 2.25.0
-swarp-version              = 2.38.0
-swig-version               = 3.0.12
 tar-version                = 1.32
 unzip-version              = 6.0
 wget-version               = 1.20.3
@@ -79,24 +57,57 @@ xz-version                 = 5.2.4
 zip-version                = 3.0
 zlib-version               = 1.2.11
 
-# Special libraries
-# -----------------
+
+
+
+
+# Optional/high-level programs and libraries
+# ------------------------------------------
 #
-# When updating the version of these libraries, please look into the build
-# rule first: In one way or another, the version string becomes necessary
-# during their build and must be accounted for. In particular:
-#  `libpng' is downgraded because `netpbm' requires `libpng' version < 1.5
-bzip2-version              = 1.0.6
-lapack-version             = 3.8.0
-libgit2-version            = 0.26.0
-libpng-version             = 1.4.22
-wcslib-version             = 6.2
+# These are programs and libraries that are optional, The ones in
+# `reproduce/software/config/installation/TARGETS.mk' will be built as part
+# of a project. To specify a software there, just remove the `-version'
+# suffix from the list below.
+astrometrynet-version      = 0.77
+atlas-version              = 3.10.3
+cairo-version              = 1.16.0
+cdsclient-version          = 3.84
+cfitsio-version            = 3.45
+cmake-version              = 3.14.2
+fftw-version               = 3.3.8
+flock-version              = 0.2.3
+freetype-version           = 2.9
+ghostscript-version        = 9.26
+gnuastro-version           = 0.9
+gsl-version                = 2.5
+hdf5-version               = 1.10.5
+libffi-version             = 3.2.1
+libjpeg-version            = v9b
+libtiff-version            = 4.0.10
+libtool-version            = 2.4.6
+libxml2-version            = 2.9.9
+netpbm-version             = 10.47.72
+openblas-version           = 0.3.5
+openmpi-version            = 4.0.1
+pixman-version             = 0.38.0
+python-version             = 3.7.3
+scamp-version              = 2.6.7
+sextractor-version         = 2.25.0
+swarp-version              = 2.38.0
+swig-version               = 3.0.12
+
+
+
+
 
 # Python packages
 # ---------------
 #
-# IMPORTANT: Fix url in `reproduce/src/make/dependencies.mk'
-# if changing the version
+# Similar to optional programs and libraries above.
+#
+# IMPORTANT: If you intend to change the version of any of the Python
+# modules/libraries below, please fix the hash strings of the respective
+# URL in `reproduce/software/make/python.mk'.
 asn1crypto-version         = 0.24.0
 astroquery-version         = 0.3.9
 astropy-version            = 3.1.1
@@ -132,3 +143,27 @@ soupsieve-version          = 1.8
 urllib3-version            = 1.24.1
 virtualenv-version         = 16.4.0
 webencodings-version       = 0.5.1
+
+
+
+
+
+# Special programs and libraries
+# ------------------------------
+#
+# When updating the version of these libraries, please look into the build
+# rule first: In one way or another, the version string becomes necessary
+# during their build and must be accounted for.
+#
+# Special notes:
+#   - `libpng' is downgraded: the current installation of `netpbm' requires
+#     a version less than 1.5.
+
+# Basic/low-level
+bzip2-version              = 1.0.6
+
+# Optional/high-level
+lapack-version             = 3.8.0
+libgit2-version            = 0.26.0
+libpng-version             = 1.4.22
+wcslib-version             = 6.2
