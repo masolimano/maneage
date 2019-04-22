@@ -50,9 +50,18 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # high level software depend on it. The current rule for ATLAS is tested
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
-top-level-libraries = # atlas
-top-level-python    = astroquery matplotlib
-top-level-programs  = gnuastro metastore
+
+# About available software/libraries: currently the template has rules for
+# installing software that are widely used in science, and in particular in
+# astrophysics.  However, not all of these software will be used for all
+# people interested in this template.  Due to that, we put some of what we
+# consider the main software as optional software of the template (to see a
+# complete list of all software/libraries, look at the version number
+# Makefile). If that software is needed, just remove the comment `#' to
+# install it.
+top-level-libraries =                       # atlas
+top-level-programs  = gnuastro metastore    # astrometrynet scamp sextractor swarp
+top-level-python    = numpy                 # astropy astroquery matplotlib scipy
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
      $(foreach p, $(top-level-python),    $(ipydir)/$(p)) \
@@ -114,8 +123,11 @@ include reproduce/software/make/python.mk
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
+tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz     \
                         atlas-$(atlas-version).tar.bz2                     \
+                        cairo-$(cairo-version).tar.xz                      \
+                        cdsclient-$(cdsclient-version).tar.gz              \
+                        cfitsio-$(cfitsio-version).tar.gz                  \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         freetype-$(freetype-version).tar.gz                \
@@ -131,9 +143,16 @@ tarballs = $(foreach t, cfitsio-$(cfitsio-version).tar.gz                  \
                         libbsd-$(libbsd-version).tar.xz                    \
                         libpng-$(libpng-version).tar.xz                    \
                         libgit2-$(libgit2-version).tar.gz                  \
+                        libxml2-$(libxml2-version).tar.gz                  \
                         metastore-$(metastore-version).tar.gz              \
+                        netpbm-$(netpbm-version).tgz                       \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
+                        pixman-$(pixman-version).tar.gz                    \
+                        scamp-$(scamp-version).tar.lz                      \
+                        sextractor-$(sextractor-version).tar.lz            \
+                        swarp-$(swarp-version).tar.gz                      \
+                        swig-$(swig-version).tar.gz                        \
                         tiff-$(libtiff-version).tar.gz                     \
                         wcslib-$(wcslib-version).tar.bz2                   \
                       , $(tdir)/$(t) )
@@ -157,9 +176,12 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	                                 : (l==2 ? "%d00\n"           \
                                             : "%d000\n") ), $$1)}')
 	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
+	  elif [ $$n = astrometry  ]; then w=http://astrometry.net/downloads
 	  elif [ $$n = atlas       ]; then
 	    mergenames=0
 	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
+	  elif [ $$n = cairo       ]; then w=https://www.cairographics.org/releases
+	  elif [ $$n = cdsclient   ]; then w=http://cdsarc.u-strasbg.fr/ftp/pub/sw
 	  elif [ $$n = cmake       ]; then
 	    mergenames=0
 	    majv=$$(echo $(cmake-version) \
@@ -185,7 +207,11 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
+	  elif [ $$n = libxml      ]; then w=ftp://xmlsoft.org/libxml2
 	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = netpbm      ]; then
+	    mergenames=0
+		w=https://sourceforge.net/projects/netpbm/files/super_stable/$(netpbm-version)/netpbm-$(netpbm-version).tgz/download
 	  elif [ $$n = openblas    ]; then
 	    mergenames=0
 	    w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
@@ -193,6 +219,11 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    mergenames=0
 	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
+	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
+	  elif [ $$n = scamp       ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = sextractor  ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = swarp       ]; then w=https://www.astromatic.net/download/swarp
+	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  else
@@ -261,6 +292,13 @@ $(ilidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 	&& rm $$customtar                                \
 	&& echo "CFITSIO $(cfitsio-version)" > $@
 
+$(ilidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz    \
+                 $(ilidir)/freetype                       \
+                 $(ilidir)/libpng                         \
+                 $(ilidir)/pixman
+	$(call gbuild, $<, cairo-$(cairo-version), static)    \
+	&& echo "Cairo $(cairo-version)" > $@
+
 $(ilidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	$(call gbuild, $<, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library $(gsl-version)" > $@
@@ -277,7 +315,7 @@ $(ilidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
 	$(call gbuild, $<, freetype-$(freetype-version), static) \
 	&& echo "FreeType $(freetype-version)" > $@
 
-$(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz \
+$(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
                 $(ilidir)/openmpi
 	export CC=mpicc;                                 \
 	export FC=mpif90;                                \
@@ -298,6 +336,21 @@ $(ilidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
 	$(call gbuild, $<, libpng-$(libpng-version), static) \
 	&& echo "Libpng $(libpng-version)" > $@
 
+$(ilidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
+       # The libxml2 tarball also contains Python bindings which are built and
+       # installed to a system directory by default. If you don't need the Python
+       # bindings, the easiest solution is to compile without Python support:
+       # ./configure --without-python
+       # If you really need the Python bindings, try the
+       # --with-python-install-dir=DIR option
+	$(call gbuild, $<, libxml2-$(libxml2-version), static, \
+                   --without-python)                       \
+	&& echo "Libxml2 $(libxml2-version)" > $@
+
+$(ilidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
+	$(call gbuild, $<, pixman-$(pixman-version), static) \
+	&& echo "Pixman $(pixman-version)" > $@
+
 $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ilidir)/libjpeg
 	$(call gbuild, $<, tiff-$(libtiff-version), static, \
@@ -306,7 +359,7 @@ $(ilidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 
 $(ilidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
 	$(call gbuild, $<, openmpi-$(openmpi-version), static, , V=1) \
-	&& echo "OpenMPI $(openmpi-version)" > $@
+	&& echo "Open MPI $(openmpi-version)" > $@
 
 $(ilidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
@@ -463,6 +516,51 @@ $(ilidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 # Programs
 # --------
 #
+# Astrometry-net contains a lot of programs. We need to specify the
+# installation directory and the Python executable (by default it will look
+# for /usr/bin/python)
+$(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz \
+                         $(ilidir)/cairo                                        \
+                         $(ilidir)/cfitsio                                      \
+                         $(ilidir)/gsl                                          \
+                         $(ilidir)/libjpeg                                      \
+                         $(ilidir)/libpng                                       \
+                         $(ibidir)/netpbm                                       \
+                         $(ipydir)/numpy                                        \
+                         $(ibidir)/python                                       \
+                         $(ibidir)/swig                                         \
+                         $(ilidir)/wcslib
+	cd $(ddir)                                                            \
+    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi            \
+    && cd astrometry.net-$(astrometrynet-version)                         \
+    && make                                                               \
+    && make py                                                            \
+    && make extra                                                         \
+    && make install INSTALL_DIR=$(idir) PYTHON_SCRIPT="$(ibdir)/python"   \
+    && cd ..                                                              \
+    && rm -rf astrometry.net-$(astrometrynet-version)                     \
+    && cp $(dtexdir)/astrometrynet.tex $(ictdir)/                         \
+    && echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
+
+# cdsclient is a set of software written in c to interact with astronomical
+# database servers. It is a dependency of `scamp' to be able to download
+# reference catalogues.
+# NOTE: we do not use a convencional `gbuild' installation because the
+# programs are scripts and we need to touch them before installing.
+# Otherwise this software will be re-built each time the configure step is
+# invoked.
+$(ibidir)/cdsclient: $(tdir)/cdsclient-$(cdsclient-version).tar.gz
+	cd $(ddir)                                                    \
+	&& tar xf $<                                                  \
+	&& cd cdsclient-$(cdsclient-version)                          \
+	&& touch *                                                    \
+	&& ./configure --prefix=$(idir)                               \
+	&& make                                                       \
+	&& make install                                               \
+	&& cd ..                                                      \
+	&& rm -rf cdsclient-$(cdsclient-version)                      \
+	&& echo "cdsclient $(cdsclient-version)" > $@
+
 # CMake can be built with its custom `./bootstrap' script.
 $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
                  $(ibidir)/curl
@@ -613,16 +711,84 @@ endif
 	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/                 \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
+# Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
+# This program has a crazy dialogue installation which is override using the
+# printf statment. Each `\n' is a new question that the installation process
+# ask to the user. We give all answers with a pipe to the scripts (configure
+# and install). The questions are different depending on the system (tested
+# on GNU/Linux and Mac OS).
+$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
+                  $(ilidir)/libjpeg                      \
+                  $(ilidir)/libpng                       \
+                  $(ilidir)/libtiff                      \
+                  $(ilidir)/libxml2                      \
+                  $(ibidir)/unzip
+	if [ x$(on_mac_os) = xyes ]; then                                      \
+      answers='\n\n\n\n\n\n\n\n\n\n\n\nnone\n\n\n';                        \
+    else                                                                   \
+      answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n';                       \
+    fi;                                                                    \
+    cd $(ddir)                                                             \
+    && unpackdir=netpbm-$(netpbm-version)                                  \
+    && rm -rf $$unpackdir                                                  \
+    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi             \
+    && cd $$unpackdir                                                      \
+    && printf "$$answers" | ./configure                                    \
+    && make                                                                \
+    && rm -rf $(ddir)/$$unpackdir/install                                  \
+    && make package pkgdir=$(ddir)/$$unpackdir/install                     \
+    && printf "$(ddir)/$$unpackdir/install\n$(idir)\n\n\nN\n\n\n\n\nN\n\n" \
+              | ./installnetpbm                                            \
+    && cd ..                                                               \
+    && rm -rf $$unpackdir                                                  \
+    && echo "Netpbm $(netpbm-version)" > $@
 
+# SCAMP documentation says ATLAS is a mandatory prerequisite for using
+# SCAMP. We have ATLAS into the project but there are some problems with the
+# libraries that are not yet solved. However, we tried to install it with
+# the option --enable-openblas and it worked (same issue happened with
+# `sextractor'.
+$(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz                \
+                      $(ilidir)/fftw                                  \
+                      $(ilidir)/openblas                              \
+                      $(ibidir)/cdsclient
+	$(call gbuild, $<, scamp-$(scamp-version), static,                \
+                   --enable-threads --enable-openblas                 \
+                   --with-fftw-libdir=$(idir)                         \
+                   --with-fftw-incdir=$(idir)/include                 \
+                   --with-openblas-libdir=$(ildir)                    \
+                   --with-openblas-incdir=$(idir)/include)            \
+	&& cp $(dtexdir)/scamp.tex $(ictdir)/                             \
+    && echo "SCAMP $(scamp-version) \citep{scamp}" > $@
 
+# Sextractor crashes complaining about not linking with some ATLAS
+# libraries. But we can override this issue since we have Openblas
+# installed, it is just necessary to explicity tell sextractor to use it in
+# the configuration step.
+$(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
+                      $(ilidir)/openblas                              \
+                      $(ilidir)/fftw
+	$(call gbuild, $<, sextractor-$(sextractor-version), static,      \
+                   --enable-threads --enable-openblas                 \
+                   --with-openblas-libdir=$(ildir)                    \
+                   --with-openblas-incdir=$(idir)/include)            \
+    && ln -fs $(ibdir)/sex $(ibdir)/sextractor                        \
+    && cp $(dtexdir)/sextractor.tex $(ictdir)/                        \
+    && echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
 
+$(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
+                 $(ilidir)/fftw
+	$(call gbuild, $<, swarp-$(swarp-version), static, \
+                   --enable-threads)                   \
+    && cp $(dtexdir)/swarp.tex $(ictdir)/              \
+    && echo "SWarp $(swarp-version) \citep{swarp}" > $@
 
-
-
-
-
-
-
+$(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
+	# Option --without-pcre was a suggestion once the configure step was
+	# tried and it failed. It was not recommended but it works!
+	# pcr is a dependency of swig
+	$(call gbuild, $<, swig-$(swig-version), static, --without-pcre) \
+	&& echo "Swig $(swig-version)" > $@
 
 
 

@@ -214,13 +214,13 @@ $(pytarballs): $(tdir)/%:
 # While this Makefile is for Python programs, in some cases, we need
 # certain programs (like Python itself), or libraries for the modules.
 $(ilidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
-	$(call gbuild, $<, libffi-$(libffi-version))        \
+	$(call gbuild, $<, libffi-$(libffi-version)) \
 	echo "Libffi $(libffi-version)" > $@
 
-$(ibidir)/python3: $(tdir)/python-$(python-version).tar.gz \
-                   $(ilidir)/libffi
-        # On Mac systems, the build complains about `clang' specific
-        # features, so we can't use our own GCC build here.
+$(ibidir)/python: $(tdir)/python-$(python-version).tar.gz \
+                  $(ilidir)/libffi
+	# On Mac systems, the build complains about `clang' specific
+	# features, so we can't use our own GCC build here.
 	if [ x$(on_mac_os) = xyes ]; then                   \
 	  export CC=clang;                                  \
 	  export CXX=clang++;                               \
@@ -231,7 +231,8 @@ $(ibidir)/python3: $(tdir)/python-$(python-version).tar.gz \
 	       --enable-shared)                             \
 	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
 	    {printf "%d.%d\n", $$1, $$2}')                  \
-	&& ln -s $(ildir)/python$$v $(ildir)/python         \
+	&& ln -sf $(ildir)/python$$v $(ildir)/python        \
+	&& ln -sf $(ibdir)/python$$v $(ibdir)/python        \
 	&& rm -rf $(ipydir)                                 \
 	&& mkdir $(ipydir)                                  \
 	&& echo "Python $(python-version)" > $@
@@ -259,8 +260,8 @@ pybuild = cd $(ddir); rm -rf $(3);                            \
 	       -e 's|@INCDIR[@]|'"$(idir)/include"'|'             \
 	       $(4) > site.cfg;                                   \
 	 fi;                                                      \
-	 python3 setup.py build                                   \
-	 && python3 setup.py install                              \
+	 python setup.py build                                    \
+	 && python setup.py install                               \
 	 && cd ..                                                 \
 	 && rm -rf $(3)                                           \
 	 && echo "$(5)" > $@
@@ -475,7 +476,7 @@ $(ipydir)/secretstorage: $(tdir)/secretstorage-$(secretstorage-version).tar.gz \
 	                SecretStorage $(secretstorage-version))
 
 $(ipydir)/setuptools: $(tdir)/setuptools-$(setuptools-version).zip \
-                      $(ibidir)/python3                            \
+                      $(ibidir)/python                             \
                       $(ibidir)/unzip
 	$(call pybuild, unzip, $<, setuptools-$(setuptools-version), ,\
 	                Setuptools $(setuptools-version))

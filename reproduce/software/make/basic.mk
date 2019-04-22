@@ -830,6 +830,7 @@ ifeq ($(host_cc),1)
 gcc-prerequisites =
 else
 gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
+                    $(ibidir)/binutils                \
                     $(ilidir)/isl                     \
                     $(ilidir)/mpc
 endif
@@ -854,6 +855,8 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
 	  $(call makelink,gcc);                                            \
 	  $(call makelink,g++,mandatory);                                  \
 	  $(call makelink,gfortran,mandatory);                             \
+	  $(call makelink,strip,mandatory);                                \
+	  ln -sf $$(which gcc) $(ibdir)/cc;                                \
 	  ccinfo=$$(gcc --version | awk 'NR==1');                          \
 	  echo "C compiler (""$$ccinfo"")" > $@;                           \
 	else                                                               \
@@ -898,6 +901,7 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
 	           patchelf --set-rpath $(ildir) $$f;                      \
 	         fi;                                                       \
 	       done;                                                       \
-	     fi                                                            \
+	     fi;                                                           \
+	  ln -sf $(ibdir)/gcc $(ibdir)/cc                                  \
 	  && echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@;     \
 	fi
