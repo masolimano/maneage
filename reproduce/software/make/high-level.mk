@@ -50,9 +50,18 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # high level software depend on it. The current rule for ATLAS is tested
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
-top-level-libraries = # atlas
-top-level-programs  = astrometrynet gnuastro metastore scamp sextractor swarp
-top-level-python    = astroquery matplotlib
+
+# About available software/libraries: currently the template has rules for
+# installing software that are widely used in science, and in particular in
+# astrophysics.  However, not all of these software will be used for all
+# people interested in this template.  Due to that, we put some of what we
+# consider the main software as optional software of the template (to see a
+# complete list of all software/libraries, look at the version number
+# Makefile). If that software is needed, just remove the comment `#' to
+# install it.
+top-level-libraries =                       # atlas
+top-level-programs  = gnuastro metastore    # astrometrynet scamp sextractor swarp
+top-level-python    = numpy                 # astropy astroquery matplotlib scipy
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
      $(foreach p, $(top-level-python),    $(ipydir)/$(p)) \
@@ -740,7 +749,6 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
 # the option --enable-openblas and it worked (same issue happened with
 # `sextractor'.
 $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz                \
-                      $(ilidir)/atlas                                 \
                       $(ilidir)/fftw                                  \
                       $(ilidir)/openblas                              \
                       $(ibidir)/cdsclient
