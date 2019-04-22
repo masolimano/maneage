@@ -59,8 +59,8 @@ export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
 export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LDFLAGS           := $(rpath_command) -L$(ildir) $(LDFLAGS)
 
-# Define the top-level programs (that don't depend on any other).
-top-level-programs = low-level-links wget gcc
+# Define the top-level basic programs (that don't depend on any other).
+top-level-programs = low-level-links wget metastore gcc
 all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 
 
@@ -96,19 +96,23 @@ tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
                         bzip2-$(bzip2-version).tar.gz                       \
                         cert.pem                                            \
                         coreutils-$(coreutils-version).tar.xz               \
+                        curl-$(curl-version).tar.gz                         \
                         diffutils-$(diffutils-version).tar.xz               \
                         file-$(file-version).tar.gz                         \
                         findutils-$(findutils-version).tar.lz               \
                         gawk-$(gawk-version).tar.lz                         \
                         gcc-$(gcc-version).tar.xz                           \
+                        git-$(git-version).tar.xz                           \
                         gmp-$(gmp-version).tar.lz                           \
                         grep-$(grep-version).tar.xz                         \
                         gzip-$(gzip-version).tar.gz                         \
                         isl-$(isl-version).tar.bz2                          \
+                        libbsd-$(libbsd-version).tar.xz                     \
                         libtool-$(libtool-version).tar.xz                   \
                         lzip-$(lzip-version).tar.gz                         \
                         m4-$(m4-version).tar.gz                             \
                         make-$(make-version).tar.lz                         \
+                        metastore-$(metastore-version).tar.gz               \
                         mpfr-$(mpfr-version).tar.xz                         \
                         mpc-$(mpc-version).tar.gz                           \
                         ncurses-$(ncurses-version).tar.gz                   \
@@ -139,21 +143,25 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = cert      ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
+	  elif [ $$n = curl      ]; then w=https://curl.haxx.se/download;   \
 	  elif [ $$n = diffutils ]; then w=http://ftp.gnu.org/gnu/diffutils;\
 	  elif [ $$n = file      ]; then w=ftp://ftp.astron.com/pub/file;   \
 	  elif [ $$n = findutils ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = gawk      ]; then w=http://ftp.gnu.org/gnu/gawk;     \
 	  elif [ $$n = gcc       ]; then w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
+	  elif [ $$n = git       ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git; \
 	  elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
 	  elif [ $$n = grep      ]; then w=http://ftp.gnu.org/gnu/grep;     \
 	  elif [ $$n = gzip      ]; then w=http://ftp.gnu.org/gnu/gzip;     \
 	  elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
+	  elif [ $$n = libbsd    ]; then w=http://libbsd.freedesktop.org/releases; \
 	  elif [ $$n = libtool   ]; then w=http://ftp.gnu.org/gnu/libtool;  \
 	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
 	  elif [ $$n = m         ]; then                                    \
 	    mergenames=0;                                                   \
 	    w=http://akhlaghi.org/src/m4-1.4.18-patched.tar.gz;             \
 	  elif [ $$n = make      ]; then w=http://akhlaghi.org/src;         \
+	  elif [ $$n = metastore ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
 	  elif [ $$n = mpc       ]; then w=http://ftp.gnu.org/gnu/mpc;      \
 	  elif [ $$n = ncurses   ]; then w=http://ftp.gnu.org/gnu/ncurses;  \
@@ -590,11 +598,43 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
 
 
 
-# Downloader
-# ----------
+# Downloaders
+# -----------
+
+# cURL
 #
-# OpenSSL: Some programs/libraries later need dynamic linking. So we'll
-# build libssl (and libcrypto) dynamically also.
+# cURL can optionally link with many different network-related libraries on
+# the host system that we are not yet building in the template. Many of
+# these are not relevant to most science projects, so we are explicitly
+# using `--without-XXX' or `--disable-XXX' so cURL doesn't link with
+# them. Note that if it does link with them, the configuration will crash
+# when the library is updated/changed by the host, and the whole purpose of
+# this project is avoid dependency on the host as much as possible.
+$(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
+                $(ilidir)/openssl
+	$(call gbuild, $<, curl-$(curl-version), ,       \
+	               LIBS="-pthread"                   \
+	               --with-zlib=$(ildir)              \
+	               --with-ssl=$(idir)                \
+	               --without-mesalink                \
+	               --with-ca-fallback                \
+	               --without-librtmp                 \
+	               --without-libidn2                 \
+	               --without-wolfssl                 \
+	               --without-brotli                  \
+	               --without-gnutls                  \
+	               --without-cyassl                  \
+	               --without-libpsl                  \
+	               --without-axtls                   \
+	               --disable-ldaps                   \
+	               --disable-ldap                    \
+	               --without-nss, V=1)               \
+	&& echo "cURL $(curl-version)" > $@
+
+# OpenSSL
+#
+# Some programs/libraries later need dynamic linking. So we'll build libssl
+# (and libcrypto) dynamically also.
 #
 # Until we find a nice and generic way to create an updated CA file in the
 # project, the certificates will be available in a file for this project
@@ -675,6 +715,8 @@ $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 
 
 
+
+
 # Basic command-line tools and their dependencies
 # -----------------------------------------------
 #
@@ -724,6 +766,13 @@ $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
 	   fi                                                         \
 	&& echo "GNU AWK $(gawk-version)" > $@
 
+$(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
+               $(ibidir)/curl
+	$(call gbuild, $<, git-$(git-version), static,             \
+                       --without-tcltk --with-shell=$(ibdir)/bash, \
+	               V=1)                                        \
+	&& echo "Git $(git-version)" > $@
+
 $(ilidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
                $(ibidir)/bash
 	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
@@ -742,10 +791,80 @@ $(ibidir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
 	$(call gbuild, $<, grep-$(grep-version), static) \
 	&& echo "GNU Grep $(grep-version)" > $@
 
+$(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz \
+                  $(ibidir)/bash
+	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
+	&& echo "Libbsd $(libbsd-version)" > $@
+
 $(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
               $(ibidir)/bash
 	$(call gbuild, $<, m4-$(m4-version), static) \
 	&& echo "GNU M4 $(m4-version)" > $@
+
+# Metastore is used (through a Git hook) to restore the source modification
+# dates of files after a Git checkout. Another Git hook saves all file
+# metadata just before a commit (to allow restoration after a
+# checkout). Since this project is managed in Makefiles, file modification
+# dates are critical to not having to redo the whole analysis after
+# checking out between branches.
+#
+# Note that we aren't using the standard version of Metastore, but a fork
+# of it that is maintained in this repository:
+#    https://gitlab.com/makhlaghi/metastore-fork
+#
+# Libbsd is not necessary on macOS systems, because macOS is already a
+# BSD-based distribution. But on GNU/Linux systems, it is necessary.
+ifeq ($(on_mac_os),yes)
+needlibbsd =
+else
+needlibbsd = $(ilidir)/libbsd
+endif
+$(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
+                     $(needlibbsd)                                 \
+                     $(ibidir)/git
+
+        # The build command below will change the current directory of this
+        # build, so we'll fix its value here.
+	current_dir=$$(pwd)
+
+        # Metastore doesn't have any `./configure' script. So we'll just
+        # call `pwd' as a place-holder for the `./configure' command.
+        #
+        # File attributes are also not available on some systems, since the
+        # main purpose here is modification dates (and not attributes),
+        # we'll also set the `NO_XATTR' flag.
+	$(call gbuild, $<, metastore-$(metastore-version), static,, \
+	               NO_XATTR=1 V=1,,pwd,PREFIX=$(idir))
+
+        # Write the relevant hooks into this system's Git hooks, so Git
+        # calls metastore properly on every commit and every checkout.
+        #
+        # Note that the -O and -G options used here are currently only in a
+        # fork of `metastore' currently hosted at:
+        # https://github.com/mohammad-akhlaghi/metastore
+	user=$$(whoami)
+	group=$$(groups | awk '{print $$1}')
+	cd $$current_dir
+	if [ -f $(ibdir)/metastore ]; then
+	  for f in pre-commit post-checkout; do
+	    sed -e's|@USER[@]|'$$user'|g'                         \
+	        -e's|@GROUP[@]|'$$group'|g'                       \
+	        -e's|@BINDIR[@]|$(ibdir)|g'                       \
+	        -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g'       \
+	        reproduce/software/bash/git-$$f > .git/hooks/$$f
+	    chmod +x .git/hooks/$$f
+	    echo "Metastore (forked) $(metastore-version)" > $@
+	  done
+	else
+	  echo; echo; echo;
+	  echo "*****************"
+	  echo "metastore couldn't be installed!"
+	  echo
+	  echo "Its used for preserving timestamps on Git commits."
+	  echo "Its useful for development, not simple running of the project."
+	  echo "So we won't stop the configuration because it wasn't built."
+	  echo "*****************"
+	fi
 
 $(ilidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
                 $(ilidir)/gmp

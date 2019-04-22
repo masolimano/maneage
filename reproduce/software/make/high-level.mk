@@ -60,7 +60,7 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # Makefile). If that software is needed, just remove the comment `#' to
 # install it.
 top-level-libraries =                       # atlas
-top-level-programs  = gnuastro metastore    # astrometrynet scamp sextractor swarp
+top-level-programs  = gnuastro              # astrometrynet scamp sextractor swarp
 top-level-python    = numpy                 # astropy astroquery matplotlib scipy
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
@@ -129,22 +129,18 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz     \
                         cdsclient-$(cdsclient-version).tar.gz              \
                         cfitsio-$(cfitsio-version).tar.gz                  \
                         cmake-$(cmake-version).tar.gz                      \
-                        curl-$(curl-version).tar.gz                        \
                         freetype-$(freetype-version).tar.gz                \
                         fftw-$(fftw-version).tar.gz                        \
                         ghostscript-$(ghostscript-version).tar.gz          \
-                        git-$(git-version).tar.xz                          \
                         gnuastro-$(gnuastro-version).tar.lz                \
                         gsl-$(gsl-version).tar.gz                          \
                         hdf5-$(hdf5-version).tar.gz                        \
                         install-tl-unx.tar.gz                              \
                         jpegsrc.$(libjpeg-version).tar.gz                  \
                         lapack-$(lapack-version).tar.gz                    \
-                        libbsd-$(libbsd-version).tar.xz                    \
                         libpng-$(libpng-version).tar.xz                    \
                         libgit2-$(libgit2-version).tar.gz                  \
                         libxml2-$(libxml2-version).tar.gz                  \
-                        metastore-$(metastore-version).tar.gz              \
                         netpbm-$(netpbm-version).tgz                       \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
@@ -188,7 +184,6 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	                 | sed -e's/\./ /' \
 	                 | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://cmake.org/files/v$$majv/cmake-$(cmake-version).tar.gz
-	  elif [ $$n = curl        ]; then w=https://curl.haxx.se/download
 	  elif [ $$n = fftw        ]; then w=ftp://ftp.fftw.org/pub/fftw
 	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
 	  elif [ $$n = hdf         ]; then
@@ -196,19 +191,16 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
-	  elif [ $$n = git         ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git
 	  elif [ $$n = gnuastro    ]; then w=http://ftp.gnu.org/gnu/gnuastro
 	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = lapack      ]; then w=http://www.netlib.org/lapack
-	  elif [ $$n = libbsd      ]; then w=http://libbsd.freedesktop.org/releases
 	  elif [ $$n = libpng      ]; then w=https://download.sourceforge.net/libpng
 	  elif [ $$n = libgit      ]; then
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = libxml      ]; then w=ftp://xmlsoft.org/libxml2
-	  elif [ $$n = metastore   ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = netpbm      ]; then
 	    mergenames=0
 		w=https://sourceforge.net/projects/netpbm/files/super_stable/$(netpbm-version)/netpbm-$(netpbm-version).tgz/download
@@ -323,10 +315,6 @@ $(ilidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
 	               --enable-parallel                 \
 	               --enable-fortran, V=1)            \
 	&& echo "HDF5 library $(hdf5-version)" > $@
-
-$(ilidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz
-	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
-	&& echo "Libbsd $(libbsd-version)" > $@
 
 $(ilidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) \
@@ -586,109 +574,9 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	&& rm -rf cmake-$(cmake-version)                             \
 	&& echo "CMake $(cmake-version)" > $@
 
-# cURL (and its library, which is needed by several programs here) can
-# optionally link with many different network-related libraries on the host
-# system that we are not yet building in the template. Many of these are
-# not relevant to most science projects, so we are explicitly using
-# `--without-XXX' or `--disable-XXX' so cURL doesn't link with them. Note
-# that if it does link with them, the configuration will crash when the
-# library is updated/changed by the host, and the whole purpose of this
-# project is avoid dependency on the host as much as possible.
-$(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz
-	$(call gbuild, $<, curl-$(curl-version), ,       \
-	               LIBS="-pthread"                   \
-	               --with-zlib=$(ildir)              \
-	               --with-ssl=$(idir)                \
-	               --without-mesalink                \
-	               --with-ca-fallback                \
-	               --without-librtmp                 \
-	               --without-libidn2                 \
-	               --without-wolfssl                 \
-	               --without-brotli                  \
-	               --without-gnutls                  \
-	               --without-cyassl                  \
-	               --without-libpsl                  \
-	               --without-axtls                   \
-	               --disable-ldaps                   \
-	               --disable-ldap                    \
-	               --without-nss, V=1)               \
-	&& echo "cURL $(curl-version)" > $@
-
 $(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 	$(call gbuild, $<, ghostscript-$(ghostscript-version)) \
 	&& echo "GPL Ghostscript $(ghostscript-version)" > $@
-
-$(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
-               $(ibidir)/curl
-	$(call gbuild, $<, git-$(git-version), static,             \
-                       --without-tcltk --with-shell=$(ibdir)/bash, \
-	               V=1)                                        \
-	&& echo "Git $(git-version)" > $@
-
-# Metastore is used (through a Git hook) to restore the source modification
-# dates of files after a Git checkout. Another Git hook saves all file
-# metadata just before a commit (to allow restoration after a
-# checkout). Since this project is managed in Makefiles, file modification
-# dates are critical to not having to redo the whole analysis after
-# checking out between branches.
-#
-# Note that we aren't using the standard version of Metastore, but a fork
-# of it that is maintained in this repository:
-#    https://gitlab.com/makhlaghi/metastore-fork
-#
-# Libbsd is not necessary on macOS systems, because macOS is already a
-# BSD-based distribution. But on GNU/Linux systems, it is necessary.
-ifeq ($(on_mac_os),yes)
-needlibbsd =
-else
-needlibbsd = $(ilidir)/libbsd
-endif
-$(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
-                     $(needlibbsd)                                 \
-                     $(ibidir)/git
-
-        # The build command below will change the current directory of this
-        # build, so we'll fix its value here.
-	current_dir=$$(pwd)
-
-        # Metastore doesn't have any `./configure' script. So we'll just
-        # call `pwd' as a place-holder for the `./configure' command.
-        #
-        # File attributes are also not available on some systems, since the
-        # main purpose here is modification dates (and not attributes),
-        # we'll also set the `NO_XATTR' flag.
-	$(call gbuild, $<, metastore-$(metastore-version), static,, \
-	               NO_XATTR=1 V=1,,pwd,PREFIX=$(idir))
-
-        # Write the relevant hooks into this system's Git hooks, so Git
-        # calls metastore properly on every commit and every checkout.
-        #
-        # Note that the -O and -G options used here are currently only in a
-        # fork of `metastore' currently hosted at:
-        # https://github.com/mohammad-akhlaghi/metastore
-	user=$$(whoami)
-	group=$$(groups | awk '{print $$1}')
-	cd $$current_dir
-	if [ -f $(ibdir)/metastore ]; then
-	  for f in pre-commit post-checkout; do
-	    sed -e's|@USER[@]|'$$user'|g'                         \
-	        -e's|@GROUP[@]|'$$group'|g'                       \
-	        -e's|@BINDIR[@]|$(ibdir)|g'                       \
-	        -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g'       \
-	        reproduce/software/bash/git-$$f > .git/hooks/$$f
-	    chmod +x .git/hooks/$$f
-	    echo "Metastore (forked) $(metastore-version)" > $@
-	  done
-	else
-	  echo; echo; echo;
-	  echo "*****************"
-	  echo "metastore couldn't be installed!"
-	  echo
-	  echo "Its used for preserving timestamps on Git commits."
-	  echo "Its useful for development, not simple running of the project."
-	  echo "So we won't stop the configuration because it wasn't built."
-	  echo "*****************"
-	fi
 
 # The order of dependencies is based on how long they take to build (how
 # large they are): Libgit2 depends on CMake which takes a VERY long time to
