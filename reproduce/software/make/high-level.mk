@@ -51,7 +51,7 @@ ipydir  = $(BDIR)/software/installed/version-info/python
 # successfully on Mac (only static) and GNU/Linux (shared and static). But,
 # since it takes a few hours to build, it is not currently a target.
 top-level-libraries = # atlas
-top-level-programs  = astrometrynet gnuastro metastore sextractor swarp
+top-level-programs  = astrometrynet gnuastro metastore scamp sextractor swarp
 top-level-python    = astroquery matplotlib
 all: $(foreach p, $(top-level-libraries), $(ilidir)/$(p)) \
      $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
@@ -114,10 +114,11 @@ include reproduce/software/make/python.mk
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, astrometry.net-$(astrometry-version).tar.gz        \
-                        cfitsio-$(cfitsio-version).tar.gz                  \
+tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz     \
                         atlas-$(atlas-version).tar.bz2                     \
                         cairo-$(cairo-version).tar.xz                      \
+                        cdsclient-$(cdsclient-version).tar.gz              \
+                        cfitsio-$(cfitsio-version).tar.gz                  \
                         cmake-$(cmake-version).tar.gz                      \
                         curl-$(curl-version).tar.gz                        \
                         freetype-$(freetype-version).tar.gz                \
@@ -139,6 +140,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometry-version).tar.gz        \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
                         pixman-$(pixman-version).tar.gz                    \
+                        scamp-$(scamp-version).tar.lz                      \
                         sextractor-$(sextractor-version).tar.lz            \
                         swarp-$(swarp-version).tar.gz                      \
                         swig-$(swig-version).tar.gz                        \
@@ -170,6 +172,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    mergenames=0
 	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
 	  elif [ $$n = cairo       ]; then w=https://www.cairographics.org/releases
+	  elif [ $$n = cdsclient   ]; then w=http://cdsarc.u-strasbg.fr/ftp/pub/sw
 	  elif [ $$n = cmake       ]; then
 	    mergenames=0
 	    majv=$$(echo $(cmake-version) \
@@ -208,6 +211,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
+	  elif [ $$n = scamp       ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = sextractor  ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = swarp       ]; then w=https://www.astromatic.net/download/swarp
 	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
@@ -529,8 +533,24 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
     && cp $(dtexdir)/astrometrynet.tex $(ictdir)/                         \
     && echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
 
-
-
+# cdsclient is a set of software written in c to interact with astronomical
+# database servers. It is a dependency of `scamp' to be able to download
+# reference catalogues.
+# NOTE: we do not use a convencional `gbuild' installation because the
+# programs are scripts and we need to touch them before installing.
+# Otherwise this software will be re-built each time the configure step is
+# invoked.
+$(ibidir)/cdsclient: $(tdir)/cdsclient-$(cdsclient-version).tar.gz
+	cd $(ddir)                                                    \
+	&& tar xf $<                                                  \
+	&& cd cdsclient-$(cdsclient-version)                          \
+	&& touch *                                                    \
+	&& ./configure --prefix=$(idir)                               \
+	&& make                                                       \
+	&& make install                                               \
+	&& cd ..                                                      \
+	&& rm -rf cdsclient-$(cdsclient-version)                      \
+	&& echo "cdsclient $(cdsclient-version)" > $@
 
 # CMake can be built with its custom `./bootstrap' script.
 $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
@@ -713,6 +733,25 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
     && cd ..                                                               \
     && rm -rf $$unpackdir                                                  \
     && echo "Netpbm $(netpbm-version)" > $@
+
+# SCAMP documentation says ATLAS is a mandatory prerequisite for using
+# SCAMP. We have ATLAS into the project but there are some problems with the
+# libraries that are not yet solved. However, we tried to install it with
+# the option --enable-openblas and it worked (same issue happened with
+# `sextractor'.
+$(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz                \
+                      $(ilidir)/atlas                                 \
+                      $(ilidir)/fftw                                  \
+                      $(ilidir)/openblas                              \
+                      $(ibidir)/cdsclient
+	$(call gbuild, $<, scamp-$(scamp-version), static,                \
+                   --enable-threads --enable-openblas                 \
+                   --with-fftw-libdir=$(idir)                         \
+                   --with-fftw-incdir=$(idir)/include                 \
+                   --with-openblas-libdir=$(ildir)                    \
+                   --with-openblas-incdir=$(idir)/include)            \
+	&& cp $(dtexdir)/scamp.tex $(ictdir)/                             \
+    && echo "SCAMP $(scamp-version) \citep{scamp}" > $@
 
 # Sextractor crashes complaining about not linking with some ATLAS
 # libraries. But we can override this issue since we have Openblas
