@@ -801,6 +801,10 @@ $(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
 # of it that is maintained in this repository:
 #    https://gitlab.com/makhlaghi/metastore-fork
 #
+# Note that the prerequisites `coreutils', `gawk' and `sed' are not
+# metastore oficial dependencies, but they are necessaries to run our steps
+# before and after the installation.
+#
 # Libbsd is not necessary on macOS systems, because macOS is already a
 # BSD-based distribution. But on GNU/Linux systems, it is necessary.
 ifeq ($(on_mac_os),yes)
@@ -809,8 +813,11 @@ else
 needlibbsd = $(ibidir)/libbsd
 endif
 $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
-                     $(needlibbsd)                                 \
-                     $(ibidir)/git
+                     $(ibidir)/coreutils                           \
+                     $(ibidir)/gawk                                \
+                     $(ibidir)/git                                 \
+                     $(ibidir)/sed                                 \
+                     $(needlibbsd)
 
         # The build command below will change the current directory of this
         # build, so we'll fix its value here.
