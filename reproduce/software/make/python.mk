@@ -504,12 +504,12 @@ $(ipydir)/soupsieve: $(tdir)/soupsieve-$(soupsieve-version).tar.gz \
 	$(call pybuild, tar xf, $<, soupsieve-$(soupsieve-version), ,\
 	                SoupSieve $(soupsieve-version))
 
-$(ipydir)/sympy: $(tdir)/sympy-$(sympy-version).tar.gz \
-                     $(ipydir)/mpmath                  \
+$(ipydir)/sympy: $(tdir)/sympy-$(sympy-version).tar.gz     \
+                     $(ipydir)/mpmath                      \
                      $(ipydir)/setuptools
-	exit 1
-	$(call pybuild, tar xf, $<, sympy-$(sympy-version), ,\
-	                SymPy $(sympy-version))
+	$(call pybuild, tar xf, $<, sympy-$(sympy-version), ,) \
+	&& cp $(dtexdir)/sympy.tex $(ictdir)/                  \
+	&& echo "SymPy $(sympy-version) \citep{sympy}" > $@
 
 $(ipydir)/urllib3: $(tdir)/urllib3-$(urllib3-version).tar.gz \
                    $(ipydir)/setuptools
