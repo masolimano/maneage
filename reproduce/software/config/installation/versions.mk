@@ -139,6 +139,7 @@ scipy-version              = 1.2.1
 secretstorage-version      = 3.1.1
 setuptools-version         = 40.8.0
 setuptools_scm-version     = 3.2.0
+sip_tpv-version            = 1.1
 six-version                = 1.12.0
 soupsieve-version          = 1.8
 sympy-version              = 1.4

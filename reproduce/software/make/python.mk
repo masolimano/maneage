@@ -91,6 +91,7 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         secretstorage-$(secretstorage-version).tar.gz     \
                         setuptools-$(setuptools-version).zip              \
                         setuptools_scm-$(setuptools_scm-version).tar.gz   \
+                        sip_tpv-$(sip_tpv-version).tar.gz                 \
                         six-$(six-version).tar.gz                         \
                         soupsieve-$(soupsieve-version).tar.gz             \
                         sympy-$(sympy-version).tar.gz                     \
@@ -177,6 +178,7 @@ $(pytarballs): $(tdir)/%:
 	  elif [ $$n = setuptools     ]; then h=c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0
 	  elif [ $$n = setuptools_scm ]; then h=54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3
 	  elif [ $$n = six            ]; then h=dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca
+	  elif [ $$n = sip_tpv        ]; then h=27/93/a973aab2a3bf0c12cb385611819710921e13b090304c6bd015026cf9c502
 	  elif [ $$n = soupsieve      ]; then h=0c/52/e9088bb9b96e2d39fc3b33fcda5b4fde9d71473536ac660a1ca9a0958a2f
 	  elif [ $$n = sympy          ]; then h=54/2e/6adb11fe599d4cfb7e8833753350ac51aa2c0603c226b36f9051cc9d2425
 	  elif [ $$n = urllib         ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1
@@ -493,6 +495,12 @@ $(ipydir)/setuptools_scm: $(tdir)/setuptools_scm-$(setuptools_scm-version).tar.g
                           $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, setuptools_scm-$(setuptools_scm-version), ,\
 	                Setuptools-scm $(setuptools_scm-version))
+
+$(ipydir)/sip_tpv: $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz  \
+                  $(ipydir)/mpmath                            \
+                  $(ipydir)/sympy
+	$(call pybuild, tar xf, $<, sip_tpv-$(sip_tpv-version), , \
+	                sip\_tpv $(sip_tpv-version))
 
 $(ipydir)/six: $(tdir)/six-$(six-version).tar.gz \
                $(ipydir)/setuptools
