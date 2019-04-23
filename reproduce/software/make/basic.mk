@@ -90,7 +90,7 @@ all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 # its easier to just keep a with the others.
 $(lockdir): | $(BDIR); mkdir $@
 downloadwrapper = ./reproduce/analysis/bash/download-multi-try
-tarballs = $(foreach t, bash-$(bash-version).tar.gz                         \
+tarballs = $(foreach t, bash-$(bash-version).tar.lz                         \
                         binutils-$(binutils-version).tar.lz                 \
                         bzip2-$(bzip2-version).tar.gz                       \
                         cert.pem                                            \
@@ -137,7 +137,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	               | awk '{print $$1}' );                               \
 	                                                                    \
 	  mergenames=1;                                                     \
-	  if   [ $$n = bash      ]; then w=http://ftp.gnu.org/gnu/bash;     \
+	  if   [ $$n = bash      ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = binutils  ]; then w=http://ftp.gnu.org/gnu/binutils; \
 	  elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src;         \
 	  elif [ $$n = cert      ]; then w=http://akhlaghi.org/src;         \
@@ -526,12 +526,34 @@ $(ibidir)/patchelf: $(tdir)/patchelf-$(patchelf-version).tar.gz \
 # is linking with the system's `readline'. But if you run that same command
 # within a rule in this project, you'll see that it is indeed linking with
 # our own built readline.
+#
+# Unfortunately Bash doesn't maintain a Git repository and minor fixes are
+# released as patches. Therefore we'll need to make our own fully-working
+# and updated tarball to build the proper version of Bash. You download and
+# apply them to the original tarball and make a new one with the following
+# series of commands (just replace `NUMBER' with the total number of
+# patches that you want to apply).
+#
+#   $ number=NUMBER
+#   $ tar xf bash-5.0.tar.gz
+#   $ cd bash-5.0
+#   $ for i in $(seq 1 $number); do \
+#       pname=bash50-$(printf "%03d" $i); \
+#       wget http://ftp.gnu.org/gnu/bash/bash-5.0-patches/$pname -O ../$pname;\
+#       patch -p0 -i ../$pname; \
+#     done
+#   $ cd ..
+#   $ mv bash-5.0 bash-5.0.$number
+#   $ tar cf bash-5.0.$number.tar bash-5.0.$number
+#   $ lzip --best bash-5.0.$number.tar
+#   $ rm bash50-*
+
 ifeq ($(on_mac_os),yes)
 needpatchelf =
 else
 needpatchelf = $(ibidir)/patchelf
 endif
-$(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.gz \
+$(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.lz \
                 $(ibidir)/readline                  \
                 $(needpatchelf)
 

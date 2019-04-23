@@ -22,8 +22,8 @@
 
 # Basic/low-level programs and libraires (installed in any case)
 # --------------------------------------------------------------
-bash-version               = 5.0
-binutils-version           = 2.31.1
+bash-version               = 5.0.7
+binutils-version           = 2.32
 coreutils-version          = 8.31
 curl-version               = 7.63.0
 diffutils-version          = 3.7
