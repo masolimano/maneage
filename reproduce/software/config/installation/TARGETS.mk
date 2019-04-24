@@ -38,4 +38,4 @@
 top-level-programs  = gnuastro
 
 # Python libraries/modules.
-top-level-python    = astropy sip_tpv
+top-level-python    = astropy
