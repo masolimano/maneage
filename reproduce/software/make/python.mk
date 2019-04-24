@@ -78,6 +78,7 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         libffi-$(libffi-version).tar.gz                   \
                         matplotlib-$(matplotlib-version).tar.gz           \
                         mpi4py-$(mpi4py-version).tar.gz                   \
+                        mpmath-$(mpmath-version).tar.gz                   \
                         numpy-$(numpy-version).zip                        \
                         pkgconfig-$(pypkgconfig-version).tar.gz           \
                         pip-$(pip-version).tar.gz                         \
@@ -90,8 +91,10 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
                         secretstorage-$(secretstorage-version).tar.gz     \
                         setuptools-$(setuptools-version).zip              \
                         setuptools_scm-$(setuptools_scm-version).tar.gz   \
+                        sip_tpv-$(sip_tpv-version).tar.gz                 \
                         six-$(six-version).tar.gz                         \
                         soupsieve-$(soupsieve-version).tar.gz             \
+                        sympy-$(sympy-version).tar.gz                     \
                         urllib3-$(urllib3-version).tar.gz                 \
                         webencodings-$(webencodings-version).tar.gz       \
                         virtualenv-$(virtualenv-version).tar.gz           \
@@ -162,6 +165,7 @@ $(pytarballs): $(tdir)/%:
 	  elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864
 	  elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f
 	  elif [ $$n = mpi            ]; then h=55/a2/c827b196070e161357b49287fa46d69f25641930fd5f854722319d431843
+	  elif [ $$n = mpmath         ]; then h=ca/63/3384ebb3b51af9610086b23ea976e6d27d6d97bf140a76a365bd77a3eb32
 	  elif [ $$n = numpy          ]; then h=cf/8d/6345b4f32b37945fedc1e027e83970005fc9c699068d2f566b82826515f2
 	  elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af
 	  elif [ $$n = pkgconfig      ]; then h=6e/a9/ff67ef67217dfdf2aca847685fe789f82b931a6957a3deac861297585db6
@@ -174,7 +178,9 @@ $(pytarballs): $(tdir)/%:
 	  elif [ $$n = setuptools     ]; then h=c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0
 	  elif [ $$n = setuptools_scm ]; then h=54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3
 	  elif [ $$n = six            ]; then h=dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca
+	  elif [ $$n = sip_tpv        ]; then h=27/93/a973aab2a3bf0c12cb385611819710921e13b090304c6bd015026cf9c502
 	  elif [ $$n = soupsieve      ]; then h=0c/52/e9088bb9b96e2d39fc3b33fcda5b4fde9d71473536ac660a1ca9a0958a2f
+	  elif [ $$n = sympy          ]; then h=54/2e/6adb11fe599d4cfb7e8833753350ac51aa2c0603c226b36f9051cc9d2425
 	  elif [ $$n = urllib         ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1
 	  elif [ $$n = virtualenv     ]; then h=51/aa/c395a6e6eaaedfa5a04723b6446a1df783b16cca6fec66e671cede514688
 	  elif [ $$n = webencodings   ]; then h=0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47
@@ -406,6 +412,11 @@ $(ipydir)/mpi4py: $(tdir)/mpi4py-$(mpi4py-version).tar.gz    \
 	&& cp $(dtexdir)/mpi4py.tex $(ictdir)/                \
 	&& echo "mpi4py $(mpi4py-version) \citep{mpi4py2011}" > $@
 
+$(ipydir)/mpmath: $(tdir)/mpmath-$(mpmath-version).tar.gz \
+                     $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, mpmath-$(mpmath-version), ,\
+	                mpmath $(mpmath-version))
+
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
                  $(ipydir)/setuptools               \
                  $(ibidir)/openblas                 \
@@ -485,6 +496,14 @@ $(ipydir)/setuptools_scm: $(tdir)/setuptools_scm-$(setuptools_scm-version).tar.g
 	$(call pybuild, tar xf, $<, setuptools_scm-$(setuptools_scm-version), ,\
 	                Setuptools-scm $(setuptools_scm-version))
 
+$(ipydir)/sip_tpv: $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz   \
+                  $(ipydir)/mpmath                             \
+                  $(ipydir)/sympy
+	$(call pybuild, tar xf, $<, sip_tpv-$(sip_tpv-version), ,) \
+	&& cp $(dtexdir)/sip_tpv.tex $(ictdir)/                    \
+	&& echo "sip\_tpv $(sip_tpv-version) \citep{sip-tpv}" > $@
+
+
 $(ipydir)/six: $(tdir)/six-$(six-version).tar.gz \
                $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, six-$(six-version), ,\
@@ -494,6 +513,13 @@ $(ipydir)/soupsieve: $(tdir)/soupsieve-$(soupsieve-version).tar.gz \
                      $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, soupsieve-$(soupsieve-version), ,\
 	                SoupSieve $(soupsieve-version))
+
+$(ipydir)/sympy: $(tdir)/sympy-$(sympy-version).tar.gz     \
+                     $(ipydir)/mpmath                      \
+                     $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, sympy-$(sympy-version), ,) \
+	&& cp $(dtexdir)/sympy.tex $(ictdir)/                  \
+	&& echo "SymPy $(sympy-version) \citep{sympy}" > $@
 
 $(ipydir)/urllib3: $(tdir)/urllib3-$(urllib3-version).tar.gz \
                    $(ipydir)/setuptools
