@@ -496,11 +496,13 @@ $(ipydir)/setuptools_scm: $(tdir)/setuptools_scm-$(setuptools_scm-version).tar.g
 	$(call pybuild, tar xf, $<, setuptools_scm-$(setuptools_scm-version), ,\
 	                Setuptools-scm $(setuptools_scm-version))
 
-$(ipydir)/sip_tpv: $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz  \
-                  $(ipydir)/mpmath                            \
+$(ipydir)/sip_tpv: $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz   \
+                  $(ipydir)/mpmath                             \
                   $(ipydir)/sympy
-	$(call pybuild, tar xf, $<, sip_tpv-$(sip_tpv-version), , \
-	                sip\_tpv $(sip_tpv-version))
+	$(call pybuild, tar xf, $<, sip_tpv-$(sip_tpv-version), ,) \
+	&& cp $(dtexdir)/sip_tpv.tex $(ictdir)/                    \
+	&& echo "sip\_tpv $(sip_tpv-version) \citep{sip-tpv}" > $@
+
 
 $(ipydir)/six: $(tdir)/six-$(six-version).tar.gz \
                $(ipydir)/setuptools
