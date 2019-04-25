@@ -279,7 +279,7 @@ $(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 
 $(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
 	$(call gbuild, $<, fftw-$(fftw-version), static,  \
-	               --enable-shared)                   \
+	               --enable-shared --enable-single)   \
 	&& cp $(dtexdir)/fftw.tex $(ictdir)/              \
 	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
