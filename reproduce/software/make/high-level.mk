@@ -123,7 +123,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz     \
                         libpng-$(libpng-version).tar.xz                    \
                         libgit2-$(libgit2-version).tar.gz                  \
                         libxml2-$(libxml2-version).tar.gz                  \
-                        netpbm-$(netpbm-version).tgz                       \
+                        netpbm-$(netpbm-version).tar.gz                    \
                         openmpi-$(openmpi-version).tar.gz                  \
                         openblas-$(openblas-version).tar.gz                \
                         pixman-$(pixman-version).tar.gz                    \
@@ -183,9 +183,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = libxml      ]; then w=ftp://xmlsoft.org/libxml2
-	  elif [ $$n = netpbm      ]; then
-	    mergenames=0
-		w=https://sourceforge.net/projects/netpbm/files/super_stable/$(netpbm-version)/netpbm-$(netpbm-version).tgz/download
+	  elif [ $$n = netpbm      ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = openblas    ]; then
 	    mergenames=0
 	    w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
@@ -587,14 +585,14 @@ endif
 # ask to the user. We give all answers with a pipe to the scripts (configure
 # and install). The questions are different depending on the system (tested
 # on GNU/Linux and Mac OS).
-$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
+$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tar.gz\
                   $(ibidir)/libjpeg                      \
                   $(ibidir)/libpng                       \
                   $(ibidir)/libtiff                      \
                   $(ibidir)/libxml2                      \
                   $(ibidir)/unzip
 	if [ x$(on_mac_os) = xyes ]; then                                      \
-      answers='\n\n\n\n\n\n\n\n\n\n\n\nnone\n\n\n';                        \
+      answers='\n\n$(ildir)\n\n\n\n\n\n$(ildir)/include\n\n$(ildir)/include\n\n$(ildir)/include\nnone\n\n'; \
     else                                                                   \
       answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n';                       \
     fi;                                                                    \

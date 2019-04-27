@@ -86,7 +86,6 @@ libjpeg-version            = v9b
 libtiff-version            = 4.0.10
 libtool-version            = 2.4.6
 libxml2-version            = 2.9.9
-netpbm-version             = 10.47.72
 openblas-version           = 0.3.5
 openmpi-version            = 4.0.1
 pixman-version             = 0.38.0
@@ -160,7 +159,9 @@ webencodings-version       = 0.5.1
 #
 # Special notes:
 #   - `libpng' is downgraded: the current installation of `netpbm' requires
-#     a version less than 1.5.
+#   a version less than 1.5.
+#   - `netpbm' questions in the configure steps maybe change with different
+#   or new versions.
 
 # Basic/low-level
 bzip2-version              = 1.0.6
@@ -169,4 +170,5 @@ bzip2-version              = 1.0.6
 lapack-version             = 3.8.0
 libgit2-version            = 0.26.0
 libpng-version             = 1.4.22
+netpbm-version             = 10.86.99
 wcslib-version             = 6.2
