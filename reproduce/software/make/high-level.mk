@@ -498,9 +498,17 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
                          $(ibidir)/python                                       \
                          $(ibidir)/swig                                         \
                          $(ibidir)/wcslib
+	# We are modifying the Makefile in two steps because on Mac OS system we
+	# do not have `/proc/cpuinfo' nor `free'. Since this is only for the
+	# `report.txt', this changes do not causes problems in running
+	# `astrometrynet'
 	cd $(ddir)                                                            \
+    && rm -rf astrometry.net-$(astrometrynet-version)                     \
     && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi            \
     && cd astrometry.net-$(astrometrynet-version)                         \
+    && sed -e 's|cat /proc/cpuinfo|echo "Ignoring CPU info"|'             \
+           -e 's|-free|echo "Ignoring RAM info"|' Makefile > Makefile.tmp \
+    && mv Makefile.tmp Makefile                                           \
     && make                                                               \
     && make py                                                            \
     && make extra                                                         \
