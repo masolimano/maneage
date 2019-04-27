@@ -937,13 +937,13 @@ binutils-prerequisites = $(tdir)/binutils-$(binutils-version).tar.lz \
 endif
 $(ibidir)/binutils: $(binutils-prerequisites)
 	if [ x$(on_mac_os) = xyes ]; then                          \
-	  $(call makelink,as)                                      \
-	  $(call makelink,ar)                                      \
-	  $(call makelink,ld)                                      \
-	  $(call makelink,nm)                                      \
-	  $(call makelink,ps)                                      \
-	  $(call makelink,ranlib)                                  \
-          echo "" > $@;                                            \
+	  $(call makelink,as);                                     \
+	  $(call makelink,ar);                                     \
+	  $(call makelink,ld);                                     \
+	  $(call makelink,nm);                                     \
+	  $(call makelink,ps);                                     \
+	  $(call makelink,ranlib);                                 \
+	  echo "" > $@;                                            \
 	else                                                       \
 	  $(call gbuild, $<, binutils-$(binutils-version), static) \
 	  && echo "GNU Binutils $(binutils-version)" > $@;         \
