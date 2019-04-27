@@ -83,6 +83,7 @@ gsl-version                = 2.5
 hdf5-version               = 1.10.5
 libffi-version             = 3.2.1
 libjpeg-version            = v9b
+libpng-version             = 1.6.37
 libtiff-version            = 4.0.10
 libtool-version            = 2.4.6
 libxml2-version            = 2.9.9
@@ -158,8 +159,6 @@ webencodings-version       = 0.5.1
 # during their build and must be accounted for.
 #
 # Special notes:
-#   - `libpng' is downgraded: the current installation of `netpbm' requires
-#   a version less than 1.5.
 #   - `netpbm' questions in the configure steps maybe change with different
 #   or new versions.
 
@@ -169,6 +168,5 @@ bzip2-version              = 1.0.6
 # Optional/high-level
 lapack-version             = 3.8.0
 libgit2-version            = 0.26.0
-libpng-version             = 1.4.22
 netpbm-version             = 10.86.99
 wcslib-version             = 6.2
