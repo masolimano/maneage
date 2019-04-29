@@ -497,7 +497,8 @@ $(ipydir)/setuptools_scm: $(tdir)/setuptools_scm-$(setuptools_scm-version).tar.g
 	                Setuptools-scm $(setuptools_scm-version))
 
 $(ipydir)/sip_tpv: $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz   \
-                  $(ipydir)/mpmath                             \
+                  $(ipydir)/astropy                            \
+                  $(ipydir)/numpy                              \
                   $(ipydir)/sympy
 	$(call pybuild, tar xf, $<, sip_tpv-$(sip_tpv-version), ,) \
 	&& cp $(dtexdir)/sip_tpv.tex $(ictdir)/                    \
