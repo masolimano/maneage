@@ -187,14 +187,14 @@ clean: clean-mmap
         # features like ignoring the listing of a file with `!()' that we
         # are using afterwards.
 	shopt -s extglob
-	rm -rf $(BDIR)/!(dependencies)
+	rm -rf $(BDIR)/!(software)
 
 distclean: clean
         # We'll be deleting the built environent programs and just need the
         # `rm' program. So for this recipe, we'll use the host system's
         # `rm', not our own.
-	$(sys-rm) -rf $(BDIR) reproduce/build
-	$(sys-rm) -f Makefile .gnuastro .local
+	$(sys-rm) -rf $(BDIR)
+	$(sys-rm) -f Makefile .gnuastro .local .build
 	$(sys-rm) -f $(pconfdir)/LOCAL.mk $(gconfdir)/gnuastro-local.conf
 
 
@@ -291,36 +291,6 @@ dist-zip: $(packagecontents)
 	cd $$curdir
 	mv $(texdir)/$(packagebasename).zip ./
 
-
-
-
-
-# Check the version of programs which write their version
-# -------------------------------------------------------
-pvcheck = prog="$(strip $(1))";                                          \
-	  ver="$(strip $(2))";                                           \
-	  name="$(strip $(3))";                                          \
-	  macro="$(strip $(4))";                                         \
-	  verop="$(strip $(5))";                                         \
-	  if [ "x$$verop" = x ]; then V="--version"; else V=$$verop; fi; \
-	  v=$$($$prog $$V | awk '/'$$ver'/{print "y"; exit 0}');         \
-	  if [ x$$v != xy ]; then                                        \
-	    echo; echo "PROJECT ERROR: Not running $$name $$ver"; echo;  \
-	    exit 1;                                                      \
-	  fi;                                                            \
-	  echo "\newcommand{\\$$macro}{$$ver}" >> $@
-
-lvcheck = idir=$(BDIR)/dependencies/installed/include;                   \
-	  f="$$idir/$(strip $(1))";                                      \
-	  ver="$(strip $(2))";                                           \
-	  name="$(strip $(3))";                                          \
-	  macro="$(strip $(4))";                                         \
-	  v=$$(awk '/^\#/&&/define/&&/'$$ver'/{print "y";exit 0}' $$f);  \
-	  if [ x$$v != xy ]; then                                        \
-	    echo; echo "PROJECT ERROR: Not linking with $$name $$ver";   \
-	    echo; exit 1;                                                \
-	  fi;                                                            \
-	  echo "\newcommand{\\$$macro}{$$ver}" >> $@
 
 
 
