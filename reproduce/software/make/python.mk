@@ -347,10 +347,12 @@ $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
 	                EntryPoints $(entrypoints-version))
 
 $(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
-                $(ibidir)/hdf5                      \
                 $(ipydir)/cython                    \
+                $(ibidir)/hdf5                      \
+                $(ipydir)/numpy                     \
                 $(ipydir)/pypkgconfig               \
-                $(ipydir)/setuptools
+                $(ipydir)/setuptools                \
+                $(ipydir)/six
                 #$(ipydir)/mpi4py # AFTER its problem is fixed.
 	#export HDF5_MPI=ON;       # AFTER its problem is fixed.
 	export HDF5_DIR=$(ildir);                          \
