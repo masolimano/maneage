@@ -206,13 +206,13 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    exit 1
 	  fi
 
-	  # Download the requested tarball. Note that some packages may not
-	  # follow our naming convention (where the package name is merged
-	  # with its version number). In such cases, `w' will be the full
-	  # address, not just the top directory address. But since we are
-	  # storing all the tarballs in one directory, we want it to have
-	  # the same naming convention, so we'll download it to a temporary
-	  # name, then rename that.
+      # Download the requested tarball. Note that some packages may not
+      # follow our naming convention (where the package name is merged
+      # with its version number). In such cases, `w' will be the full
+      # address, not just the top directory address. But since we are
+      # storing all the tarballs in one directory, we want it to have
+      # the same naming convention, so we'll download it to a temporary
+      # name, then rename that.
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"
 	  else                           tarballurl=$$w
 	  fi
@@ -313,7 +313,7 @@ $(ibidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
        # If you really need the Python bindings, try the
        # --with-python-install-dir=DIR option
 	$(call gbuild, $<, libxml2-$(libxml2-version), static, \
-                   --without-python)                       \
+	               --without-python)                       \
 	&& echo "Libxml2 $(libxml2-version)" > $@
 
 $(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
@@ -499,25 +499,25 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
                          $(ibidir)/python                                       \
                          $(ibidir)/swig                                         \
                          $(ibidir)/wcslib
-	# We are modifying the Makefile in two steps because on Mac OS system we
-	# do not have `/proc/cpuinfo' nor `free'. Since this is only for the
-	# `report.txt', this changes do not causes problems in running
-	# `astrometrynet'
+    # We are modifying the Makefile in two steps because on Mac OS system we
+    # do not have `/proc/cpuinfo' nor `free'. Since this is only for the
+    # `report.txt', this changes do not causes problems in running
+    # `astrometrynet'
 	cd $(ddir)                                                            \
-    && rm -rf astrometry.net-$(astrometrynet-version)                     \
-    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi            \
-    && cd astrometry.net-$(astrometrynet-version)                         \
-    && sed -e 's|cat /proc/cpuinfo|echo "Ignoring CPU info"|'             \
-           -e 's|-free|echo "Ignoring RAM info"|' Makefile > Makefile.tmp \
-    && mv Makefile.tmp Makefile                                           \
-    && make                                                               \
-    && make py                                                            \
-    && make extra                                                         \
-    && make install INSTALL_DIR=$(idir) PYTHON_SCRIPT="$(ibdir)/python"   \
-    && cd ..                                                              \
-    && rm -rf astrometry.net-$(astrometrynet-version)                     \
-    && cp $(dtexdir)/astrometrynet.tex $(ictdir)/                         \
-    && echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
+	&& rm -rf astrometry.net-$(astrometrynet-version)                     \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi            \
+	&& cd astrometry.net-$(astrometrynet-version)                         \
+	&& sed -e 's|cat /proc/cpuinfo|echo "Ignoring CPU info"|'             \
+	       -e 's|-free|echo "Ignoring RAM info"|' Makefile > Makefile.tmp \
+	&& mv Makefile.tmp Makefile                                           \
+	&& make                                                               \
+	&& make py                                                            \
+	&& make extra                                                         \
+	&& make install INSTALL_DIR=$(idir) PYTHON_SCRIPT="$(ibdir)/python"   \
+	&& cd ..                                                              \
+	&& rm -rf astrometry.net-$(astrometrynet-version)                     \
+	&& cp $(dtexdir)/astrometrynet.tex $(ictdir)/                         \
+	&& echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
 
 # cdsclient is a set of software written in c to interact with astronomical
 # database servers. It is a dependency of `scamp' to be able to download
@@ -601,24 +601,24 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tar.gz\
                   $(ibidir)/libxml2                      \
                   $(ibidir)/unzip
 	if [ x$(on_mac_os) = xyes ]; then                                      \
-      answers='\n\n$(ildir)\n\n\n\n\n\n$(ildir)/include\n\n$(ildir)/include\n\n$(ildir)/include\nnone\n\n'; \
-    else                                                                   \
-      answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n';                       \
-    fi;                                                                    \
-    cd $(ddir)                                                             \
-    && unpackdir=netpbm-$(netpbm-version)                                  \
-    && rm -rf $$unpackdir                                                  \
-    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi             \
-    && cd $$unpackdir                                                      \
-    && printf "$$answers" | ./configure                                    \
-    && make                                                                \
-    && rm -rf $(ddir)/$$unpackdir/install                                  \
-    && make package pkgdir=$(ddir)/$$unpackdir/install                     \
-    && printf "$(ddir)/$$unpackdir/install\n$(idir)\n\n\nN\n\n\n\n\nN\n\n" \
-              | ./installnetpbm                                            \
-    && cd ..                                                               \
-    && rm -rf $$unpackdir                                                  \
-    && echo "Netpbm $(netpbm-version)" > $@
+	  answers='\n\n$(ildir)\n\n\n\n\n\n$(ildir)/include\n\n$(ildir)/include\n\n$(ildir)/include\nnone\n\n'; \
+	else                                                                   \
+	  answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n';                       \
+	fi;                                                                    \
+	cd $(ddir)                                                             \
+	&& unpackdir=netpbm-$(netpbm-version)                                  \
+	&& rm -rf $$unpackdir                                                  \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi             \
+	&& cd $$unpackdir                                                      \
+	&& printf "$$answers" | ./configure                                    \
+	&& make                                                                \
+	&& rm -rf $(ddir)/$$unpackdir/install                                  \
+	&& make package pkgdir=$(ddir)/$$unpackdir/install                     \
+	&& printf "$(ddir)/$$unpackdir/install\n$(idir)\n\n\nN\n\n\n\n\nN\n\n" \
+	          | ./installnetpbm                                            \
+	&& cd ..                                                               \
+	&& rm -rf $$unpackdir                                                  \
+	&& echo "Netpbm $(netpbm-version)" > $@
 
 # SCAMP documentation says ATLAS is a mandatory prerequisite for using
 # SCAMP. We have ATLAS into the project but there are some problems with the
@@ -630,11 +630,11 @@ $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz                \
                       $(ibidir)/openblas                              \
                       $(ibidir)/cdsclient
 	$(call gbuild, $<, scamp-$(scamp-version), static,                \
-                   --enable-threads --enable-openblas                 \
-                   --with-fftw-libdir=$(idir)                         \
-                   --with-fftw-incdir=$(idir)/include                 \
-                   --with-openblas-libdir=$(ildir)                    \
-                   --with-openblas-incdir=$(idir)/include)            \
+	               --enable-threads --enable-openblas                 \
+	               --with-fftw-libdir=$(idir)                         \
+	               --with-fftw-incdir=$(idir)/include                 \
+	               --with-openblas-libdir=$(ildir)                    \
+	               --with-openblas-incdir=$(idir)/include)            \
 	&& cp $(dtexdir)/scamp.tex $(ictdir)/                             \
     && echo "SCAMP $(scamp-version) \citep{scamp}" > $@
 
@@ -646,24 +646,24 @@ $(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
                       $(ibidir)/openblas                              \
                       $(ibidir)/fftw
 	$(call gbuild, $<, sextractor-$(sextractor-version), static,      \
-                   --enable-threads --enable-openblas                 \
-                   --with-openblas-libdir=$(ildir)                    \
-                   --with-openblas-incdir=$(idir)/include)            \
-    && ln -fs $(ibdir)/sex $(ibdir)/sextractor                        \
-    && cp $(dtexdir)/sextractor.tex $(ictdir)/                        \
-    && echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
+	               --enable-threads --enable-openblas                 \
+	               --with-openblas-libdir=$(ildir)                    \
+	               --with-openblas-incdir=$(idir)/include)            \
+	&& ln -fs $(ibdir)/sex $(ibdir)/sextractor                        \
+	&& cp $(dtexdir)/sextractor.tex $(ictdir)/                        \
+	&& echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
 
 $(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
                  $(ibidir)/fftw
 	$(call gbuild, $<, swarp-$(swarp-version), static, \
-                   --enable-threads)                   \
-    && cp $(dtexdir)/swarp.tex $(ictdir)/              \
-    && echo "SWarp $(swarp-version) \citep{swarp}" > $@
+	               --enable-threads)                   \
+	&& cp $(dtexdir)/swarp.tex $(ictdir)/              \
+	&& echo "SWarp $(swarp-version) \citep{swarp}" > $@
 
 $(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
-	# Option --without-pcre was a suggestion once the configure step was
-	# tried and it failed. It was not recommended but it works!
-	# pcr is a dependency of swig
+    # Option --without-pcre was a suggestion once the configure step was
+    # tried and it failed. It was not recommended but it works!
+    # pcr is a dependency of swig
 	$(call gbuild, $<, swig-$(swig-version), static, --without-pcre) \
 	&& echo "Swig $(swig-version)" > $@
 
