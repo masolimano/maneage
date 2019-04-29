@@ -786,7 +786,8 @@ $(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
 	&& echo "Git $(git-version)" > $@
 
 $(ibidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
-               $(ibidir)/bash
+               $(ibidir)/bash                    \
+               $(ibidir)/m4
 	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
 
