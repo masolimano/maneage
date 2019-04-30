@@ -89,11 +89,12 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then        \
                                                                               \
 	 echo; echo "Using '$$confscript' to configure:"; echo;               \
 	 echo "$$confscript $(4) $$configop"; echo;                           \
-	 $$confscript $(4) $$configop  &&                                     \
-	 make "$$shellop" $(5) &&                                             \
-	 $$check &&                                                           \
-	 make "$$shellop" install $(8) &&                                     \
-	 cd .. && rm -rf $(2)
+	 $$confscript $(4) $$configop                                         \
+	 && make "$$shellop" $(5)                                             \
+	 && $$check                                                           \
+	 && make "$$shellop" install $(8)                                     \
+	 && cd ..                                                             \
+	 && rm -rf $(2)
 
 
 

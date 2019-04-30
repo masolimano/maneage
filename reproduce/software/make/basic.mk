@@ -438,7 +438,7 @@ $(ibidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
 	               --with-shared --enable-rpath --without-normal      \
 	               --without-debug --with-cxx-binding                 \
 	               --with-cxx-shared --enable-widec --enable-pc-files \
-	               --with-pkg-config=$(ildir)/pkgconfig )
+	               --with-pkg-config=$(ildir)/pkgconfig, -j$(numthreads))
 
         # Unfortunately there are many problems with `ncurses' using
         # "normal" (or 8-bit) characters. The standard way that will work
@@ -509,7 +509,7 @@ $(ibidir)/readline: $(tdir)/readline-$(readline-version).tar.gz      \
                     $(ibidir)/ncurses
 	$(call gbuild, $<, readline-$(readline-version), static,     \
 	                --with-curses --disable-install-examples,    \
-	                SHLIB_LIBS="-lncursesw" )                    \
+	                SHLIB_LIBS="-lncursesw" -j$(numthreads))     \
 	&& echo "GNU Readline $(readline-version)" > $@
 
 $(ibidir)/patchelf: $(tdir)/patchelf-$(patchelf-version).tar.gz \
@@ -580,7 +580,8 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.lz \
 	else                                   stopt="";                    \
 	fi;                                             \
 	$(call gbuild, $<, bash-$(bash-version),,       \
-	                   --with-installed-readline=$(ildir) $$stopt )
+	                   --with-installed-readline=$(ildir) $$stopt, \
+                           -j$(numthreads))
 
         # Atleast on GNU/Linux systems, Bash doesn't include RPATH by
         # default. So, we have to manually include it, currently we are
@@ -738,11 +739,29 @@ $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 $(ibidir)/coreutils: $(tdir)/coreutils-$(coreutils-version).tar.xz \
                      $(ibidir)/openssl
         # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
-        # See Tar's comments for the `-j' option.
-	$(call gbuild, $<, coreutils-$(coreutils-version), static,           \
-	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)"           \
-	               --enable-rpath --disable-silent-rules --with-openssl, \
-	               -j$(numthreads))                                      \
+        #
+        # For some reason, with this configuration (by default it says that
+        # it supports `rpath'), Coreutils doesn't include `rpath' in its
+        # installed executables. So we have to manually add them after the
+        # standard build is complete. One problem is that Coreutils
+        # installs many executables. So to simplify things, we'll just
+        # manually add `rpath' to everything in `.local/bin' using
+        # `patchelf' on non-Mac systems. It won't affect those that already
+        # have it.
+        #
+        # The echo after the PatchELF loop is to avoid a crash if the last
+        # file that PatchELF encounters is not usable (and it returns with
+        # an error).
+	$(call gbuild, $<, coreutils-$(coreutils-version), static,  \
+	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)"  \
+	               --disable-silent-rules --with-openssl=yes,   \
+	               -j$(numthreads))                             \
+	&& if [ x$(on_mac_os) != xyes ]; then                       \
+	     for f in $(ibdir)/*; do                                \
+	       $(ibdir)/patchelf --set-rpath $(ildir) $$f;          \
+	     done;                                                  \
+	     echo "PatchELF applied to all programs.";              \
+	   fi                                                       \
 	&& echo "GNU Coreutils $(coreutils-version)" > $@
 
 $(ibidir)/diffutils: $(tdir)/diffutils-$(diffutils-version).tar.xz \
