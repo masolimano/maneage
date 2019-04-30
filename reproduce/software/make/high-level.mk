@@ -557,7 +557,7 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	&& cd cmake-$(cmake-version) \
 	&& ./bootstrap --prefix=$(idir) --system-curl --system-zlib \
 	               --system-bzip2 --system-liblzma --no-qt-gui \
-	&& make LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1 \
+	&& make -j$(numthreads) LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1  \
 	&& make install \
 	&& cd .. \
 	&& rm -rf cmake-$(cmake-version) \

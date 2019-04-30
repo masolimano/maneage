@@ -613,38 +613,53 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.lz \
 
 
 
-# Downloaders
-# -----------
-
-# cURL
+# Coreutils
+# ---------
 #
-# cURL can optionally link with many different network-related libraries on
-# the host system that we are not yet building in the template. Many of
-# these are not relevant to most science projects, so we are explicitly
-# using `--without-XXX' or `--disable-XXX' so cURL doesn't link with
-# them. Note that if it does link with them, the configuration will crash
-# when the library is updated/changed by the host, and the whole purpose of
-# this project is avoid dependency on the host as much as possible.
-$(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
-                $(ibidir)/openssl
-	$(call gbuild, $<, curl-$(curl-version), , \
-	               LIBS="-pthread" \
-	               --with-zlib=$(ildir) \
-	               --with-ssl=$(idir) \
-	               --without-mesalink \
-	               --with-ca-fallback \
-	               --without-librtmp \
-	               --without-libidn2 \
-	               --without-wolfssl \
-	               --without-brotli \
-	               --without-gnutls \
-	               --without-cyassl \
-	               --without-libpsl \
-	               --without-axtls \
-	               --disable-ldaps \
-	               --disable-ldap \
-	               --without-nss, V=1) \
-	&& echo "cURL $(curl-version)" > $@
+# For some reason, Coreutils doesn't include `rpath' in its installed
+# executables (even though it says that by default its included and that
+# even when calling `--enable-rpath=yes'). So we have to manually add
+# `rpath' to Coreutils' executables after the standard build is
+# complete.
+#
+# One problem is that Coreutils installs many very basic executables which
+# might be in use by other programs. So we must make sure that when
+# Coreutils is being built, no other program is being built in
+# parallel. The solution to the many executables it installs is to make a
+# fake installation (with `DESTDIR'), and get a list of the contents of the
+# directory to find the names.
+#
+# The echo after the PatchELF loop is to avoid a crash if the last
+# file that PatchELF encounters is not usable (and it returns with
+# an error).
+$(ibidir)/coreutils: $(tdir)/coreutils-$(coreutils-version).tar.xz \
+                     $(ibidir)/openssl \
+	             $(ibidir)/bash
+	cd $(ddir) \
+	&& rm -rf coreutils-$(coreutils-version) \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& cd coreutils-$(coreutils-version) \
+	&& sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
+	       -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
+	       configure > configure-tmp \
+	&& mv configure-tmp configure \
+	&& chmod +x configure \
+	&& ./configure --prefix=$(idir) SHELL=$(ibdir)/bash  \
+	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)" \
+	               --disable-silent-rules --with-openssl=yes \
+	&& make SHELL=$(ibdir)/bash -j$(numthreads) \
+	&& make SHELL=$(ibdir)/bash install \
+	&& if [ x$(on_mac_os) != xyes ]; then \
+	     make SHELL=$(ibdir)/bash install DESTDIR=junkinst; \
+	     instprogs=$$(ls junkinst/$(ibdir)); \
+	     for f in $$instprogs; do \
+	       $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/$$f; \
+	     done; \
+	     echo "PatchELF applied to all programs."; \
+	   fi \
+	&& cd .. \
+	&& rm -rf coreutils-$(coreutils-version) \
+	&& echo "GNU Coreutils $(coreutils-version)" > $@
 
 # OpenSSL
 #
@@ -664,7 +679,7 @@ $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
 $(idir)/etc:; mkdir $@
 $(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
                    $(tdir)/cert.pem \
-                   $(ibidir)/bash | $(idir)/etc
+                   $(ibidir)/make | $(idir)/etc
         # According to OpenSSL's Wiki (link bellow), it can't automatically
         # detect Mac OS's structure. It will need some help. So we'll use
         # the `on_mac_os' Make variable that we defined in the configure
@@ -682,8 +697,8 @@ $(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
 	               $(rpath_command) \
 	               --openssldir=$(idir)/etc/ssl \
 	               --with-zlib-lib=$(ildir) \
-	               --with-zlib-include=$(idir)/include, , , \
-	               ./config ) \
+	               --with-zlib-include=$(idir)/include, \
+	               -j$(numthreads), , ./config ) \
 	&& cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem \
 	&& if [ $$? = 0 ]; then \
 	     if [ x$(on_mac_os) = xyes ]; then \
@@ -693,6 +708,44 @@ $(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
 	     fi; \
 	     echo "OpenSSL $(openssl-version)" > $@; \
 	   fi
+
+
+
+
+# Downloaders
+# -----------
+
+# cURL
+#
+# cURL can optionally link with many different network-related libraries on
+# the host system that we are not yet building in the template. Many of
+# these are not relevant to most science projects, so we are explicitly
+# using `--without-XXX' or `--disable-XXX' so cURL doesn't link with
+# them. Note that if it does link with them, the configuration will crash
+# when the library is updated/changed by the host, and the whole purpose of
+# this project is avoid dependency on the host as much as possible.
+$(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
+                $(ibidir)/coreutils \
+                $(ibidir)/openssl #Coreutils: only so cURL is built after it.
+	$(call gbuild, $<, curl-$(curl-version), , \
+	               LIBS="-pthread" \
+	               --with-zlib=$(ildir) \
+	               --with-ssl=$(idir) \
+	               --without-mesalink \
+	               --with-ca-fallback \
+	               --without-librtmp \
+	               --without-libidn2 \
+	               --without-wolfssl \
+	               --without-brotli \
+	               --without-gnutls \
+	               --without-cyassl \
+	               --without-libpsl \
+	               --without-axtls \
+	               --disable-ldaps \
+	               --disable-ldap \
+	               --without-nss, V=1) \
+	&& echo "cURL $(curl-version)" > $@
+
 
 # GNU Wget
 #
@@ -709,7 +762,8 @@ $(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
 # host), they are disabled here.
 $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
                 $(ibidir)/pkg-config \
-                $(ibidir)/openssl
+                $(ibidir)/coreutils \
+                $(ibidir)/openssl # Coreutils only so Wget is built after it.
 	libs="-pthread"; \
 	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi; \
 	$(call gbuild, $<, wget-$(wget-version), , \
@@ -739,46 +793,23 @@ $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 # process of the higher-level programs and libraries. Note that during the
 # building of those higher-level programs (after this Makefile finishes),
 # there is no access to the system's PATH.
-$(ibidir)/coreutils: $(tdir)/coreutils-$(coreutils-version).tar.xz \
-                     $(ibidir)/openssl
-        # Coreutils will use the hashing features of OpenSSL's `libcrypto'.
-        #
-        # For some reason, with this configuration (by default it says that
-        # it supports `rpath'), Coreutils doesn't include `rpath' in its
-        # installed executables. So we have to manually add them after the
-        # standard build is complete. One problem is that Coreutils
-        # installs many executables. So to simplify things, we'll just
-        # manually add `rpath' to everything in `.local/bin' using
-        # `patchelf' on non-Mac systems. It won't affect those that already
-        # have it.
-        #
-        # The echo after the PatchELF loop is to avoid a crash if the last
-        # file that PatchELF encounters is not usable (and it returns with
-        # an error).
-	$(call gbuild, $<, coreutils-$(coreutils-version), static, \
-	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)" \
-	               --disable-silent-rules --with-openssl=yes, \
-	               -j$(numthreads)) \
-	&& if [ x$(on_mac_os) != xyes ]; then \
-	     for f in $(ibdir)/*; do \
-	       $(ibdir)/patchelf --set-rpath $(ildir) $$f; \
-	     done; \
-	     echo "PatchELF applied to all programs."; \
-	   fi \
-	&& echo "GNU Coreutils $(coreutils-version)" > $@
-
 $(ibidir)/diffutils: $(tdir)/diffutils-$(diffutils-version).tar.xz \
-                     $(ibidir)/bash
+                     $(ibidir)/coreutils
 	$(call gbuild, $<, diffutils-$(diffutils-version), static, , V=1) \
 	&& echo "GNU Diffutils $(diffutils-version)" > $@
 
+$(ibidir)/file: $(tdir)/file-$(file-version).tar.gz \
+                $(ibidir)/coreutils
+	$(call gbuild, $<, file-$(file-version), static) \
+	&& echo "File $(file-version)" > $@
+
 $(ibidir)/findutils: $(tdir)/findutils-$(findutils-version).tar.lz \
-                     $(ibidir)/bash
+                     $(ibidir)/coreutils
 	$(call gbuild, $<, findutils-$(findutils-version), static, , V=1) \
 	&& echo "GNU Findutils $(findutils-version)" > $@
 
 $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
-                $(ibidir)/bash \
+                $(ibidir)/coreutils \
                 $(ibidir)/mpfr \
                 $(ibidir)/gmp
         # AWK doesn't include RPATH by default, so we'll have to manually
@@ -800,14 +831,15 @@ $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
 	&& echo "GNU AWK $(gawk-version)" > $@
 
 $(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
-               $(ibidir)/curl
+	       $(ibidir)/coreutils \
+               $(ibidir)/curl	# Coreutils, so Git is built after it.
 	$(call gbuild, $<, git-$(git-version), static, \
                        --without-tcltk --with-shell=$(ibdir)/bash, \
 	               V=1) \
 	&& echo "Git $(git-version)" > $@
 
 $(ibidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
-               $(ibidir)/bash                    \
+               $(ibidir)/coreutils \
                $(ibidir)/m4
 	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
@@ -821,17 +853,17 @@ $(ibidir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz \
 	&& echo "GNU Libtool $(libtool-version)" > $@
 
 $(ibidir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
-                $(ibidir)/bash
+                $(ibidir)/coreutils
 	$(call gbuild, $<, grep-$(grep-version), static) \
 	&& echo "GNU Grep $(grep-version)" > $@
 
 $(ibidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz \
-                  $(ibidir)/bash
+                  $(ibidir)/coreutils
 	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
 	&& echo "Libbsd $(libbsd-version)" > $@
 
 $(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
-              $(ibidir)/bash
+              $(ibidir)/coreutils
 	$(call gbuild, $<, m4-$(m4-version), static) \
 	&& echo "GNU M4 $(m4-version)" > $@
 
@@ -914,7 +946,7 @@ $(ibidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
 	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
 $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
-                      $(ibidir)/bash
+                      $(ibidir)/coreutils
         # Some Mac OS systems may have a version of the GNU C Compiler
         # (GCC) installed that doesn't support some necessary features of
         # building Glib (as part of pkg-config). So to be safe, for Mac
@@ -928,12 +960,12 @@ $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
 	&& echo "pkg-config $(pkgconfig-version)" > $@
 
 $(ibidir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
-               $(ibidir)/bash
+               $(ibidir)/coreutils
 	$(call gbuild, $<, sed-$(sed-version), static) \
 	&& echo "GNU Sed $(sed-version)" > $@
 
 $(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
-                 $(ibidir)/bash
+                 $(ibidir)/coreutils
 	$(call gbuild, $<, which-$(which-version), static) \
 	&& echo "GNU Which $(which-version)" > $@
 
@@ -956,7 +988,7 @@ ifeq ($(on_mac_os),yes)
 binutils-prerequisites =
 else
 binutils-prerequisites = $(tdir)/binutils-$(binutils-version).tar.lz \
-                         $(ibidir)/bash
+                         $(ibidir)/coreutils
 endif
 $(ibidir)/binutils: $(binutils-prerequisites)
 	if [ x$(on_mac_os) = xyes ]; then \
@@ -971,13 +1003,6 @@ $(ibidir)/binutils: $(binutils-prerequisites)
 	  $(call gbuild, $<, binutils-$(binutils-version), static) \
 	  && echo "GNU Binutils $(binutils-version)" > $@; \
 	fi
-
-# `file' is not a prerequisite of GCC. However, since it is low level, it is
-# set as a prerequisite of GCC to have it installed.
-$(ibidir)/file: $(tdir)/file-$(file-version).tar.gz \
-                $(ibidir)/bash
-	$(call gbuild, $<, file-$(file-version), static) \
-	&& echo "File $(file-version)" > $@
 
 $(ibidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
                $(ibidir)/gmp
@@ -1012,14 +1037,12 @@ gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
 endif
 $(ibidir)/gcc: $(gcc-prerequisites) \
                $(ibidir)/sed \
-               $(ibidir)/bash \
                $(ibidir)/file \
                $(ibidir)/gawk \
                $(ibidir)/grep \
                $(ibidir)/which \
                $(ibidir)/glibtool \
                $(ibidir)/binutils \
-               $(ibidir)/coreutils \
                $(ibidir)/diffutils \
                $(ibidir)/findutils
 
