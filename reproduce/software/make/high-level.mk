@@ -636,7 +636,7 @@ $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz \
                    --with-openblas-libdir=$(ildir) \
                    --with-openblas-incdir=$(idir)/include) \
 	&& cp $(dtexdir)/scamp.tex $(ictdir)/ \
-    && echo "SCAMP $(scamp-version) \citep{scamp}" > $@
+	&& echo "SCAMP $(scamp-version) \citep{scamp}" > $@
 
 # Sextractor crashes complaining about not linking with some ATLAS
 # libraries. But we can override this issue since we have Openblas
