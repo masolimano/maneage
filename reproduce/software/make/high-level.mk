@@ -294,7 +294,7 @@ $(ibidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
 	export FC=mpif90; \
 	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
 	               --enable-parallel \
-	               --enable-fortran, V=1) \
+	               --enable-fortran, -j$(numthreads) V=1) \
 	&& echo "HDF5 library $(hdf5-version)" > $@
 
 $(ibidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
@@ -327,7 +327,8 @@ $(ibidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 	&& echo "Libtiff $(libtiff-version)" > $@
 
 $(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
-	$(call gbuild, $<, openmpi-$(openmpi-version), static, , V=1) \
+	$(call gbuild, $<, openmpi-$(openmpi-version), static, , \
+	               -j$(numthreads) V=1) \
 	&& echo "Open MPI $(openmpi-version)" > $@
 
 $(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
@@ -451,7 +452,7 @@ $(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF \
 	              -DTHREADSAFE=ON )
 
-        # Correct the shared library absolute address if necessary.
+        # Correct the shared library absolute address on Mac systems.
 	if [ x$(on_mac_os) = xyes ]; then
 	  install_name_tool -id $(ildir)/libgit2.26.dylib \
 	                        $(ildir)/libgit2.26.dylib

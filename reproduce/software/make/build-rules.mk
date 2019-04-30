@@ -110,7 +110,10 @@ cbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then \
 	   export LDFLAGS="$$LDFLAGS -static"; \
 	   opts="-DBUILD_SHARED_LIBS=OFF"; \
 	 fi; \
-	 cd $(ddir) && rm -rf $(2) && tar xf $(1) && cd $(2) \
+	 cd $(ddir) \
+	 && rm -rf $(2) \
+	 && tar xf $(1) \
+	 && cd $(2) \
 	 && rm -rf project-build \
 	 && mkdir project-build \
 	 && cd project-build \
@@ -119,4 +122,4 @@ cbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then \
 	             -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $$opts $(4) \
 	 && make && make install \
 	 && cd ../.. \
-	 rm -rf $(2)
+	 && rm -rf $(2)
