@@ -54,46 +54,46 @@
 # NOTE: A program might not contain any configure script. In this case,
 # we'll just pass a non-relevant function like `pwd'. So SED should be used
 # to modify `confscript' or to set `configop'.
-gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then        \
-	   export LDFLAGS="$$LDFLAGS -static";                                \
-	 fi;                                                                  \
-	 check="$(6)";                                                        \
-	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi;         \
-	 cd $(ddir); rm -rf $(2);                                             \
-	 if ! tar xf $(1); then echo; echo "Tar error"; exit 1; fi;           \
-	 cd $(2);                                                             \
-                                                                              \
-	 if   [ x"$(strip $(7))" = x ]; then confscript=./configure;          \
-	 else confscript="$(strip $(7))";                                     \
-	 fi;                                                                  \
-                                                                              \
-	 if   [ -f $(ibdir)/bash ]; then                                      \
-	   if [ -f $$confscript ]; then                                       \
-	     sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|'                       \
-	         -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|'                        \
-	         $$confscript > $$confscript-tmp;                             \
-	     mv $$confscript-tmp $$confscript;                                \
-	     chmod +x $$confscript;                                           \
-	   fi;                                                                \
-	   shellop="SHELL=$(ibdir)/bash";                                     \
-	 elif [ -f /bin/bash ]; then shellop="SHELL=/bin/bash";               \
-	 else shellop="SHELL=/bin/sh";                                        \
-	 fi;                                                                  \
-                                                                              \
-	 if [ -f $$confscript ]; then                                         \
-	   if [ x"$(strip $(2))" = x"zlib-$(zlib-version)" ]; then            \
-	     configop="--prefix=$(idir)";                                     \
-	   else configop="$$shellop --prefix=$(idir)";                        \
-	   fi;                                                                \
-	 fi;                                                                  \
-                                                                              \
-	 echo; echo "Using '$$confscript' to configure:"; echo;               \
-	 echo "$$confscript $(4) $$configop"; echo;                           \
-	 $$confscript $(4) $$configop                                         \
-	 && make "$$shellop" $(5)                                             \
-	 && $$check                                                           \
-	 && make "$$shellop" install $(8)                                     \
-	 && cd ..                                                             \
+gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then \
+	   export LDFLAGS="$$LDFLAGS -static"; \
+	 fi; \
+	 check="$(6)"; \
+	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi; \
+	 cd $(ddir); rm -rf $(2); \
+	 if ! tar xf $(1); then echo; echo "Tar error"; exit 1; fi; \
+	 cd $(2); \
+	          \
+	 if   [ x"$(strip $(7))" = x ]; then confscript=./configure; \
+	 else confscript="$(strip $(7))"; \
+	 fi; \
+             \
+	 if   [ -f $(ibdir)/bash ]; then \
+	   if [ -f $$confscript ]; then \
+	     sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
+	         -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
+	         $$confscript > $$confscript-tmp; \
+	     mv $$confscript-tmp $$confscript; \
+	     chmod +x $$confscript; \
+	   fi; \
+	   shellop="SHELL=$(ibdir)/bash"; \
+	 elif [ -f /bin/bash ]; then shellop="SHELL=/bin/bash"; \
+	 else shellop="SHELL=/bin/sh"; \
+	 fi; \
+             \
+	 if [ -f $$confscript ]; then \
+	   if [ x"$(strip $(2))" = x"zlib-$(zlib-version)" ]; then \
+	     configop="--prefix=$(idir)"; \
+	   else configop="$$shellop --prefix=$(idir)"; \
+	   fi; \
+	 fi; \
+	     \
+	 echo; echo "Using '$$confscript' to configure:"; echo; \
+	 echo "$$confscript $(4) $$configop"; echo; \
+	 $$confscript $(4) $$configop \
+	 && make "$$shellop" $(5) \
+	 && $$check \
+	 && make "$$shellop" install $(8) \
+	 && cd .. \
 	 && rm -rf $(2)
 
 
@@ -106,16 +106,17 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then        \
 # no way to change it.
 #
 # https://stackoverflow.com/questions/21167014/how-to-set-shell-variable-in-makefiles-generated-by-cmake
-cbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then          \
-	   export LDFLAGS="$$LDFLAGS -static";                                \
-	   opts="-DBUILD_SHARED_LIBS=OFF";                                    \
-	 fi;                                                                  \
-	 cd $(ddir) && rm -rf $(2) && tar xf $(1) && cd $(2) &&               \
-	 rm -rf project-build && mkdir project-build &&                       \
-	 cd project-build &&                                                  \
-	 cmake .. -DCMAKE_LIBRARY_PATH=$(ildir)                               \
-	          -DCMAKE_INSTALL_PREFIX=$(idir)                              \
-	          -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $$opts $(4) &&             \
-	 make && make install &&                                              \
-	 cd ../.. &&                                                          \
+cbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then \
+	   export LDFLAGS="$$LDFLAGS -static"; \
+	   opts="-DBUILD_SHARED_LIBS=OFF"; \
+	 fi; \
+	 cd $(ddir) && rm -rf $(2) && tar xf $(1) && cd $(2) \
+	 && rm -rf project-build \
+	 && mkdir project-build \
+	 && cd project-build \
+	 && cmake .. -DCMAKE_LIBRARY_PATH=$(ildir) \
+	             -DCMAKE_INSTALL_PREFIX=$(idir) \
+	             -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $$opts $(4) \
+	 && make && make install \
+	 && cd ../.. \
 	 rm -rf $(2)

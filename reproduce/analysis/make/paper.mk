@@ -118,7 +118,7 @@ $(texbdir)/paper.bbl: tex/src/references.tex $(mtexdir)/dependencies-bib.tex \
 # to run everything cleanly from there, it is necessary to add the current
 # directory (top project directory) to the `TEXINPUTS' environment
 # variable.
-paper.pdf: $(mtexdir)/project.tex paper.tex $(texbdir)/paper.bbl       \
+paper.pdf: $(mtexdir)/project.tex paper.tex $(texbdir)/paper.bbl \
 	   | $(tikzdir) $(texbdir)
 
         # If `$(mtexdir)/project.tex' is empty, don't build the PDF.

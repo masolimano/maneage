@@ -17,6 +17,6 @@
 # ignored in the `tlmgr install' command, but will be used later when we
 # want their versions.
 texlive-packages = tex fancyhdr ec newtx fontaxes xkeyval etoolbox xcolor \
-                   setspace caption footmisc datetime fmtcount titlesec   \
-                   preprint ulem biblatex biber logreq pgf pgfplots fp    \
+                   setspace caption footmisc datetime fmtcount titlesec \
+                   preprint ulem biblatex biber logreq pgf pgfplots fp \
                    courier tex-gyre txfonts times

@@ -105,34 +105,34 @@ include reproduce/software/make/python.mk
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz     \
-                        atlas-$(atlas-version).tar.bz2                     \
-                        cairo-$(cairo-version).tar.xz                      \
-                        cdsclient-$(cdsclient-version).tar.gz              \
-                        cfitsio-$(cfitsio-version).tar.gz                  \
-                        cmake-$(cmake-version).tar.gz                      \
-                        freetype-$(freetype-version).tar.gz                \
-                        fftw-$(fftw-version).tar.gz                        \
-                        ghostscript-$(ghostscript-version).tar.gz          \
-                        gnuastro-$(gnuastro-version).tar.lz                \
-                        gsl-$(gsl-version).tar.gz                          \
-                        hdf5-$(hdf5-version).tar.gz                        \
-                        install-tl-unx.tar.gz                              \
-                        jpegsrc.$(libjpeg-version).tar.gz                  \
-                        lapack-$(lapack-version).tar.gz                    \
-                        libpng-$(libpng-version).tar.xz                    \
-                        libgit2-$(libgit2-version).tar.gz                  \
-                        libxml2-$(libxml2-version).tar.gz                  \
-                        netpbm-$(netpbm-version).tgz                       \
-                        openmpi-$(openmpi-version).tar.gz                  \
-                        openblas-$(openblas-version).tar.gz                \
-                        pixman-$(pixman-version).tar.gz                    \
-                        scamp-$(scamp-version).tar.lz                      \
-                        sextractor-$(sextractor-version).tar.lz            \
-                        swarp-$(swarp-version).tar.gz                      \
-                        swig-$(swig-version).tar.gz                        \
-                        tiff-$(libtiff-version).tar.gz                     \
-                        wcslib-$(wcslib-version).tar.bz2                   \
+tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
+                        atlas-$(atlas-version).tar.bz2 \
+                        cairo-$(cairo-version).tar.xz \
+                        cdsclient-$(cdsclient-version).tar.gz \
+                        cfitsio-$(cfitsio-version).tar.gz \
+                        cmake-$(cmake-version).tar.gz \
+                        freetype-$(freetype-version).tar.gz \
+                        fftw-$(fftw-version).tar.gz \
+                        ghostscript-$(ghostscript-version).tar.gz \
+                        gnuastro-$(gnuastro-version).tar.lz \
+                        gsl-$(gsl-version).tar.gz \
+                        hdf5-$(hdf5-version).tar.gz \
+                        install-tl-unx.tar.gz \
+                        jpegsrc.$(libjpeg-version).tar.gz \
+                        lapack-$(lapack-version).tar.gz \
+                        libpng-$(libpng-version).tar.xz \
+                        libgit2-$(libgit2-version).tar.gz \
+                        libxml2-$(libxml2-version).tar.gz \
+                        netpbm-$(netpbm-version).tgz \
+                        openmpi-$(openmpi-version).tar.gz \
+                        openblas-$(openblas-version).tar.gz \
+                        pixman-$(pixman-version).tar.gz \
+                        scamp-$(scamp-version).tar.lz \
+                        sextractor-$(sextractor-version).tar.lz \
+                        swarp-$(swarp-version).tar.gz \
+                        swig-$(swig-version).tar.gz \
+                        tiff-$(libtiff-version).tar.gz \
+                        wcslib-$(wcslib-version).tar.bz2 \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -140,18 +140,18 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	else
 	  # Remove all numbers, `-' and `.' from the tarball name so we can
 	  # search more easily only with the program name.
-	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
+	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g' \
 	               | awk '{print $$1}' )
 
 	  # Set the top download link of the requested tarball.
 	  mergenames=1
 	  if [ $$n = cfitsio     ]; then
 	    mergenames=0
-	    v=$$(echo $(cfitsio-version) | sed -e's/\.//'             \
-	              | awk '{l=length($$1);                          \
-	                      printf (l==4 ? "%d\n"                   \
-	                              : (l==3 ? "%d0\n"               \
-	                                 : (l==2 ? "%d00\n"           \
+	    v=$$(echo $(cfitsio-version) | sed -e's/\.//' \
+	              | awk '{l=length($$1); \
+	                      printf (l==4 ? "%d\n" \
+	                              : (l==3 ? "%d0\n" \
+	                                 : (l==2 ? "%d00\n" \
                                             : "%d000\n") ), $$1)}')
 	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
 	  elif [ $$n = astrometry  ]; then w=http://astrometry.net/downloads
@@ -252,7 +252,7 @@ $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
         # it manually before doing the standard build.
 	topdir=$(pwd); cd $(ddir); tar xf $<
 	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
-	sed cfitsio/configure                                 \
+	sed cfitsio/configure \
 	    -e's|/usr/bin/curl-config|$(ibdir)/curl-config|g' \
 	    > cfitsio/configure_tmp
 	mv cfitsio/configure_tmp cfitsio/configure
@@ -261,16 +261,16 @@ $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 	cd $$topdir
 
         # Continue the standard build on the customized tarball.
-	$(call gbuild, $$customtar, cfitsio, static,     \
+	$(call gbuild, $$customtar, cfitsio, static, \
 	               --enable-sse2 --enable-reentrant) \
-	&& rm $$customtar                                \
+	&& rm $$customtar \
 	&& echo "CFITSIO $(cfitsio-version)" > $@
 
-$(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz    \
-                 $(ibidir)/freetype                       \
-                 $(ibidir)/libpng                         \
+$(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
+                 $(ibidir)/freetype \
+                 $(ibidir)/libpng \
                  $(ibidir)/pixman
-	$(call gbuild, $<, cairo-$(cairo-version), static)    \
+	$(call gbuild, $<, cairo-$(cairo-version), static) \
 	&& echo "Cairo $(cairo-version)" > $@
 
 $(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
@@ -278,9 +278,9 @@ $(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	&& echo "GNU Scientific Library $(gsl-version)" > $@
 
 $(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
-	$(call gbuild, $<, fftw-$(fftw-version), static,  \
-	               --enable-shared)                   \
-	&& cp $(dtexdir)/fftw.tex $(ictdir)/              \
+	$(call gbuild, $<, fftw-$(fftw-version), static, \
+	               --enable-shared) \
+	&& cp $(dtexdir)/fftw.tex $(ictdir)/ \
 	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
 # Freetype is necessary to install matplotlib
@@ -291,11 +291,11 @@ $(ibidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
 
 $(ibidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
                 $(ibidir)/openmpi
-	export CC=mpicc;                                 \
-	export FC=mpif90;                                \
+	export CC=mpicc; \
+	export FC=mpif90; \
 	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
-	               --enable-parallel                 \
-	               --enable-fortran, V=1)            \
+	               --enable-parallel \
+	               --enable-fortran, V=1) \
 	&& echo "HDF5 library $(hdf5-version)" > $@
 
 $(ibidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
@@ -371,57 +371,57 @@ $(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
         # The linking step here doesn't recognize the `-Wl' in the
         # `rpath_command'.
 	export LDFLAGS=-L$(ildir)
-	cd $(ddir)                                                \
-	&& tar xf $<                                              \
-	&& cd ATLAS                                               \
-	&& rm -rf build                                           \
-	&& mkdir build                                            \
-	&& cd build                                               \
-	&& ../configure -b 64 -D c -DPentiumCPS=$$core            \
-	             --with-netlib-lapack-tarfile=$(word 2, $^)   \
-	             --cripple-atlas-performance                  \
-	             -Fa alg -fPIC --shared $$clangflag           \
-	             --prefix=$(idir)                             \
-	&& make                                                   \
-	&& if [ "x$(on_mac_os)" != xyes ]; then                   \
-	     cd lib && make -f $$sharedmk && cd ..                \
-	     && for l in lib/*.$$s*; do                           \
-	          patchelf --set-rpath $(ildir) $$l; done         \
-	     && cp -d lib/*.$$s* $(ildir)                         \
+	cd $(ddir) \
+	&& tar xf $< \
+	&& cd ATLAS \
+	&& rm -rf build \
+	&& mkdir build \
+	&& cd build \
+	&& ../configure -b 64 -D c -DPentiumCPS=$$core \
+	             --with-netlib-lapack-tarfile=$(word 2, $^) \
+	             --cripple-atlas-performance \
+	             -Fa alg -fPIC --shared $$clangflag \
+	             --prefix=$(idir) \
+	&& make \
+	&& if [ "x$(on_mac_os)" != xyes ]; then \
+	     cd lib && make -f $$sharedmk && cd .. \
+	     && for l in lib/*.$$s*; do \
+	          patchelf --set-rpath $(ildir) $$l; done \
+	     && cp -d lib/*.$$s* $(ildir) \
 	     && ln -fs $(ildir)/libblas.$$s  $(ildir)/libblas.$$m \
 	     && ln -fs $(ildir)/libf77blas.$$s $(ildir)/libf77blas.$$m \
 	     && ln -fs $(ildir)/liblapack.$$f  $(ildir)/liblapack.$$s \
 	     && ln -fs $(ildir)/liblapack.$$f  $(ildir)/liblapack.$$m; \
-	   fi                                                     \
+	   fi \
 	&& make install
 
         # We need to check the existance of `libptlapack.a', but we can't
         # do this in the `&&' steps above (it will conflict). So we'll do
         # the check after seeing if `libtatlas.so' is installed, then we'll
         # finalize the build (delete the untarred directory).
-	if [ "x$(on_mac_os)" != xyes ]; then                       \
+	if [ "x$(on_mac_os)" != xyes ]; then \
 	  [ -e lib/libptlapack.a ] && cp lib/libptlapack.a $(ildir); \
-	  cd $(ddir);                                              \
-	  rm -rf ATLAS;                                            \
+	  cd $(ddir); \
+	  rm -rf ATLAS; \
 	fi
 
         # We'll check the full installation with the static library (not
         # currently building shared library on Mac.
-	if [ -f $(ildir)/libatlas.a ]; then   \
+	if [ -f $(ildir)/libatlas.a ]; then \
 	  echo "ATLAS $(atlas-version)" > $@; \
 	fi
 
 $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
-	if [ x$(on_mac_os) = xyes ]; then                           \
-	  export CC=clang;                                          \
-	fi;                                                         \
-	cd $(ddir)                                                  \
-	&& tar xf $<                                                \
-	&& cd OpenBLAS-$(openblas-version)                          \
-	&& make                                                     \
-	&& make PREFIX=$(idir) install                              \
-	&& cd ..                                                    \
-	&& rm -rf OpenBLAS-$(openblas-version)                      \
+	if [ x$(on_mac_os) = xyes ]; then \
+	  export CC=clang; \
+	fi; \
+	cd $(ddir) \
+	&& tar xf $< \
+	&& cd OpenBLAS-$(openblas-version) \
+	&& make \
+	&& make PREFIX=$(idir) install \
+	&& cd .. \
+	&& rm -rf OpenBLAS-$(openblas-version) \
 	&& echo "OpenBLAS $(openblas-version)" > $@
 
 
@@ -445,11 +445,11 @@ $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 # problem we have been having so far with Mac systems:
 # https://libgit2.org/docs/guides/build-and-link
 $(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
-                   $(ibidir)/cmake                            \
+                   $(ibidir)/cmake \
                    $(ibidir)/curl
         # Build and install the library.
-	$(call cbuild, $<, libgit2-$(libgit2-version), static,  \
-	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF            \
+	$(call cbuild, $<, libgit2-$(libgit2-version), static, \
+	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF \
 	              -DTHREADSAFE=ON )
 
         # Correct the shared library absolute address if necessary.
@@ -464,10 +464,10 @@ $(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
 $(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                   $(ibidir)/cfitsio
         # Build and install the library.
-	$(call gbuild, $<, wcslib-$(wcslib-version), ,               \
-	               LIBS="-pthread -lcurl -lm"                    \
-                       --with-cfitsiolib=$(ildir)                    \
-                       --with-cfitsioinc=$(idir)/include             \
+	$(call gbuild, $<, wcslib-$(wcslib-version), , \
+	               LIBS="-pthread -lcurl -lm" \
+                       --with-cfitsiolib=$(ildir) \
+                       --with-cfitsioinc=$(idir)/include \
                        --without-pgplot --disable-fortran)
 
         # Correct the shared library absolute address if necessary.
@@ -490,27 +490,27 @@ $(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 # installation directory and the Python executable (by default it will look
 # for /usr/bin/python)
 $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz \
-                         $(ibidir)/cairo                                        \
-                         $(ibidir)/cfitsio                                      \
-                         $(ibidir)/gsl                                          \
-                         $(ibidir)/libjpeg                                      \
-                         $(ibidir)/libpng                                       \
-                         $(ibidir)/netpbm                                       \
-                         $(ipydir)/numpy                                        \
-                         $(ibidir)/python                                       \
-                         $(ibidir)/swig                                         \
-                         $(ibidir)/wcslib
-	cd $(ddir)                                                            \
-    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi            \
-    && cd astrometry.net-$(astrometrynet-version)                         \
-    && make                                                               \
-    && make py                                                            \
-    && make extra                                                         \
-    && make install INSTALL_DIR=$(idir) PYTHON_SCRIPT="$(ibdir)/python"   \
-    && cd ..                                                              \
-    && rm -rf astrometry.net-$(astrometrynet-version)                     \
-    && cp $(dtexdir)/astrometrynet.tex $(ictdir)/                         \
-    && echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
+                         $(ibidir)/cfitsio \
+                         $(ibidir)/libjpeg \
+                         $(ibidir)/libpng \
+                         $(ibidir)/netpbm \
+                         $(ibidir)/python \
+                         $(ibidir)/wcslib \
+                         $(ibidir)/cairo \
+                         $(ipydir)/numpy \
+                         $(ibidir)/swig \
+                         $(ibidir)/gsl
+	cd $(ddir) \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& cd astrometry.net-$(astrometrynet-version) \
+	&& make \
+	&& make py \
+	&& make extra \
+	&& make install INSTALL_DIR=$(idir) PYTHON_SCRIPT="$(ibdir)/python" \
+	&& cd .. \
+	&& rm -rf astrometry.net-$(astrometrynet-version) \
+	&& cp $(dtexdir)/astrometrynet.tex $(ictdir)/ \
+	&& echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
 
 # cdsclient is a set of software written in c to interact with astronomical
 # database servers. It is a dependency of `scamp' to be able to download
@@ -520,15 +520,15 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
 # Otherwise this software will be re-built each time the configure step is
 # invoked.
 $(ibidir)/cdsclient: $(tdir)/cdsclient-$(cdsclient-version).tar.gz
-	cd $(ddir)                                                    \
-	&& tar xf $<                                                  \
-	&& cd cdsclient-$(cdsclient-version)                          \
-	&& touch *                                                    \
-	&& ./configure --prefix=$(idir)                               \
-	&& make                                                       \
-	&& make install                                               \
-	&& cd ..                                                      \
-	&& rm -rf cdsclient-$(cdsclient-version)                      \
+	cd $(ddir) \
+	&& tar xf $< \
+	&& cd cdsclient-$(cdsclient-version) \
+	&& touch * \
+	&& ./configure --prefix=$(idir) \
+	&& make \
+	&& make install \
+	&& cd .. \
+	&& rm -rf cdsclient-$(cdsclient-version) \
 	&& echo "cdsclient $(cdsclient-version)" > $@
 
 # CMake can be built with its custom `./bootstrap' script.
@@ -540,20 +540,20 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
         #
         # On Mac systems, the build complains about `clang' specific
         # features, so we can't use our own GCC build here.
-	if [ x$(on_mac_os) = xyes ]; then                            \
-	  export CC=clang;                                           \
-	  export CXX=clang++;                                        \
-	fi;                                                          \
-	cd $(ddir)                                                   \
-	&& rm -rf cmake-$(cmake-version)                             \
-	&& tar xf $<                                                 \
-	&& cd cmake-$(cmake-version)                                 \
-	&& ./bootstrap --prefix=$(idir) --system-curl --system-zlib  \
-	               --system-bzip2 --system-liblzma --no-qt-gui   \
-	&& make LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1           \
-	&& make install                                              \
-	&& cd ..                                                     \
-	&& rm -rf cmake-$(cmake-version)                             \
+	if [ x$(on_mac_os) = xyes ]; then \
+	  export CC=clang; \
+	  export CXX=clang++; \
+	fi; \
+	cd $(ddir) \
+	&& rm -rf cmake-$(cmake-version) \
+	&& tar xf $< \
+	&& cd cmake-$(cmake-version) \
+	&& ./bootstrap --prefix=$(idir) --system-curl --system-zlib \
+	               --system-bzip2 --system-liblzma --no-qt-gui \
+	&& make LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1 \
+	&& make install \
+	&& cd .. \
+	&& rm -rf cmake-$(cmake-version) \
 	&& echo "CMake $(cmake-version)" > $@
 
 $(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
@@ -566,19 +566,19 @@ $(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 # building in parallel, its better to have these packages start building
 # early.
 $(ibidir)/gnuastro: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
-                    $(ibidir)/gsl      \
-                    $(ibidir)/wcslib   \
-                    $(ibidir)/libjpeg  \
-                    $(ibidir)/libtiff  \
-                    $(ibidir)/libgit2  \
-                    $(ibidir)/ghostscript
+                    $(ibidir)/ghostscript \
+                    $(ibidir)/libjpeg \
+                    $(ibidir)/libtiff \
+                    $(ibidir)/libgit2 \
+                    $(ibidir)/wcslib \
+                    $(ibidir)/gsl
 ifeq ($(static_build),yes)
 	staticopts="--enable-static=yes --enable-shared=no";
 endif
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static, \
-	               $$staticopts, -j$(numthreads),            \
-	               make check -j$(numthreads))               \
-	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/                 \
+	               $$staticopts, -j$(numthreads), \
+	               make check -j$(numthreads)) \
+	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/ \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
@@ -587,48 +587,48 @@ endif
 # ask to the user. We give all answers with a pipe to the scripts (configure
 # and install). The questions are different depending on the system (tested
 # on GNU/Linux and Mac OS).
-$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz   \
-                  $(ibidir)/libjpeg                      \
-                  $(ibidir)/libpng                       \
-                  $(ibidir)/libtiff                      \
-                  $(ibidir)/libxml2                      \
+$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz \
+                  $(ibidir)/libjpeg \
+                  $(ibidir)/libtiff \
+                  $(ibidir)/libxml2 \
+                  $(ibidir)/libpng \
                   $(ibidir)/unzip
-	if [ x$(on_mac_os) = xyes ]; then                                      \
-      answers='\n\n\n\n\n\n\n\n\n\n\n\nnone\n\n\n';                        \
-    else                                                                   \
-      answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n';                       \
-    fi;                                                                    \
-    cd $(ddir)                                                             \
-    && unpackdir=netpbm-$(netpbm-version)                                  \
-    && rm -rf $$unpackdir                                                  \
-    && if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi             \
-    && cd $$unpackdir                                                      \
-    && printf "$$answers" | ./configure                                    \
-    && make                                                                \
-    && rm -rf $(ddir)/$$unpackdir/install                                  \
-    && make package pkgdir=$(ddir)/$$unpackdir/install                     \
-    && printf "$(ddir)/$$unpackdir/install\n$(idir)\n\n\nN\n\n\n\n\nN\n\n" \
-              | ./installnetpbm                                            \
-    && cd ..                                                               \
-    && rm -rf $$unpackdir                                                  \
-    && echo "Netpbm $(netpbm-version)" > $@
+	if [ x$(on_mac_os) = xyes ]; then \
+	  answers='\n\n\n\n\n\n\n\n\n\n\n\nnone\n\n\n'; \
+	else \
+	  answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n'; \
+	fi; \
+	cd $(ddir) \
+	&& unpackdir=netpbm-$(netpbm-version) \
+	&& rm -rf $$unpackdir \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& cd $$unpackdir \
+	&& printf "$$answers" | ./configure \
+	&& make \
+	&& rm -rf $(ddir)/$$unpackdir/install \
+	&& make package pkgdir=$(ddir)/$$unpackdir/install \
+	&& printf "$(ddir)/$$unpackdir/install\n$(idir)\n\n\nN\n\n\n\n\nN\n\n" \
+	        | ./installnetpbm \
+	&& cd .. \
+	&& rm -rf $$unpackdir \
+	&& echo "Netpbm $(netpbm-version)" > $@
 
 # SCAMP documentation says ATLAS is a mandatory prerequisite for using
 # SCAMP. We have ATLAS into the project but there are some problems with the
 # libraries that are not yet solved. However, we tried to install it with
 # the option --enable-openblas and it worked (same issue happened with
 # `sextractor'.
-$(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz                \
-                      $(ibidir)/fftw                                  \
-                      $(ibidir)/openblas                              \
-                      $(ibidir)/cdsclient
-	$(call gbuild, $<, scamp-$(scamp-version), static,                \
-                   --enable-threads --enable-openblas                 \
-                   --with-fftw-libdir=$(idir)                         \
-                   --with-fftw-incdir=$(idir)/include                 \
-                   --with-openblas-libdir=$(ildir)                    \
-                   --with-openblas-incdir=$(idir)/include)            \
-	&& cp $(dtexdir)/scamp.tex $(ictdir)/                             \
+$(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz \
+                      $(ibidir)/cdsclient \
+                      $(ibidir)/openblas \
+                      $(ibidir)/fftw
+	$(call gbuild, $<, scamp-$(scamp-version), static, \
+                   --enable-threads --enable-openblas \
+                   --with-fftw-libdir=$(idir) \
+                   --with-fftw-incdir=$(idir)/include \
+                   --with-openblas-libdir=$(ildir) \
+                   --with-openblas-incdir=$(idir)/include) \
+	&& cp $(dtexdir)/scamp.tex $(ictdir)/ \
     && echo "SCAMP $(scamp-version) \citep{scamp}" > $@
 
 # Sextractor crashes complaining about not linking with some ATLAS
@@ -636,27 +636,27 @@ $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz                \
 # installed, it is just necessary to explicity tell sextractor to use it in
 # the configuration step.
 $(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
-                      $(ibidir)/openblas                              \
+                      $(ibidir)/openblas \
                       $(ibidir)/fftw
-	$(call gbuild, $<, sextractor-$(sextractor-version), static,      \
-                   --enable-threads --enable-openblas                 \
-                   --with-openblas-libdir=$(ildir)                    \
-                   --with-openblas-incdir=$(idir)/include)            \
-    && ln -fs $(ibdir)/sex $(ibdir)/sextractor                        \
-    && cp $(dtexdir)/sextractor.tex $(ictdir)/                        \
+	$(call gbuild, $<, sextractor-$(sextractor-version), static, \
+                   --enable-threads --enable-openblas \
+                   --with-openblas-libdir=$(ildir) \
+                   --with-openblas-incdir=$(idir)/include) \
+    && ln -fs $(ibdir)/sex $(ibdir)/sextractor \
+    && cp $(dtexdir)/sextractor.tex $(ictdir)/ \
     && echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
 
 $(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
                  $(ibidir)/fftw
 	$(call gbuild, $<, swarp-$(swarp-version), static, \
-                   --enable-threads)                   \
-    && cp $(dtexdir)/swarp.tex $(ictdir)/              \
+                   --enable-threads) \
+    && cp $(dtexdir)/swarp.tex $(ictdir)/ \
     && echo "SWarp $(swarp-version) \citep{swarp}" > $@
 
 $(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
-	# Option --without-pcre was a suggestion once the configure step was
-	# tried and it failed. It was not recommended but it works!
-	# pcr is a dependency of swig
+        # Option --without-pcre was a suggestion once the configure step
+        # was tried and it failed. It was not recommended but it works!
+        # pcr is a dependency of swig
 	$(call gbuild, $<, swig-$(swig-version), static, --without-pcre) \
 	&& echo "Swig $(swig-version)" > $@
 
@@ -746,11 +746,11 @@ $(itidir)/texlive: reproduce/software/config/installation/texlive.mk \
 	                      | awk '{print $$NF}');
 
           # Package names and versions.
-	  tlmgr info $(texlive-packages) --only-installed | awk                \
-	       '$$1=="package:" {version=0;                                    \
-	                         if($$NF=="tex-gyre") name="texgyre";          \
-	                         else                 name=$$NF}               \
-	        $$1=="cat-version:" {version=$$NF}                             \
-	        $$1=="cat-date:" {if(version==0) version=$$2;                  \
+	  tlmgr info $(texlive-packages) --only-installed | awk \
+	       '$$1=="package:" {version=0; \
+	                         if($$NF=="tex-gyre") name="texgyre"; \
+	                         else                 name=$$NF} \
+	        $$1=="cat-version:" {version=$$NF} \
+	        $$1=="cat-date:" {if(version==0) version=$$2; \
 	                          printf("%s %s\n", name, version)}' >> $@
 	fi

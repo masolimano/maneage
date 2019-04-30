@@ -58,46 +58,46 @@ export MPI_PYTHON3_SITEARCH   :=
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz         \
-                        astroquery-$(astroquery-version).tar.gz           \
-                        astropy-$(astropy-version).tar.gz                 \
-                        beautifulsoup4-$(beautifulsoup4-version).tar.gz   \
-                        certifi-$(certifi-version).tar.gz                 \
-                        cffi-$(cffi-version).tar.gz                       \
-                        chardet-$(chardet-version).tar.gz                 \
-                        cryptography-$(cryptography-version).tar.gz       \
-                        cycler-$(cycler-version).tar.gz                   \
-                        cython-$(cython-version).tar.gz                   \
-                        entrypoints-$(entrypoints-version).tar.gz         \
-                        h5py-$(h5py-version).tar.gz                       \
-                        html5lib-$(html5lib-version).tar.gz               \
-                        idna-$(idna-version).tar.gz                       \
-                        jeepney-$(jeepney-version).tar.gz                 \
-                        kiwisolver-$(kiwisolver-version).tar.gz           \
-                        keyring-$(keyring-version).tar.gz                 \
-                        libffi-$(libffi-version).tar.gz                   \
-                        matplotlib-$(matplotlib-version).tar.gz           \
-                        mpi4py-$(mpi4py-version).tar.gz                   \
-                        mpmath-$(mpmath-version).tar.gz                   \
-                        numpy-$(numpy-version).zip                        \
-                        pkgconfig-$(pypkgconfig-version).tar.gz           \
-                        pip-$(pip-version).tar.gz                         \
-                        pycparser-$(pycparser-version).tar.gz             \
-                        python-$(python-version).tar.gz                   \
+pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz \
+                        astroquery-$(astroquery-version).tar.gz \
+                        astropy-$(astropy-version).tar.gz \
+                        beautifulsoup4-$(beautifulsoup4-version).tar.gz \
+                        certifi-$(certifi-version).tar.gz \
+                        cffi-$(cffi-version).tar.gz \
+                        chardet-$(chardet-version).tar.gz \
+                        cryptography-$(cryptography-version).tar.gz \
+                        cycler-$(cycler-version).tar.gz \
+                        cython-$(cython-version).tar.gz \
+                        entrypoints-$(entrypoints-version).tar.gz \
+                        h5py-$(h5py-version).tar.gz \
+                        html5lib-$(html5lib-version).tar.gz \
+                        idna-$(idna-version).tar.gz \
+                        jeepney-$(jeepney-version).tar.gz \
+                        kiwisolver-$(kiwisolver-version).tar.gz \
+                        keyring-$(keyring-version).tar.gz \
+                        libffi-$(libffi-version).tar.gz \
+                        matplotlib-$(matplotlib-version).tar.gz \
+                        mpi4py-$(mpi4py-version).tar.gz \
+                        mpmath-$(mpmath-version).tar.gz \
+                        numpy-$(numpy-version).zip \
+                        pkgconfig-$(pypkgconfig-version).tar.gz \
+                        pip-$(pip-version).tar.gz \
+                        pycparser-$(pycparser-version).tar.gz \
+                        python-$(python-version).tar.gz \
                         python-dateutil-$(python-dateutil-version).tar.gz \
-                        pyparsing-$(pyparsing-version).tar.gz             \
-                        requests-$(requests-version).tar.gz               \
-                        scipy-$(scipy-version).tar.gz                     \
-                        secretstorage-$(secretstorage-version).tar.gz     \
-                        setuptools-$(setuptools-version).zip              \
-                        setuptools_scm-$(setuptools_scm-version).tar.gz   \
-                        sip_tpv-$(sip_tpv-version).tar.gz                 \
-                        six-$(six-version).tar.gz                         \
-                        soupsieve-$(soupsieve-version).tar.gz             \
-                        sympy-$(sympy-version).tar.gz                     \
-                        urllib3-$(urllib3-version).tar.gz                 \
-                        webencodings-$(webencodings-version).tar.gz       \
-                        virtualenv-$(virtualenv-version).tar.gz           \
+                        pyparsing-$(pyparsing-version).tar.gz \
+                        requests-$(requests-version).tar.gz \
+                        scipy-$(scipy-version).tar.gz \
+                        secretstorage-$(secretstorage-version).tar.gz \
+                        setuptools-$(setuptools-version).zip \
+                        setuptools_scm-$(setuptools_scm-version).tar.gz \
+                        sip_tpv-$(sip_tpv-version).tar.gz \
+                        six-$(six-version).tar.gz \
+                        soupsieve-$(soupsieve-version).tar.gz \
+                        sympy-$(sympy-version).tar.gz \
+                        urllib3-$(urllib3-version).tar.gz \
+                        webencodings-$(webencodings-version).tar.gz \
+                        virtualenv-$(virtualenv-version).tar.gz \
                       , $(tdir)/$(t) )
 pytopurl=https://files.pythonhosted.org/packages
 $(pytarballs): $(tdir)/%:
@@ -225,22 +225,22 @@ $(ibidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
 
 $(ibidir)/python: $(tdir)/python-$(python-version).tar.gz \
                   $(ibidir)/libffi
-	# On Mac systems, the build complains about `clang' specific
-	# features, so we can't use our own GCC build here.
-	if [ x$(on_mac_os) = xyes ]; then                   \
-	  export CC=clang;                                  \
-	  export CXX=clang++;                               \
-	fi;                                                 \
-	$(call gbuild, $<, Python-$(python-version),,       \
-	       --without-ensurepip                          \
-	       --with-system-ffi                            \
-	       --enable-shared)                             \
+        # On Mac systems, the build complains about `clang' specific
+        # features, so we can't use our own GCC build here.
+	if [ x$(on_mac_os) = xyes ]; then \
+	  export CC=clang; \
+	  export CXX=clang++; \
+	fi; \
+	$(call gbuild, $<, Python-$(python-version),, \
+	       --without-ensurepip \
+	       --with-system-ffi \
+	       --enable-shared) \
 	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
-	    {printf "%d.%d\n", $$1, $$2}')                  \
-	&& ln -sf $(ildir)/python$$v $(ildir)/python        \
-	&& ln -sf $(ibdir)/python$$v $(ibdir)/python        \
-	&& rm -rf $(ipydir)                                 \
-	&& mkdir $(ipydir)                                  \
+	    {printf "%d.%d\n", $$1, $$2}') \
+	&& ln -sf $(ildir)/python$$v $(ildir)/python \
+	&& ln -sf $(ibdir)/python$$v $(ibdir)/python \
+	&& rm -rf $(ipydir) \
+	&& mkdir $(ipydir) \
 	&& echo "Python $(python-version)" > $@
 
 
@@ -258,18 +258,18 @@ $(ibidir)/python: $(tdir)/python-$(python-version).tar.gz \
 #   3) Unpacked directory name after unpacking the tarball
 #   4) site.cfg file (optional)
 #   5) Official software name.(for paper).
-pybuild = cd $(ddir); rm -rf $(3);                            \
+pybuild = cd $(ddir); rm -rf $(3); \
 	 if ! $(1) $(2); then echo; echo "Tar error"; exit 1; fi; \
-	 cd $(3);                                                 \
-	 if [ "x$(strip $(4))" != x ]; then                       \
-	   sed -e 's|@LIBDIR[@]|'"$(ildir)"'|'                    \
-	       -e 's|@INCDIR[@]|'"$(idir)/include"'|'             \
-	       $(4) > site.cfg;                                   \
-	 fi;                                                      \
-	 python setup.py build                                    \
-	 && python setup.py install                               \
-	 && cd ..                                                 \
-	 && rm -rf $(3)                                           \
+	 cd $(3); \
+	 if [ "x$(strip $(4))" != x ]; then \
+	   sed -e 's|@LIBDIR[@]|'"$(ildir)"'|' \
+	       -e 's|@INCDIR[@]|'"$(idir)/include"'|' \
+	       $(4) > site.cfg; \
+	 fi; \
+	 python setup.py build \
+	 && python setup.py install \
+	 && cd .. \
+	 && rm -rf $(3) \
 	 && echo "$(5)" > $@
 
 
@@ -285,22 +285,22 @@ $(ipydir)/asn1crypto: $(tdir)/asn1crypto-$(asn1crypto-version).tar.gz \
 	$(call pybuild, tar xf, $<, asn1crypto-$(asn1crypto-version), , \
 	                Asn1crypto $(asn1crypto-version))
 
-$(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz  \
-                      $(ipydir)/beautifulsoup4                         \
-                      $(ipydir)/html5lib                               \
-                      $(ipydir)/requests                               \
-                      $(ipydir)/astropy                                \
-                      $(ipydir)/keyring                                \
+$(ipydir)/astroquery: $(tdir)/astroquery-$(astroquery-version).tar.gz \
+                      $(ipydir)/beautifulsoup4 \
+                      $(ipydir)/html5lib \
+                      $(ipydir)/requests \
+                      $(ipydir)/astropy \
+                      $(ipydir)/keyring \
                       $(ipydir)/numpy
 	$(call pybuild, tar xf, $<, astroquery-$(astroquery-version), ,\
 	                Astroquery $(astroquery-version))
 
 $(ipydir)/astropy: $(tdir)/astropy-$(astropy-version).tar.gz \
-                   $(ipydir)/h5py                            \
-                   $(ipydir)/numpy                           \
+                   $(ipydir)/h5py \
+                   $(ipydir)/numpy \
                    $(ipydir)/scipy
 	$(call pybuild, tar xf, $<, astropy-$(astropy-version)) \
-	&& cp $(dtexdir)/astropy.tex $(ictdir)/                 \
+	&& cp $(dtexdir)/astropy.tex $(ictdir)/ \
 	&& echo "Astropy $(astropy-version) \citep{astropy2013,astropy2018}" > $@
 
 $(ipydir)/beautifulsoup4: $(tdir)/beautifulsoup4-$(beautifulsoup4-version).tar.gz \
@@ -314,8 +314,8 @@ $(ipydir)/certifi: $(tdir)/certifi-$(certifi-version).tar.gz \
 	                Certifi $(certifi-version))
 
 $(ipydir)/cffi: $(tdir)/cffi-$(cffi-version).tar.gz \
-                $(ibidir)/libffi                    \
-                $(ipydir)/pycparser
+                $(ipydir)/pycparser \
+                $(ibidir)/libffi
 	$(call pybuild, tar xf, $<, cffi-$(cffi-version), ,\
 	                cffi $(cffi-version))
 
@@ -325,7 +325,7 @@ $(ipydir)/chardet: $(tdir)/chardet-$(chardet-version).tar.gz \
 	                Chardet $(chardet-version))
 
 $(ipydir)/cryptography: $(tdir)/cryptography-$(cryptography-version).tar.gz \
-                        $(ipydir)/asn1crypto                                \
+                        $(ipydir)/asn1crypto \
                         $(ipydir)/cffi
 	$(call pybuild, tar xf, $<, cryptography-$(cryptography-version), ,\
 	                Cryptography $(cryptography-version))
@@ -338,7 +338,7 @@ $(ipydir)/cycler: $(tdir)/cycler-$(cycler-version).tar.gz \
 $(ipydir)/cython: $(tdir)/cython-$(cython-version).tar.gz \
                   $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, Cython-$(cython-version)) \
-	&& cp $(dtexdir)/cython.tex $(ictdir)/                \
+	&& cp $(dtexdir)/cython.tex $(ictdir)/ \
 	&& echo "Cython $(cython-version) \citep{cython2011}" > $@
 
 $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
@@ -347,19 +347,19 @@ $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
 	                EntryPoints $(entrypoints-version))
 
 $(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
-                $(ibidir)/hdf5                      \
-                $(ipydir)/cython                    \
-                $(ipydir)/pypkgconfig               \
-                $(ipydir)/setuptools
+                $(ipydir)/pypkgconfig \
+                $(ipydir)/setuptools \
+                $(ipydir)/cython \
+                $(ibidir)/hdf5
                 #$(ipydir)/mpi4py # AFTER its problem is fixed.
-	#export HDF5_MPI=ON;       # AFTER its problem is fixed.
-	export HDF5_DIR=$(ildir);                          \
+        #export HDF5_MPI=ON;       # AFTER its problem is fixed.
+	export HDF5_DIR=$(ildir); \
 	$(call pybuild, tar xf, $<, h5py-$(h5py-version), ,\
 	                h5py $(h5py-version))
 
 $(ipydir)/html5lib: $(tdir)/html5lib-$(html5lib-version).tar.gz  \
-                    $(ipydir)/six                                \
-                    $(ipydir)/webencodings
+                    $(ipydir)/webencodings \
+                    $(ipydir)/six
 	$(call pybuild, tar xf, $<, html5lib-$(html5lib-version), ,\
 	                HTML5lib $(html5lib-version))
 
@@ -373,27 +373,27 @@ $(ipydir)/jeepney: $(tdir)/jeepney-$(jeepney-version).tar.gz \
 	$(call pybuild, tar xf, $<, jeepney-$(jeepney-version), ,\
 	                Jeepney $(jeepney-version))
 
-$(ipydir)/keyring: $(tdir)/keyring-$(keyring-version).tar.gz    \
-                   $(ipydir)/entrypoints                        \
-                   $(ipydir)/secretstorage                      \
-                   $(ipydir)/setuptools_scm
+$(ipydir)/keyring: $(tdir)/keyring-$(keyring-version).tar.gz \
+                   $(ipydir)/setuptools_scm \
+                   $(ipydir)/secretstorage \
+                   $(ipydir)/entrypoints
 	$(call pybuild, tar xf, $<, keyring-$(keyring-version), ,\
 	                Keyring $(keyring-version))
 
-$(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz    \
+$(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz \
                       $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, kiwisolver-$(kiwisolver-version), ,\
 	                Kiwisolver $(kiwisolver-version))
 
-$(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
-                      $(ipydir)/cycler                                  \
-                      $(ibidir)/freetype                                \
-                      $(ipydir)/kiwisolver                              \
-                      $(ipydir)/numpy                                   \
-                      $(ipydir)/pyparsing                               \
-                      $(ipydir)/python-dateutil
+$(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz \
+                      $(ipydir)/python-dateutil \
+                      $(ipydir)/kiwisolver \
+                      $(ipydir)/pyparsing \
+                      $(ibidir)/freetype \
+                      $(ipydir)/cycler \
+                      $(ipydir)/numpy
 	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version)) \
-	&& cp $(dtexdir)/matplotlib.tex $(ictdir)/                    \
+	&& cp $(dtexdir)/matplotlib.tex $(ictdir)/ \
 	&& echo "Matplotlib $(matplotlib-version) \citep{matplotlib2007}" > $@
 
 # Currently mpi4py doesn't build because of some conflict with OpenMPI:
@@ -406,10 +406,10 @@ $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz   \
 #
 # But atleast on my system it fails.
 $(ipydir)/mpi4py: $(tdir)/mpi4py-$(mpi4py-version).tar.gz    \
-                  $(ipydir)/setuptools                       \
+                  $(ipydir)/setuptools \
                   $(ibidir)/openmpi
 	$(call pybuild, tar xf, $<, mpi4py-$(mpi4py-version)) \
-	&& cp $(dtexdir)/mpi4py.tex $(ictdir)/                \
+	&& cp $(dtexdir)/mpi4py.tex $(ictdir)/ \
 	&& echo "mpi4py $(mpi4py-version) \citep{mpi4py2011}" > $@
 
 $(ipydir)/mpmath: $(tdir)/mpmath-$(mpmath-version).tar.gz \
@@ -418,18 +418,18 @@ $(ipydir)/mpmath: $(tdir)/mpmath-$(mpmath-version).tar.gz \
 	                mpmath $(mpmath-version))
 
 $(ipydir)/numpy: $(tdir)/numpy-$(numpy-version).zip \
-                 $(ipydir)/setuptools               \
-                 $(ibidir)/openblas                 \
+                 $(ipydir)/setuptools \
+                 $(ibidir)/openblas \
                  $(ibidir)/unzip
-	if [ x$(on_mac_os) = xyes ]; then                                    \
-	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle";     \
-	else                                                                 \
-	  export LDFLAGS="$(LDFLAGS) -shared";                               \
-	fi;                                                                  \
+	if [ x$(on_mac_os) = xyes ]; then \
+	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle"; \
+	else \
+	  export LDFLAGS="$(LDFLAGS) -shared"; \
+	fi; \
 	conf="$$(pwd)/reproduce/software/config/installation/numpy-scipy.cfg"; \
-	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf,            \
-	                Numpy $(numpy-version))                              \
-	&& cp $(dtexdir)/numpy.tex $(ictdir)/                                \
+	$(call pybuild, unzip, $<, numpy-$(numpy-version),$$conf, \
+	                Numpy $(numpy-version)) \
+	&& cp $(dtexdir)/numpy.tex $(ictdir)/ \
 	&& echo "Numpy $(numpy-version) \citep{numpy2011}" > $@
 
 $(ibidir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
@@ -453,40 +453,40 @@ $(ipydir)/pyparsing: $(tdir)/pyparsing-$(pyparsing-version).tar.gz \
 	                PyParsing $(pyparsing-version))
 
 $(ipydir)/python-dateutil: $(tdir)/python-dateutil-$(python-dateutil-version).tar.gz  \
-                           $(ipydir)/setuptools_scm                                   \
+                           $(ipydir)/setuptools_scm \
                            $(ipydir)/six
 	$(call pybuild, tar xf, $<, python-dateutil-$(python-dateutil-version), ,\
 	                python-dateutil $(python-dateutil-version))
 
-$(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz   \
-                    $(ipydir)/certifi                             \
-                    $(ipydir)/chardet                             \
-                    $(ipydir)/idna                                \
-                    $(ipydir)/numpy                               \
-                    $(ipydir)/urllib3
+$(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz \
+                    $(ipydir)/certifi \
+                    $(ipydir)/chardet \
+                    $(ipydir)/urllib3 \
+                    $(ipydir)/numpy \
+                    $(ipydir)/idna
 	$(call pybuild, tar xf, $<, requests-$(requests-version), ,\
 	                Requests $(requests-version))
 
 $(ipydir)/scipy: $(tdir)/scipy-$(scipy-version).tar.gz \
                  $(ipydir)/numpy
-	if [ x$(on_mac_os) = xyes ]; then                                    \
-	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle";     \
-	else                                                                 \
-	  export LDFLAGS="$(LDFLAGS) -shared";                               \
-	fi;                                                                  \
+	if [ x$(on_mac_os) = xyes ]; then \
+	  export LDFLAGS="$(LDFLAGS) -undefined dynamic_lookup -bundle"; \
+	else \
+	  export LDFLAGS="$(LDFLAGS) -shared"; \
+	fi; \
 	conf="$$(pwd)/reproduce/software/config/installation/numpy-scipy.cfg"; \
-	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf)           \
-	&& cp $(dtexdir)/scipy.tex $(ictdir)/                                \
+	$(call pybuild, tar xf, $<, scipy-$(scipy-version),$$conf) \
+	&& cp $(dtexdir)/scipy.tex $(ictdir)/ \
 	&& echo "Scipy $(scipy-version) \citep{scipy2007,scipy2011}" > $@
 
 $(ipydir)/secretstorage: $(tdir)/secretstorage-$(secretstorage-version).tar.gz \
-                         $(ipydir)/cryptography                                \
+                         $(ipydir)/cryptography \
                          $(ipydir)/jeepney
 	$(call pybuild, tar xf, $<, SecretStorage-$(secretstorage-version), ,\
 	                SecretStorage $(secretstorage-version))
 
 $(ipydir)/setuptools: $(tdir)/setuptools-$(setuptools-version).zip \
-                      $(ibidir)/python                             \
+                      $(ibidir)/python \
                       $(ibidir)/unzip
 	$(call pybuild, unzip, $<, setuptools-$(setuptools-version), ,\
 	                Setuptools $(setuptools-version))
@@ -497,10 +497,10 @@ $(ipydir)/setuptools_scm: $(tdir)/setuptools_scm-$(setuptools_scm-version).tar.g
 	                Setuptools-scm $(setuptools_scm-version))
 
 $(ipydir)/sip_tpv: $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz   \
-                  $(ipydir)/mpmath                             \
+                  $(ipydir)/mpmath \
                   $(ipydir)/sympy
 	$(call pybuild, tar xf, $<, sip_tpv-$(sip_tpv-version), ,) \
-	&& cp $(dtexdir)/sip_tpv.tex $(ictdir)/                    \
+	&& cp $(dtexdir)/sip_tpv.tex $(ictdir)/ \
 	&& echo "sip\_tpv $(sip_tpv-version) \citep{sip-tpv}" > $@
 
 
@@ -514,11 +514,11 @@ $(ipydir)/soupsieve: $(tdir)/soupsieve-$(soupsieve-version).tar.gz \
 	$(call pybuild, tar xf, $<, soupsieve-$(soupsieve-version), ,\
 	                SoupSieve $(soupsieve-version))
 
-$(ipydir)/sympy: $(tdir)/sympy-$(sympy-version).tar.gz     \
-                     $(ipydir)/mpmath                      \
-                     $(ipydir)/setuptools
+$(ipydir)/sympy: $(tdir)/sympy-$(sympy-version).tar.gz \
+                     $(ipydir)/setuptools \
+                     $(ipydir)/mpmath
 	$(call pybuild, tar xf, $<, sympy-$(sympy-version), ,) \
-	&& cp $(dtexdir)/sympy.tex $(ictdir)/                  \
+	&& cp $(dtexdir)/sympy.tex $(ictdir)/ \
 	&& echo "SymPy $(sympy-version) \citep{sympy}" > $@
 
 $(ipydir)/urllib3: $(tdir)/urllib3-$(urllib3-version).tar.gz \

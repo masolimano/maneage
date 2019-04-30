@@ -68,12 +68,12 @@ ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
 all: paper.pdf
 else
 all:
-	@if [ "x$(GROUP-NAME)" = x ]; then                          \
+	@if [ "x$(GROUP-NAME)" = x ]; then \
 	  echo "Project is NOT configured for groups, please run"; \
-	  echo "   $$ .local/bin/make";                             \
-	else                                                        \
-	  echo "Project is configured for groups, please run";     \
-	  echo "   $$ ./for-group $(GROUP-NAME) make -j8";          \
+	  echo "   $$ .local/bin/make"; \
+	else \
+	  echo "Project is configured for groups, please run"; \
+	  echo "   $$ ./for-group $(GROUP-NAME) make -j8"; \
 	fi
 endif
 
@@ -110,9 +110,9 @@ endif
 # a `foreach' loop in the next step to explicitly request loading them in
 # the same order that they are defined here (we aren't just using a
 # wild-card like the configuration Makefiles).
-makesrc = initialize                    \
-          download                      \
-          delete-me                     \
+makesrc = initialize \
+          download \
+          delete-me \
           paper
 
 

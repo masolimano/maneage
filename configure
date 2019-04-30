@@ -519,10 +519,10 @@ if [ $rewritepconfig = yes ]; then
     create_file_with_notice $pconf
 
     # Write the values.
-    sed -e's|@bdir[@]|'"$bdir"'|'              \
-        -e's|@indir[@]|'"$indir"'|'            \
-        -e's|@ddir[@]|'"$ddir"'|'              \
-        -e's|@downloader[@]|'"$downloader"'|'  \
+    sed -e's|@bdir[@]|'"$bdir"'|' \
+        -e's|@indir[@]|'"$indir"'|' \
+        -e's|@ddir[@]|'"$ddir"'|' \
+        -e's|@downloader[@]|'"$downloader"'|' \
         -e's|@groupname[@]|'"$reproducible_paper_group_name"'|' \
         $pconf.in >> $pconf
 else
@@ -959,12 +959,12 @@ fi
 # Bash, Make, or AWK. In this step, we'll install such low-level basic
 # tools, but we have to be very portable (and use minimal features in all).
 make -f reproduce/software/make/basic.mk \
-     rpath_command=$rpath_command        \
-     static_build=$static_build          \
-     needs_ldl=$needs_ldl                \
-     on_mac_os=$on_mac_os                \
-     numthreads=$numthreads              \
-     host_cc=$host_cc                    \
+     rpath_command=$rpath_command \
+     static_build=$static_build \
+     needs_ldl=$needs_ldl \
+     on_mac_os=$on_mac_os \
+     numthreads=$numthreads \
+     host_cc=$host_cc \
      -j$numthreads
 
 
@@ -984,10 +984,10 @@ else
     numthreads=$jobs
 fi
 ./.local/bin/make -f reproduce/software/make/high-level.mk \
-                  rpath_command=$rpath_command             \
-                  static_build=$static_build               \
-                  on_mac_os=$on_mac_os                     \
-                  numthreads=$numthreads                   \
+                  rpath_command=$rpath_command \
+                  static_build=$static_build \
+                  on_mac_os=$on_mac_os \
+                  numthreads=$numthreads \
                   -j$numthreads
 
 
@@ -1057,22 +1057,22 @@ function prepare_name_version() {
 
         # Count how many names there are. This is necessary to identify the
         # last element.
-        num=$(.local/bin/cat $@               \
+        num=$(.local/bin/cat $@ \
                   | .local/bin/sed '/^\s*$/d' \
                   | .local/bin/wc -l)
 
         # Put them all in one paragraph.
-        .local/bin/cat $@                                     \
-            | .local/bin/sort                                 \
-            | .local/bin/awk 'NF>0 {                          \
-                  c++;                                        \
-                  if(c==1)                                    \
-                    {                                         \
-                      if('$num'==1) printf("%s", $0);         \
-                      else          printf("%s", $0);         \
-                    }                                         \
+        .local/bin/cat $@ \
+            | .local/bin/sort \
+            | .local/bin/awk 'NF>0 { \
+                  c++; \
+                  if(c==1) \
+                    { \
+                      if('$num'==1) printf("%s", $0); \
+                      else          printf("%s", $0); \
+                    } \
                   else if(c=='$num') printf(" and %s\n", $0); \
-                  else printf(", %s", $0)                     \
+                  else printf(", %s", $0) \
                 }'
     fi
 }
