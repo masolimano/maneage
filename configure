@@ -884,40 +884,78 @@ fi
 #
 # On some GNU/Linux distros, the C compiler is broken into `multilib' (for
 # 32-bit and 64-bit support, with their own headers). On these systems,
-# `sys/cdefs.h' is not available by default. So if the user hasn't manually
-# installed it before this configure script, GCC won't build. We are thus
-# explicitly testing a small C program here to see if the host's C compiler
-# won't have any problems in building GCC.
+# `/usr/include/sys/cdefs.h' and `/usr/lib/libc.a' are not available by
+# default. So GCC will crash with different ugly errors! The only solution
+# is that user manually installs the `multilib' part as root, before
+# running the configure script.
+#
+# Note that `sys/cdefs.h' may be available in other directories (for
+# example `/usr/include/x86_64-linux-gnu/') that are automatically included
+# in an installed GCC. HOWEVER during the build of GCC, all those other
+# directories are ignored. So even if they exist, they are useless.
+warningsleep=0
 if [ $host_cc = 0 ]; then
-    tfile=$sdir/gcc-cdefs-test.c;
-    echo "#include <sys/cdefs.h>"     > $tfile;
-    echo "int main(void){return 0;}" >> $tfile;
-    if gcc $tfile -o $sdir/gcc-cdefs-test &> /dev/null; then
-        rm $sdir/gcc-cdefs-test*;
-    else
+    if ! [ -f /usr/include/sys/cdefs.h ]; then
         host_cc=1
-    fi;
-    rm -f $tfile;
-
-    if [ $host_cc = 1 ]; then
+        warningsleep=1
         cat <<EOF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-This system's C compiler (called with 'gcc') can't include
-'sys/cdefs.h. Because of this, the project can't build its custom GCC to
-ensure better reproducibility. We strongly recommend installing the proper
-package (for your operating system) that installs this necessary file. For
-example on some Debian-based GNU/Linux distros, you need these two
-packages: 'gcc-multilib' and 'g++-multilib'.
-
-However, since GCC is pretty low-level, this configuration script will
-continue in 5 seconds and use your system's C compiler (it won't build a
-custom GCC). But please consider installing the necessary package(s) to
-complete your C compiler, then re-run './configure'.
+This system doesn't have '/usr/include/sys/cdefs.h'. Because of this, the
+project can't build its custom GCC to ensure better reproducibility. We
+strongly recommend installing the proper package (for your operating
+system) that installs this necessary file. For example on some Debian-based
+GNU/Linux distros, you need these two packages: 'gcc-multilib' and
+'g++-multilib'.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    fi
+
+    if [ -f /usr/lib/libc.a ] || [ -f /usr/lib64/libc.a ]; then
+        # This is just a place holder
+        host_cc=$host_cc
+    else
+        host_cc=1
+        warningsleep=1
+        cat <<EOF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+This system doesn't have '/usr/lib/libc.a' or '/usr/lib64/libc.a'. Because
+of this, the project can't build its custom GCC to ensure better
+reproducibility. We strongly recommend installing the proper package (for
+your operating system) that installs this necessary file.
+
+Some possible solutions:
+  1. On some Debian-based GNU/Linux distros, these two packages may fix the
+     problem: 'gcc-multilib' and 'g++-multilib'.
+  2. (BE CAREFUL!) If you have '/usr/lib/x86_64-linux-gnu' but don't have
+     '/usr/lib64', then running the following command might fix this
+     particular problem by making a symbolic link.
+         $ sudo ln -s /usr/lib/x86_64-linux-gnu /usr/lib64
+     After the configure script is finished, delete the link with 'rm
+     /usr/lib64' (you won't need it any more as far as this project is
+     concerned).
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    fi
+
+    if [ $warningsleep = 1 ]; then
+        cat <<EOF
+
+PLEASE SEE THE WARNINGS ABOVE.
+
+Since GCC is pretty low-level, this configuration script will continue in 5
+seconds and use your system's C compiler (it won't build a custom GCC). But
+please consider installing the necessary package(s) to complete your C
+compiler, then re-run './configure'.
 
 EOF
         sleep 5

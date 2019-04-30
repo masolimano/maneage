@@ -16,6 +16,7 @@
 # ------------------------------------------------------------------------
 #
 # Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019 Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # This Makefile is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -806,7 +807,8 @@ $(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
 	&& echo "Git $(git-version)" > $@
 
 $(ibidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
-               $(ibidir)/bash
+               $(ibidir)/bash                    \
+               $(ibidir)/m4
 	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
 
@@ -1038,7 +1040,7 @@ $(ibidir)/gcc: $(gcc-prerequisites) \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
 	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*; \
 	  rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*;\
-	                                                                    \
+	                                 \
 	  ln -fs $(ildir) $(idir)/lib64; \
 	                                 \
 	  cd $(ddir); \
@@ -1076,7 +1078,7 @@ $(ibidir)/gcc: $(gcc-prerequisites) \
 	           patchelf --set-rpath $(ildir) $$f; \
 	         fi; \
 	       done; \
-	     fi; \
-	  ln -sf $(ibdir)/gcc $(ibdir)/cc \
+	     fi \
+	  && ln -sf $(ibdir)/gcc $(ibdir)/cc \
 	  && echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@; \
 	fi

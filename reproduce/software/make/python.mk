@@ -350,7 +350,9 @@ $(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
                 $(ipydir)/pypkgconfig \
                 $(ipydir)/setuptools \
                 $(ipydir)/cython \
-                $(ibidir)/hdf5
+                $(ipydir)/numpy \
+                $(ibidir)/hdf5 \
+                $(ipydir)/six
                 #$(ipydir)/mpi4py # AFTER its problem is fixed.
         #export HDF5_MPI=ON;       # AFTER its problem is fixed.
 	export HDF5_DIR=$(ildir); \
@@ -496,8 +498,9 @@ $(ipydir)/setuptools_scm: $(tdir)/setuptools_scm-$(setuptools_scm-version).tar.g
 	$(call pybuild, tar xf, $<, setuptools_scm-$(setuptools_scm-version), ,\
 	                Setuptools-scm $(setuptools_scm-version))
 
-$(ipydir)/sip_tpv: $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz   \
-                  $(ipydir)/mpmath \
+$(ipydir)/sip_tpv: $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz \
+                  $(ipydir)/astropy \
+                  $(ipydir)/numpy \
                   $(ipydir)/sympy
 	$(call pybuild, tar xf, $<, sip_tpv-$(sip_tpv-version), ,) \
 	&& cp $(dtexdir)/sip_tpv.tex $(ictdir)/ \

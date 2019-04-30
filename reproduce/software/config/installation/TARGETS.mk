@@ -1,6 +1,7 @@
 # Necessary high-level software to build in this project.
 #
 # Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019 Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # Copying and distribution of this file, with or without modification, are
 # permitted in any medium without royalty provided the copyright notice and

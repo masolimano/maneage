@@ -9,6 +9,7 @@
 # ------------------------------------------------------------------------
 #
 # Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019 Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # This Makefile is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -123,7 +124,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         libpng-$(libpng-version).tar.xz \
                         libgit2-$(libgit2-version).tar.gz \
                         libxml2-$(libxml2-version).tar.gz \
-                        netpbm-$(netpbm-version).tgz \
+                        netpbm-$(netpbm-version).tar.gz \
                         openmpi-$(openmpi-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
                         pixman-$(pixman-version).tar.gz \
@@ -183,9 +184,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    mergenames=0
 	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	  elif [ $$n = libxml      ]; then w=ftp://xmlsoft.org/libxml2
-	  elif [ $$n = netpbm      ]; then
-	    mergenames=0
-		w=https://sourceforge.net/projects/netpbm/files/super_stable/$(netpbm-version)/netpbm-$(netpbm-version).tgz/download
+	  elif [ $$n = netpbm      ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = openblas    ]; then
 	    mergenames=0
 	    w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
@@ -207,13 +206,13 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    exit 1
 	  fi
 
-	  # Download the requested tarball. Note that some packages may not
-	  # follow our naming convention (where the package name is merged
-	  # with its version number). In such cases, `w' will be the full
-	  # address, not just the top directory address. But since we are
-	  # storing all the tarballs in one directory, we want it to have
-	  # the same naming convention, so we'll download it to a temporary
-	  # name, then rename that.
+      # Download the requested tarball. Note that some packages may not
+      # follow our naming convention (where the package name is merged
+      # with its version number). In such cases, `w' will be the full
+      # address, not just the top directory address. But since we are
+      # storing all the tarballs in one directory, we want it to have
+      # the same naming convention, so we'll download it to a temporary
+      # name, then rename that.
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"
 	  else                           tarballurl=$$w
 	  fi
@@ -279,7 +278,7 @@ $(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 
 $(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
 	$(call gbuild, $<, fftw-$(fftw-version), static, \
-	               --enable-shared) \
+	               --enable-shared --enable-single) \
 	&& cp $(dtexdir)/fftw.tex $(ictdir)/ \
 	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
@@ -314,7 +313,7 @@ $(ibidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
        # If you really need the Python bindings, try the
        # --with-python-install-dir=DIR option
 	$(call gbuild, $<, libxml2-$(libxml2-version), static, \
-                   --without-python)                       \
+	               --without-python)                       \
 	&& echo "Libxml2 $(libxml2-version)" > $@
 
 $(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
@@ -500,9 +499,17 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
                          $(ipydir)/numpy \
                          $(ibidir)/swig \
                          $(ibidir)/gsl
+        # We are modifying the Makefile in two steps because on Mac OS
+        # system we do not have `/proc/cpuinfo' nor `free'. Since this is
+        # only for the `report.txt', this changes do not causes problems in
+        # running `astrometrynet'
 	cd $(ddir) \
+	&& rm -rf astrometry.net-$(astrometrynet-version) \
 	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
 	&& cd astrometry.net-$(astrometrynet-version) \
+	&& sed -e 's|cat /proc/cpuinfo|echo "Ignoring CPU info"|' \
+	       -e 's|-free|echo "Ignoring RAM info"|' Makefile > Makefile.tmp \
+	&& mv Makefile.tmp Makefile \
 	&& make \
 	&& make py \
 	&& make extra \
@@ -594,7 +601,7 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz \
                   $(ibidir)/libpng \
                   $(ibidir)/unzip
 	if [ x$(on_mac_os) = xyes ]; then \
-	  answers='\n\n\n\n\n\n\n\n\n\n\n\nnone\n\n\n'; \
+	  answers='\n\n$(ildir)\n\n\n\n\n\n$(ildir)/include\n\n$(ildir)/include\n\n$(ildir)/include\nnone\n\n'; \
 	else \
 	  answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n'; \
 	fi; \
@@ -608,7 +615,7 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz \
 	&& rm -rf $(ddir)/$$unpackdir/install \
 	&& make package pkgdir=$(ddir)/$$unpackdir/install \
 	&& printf "$(ddir)/$$unpackdir/install\n$(idir)\n\n\nN\n\n\n\n\nN\n\n" \
-	        | ./installnetpbm \
+	          | ./installnetpbm \
 	&& cd .. \
 	&& rm -rf $$unpackdir \
 	&& echo "Netpbm $(netpbm-version)" > $@
@@ -619,9 +626,9 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz \
 # the option --enable-openblas and it worked (same issue happened with
 # `sextractor'.
 $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz \
-                      $(ibidir)/cdsclient \
-                      $(ibidir)/openblas \
-                      $(ibidir)/fftw
+                 $(ibidir)/cdsclient \
+                 $(ibidir)/openblas \
+                 $(ibidir)/fftw
 	$(call gbuild, $<, scamp-$(scamp-version), static, \
                    --enable-threads --enable-openblas \
                    --with-fftw-libdir=$(idir) \
@@ -639,19 +646,19 @@ $(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
                       $(ibidir)/openblas \
                       $(ibidir)/fftw
 	$(call gbuild, $<, sextractor-$(sextractor-version), static, \
-                   --enable-threads --enable-openblas \
-                   --with-openblas-libdir=$(ildir) \
-                   --with-openblas-incdir=$(idir)/include) \
-    && ln -fs $(ibdir)/sex $(ibdir)/sextractor \
-    && cp $(dtexdir)/sextractor.tex $(ictdir)/ \
-    && echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
+	               --enable-threads --enable-openblas \
+	               --with-openblas-libdir=$(ildir) \
+	               --with-openblas-incdir=$(idir)/include) \
+	&& ln -fs $(ibdir)/sex $(ibdir)/sextractor \
+	&& cp $(dtexdir)/sextractor.tex $(ictdir)/ \
+	&& echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
 
 $(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
                  $(ibidir)/fftw
 	$(call gbuild, $<, swarp-$(swarp-version), static, \
-                   --enable-threads) \
-    && cp $(dtexdir)/swarp.tex $(ictdir)/ \
-    && echo "SWarp $(swarp-version) \citep{swarp}" > $@
+                       --enable-threads) \
+	&& cp $(dtexdir)/swarp.tex $(ictdir)/ \
+	&& echo "SWarp $(swarp-version) \citep{swarp}" > $@
 
 $(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
         # Option --without-pcre was a suggestion once the configure step
