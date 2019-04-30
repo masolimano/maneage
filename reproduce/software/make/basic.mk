@@ -1057,7 +1057,7 @@ $(ibidir)/gcc: $(gcc-prerequisites)   \
 	           patchelf --set-rpath $(ildir) $$f;                      \
 	         fi;                                                       \
 	       done;                                                       \
-	     fi;                                                           \
-	  ln -sf $(ibdir)/gcc $(ibdir)/cc                                  \
+	     fi                                                            \
+	  && ln -sf $(ibdir)/gcc $(ibdir)/cc                               \
 	  && echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@;     \
 	fi
