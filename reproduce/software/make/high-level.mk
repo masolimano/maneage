@@ -595,7 +595,7 @@ endif
 # ask to the user. We give all answers with a pipe to the scripts (configure
 # and install). The questions are different depending on the system (tested
 # on GNU/Linux and Mac OS).
-$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tgz \
+$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tar.gz \
                   $(ibidir)/libjpeg \
                   $(ibidir)/libtiff \
                   $(ibidir)/libxml2 \
