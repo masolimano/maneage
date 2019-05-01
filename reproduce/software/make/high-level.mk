@@ -269,7 +269,8 @@ $(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
                  $(ibidir)/freetype \
                  $(ibidir)/libpng \
                  $(ibidir)/pixman
-	$(call gbuild, $<, cairo-$(cairo-version), static) \
+	$(call gbuild, $<, cairo-$(cairo-version), static, \
+	               --with-x=no) \
 	&& echo "Cairo $(cairo-version)" > $@
 
 $(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
