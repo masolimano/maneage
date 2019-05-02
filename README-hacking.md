@@ -703,6 +703,16 @@ get more advanced in later stages of your work.
      $ git checkout -b template --track template-origin/master
      ```
 
+ - **Updating TeXLive**: Currently the only software package that the
+     template doesn't build is TeXLive (since its not part of the analysis,
+     only for demonstration: building the PDf). So when a new version of
+     TeXLive comes (once every year), if you would like to build the paper,
+     its necessary to update it in your project (otherwise the configure
+     script will crash). To do that, just modify the years in
+     `reproduce/software/config/installation/texlive.conf`, then delete
+     `.build/software/tarballs/install-tl-unx.tar.gz`. The next time you
+     run `./configure`, the new TeXLive will be installed and used.
+
  - **Pre-publication: add notice on reproducibility**: Add a notice
      somewhere prominent in the first page within your paper, informing the
      reader that your research is fully reproducible. For example in the
