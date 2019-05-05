@@ -1067,34 +1067,35 @@ $(ibidir)/gcc: $(gcc-prerequisites) \
 	  ln -fs $(ildir) $(idir)/lib64; \
 	                                 \
 	  cd $(ddir); \
-	  rm -rf gcc-build gcc-$(gcc-version); \
+	  rm -rf gcc-$(gcc-version); \
 	  tar xf $< \
-	  && mkdir $(ddir)/gcc-build \
-	  && cd $(ddir)/gcc-build \
-	  && ../gcc-$(gcc-version)/configure SHELL=$(ibdir)/bash \
-	                    --prefix=$(idir) \
-	                    --with-mpc=$(idir) \
-	                    --with-mpfr=$(idir) \
-	                    --with-gmp=$(idir) \
-	                    --with-isl=$(idir) \
-	                    --with-build-time-tools=$(idir) \
-	                    --enable-shared \
-	                    --disable-multilib \
-	                    --disable-multiarch \
-	                    --enable-threads=posix \
-	                    --with-local-prefix=$(idir) \
-	                    --enable-languages=c,c++,fortran,objc,obj-c++ \
-	                    --disable-libada \
-	                    --disable-nls \
-	                    --enable-default-pie \
-	                    --enable-default-ssp \
-	                    --enable-cet=auto \
-	                    --enable-decimal-float \
-	  && make SHELL=$(ibdir)/bash -j$$(nproc) \
+	  && cd gcc-$(gcc-version) \
+	  && mkdir build \
+	  && cd build \
+	  && ../configure SHELL=$(ibdir)/bash \
+	                  --prefix=$(idir) \
+	                  --with-mpc=$(idir) \
+	                  --with-mpfr=$(idir) \
+	                  --with-gmp=$(idir) \
+	                  --with-isl=$(idir) \
+	                  --with-build-time-tools=$(idir) \
+	                  --enable-shared \
+	                  --enable-lto \
+	                  --disable-multilib \
+	                  --disable-multiarch \
+	                  --enable-threads=posix \
+	                  --with-local-prefix=$(idir) \
+	                  --enable-languages=c,c++,fortran,objc,obj-c++ \
+	                  --disable-libada \
+	                  --disable-nls \
+	                  --enable-default-pie \
+	                  --enable-default-ssp \
+	                  --enable-cet=auto \
+	                  --enable-decimal-float \
+	  && make SHELL=$(ibdir)/bash -j$(numthreads) \
 	  && make SHELL=$(ibdir)/bash install \
-	  && cd .. \
-	  && rm -rf gcc-build gcc-$(gcc-version) \
-	                                         \
+	  && cd ../.. \
+	  && rm -rf gcc-$(gcc-version) \
 	  && if [ "x$(on_mac_os)" != xyes ]; then \
 	       for f in $$(find $(idir)/libexec/gcc); do \
 	         if ldd $$f &> /dev/null; then \
