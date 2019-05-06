@@ -605,7 +605,7 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tar.gz \
 	if [ x$(on_mac_os) = xyes ]; then \
 	  answers='\n\n$(ildir)\n\n\n\n\n\n$(ildir)/include\n\n$(ildir)/include\n\n$(ildir)/include\nnone\n\n'; \
 	else \
-	  answers='\n\n\n\ny\n\n\n\n\n\n\n\n\n\n\n\n\n'; \
+	  answers='\n\n\n\n\n\n\n\n\n\n\n\n\nnone\n\n\n'; \
 	fi; \
 	cd $(ddir) \
 	&& unpackdir=netpbm-$(netpbm-version) \
