@@ -1031,7 +1031,6 @@ ifeq ($(host_cc),1)
 gcc-prerequisites =
 else
 gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
-                    $(ibidir)/binutils \
                     $(ibidir)/isl \
                     $(ibidir)/mpc
 endif
