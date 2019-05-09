@@ -910,33 +910,33 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
         # Note that the metastore -O and -G options used in this template
         # are currently only available in a fork of `metastore' hosted at:
         # https://github.com/mohammad-akhlaghi/metastore
-        current_dir=$$(pwd); \
-        $(call gbuild, $<, metastore-$(metastore-version), static,, \
-                       NO_XATTR=1 V=1,,pwd,PREFIX=$(idir)); \
-        user=$$(whoami); \
-        group=$$(groups | awk '{print $$1}'); \
-        cd $$current_dir; \
-        if [ -f $(ibdir)/metastore ]; then \
-          for f in pre-commit post-checkout; do \
-            sed -e's|@USER[@]|'$$user'|g' \
-                -e's|@GROUP[@]|'$$group'|g' \
-                -e's|@BINDIR[@]|$(ibdir)|g' \
-                -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g' \
-                reproduce/software/bash/git-$$f > .git/hooks/$$f \
-            && chmod +x .git/hooks/$$f \
-            && echo "Metastore (forked) $(metastore-version)" > $@; \
-          done; \
-        else \
-          echo; echo; echo; \
-          echo "*****************"; \
-          echo "metastore couldn't be installed!"; \
-          echo; \
-          echo "Its used for preserving timestamps on Git commits."; \
-          echo "Its useful for development, not simple running of "; \
-          echo "the project. So we won't stop the configuration "; \
-          echo "because it wasn't built."; \
-          echo "*****************"; \
-        fi
+	current_dir=$$(pwd); \
+	$(call gbuild, $<, metastore-$(metastore-version), static,, \
+	               NO_XATTR=1 V=1,,pwd,PREFIX=$(idir)); \
+	user=$$(whoami); \
+	group=$$(groups | awk '{print $$1}'); \
+	cd $$current_dir; \
+	if [ -f $(ibdir)/metastore ]; then \
+	  for f in pre-commit post-checkout; do \
+	    sed -e's|@USER[@]|'$$user'|g' \
+	        -e's|@GROUP[@]|'$$group'|g' \
+	        -e's|@BINDIR[@]|$(ibdir)|g' \
+	        -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g' \
+	        reproduce/software/bash/git-$$f > .git/hooks/$$f \
+	    && chmod +x .git/hooks/$$f \
+	    && echo "Metastore (forked) $(metastore-version)" > $@; \
+	  done; \
+	else \
+	  echo; echo; echo; \
+	  echo "*****************"; \
+	  echo "metastore couldn't be installed!"; \
+	  echo; \
+	  echo "Its used for preserving timestamps on Git commits."; \
+	  echo "Its useful for development, not simple running of "; \
+	  echo "the project. So we won't stop the configuration "; \
+	  echo "because it wasn't built."; \
+	  echo "*****************"; \
+	fi
 
 
 $(ibidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
