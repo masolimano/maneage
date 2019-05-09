@@ -896,49 +896,48 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
                      $(ibidir)/sed \
                      $(needlibbsd)
 
-        # The build command below will change the current directory of this
-        # build, so we'll fix its value here.
-	current_dir=$$(pwd)
-
         # Metastore doesn't have any `./configure' script. So we'll just
         # call `pwd' as a place-holder for the `./configure' command.
         #
         # File attributes are also not available on some systems, since the
         # main purpose here is modification dates (and not attributes),
         # we'll also set the `NO_XATTR' flag.
-	$(call gbuild, $<, metastore-$(metastore-version), static,, \
-	               NO_XATTR=1 V=1,,pwd,PREFIX=$(idir))
-
-        # Write the relevant hooks into this system's Git hooks, so Git
-        # calls metastore properly on every commit and every checkout.
         #
-        # Note that the -O and -G options used here are currently only in a
-        # fork of `metastore' currently hosted at:
+        # After installing Metastore, write the relevant hooks into this
+        # system's Git hooks, while setting the system-specific
+        # directories/files.
+        #
+        # Note that the metastore -O and -G options used in this template
+        # are currently only available in a fork of `metastore' hosted at:
         # https://github.com/mohammad-akhlaghi/metastore
-	user=$$(whoami); \
-	group=$$(groups | awk '{print $$1}'); \
-	cd $$current_dir; \
-	if [ -f $(ibdir)/metastore ]; then \
-	  for f in pre-commit post-checkout; do \
-	    sed -e's|@USER[@]|'$$user'|g' \
-	        -e's|@GROUP[@]|'$$group'|g' \
-	        -e's|@BINDIR[@]|$(ibdir)|g' \
-	        -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g' \
-	        reproduce/software/bash/git-$$f > .git/hooks/$$f; \
-	    chmod +x .git/hooks/$$f; \
-	    echo "Metastore (forked) $(metastore-version)" > $@; \
-	  done; \
-	else \
-	  echo; echo; echo; \
-	  echo "*****************"; \
-	  echo "metastore couldn't be installed!"; \
-	  echo; \
-	  echo "Its used for preserving timestamps on Git commits."; \
-	  echo "Its useful for development, not simple running of "; \
-	  echo "the project. So we won't stop the configuration "; \
-	  echo "because it wasn't built."; \
-	  echo "*****************"; \
-	fi
+        current_dir=$$(pwd); \
+        $(call gbuild, $<, metastore-$(metastore-version), static,, \
+                       NO_XATTR=1 V=1,,pwd,PREFIX=$(idir)); \
+        user=$$(whoami); \
+        group=$$(groups | awk '{print $$1}'); \
+        cd $$current_dir; \
+        if [ -f $(ibdir)/metastore ]; then \
+          for f in pre-commit post-checkout; do \
+            sed -e's|@USER[@]|'$$user'|g' \
+                -e's|@GROUP[@]|'$$group'|g' \
+                -e's|@BINDIR[@]|$(ibdir)|g' \
+                -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g' \
+                reproduce/software/bash/git-$$f > .git/hooks/$$f \
+            && chmod +x .git/hooks/$$f \
+            && echo "Metastore (forked) $(metastore-version)" > $@; \
+          done; \
+        else \
+          echo; echo; echo; \
+          echo "*****************"; \
+          echo "metastore couldn't be installed!"; \
+          echo; \
+          echo "Its used for preserving timestamps on Git commits."; \
+          echo "Its useful for development, not simple running of "; \
+          echo "the project. So we won't stop the configuration "; \
+          echo "because it wasn't built."; \
+          echo "*****************"; \
+        fi
+
 
 $(ibidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
                 $(ibidir)/gmp
