@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Attempt downloading multiple times before crashing whole project. From
 # the top project directory (for the shebang above), this script must be
 # run like this:
