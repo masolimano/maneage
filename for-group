@@ -110,5 +110,5 @@ sg "$1" "umask u+r,u+w,g+r,g+w,o-r,o-w,o-x && $script $options"
 # to all installed software files.
 if [ "x$2" = xconfigure ]; then
     echo "Enabling group writing permission on all installed software..."
-    chmod -R g+w .local/;
+    .local/bin/chmod -R g+w .local/;
 fi
