@@ -151,8 +151,6 @@ export MPI_PYTHON3_SITEARCH   :=
 # are looking for in the outputs.
 .SUFFIXES:
 $(lockdir): | $(BDIR); mkdir $@
-$(texbdir): | $(texdir); mkdir $@
-$(tikzdir): | $(texbdir); mkdir $@ && ln -fs $@ tex/tikz
 
 
 

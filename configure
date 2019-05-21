@@ -176,8 +176,6 @@ done
 #
 # These are defined to help make this script more readable.
 topdir=$(pwd)
-lbdir=.build
-installedlink=.local
 optionaldir="/optional/path"
 adir=reproduce/analysis/config
 cdir=reproduce/software/config
@@ -383,7 +381,7 @@ the source directory. The build directory also needs a relatively large
 amount of free space (atleast serveral Giga-bytes), while the source
 directory (all plain text) will usually be a mega-byte or less.
 
-'$lbdir' (a symbolic link to the build directory) will also be created
+'.build' (a symbolic link to the build directory) will also be created
 during this configuration. It can help encourage you to set the actual
 build directory in a very different address from this one (one that can be
 deleted and has large volume), while having easy access to it from here.
@@ -623,48 +621,88 @@ fi
 
 
 
-# Setup the top-level directories
+# Project's top-level directories
 # -------------------------------
-rm -f $lbdir
-ln -s $bdir $lbdir
-
+#
+# These directories are possibly needed by many steps of process, so to
+# avoid too many directory dependencies throughout the software and
+# analysis Makefiles (thus making them hard to read), we are just building
+# them here
+# Top-level software
 sdir=$bdir/software
 if ! [ -d $sdir ];  then mkdir $sdir; fi
 
+# Software tarballs
 tardir=$sdir/tarballs
 if ! [ -d $tardir ];  then mkdir $tardir; fi
 
+# Installed software
 instdir=$sdir/installed
 if ! [ -d $instdir ]; then mkdir $instdir; fi
 
+# Temporary software un-packing.
 tmpblddir=$sdir/build-tmp
 if ! [ -d $tmpblddir ]; then mkdir $tmpblddir; fi
 
+# To record software versions and citation.
 verdir=$instdir/version-info
 if ! [ -d $verdir ]; then mkdir $verdir; fi
 
+# Program and library versions and citation.
 ibidir=$verdir/proglib
 if ! [ -d $ibidir ]; then mkdir $ibidir; fi
 
+# Python module versions and citation.
 ipydir=$verdir/python
 if ! [ -d $ipydir ]; then mkdir $ipydir; fi
 
+# Used software BibTeX entries.
 ictdir=$verdir/cite
 if ! [ -d $ictdir ]; then mkdir $ictdir; fi
 
+# TeXLive versions.
 itidir=$verdir/tex
 if ! [ -d $itidir ]; then mkdir $itidir; fi
 
+# Top-level LaTeX.
 texdir=$bdir/tex
-if ! [ -d $texdir ]; then mkdir $texdir; ln -s $texdir tex/build; fi
+if ! [ -d $texdir ]; then mkdir $texdir; fi
 
+# LaTeX macros.
 mtexdir=$texdir/macros
 if ! [ -d $mtexdir ]; then mkdir $mtexdir; fi
 
-rm -f $installedlink
-ln -s $instdir $installedlink
+
+# TeX build directory. If built in a group scenario, the TeX build
+# directory must be separate for each member (so they can work on their
+# relevant parts of the paper without conflicting with each other).
+if [ "x$reproducible_paper_group_name" = x ]; then
+    texbdir=$texdir/build
+else
+    user = $(whoami)
+    texbdir = $texdir/build-$user
+fi
+if ! [ -d $texbdir ]; then mkdir $texbdir; fi
+
+# TiKZ (for building figures within LaTeX).
+tikzdir=$texbdir/tikz
+if ! [ -d $tikzdir ]; then mkdir $tikzdir; fi
+
+
+# Set the symbolic links for easy access to the top project build
+# directories. Note that these are put in each user's source/cloned
+# directory, not in the build directory (which can be shared between many
+# users and thus may already exist).
+#
+# Note: if we don't delete them first, it can happen that an extra link
+# will be created in each directory that points to its parent. So to be
+# safe, we are deleting all the links on each re-configure of the project.
+rm -f .build .local tex/build tex/tikz .gnuastro
+ln -s $bdir .build
+ln -s $instdir .local
+ln -s $texdir tex/build
+ln -s $tikzdir tex/tikz
 # --------- Delete for no Gnuastro ---------
-rm -f .gnuastro
 ln -s $topdir/reproduce/software/config/gnuastro .gnuastro
 # ------------------------------------------
 

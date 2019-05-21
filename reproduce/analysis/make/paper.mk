@@ -91,7 +91,7 @@ $(mtexdir)/project.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s)
 # been modified, we don't want to re-build the bibliography, only the final
 # PDF.
 $(texbdir)/paper.bbl: tex/src/references.tex $(mtexdir)/dependencies-bib.tex \
-                      | $(tikzdir) $(texbdir) $(mtexdir)/project.tex
+                      | $(mtexdir)/project.tex
         # If `$(mtexdir)/project.tex' is empty, don't build PDF.
 	@macros=$$(cat $(mtexdir)/project.tex)
 	if [ x"$$macros" != x ]; then
@@ -118,8 +118,7 @@ $(texbdir)/paper.bbl: tex/src/references.tex $(mtexdir)/dependencies-bib.tex \
 # to run everything cleanly from there, it is necessary to add the current
 # directory (top project directory) to the `TEXINPUTS' environment
 # variable.
-paper.pdf: $(mtexdir)/project.tex paper.tex $(texbdir)/paper.bbl \
-	   | $(tikzdir) $(texbdir)
+paper.pdf: $(mtexdir)/project.tex paper.tex $(texbdir)/paper.bbl
 
         # If `$(mtexdir)/project.tex' is empty, don't build the PDF.
 	@macros=$$(cat $(mtexdir)/project.tex)
