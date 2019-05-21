@@ -389,6 +389,7 @@ $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz \
 
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz \
                       $(ipydir)/python-dateutil \
+                      $(ibidir)/imagemagick \
                       $(ipydir)/kiwisolver \
                       $(ipydir)/pyparsing \
                       $(ibidir)/freetype \
