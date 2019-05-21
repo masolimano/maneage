@@ -687,7 +687,7 @@ get more advanced in later stages of your work.
      $ git merge template                  # Import all the work into master.
      ```
 
- - **Adding this project to a fork of your project**: As you and your
+ - **Adding this template to a fork of your project**: As you and your
      colleagues continue your project, it will be necessary to have
      separate forks/clones of it. But when you clone your own project on a
      different system, or a colleague clones it to collaborate with you,
