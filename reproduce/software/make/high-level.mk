@@ -118,6 +118,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         gnuastro-$(gnuastro-version).tar.lz \
                         gsl-$(gsl-version).tar.gz \
                         hdf5-$(hdf5-version).tar.gz \
+                        imagemagick-$(imagemagick-version).tar.xz \
                         install-tl-unx.tar.gz \
                         jpegsrc.$(libjpeg-version).tar.gz \
                         lapack-$(lapack-version).tar.gz \
@@ -176,6 +177,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
 	  elif [ $$n = gnuastro    ]; then w=http://ftp.gnu.org/gnu/gnuastro
 	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
+	  elif [ $$n = imagemagick ]; then
+	    mergenames=0
+	    w=https://www.imagemagick.org/download/releases/ImageMagick-$(imagemagick-version).tar.xz
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = lapack      ]; then w=http://www.netlib.org/lapack
@@ -589,6 +593,14 @@ endif
 	               make check -j$(numthreads)) \
 	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/ \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
+
+$(ibidir)/imagemagick: $(tdir)/imagemagick-$(imagemagick-version).tar.xz \
+                       $(ibidir)/libjpeg \
+                       $(ibidir)/libtiff \
+                       $(ibidir)/zlib
+	$(call gbuild, $<, ImageMagick-$(imagemagick-version), static, \
+		       --without-x --disable-openmp, V=1) \
+	&& echo "ImageMagick $(imagemagick-version)" > $@
 
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
 # This program has a crazy dialogue installation which is override using the
