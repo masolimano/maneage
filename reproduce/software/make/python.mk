@@ -389,10 +389,12 @@ $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz \
 
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz \
                       $(ipydir)/python-dateutil \
+                      $(ibidir)/ghostscript \
                       $(ibidir)/imagemagick \
                       $(ipydir)/kiwisolver \
                       $(ipydir)/pyparsing \
                       $(ibidir)/freetype \
+                      $(itidir)/texlive \
                       $(ipydir)/cycler \
                       $(ipydir)/numpy
 	$(call pybuild, tar xf, $<, matplotlib-$(matplotlib-version)) \
