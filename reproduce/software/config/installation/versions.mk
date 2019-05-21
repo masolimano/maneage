@@ -81,6 +81,7 @@ ghostscript-version = 9.26
 gnuastro-version = 0.9
 gsl-version = 2.5
 hdf5-version = 1.10.5
+imagemagick-version = 7.0.8-46
 libffi-version = 3.2.1
 libjpeg-version = v9b
 libpng-version = 1.6.37
