@@ -679,8 +679,8 @@ if ! [ -d $mtexdir ]; then mkdir $mtexdir; fi
 if [ "x$reproducible_paper_group_name" = x ]; then
     texbdir=$texdir/build
 else
-    user = $(whoami)
-    texbdir = $texdir/build-$user
+    user=$(whoami)
+    texbdir=$texdir/build-$user
 fi
 if ! [ -d $texbdir ]; then mkdir $texbdir; fi
 
