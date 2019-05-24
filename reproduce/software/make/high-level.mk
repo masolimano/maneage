@@ -264,8 +264,9 @@ $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 	cd $$topdir
 
         # Continue the standard build on the customized tarball.
-	$(call gbuild, $$customtar, cfitsio, static, \
-	               --enable-sse2 --enable-reentrant) \
+	$(call gbuild, $$customtar, cfitsio, , \
+	               --enable-sse2 --enable-reentrant, , \
+	               make shared) \
 	&& rm $$customtar \
 	&& echo "CFITSIO $(cfitsio-version)" > $@
 
