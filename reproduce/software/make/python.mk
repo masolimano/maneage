@@ -472,7 +472,7 @@ $(ipydir)/pyyaml: $(tdir)/pyyaml-$(pyyaml-version).tar.gz \
                   $(ibidir)/yaml \
                   $(ipydir)/cython \
                   $(ipydir)/setuptools
-	$(call pybuild, tar xf, $<, pyyaml-$(pyyaml-version), ,\
+	$(call pybuild, tar xf, $<, PyYAML-$(pyyaml-version), ,\
 	                PyYAML $(pyyaml-version))
 
 $(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz \
