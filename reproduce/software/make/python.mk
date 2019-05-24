@@ -86,6 +86,7 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz \
                         python-$(python-version).tar.gz \
                         python-dateutil-$(python-dateutil-version).tar.gz \
                         pyparsing-$(pyparsing-version).tar.gz \
+                        pyyaml-$(pyyaml-version).tar.gz \
                         requests-$(requests-version).tar.gz \
                         scipy-$(scipy-version).tar.gz \
                         secretstorage-$(secretstorage-version).tar.gz \
@@ -140,6 +141,10 @@ $(pytarballs): $(tdir)/%:
 	  elif [ $$n = python           ]; then
 	    mergenames=0
 	    h=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
+	  elif [ $$n = pyyaml           ]; then
+	    mergenames=0
+	    hash=9f/2c/9417b5c774792634834e730932745bc09a7d36754ca00acf1ccd1ac2594d
+	    h=$(pytopurl)/$$hash/PyYAML-$(pyyaml-version).tar.gz
 	  elif [ $$n = libffi         ]; then
 	    mergenames=0
 	    h=ftp://sourceware.org/pub/libffi/libffi-$(libffi-version).tar.gz
@@ -462,6 +467,13 @@ $(ipydir)/python-dateutil: $(tdir)/python-dateutil-$(python-dateutil-version).ta
                            $(ipydir)/six
 	$(call pybuild, tar xf, $<, python-dateutil-$(python-dateutil-version), ,\
 	                python-dateutil $(python-dateutil-version))
+
+$(ipydir)/pyyaml: $(tdir)/pyyaml-$(pyyaml-version).tar.gz \
+                  $(ibidir)/yaml \
+                  $(ipydir)/cython \
+                  $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, pyyaml-$(pyyaml-version), ,\
+	                PyYAML $(pyyaml-version))
 
 $(ipydir)/requests: $(tdir)/requests-$(requests-version).tar.gz \
                     $(ipydir)/certifi \

@@ -136,6 +136,7 @@ pycparser-version = 2.19
 pyparsing-version = 2.3.1
 pypkgconfig-version = 1.5.1
 python-dateutil-version = 2.8.0
+pyyaml-version = 5.1
 requests-version = 2.21.0
 scipy-version = 1.2.1
 secretstorage-version = 3.1.1
