@@ -135,6 +135,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         swig-$(swig-version).tar.gz \
                         tiff-$(libtiff-version).tar.gz \
                         wcslib-$(wcslib-version).tar.bz2 \
+                        yaml-$(yaml-version).tar.gz \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
@@ -203,6 +204,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
+	  elif [ $$n = yaml        ]; then w=pyyaml.org/download/libyaml
 	  else
 	    echo; echo; echo;
 	    echo "'$$n' not recognized as a dependency name to download."
@@ -430,6 +432,9 @@ $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	&& rm -rf OpenBLAS-$(openblas-version) \
 	&& echo "OpenBLAS $(openblas-version)" > $@
 
+$(ibidir)/yaml: $(tdir)/yaml-$(yaml-version).tar.gz
+	$(call gbuild, $<, yaml-$(yaml-version), static) \
+	&& echo "LibYAML $(yaml-version)" > $@
 
 
 
