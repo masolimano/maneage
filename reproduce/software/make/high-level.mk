@@ -640,7 +640,8 @@ $(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
 	&& scons --no-openmp --no-nlopt --header-path=$(idir)/inlcude \
 		 --lib-path=$(idir)/lib makeimage \
 	&& cp makeimage $(ibdir) \
-	&& echo "Imfit $(imfit-version)" > $@
+	&& cp $(dtexdir)/imfit.tex $(ictdir)/ \
+	&& echo "Imfit $(imfit-version) \citep{imfit2015}" > $@
 
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
 # This program has a crazy dialogue installation which is override using the
