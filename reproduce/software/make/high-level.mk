@@ -119,6 +119,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         gsl-$(gsl-version).tar.gz \
                         hdf5-$(hdf5-version).tar.gz \
                         imagemagick-$(imagemagick-version).tar.xz \
+                        imfit-$(imfit-version).tar.gz \
                         install-tl-unx.tar.gz \
                         jpegsrc.$(libjpeg-version).tar.gz \
                         lapack-$(lapack-version).tar.gz \
@@ -182,6 +183,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = imagemagick ]; then
 	    mergenames=0
 	    w=https://www.imagemagick.org/download/releases/ImageMagick-$(imagemagick-version).tar.xz
+	  elif [ $$n = imfit       ]; then
+	    mergenames=0
+	    w=http://www.mpe.mpg.de/~erwin/resources/imfit/imfit-$(imfit-version)-source.tar.gz
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = lapack      ]; then w=http://www.netlib.org/lapack
@@ -611,6 +615,32 @@ $(ibidir)/imagemagick: $(tdir)/imagemagick-$(imagemagick-version).tar.xz \
 	$(call gbuild, $<, ImageMagick-$(imagemagick-version), static, \
 		       --without-x --disable-openmp, V=1) \
 	&& echo "ImageMagick $(imagemagick-version)" > $@
+
+# `imfit doesn't use the traditional `configure' and `make' to install it.
+# Instead of that, it uses `scons'. As a consecuence, the installation is
+# manually done by decompressing the tarball, and running `scons' with the
+# necessary flags. After that, each compiled program (`imfit', `imfit-mcmc'
+# and `makeimage') is copied into the installation directory.'
+$(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
+                 $(ibidir)/cfitsio \
+                 $(ibidir)/fftw \
+                 $(ibidir)/gsl \
+                 $(ibidir)/scons
+	cd $(ddir) \
+	&& unpackdir=imfit-$(imfit-version) \
+	&& rm -rf $$unpackdir \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& cd $$unpackdir \
+	&& scons --no-openmp --no-nlopt \
+	         --header-path=$(idir)/inlcude --lib-path=$(idir)/lib imfit \
+	&& cp imfit $(ibdir) \
+	&& scons --no-openmp --no-nlopt --header-path=$(idir)/inlcude \
+	         --lib-path=$(idir)/lib imfit-mcmc \
+	&& cp imfit-mcmc $(ibdir) \
+	&& scons --no-openmp --no-nlopt --header-path=$(idir)/inlcude \
+		 --lib-path=$(idir)/lib makeimage \
+	&& cp makeimage $(ibdir) \
+	&& echo "Imfit $(imfit-version)" > $@
 
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
 # This program has a crazy dialogue installation which is override using the

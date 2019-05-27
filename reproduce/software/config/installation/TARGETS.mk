@@ -36,7 +36,7 @@
 
 
 # Programs and libraries.
-top-level-programs  = gnuastro scons
+top-level-programs  = gnuastro imfit
 
 # Python libraries/modules.
 top-level-python    = astropy
