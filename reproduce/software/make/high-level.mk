@@ -148,21 +148,13 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 
 	  # Set the top download link of the requested tarball.
 	  mergenames=1
-	  if [ $$n = cfitsio     ]; then
-	    mergenames=0
-	    v=$$(echo $(cfitsio-version) | sed -e's/\.//' \
-	              | awk '{l=length($$1); \
-	                      printf (l==4 ? "%d\n" \
-	                              : (l==3 ? "%d0\n" \
-	                                 : (l==2 ? "%d00\n" \
-                                            : "%d000\n") ), $$1)}')
-	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
-	  elif [ $$n = astrometry  ]; then w=http://astrometry.net/downloads
+	  if   [ $$n = astrometry  ]; then w=http://astrometry.net/downloads
 	  elif [ $$n = atlas       ]; then
 	    mergenames=0
 	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
 	  elif [ $$n = cairo       ]; then w=https://www.cairographics.org/releases
 	  elif [ $$n = cdsclient   ]; then w=http://cdsarc.u-strasbg.fr/ftp/pub/sw
+	  elif [ $$n = cfitsio     ]; then w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
 	  elif [ $$n = cmake       ]; then
 	    mergenames=0
 	    majv=$$(echo $(cmake-version) \
@@ -250,26 +242,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # and create/write into it when the library is successfully built.
 $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
                    $(ibidir)/curl
-
-        # CFITSIO hard-codes the absolute address of cURL's `curl-config'
-        # program (which gives the necessary header and linking
-        # information) into the configure script. So we'll have to modify
-        # it manually before doing the standard build.
-	topdir=$(pwd); cd $(ddir); tar xf $<
-	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
-	sed cfitsio/configure \
-	    -e's|/usr/bin/curl-config|$(ibdir)/curl-config|g' \
-	    > cfitsio/configure_tmp
-	mv cfitsio/configure_tmp cfitsio/configure
-	chmod +x cfitsio/configure
-	tar cf $$customtar cfitsio
-	cd $$topdir
-
-        # Continue the standard build on the customized tarball.
-	$(call gbuild, $$customtar, cfitsio, , \
-	               --enable-sse2 --enable-reentrant, , \
-	               make shared) \
-	&& rm $$customtar \
+	$(call gbuild, $<, cfitsio-$(cfitsio-version), , \
+	               --enable-sse2 --enable-reentrant \
+	               --with-bzip2=$(idir), , make shared) \
 	&& echo "CFITSIO $(cfitsio-version)" > $@
 
 $(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
