@@ -36,7 +36,7 @@
 
 
 # Programs and libraries.
-top-level-programs  = gnuastro
+top-level-programs  = gnuastro scons
 
 # Python libraries/modules.
 top-level-python    = astropy

@@ -130,6 +130,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
                         pixman-$(pixman-version).tar.gz \
                         scamp-$(scamp-version).tar.lz \
+                        scons-$(scons-version).tar.gz \
                         sextractor-$(sextractor-version).tar.lz \
                         swarp-$(swarp-version).tar.gz \
                         swig-$(swig-version).tar.gz \
@@ -199,6 +200,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
 	  elif [ $$n = scamp       ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = scons       ]; then
+	    mergenames=0
+	    w=https://sourceforge.net/projects/scons/files/scons/$(scons-version)/scons-$(scons-version).tar.gz/download
 	  elif [ $$n = sextractor  ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = swarp       ]; then w=https://www.astromatic.net/download/swarp
 	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
@@ -657,6 +661,18 @@ $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz \
                    --with-openblas-incdir=$(idir)/include) \
 	&& cp $(dtexdir)/scamp.tex $(ictdir)/ \
 	&& echo "SCAMP $(scamp-version) \citep{scamp}" > $@
+
+# Since `scons' doesn't use the traditional GNU installation with
+# `configure' and `make' it is installed manually using `python'.
+$(ibidir)/scons: $(tdir)/scons-$(scons-version).tar.gz \
+                 $(ibidir)/python
+	cd $(ddir) \
+	&& unpackdir=scons-$(scons-version) \
+	&& rm -rf $$unpackdir \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& cd $$unpackdir \
+	&& python setup.py install \
+	&& echo "SCons $(scons-version)" > $@
 
 # Sextractor crashes complaining about not linking with some ATLAS
 # libraries. But we can override this issue since we have Openblas

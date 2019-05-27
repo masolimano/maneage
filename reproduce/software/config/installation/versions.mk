@@ -93,6 +93,7 @@ openmpi-version = 4.0.1
 pixman-version = 0.38.0
 python-version = 3.7.3
 scamp-version = 2.6.7
+scons-version = 3.0.5
 sextractor-version = 2.25.0
 swarp-version = 2.38.0
 swig-version = 3.0.12
