@@ -632,7 +632,7 @@ $(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
 	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
 	&& cd $$unpackdir \
 	&& scons --no-openmp --no-nlopt \
-	         --header-path=$(idir)/inlcude --lib-path=$(idir)/lib imfit \
+	         --header-path=$(idir)/include --lib-path=$(idir)/lib imfit \
 	&& cp imfit $(ibdir) \
 	&& scons --no-openmp --no-nlopt --header-path=$(idir)/inlcude \
 	         --lib-path=$(idir)/lib imfit-mcmc \
