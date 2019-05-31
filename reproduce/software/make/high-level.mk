@@ -259,22 +259,22 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
                    $(ibidir)/curl
 
-        # CFITSIO hard-codes the absolute address of cURL's `curl-config'
-        # program (which gives the necessary header and linking
-        # information) into the configure script. So we'll have to modify
-        # it manually before doing the standard build.
+	# CFITSIO hard-codes '@rpath' inside the shared library on
+	# Mac systems. So we need to change it to our library
+	# installation path. It doesn't affect GNU/Linux, so we'll
+	# just do it in any case to keep things clean.
 	topdir=$(pwd); cd $(ddir); tar xf $<
 	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
-	sed cfitsio/configure \
-	    -e's|/usr/bin/curl-config|$(ibdir)/curl-config|g' \
-	    > cfitsio/configure_tmp
-	mv cfitsio/configure_tmp cfitsio/configure
-	chmod +x cfitsio/configure
-	tar cf $$customtar cfitsio
+	cd cfitsio-$(cfitsio-version)
+	sed configure -e's|@rpath|$(ildir)|g' > configure_tmp
+	mv configure_tmp configure
+	chmod +x configure
+	cd ..
+	tar cf $$customtar cfitsio-$(cfitsio-version)
 	cd $$topdir
 
-        # Continue the standard build on the customized tarball.
-	$(call gbuild, $$customtar, cfitsio, , \
+	# Continue the standard build on the customized tarball.
+	$(call gbuild, $$customtar, cfitsio-$(cfitsio-version), , \
 	               --enable-sse2 --enable-reentrant, , \
 	               make shared) \
 	&& rm $$customtar \
