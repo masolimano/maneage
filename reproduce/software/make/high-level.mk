@@ -627,8 +627,11 @@ $(ibidir)/imagemagick: $(tdir)/imagemagick-$(imagemagick-version).tar.xz \
 # `imfit doesn't use the traditional `configure' and `make' to install it.
 # Instead of that, it uses `scons'. As a consecuence, the installation is
 # manually done by decompressing the tarball, and running `scons' with the
-# necessary flags. After that, each compiled program (`imfit', `imfit-mcmc'
-# and `makeimage') is copied into the installation directory.'
+# necessary flags. Despite of that, it is necessary to replace the default
+# searching paths in this script by our installation paths. This is done
+# with `sed', replacing each ocurrence of `/usr/local' by `$(idir)'. After
+# that, each compiled program (`imfit', `imfit-mcmc' and `makeimage') is
+# copied into the installation directory.
 $(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
                  $(ibidir)/cfitsio \
                  $(ibidir)/fftw \
@@ -639,14 +642,18 @@ $(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
 	&& rm -rf $$unpackdir \
 	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
 	&& cd $$unpackdir \
-	&& scons --no-openmp --no-nlopt \
+	&& sed -i 's|/usr/local|$(idir)|g' SConstruct \
+	&& scons --no-openmp  --no-nlopt\
+	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
 	         --header-path=$(idir)/include --lib-path=$(idir)/lib imfit \
 	&& cp imfit $(ibdir) \
-	&& scons --no-openmp --no-nlopt --header-path=$(idir)/inlcude \
-	         --lib-path=$(idir)/lib imfit-mcmc \
+	&& scons --no-openmp  --no-nlopt\
+	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
+	         --header-path=$(idir)/include --lib-path=$(idir)/lib imfit-mcmc \
 	&& cp imfit-mcmc $(ibdir) \
-	&& scons --no-openmp --no-nlopt --header-path=$(idir)/inlcude \
-		 --lib-path=$(idir)/lib makeimage \
+	&& scons --no-openmp  --no-nlopt\
+	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
+	         --header-path=$(idir)/include --lib-path=$(idir)/lib makeimage \
 	&& cp makeimage $(ibdir) \
 	&& cp $(dtexdir)/imfit.tex $(ictdir)/ \
 	&& echo "Imfit $(imfit-version) \citep{imfit2015}" > $@
