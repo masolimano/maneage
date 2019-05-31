@@ -293,8 +293,16 @@ $(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	&& echo "GNU Scientific Library $(gsl-version)" > $@
 
 $(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
+	# In order to build single and double precission libraries of
+	# `fftw', installation of `fftw' is done twice. First time is to
+	# build single precission float libraries and second time is for
+	# building the default double precission float libraries
 	$(call gbuild, $<, fftw-$(fftw-version), static, \
-	               --enable-shared --enable-single) \
+	               --enable-shared enable-threads \
+		       --enable-single --enable-type-prefix) \
+	&& $(call gbuild, $<, fftw-$(fftw-version), static, \
+	               --enable-shared --enable-threads \
+		       --enable-type-prefix) \
 	&& cp $(dtexdir)/fftw.tex $(ictdir)/ \
 	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
