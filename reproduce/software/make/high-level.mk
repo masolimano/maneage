@@ -728,6 +728,14 @@ $(itidir)/texlive: reproduce/software/config/installation/texlive.mk \
 	if [ x"$$res" = x"NOT!" ]; then
 	  echo "" > $@
 	else
+          # To update itself, tlmgr needs a backup directory.
+	  backupdir=$(idir)/texlive/backups
+	  mkdir -p $$backupdir
+
+          # Before checking LaTeX packages, update tlmgr itself.
+	  tlmgr option backupdir $$backupdir
+	  tlmgr update --self
+
           # Install all the extra necessary packages. If LaTeX complains
           # about not finding a command/file/what-ever/XXXXXX, simply run
           # the following command to find which package its in, then add it
@@ -748,6 +756,7 @@ $(itidir)/texlive: reproduce/software/config/installation/texlive.mk \
 	                      | awk '{print $$NF}');
 
           # Package names and versions.
+	  rm -f $@
 	  tlmgr info $(texlive-packages) --only-installed | awk \
 	       '$$1=="package:" {version=0; \
 	                         if($$NF=="tex-gyre") name="texgyre"; \
