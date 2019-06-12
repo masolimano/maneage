@@ -119,6 +119,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         gsl-$(gsl-version).tar.gz \
                         hdf5-$(hdf5-version).tar.gz \
                         imagemagick-$(imagemagick-version).tar.xz \
+                        imfit-$(imfit-version).tar.gz \
                         install-tl-unx.tar.gz \
                         jpegsrc.$(libjpeg-version).tar.gz \
                         lapack-$(lapack-version).tar.gz \
@@ -130,6 +131,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
                         pixman-$(pixman-version).tar.gz \
                         scamp-$(scamp-version).tar.lz \
+                        scons-$(scons-version).tar.gz \
                         sextractor-$(sextractor-version).tar.lz \
                         swarp-$(swarp-version).tar.gz \
                         swig-$(swig-version).tar.gz \
@@ -173,6 +175,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = imagemagick ]; then
 	    mergenames=0
 	    w=https://www.imagemagick.org/download/releases/ImageMagick-$(imagemagick-version).tar.xz
+	  elif [ $$n = imfit       ]; then
+	    mergenames=0
+	    w=http://www.mpe.mpg.de/~erwin/resources/imfit/imfit-$(imfit-version)-source.tar.gz
 	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
 	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
 	  elif [ $$n = lapack      ]; then w=http://www.netlib.org/lapack
@@ -191,6 +196,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
 	  elif [ $$n = scamp       ]; then w=http://akhlaghi.org/src
+	  elif [ $$n = scons       ]; then
+	    mergenames=0
+	    w=https://sourceforge.net/projects/scons/files/scons/$(scons-version)/scons-$(scons-version).tar.gz/download
 	  elif [ $$n = sextractor  ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = swarp       ]; then w=https://www.astromatic.net/download/swarp
 	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
@@ -234,17 +242,28 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # libraries. Therefore, we can't use the easy `.a' suffix for static
 # libraries as targets and there are different conventions for shared
 # library names.
-#
-# For the actual build, the same compiler that built the library will build
-# the programs, so exact knowledge of the suffix is ultimately irrelevant
-# for us here. So, we'll make an `$(ildir)/built' directory and make a
-# simple plain text file in it with the basic library name (an no prefix)
-# and create/write into it when the library is successfully built.
 $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
                    $(ibidir)/curl
-	$(call gbuild, $<, cfitsio-$(cfitsio-version), , \
+
+        # CFITSIO hard-codes '@rpath' inside the shared library on
+        # Mac systems. So we need to change it to our library
+        # installation path. It doesn't affect GNU/Linux, so we'll
+        # just do it in any case to keep things clean.
+	topdir=$(pwd); cd $(ddir); tar xf $<
+	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
+	cd cfitsio-$(cfitsio-version)
+	sed configure -e's|@rpath|$(ildir)|g' > configure_tmp
+	mv configure_tmp configure
+	chmod +x configure
+	cd ..
+	tar cf $$customtar cfitsio-$(cfitsio-version)
+	cd $$topdir
+
+        # Continue the standard build on the customized tarball.
+	$(call gbuild, $$customtar, cfitsio-$(cfitsio-version), , \
 	               --enable-sse2 --enable-reentrant \
 	               --with-bzip2=$(idir), , make shared) \
+	&& rm $$customtar \
 	&& echo "CFITSIO $(cfitsio-version)" > $@
 
 $(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
@@ -260,8 +279,16 @@ $(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
 	&& echo "GNU Scientific Library $(gsl-version)" > $@
 
 $(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
+        # In order to build single and double precission libraries of
+        # `fftw', installation of `fftw' is done twice. First time is to
+        # build single precission float libraries and second time is for
+        # building the default double precission float libraries
 	$(call gbuild, $<, fftw-$(fftw-version), static, \
-	               --enable-shared --enable-single) \
+	               --enable-shared enable-threads \
+		       --enable-single --enable-type-prefix) \
+	&& $(call gbuild, $<, fftw-$(fftw-version), static, \
+	               --enable-shared --enable-threads \
+		       --enable-type-prefix) \
 	&& cp $(dtexdir)/fftw.tex $(ictdir)/ \
 	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
@@ -583,6 +610,50 @@ $(ibidir)/imagemagick: $(tdir)/imagemagick-$(imagemagick-version).tar.xz \
 		       --without-x --disable-openmp, V=1) \
 	&& echo "ImageMagick $(imagemagick-version)" > $@
 
+# `imfit' doesn't use the traditional `configure' and `make' to install
+# itself.  Instead of that, it uses `scons'. As a consequence, the
+# installation is manually done by decompressing the tarball, and running
+# `scons' with the necessary flags. Despite of that, it is necessary to
+# replace the default searching paths in this script by our installation
+# paths. This is done with `sed', replacing each ocurrence of `/usr/local'
+# by `$(idir)'. After that, each compiled program (`imfit', `imfit-mcmc'
+# and `makeimage') is copied into the installation directory and an `rpath'
+# is added.
+$(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
+                 $(ibidir)/cfitsio \
+                 $(ibidir)/scons \
+                 $(ibidir)/fftw \
+                 $(ibidir)/gsl
+	cd $(ddir) \
+	&& unpackdir=imfit-$(imfit-version) \
+	&& rm -rf $$unpackdir \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& cd $$unpackdir \
+	&& sed -i 's|/usr/local|$(idir)|g' SConstruct \
+	&& sed -i 's|/usr/include|$(idir)/include|g' SConstruct \
+	&& sed -i 's|.append(|.insert(0,|g' SConstruct \
+	&& scons --no-openmp  --no-nlopt \
+	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
+	         --header-path=$(idir)/include --lib-path=$(idir)/lib imfit \
+	&& cp imfit $(ibdir) \
+	&& scons --no-openmp  --no-nlopt\
+	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
+	         --header-path=$(idir)/include --lib-path=$(idir)/lib \
+                 imfit-mcmc \
+	&& cp imfit-mcmc $(ibdir) \
+	&& scons --no-openmp  --no-nlopt\
+	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
+	         --header-path=$(idir)/include --lib-path=$(idir)/lib \
+                 makeimage \
+	&& cp makeimage $(ibdir) \
+	&& cp $(dtexdir)/imfit.tex $(ictdir)/ \
+	&& if [ "x$(on_mac_os)" != xyes ]; then \
+	     for p in imfit imfit-mcmc makeimage; do \
+	         patchelf --set-rpath $(ildir) $(ibdir)/$$p; \
+	     done; \
+	   fi \
+	&& echo "Imfit $(imfit-version) \citep{imfit2015}" > $@
+
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
 # This program has a crazy dialogue installation which is override using the
 # printf statment. Each `\n' is a new question that the installation process
@@ -632,6 +703,18 @@ $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz \
                    --with-openblas-incdir=$(idir)/include) \
 	&& cp $(dtexdir)/scamp.tex $(ictdir)/ \
 	&& echo "SCAMP $(scamp-version) \citep{scamp}" > $@
+
+# Since `scons' doesn't use the traditional GNU installation with
+# `configure' and `make' it is installed manually using `python'.
+$(ibidir)/scons: $(tdir)/scons-$(scons-version).tar.gz \
+                 $(ibidir)/python
+	cd $(ddir) \
+	&& unpackdir=scons-$(scons-version) \
+	&& rm -rf $$unpackdir \
+	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& cd $$unpackdir \
+	&& python setup.py install \
+	&& echo "SCons $(scons-version)" > $@
 
 # Sextractor crashes complaining about not linking with some ATLAS
 # libraries. But we can override this issue since we have Openblas

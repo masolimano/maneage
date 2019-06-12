@@ -623,7 +623,7 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.lz \
 # complete.
 #
 # One problem is that Coreutils installs many very basic executables which
-# might be in use by other programs. So we must make sure that when
+# might be in used by other programs. So we must make sure that when
 # Coreutils is being built, no other program is being built in
 # parallel. The solution to the many executables it installs is to make a
 # fake installation (with `DESTDIR'), and get a list of the contents of the
@@ -726,7 +726,8 @@ $(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
 # this project is avoid dependency on the host as much as possible.
 $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
                 $(ibidir)/coreutils \
-                $(ibidir)/openssl #Coreutils: only so cURL is built after it.
+                $(ibidir)/openssl \
+                $(needpatchelf)
 	$(call gbuild, $<, curl-$(curl-version), , \
 	               LIBS="-pthread" \
 	               --with-zlib=$(ildir) \
@@ -744,6 +745,9 @@ $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
 	               --disable-ldaps \
 	               --disable-ldap \
 	               --without-nss, V=1) \
+	&& if [ "x$(needpatchelf)" != x ]; then \
+	     $(ibdir)/patchelf --set-rpath $(ildir) $(ildir)/libcurl.so; \
+	   fi \
 	&& echo "cURL $(curl-version)" > $@
 
 
