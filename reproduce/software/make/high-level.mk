@@ -158,7 +158,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	                              : (l==3 ? "%d0\n" \
 	                                 : (l==2 ? "%d00\n" \
                                             : "%d000\n") ), $$1)}')
-	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio$$v.tar.gz
+	    w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-$(cfitsio-version).tar.gz
 	  elif [ $$n = astrometry  ]; then w=http://astrometry.net/downloads
 	  elif [ $$n = atlas       ]; then
 	    mergenames=0
@@ -643,19 +643,28 @@ $(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
 	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
 	&& cd $$unpackdir \
 	&& sed -i 's|/usr/local|$(idir)|g' SConstruct \
-	&& scons --no-openmp  --no-nlopt\
+	&& sed -i 's|/usr/include|$(idir)/include|g' SConstruct \
+	&& sed -i 's|.append(|.insert(0,|g' SConstruct \
+	&& scons --no-openmp  --no-nlopt \
 	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
 	         --header-path=$(idir)/include --lib-path=$(idir)/lib imfit \
 	&& cp imfit $(ibdir) \
 	&& scons --no-openmp  --no-nlopt\
 	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
-	         --header-path=$(idir)/include --lib-path=$(idir)/lib imfit-mcmc \
+	         --header-path=$(idir)/include --lib-path=$(idir)/lib \
+                 imfit-mcmc \
 	&& cp imfit-mcmc $(ibdir) \
 	&& scons --no-openmp  --no-nlopt\
 	         --cc=$(ibdir)/gcc --cpp=$(ibdir)/g++ \
-	         --header-path=$(idir)/include --lib-path=$(idir)/lib makeimage \
+	         --header-path=$(idir)/include --lib-path=$(idir)/lib \
+                 makeimage \
 	&& cp makeimage $(ibdir) \
 	&& cp $(dtexdir)/imfit.tex $(ictdir)/ \
+	&& if [ "x$(on_mac_os)" != xyes ]; then \
+	     for p in imfit imfit-mcmc makeimage; do \
+	         patchelf --set-rpath $(ildir) $(ibdir)/$$p; \
+	     done; \
+	   fi \
 	&& echo "Imfit $(imfit-version) \citep{imfit2015}" > $@
 
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.

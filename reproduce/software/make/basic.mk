@@ -726,7 +726,8 @@ $(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
 # this project is avoid dependency on the host as much as possible.
 $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
                 $(ibidir)/coreutils \
-                $(ibidir)/openssl #Coreutils: only so cURL is built after it.
+                $(ibidir)/openssl \
+                $(needpatchelf)
 	$(call gbuild, $<, curl-$(curl-version), , \
 	               LIBS="-pthread" \
 	               --with-zlib=$(ildir) \
@@ -744,6 +745,9 @@ $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
 	               --disable-ldaps \
 	               --disable-ldap \
 	               --without-nss, V=1) \
+	&& if [ "x$(needpatchelf)" != x ]; then \
+	     $(ibdir)/patchelf --set-rpath $(ildir) $(ildir)/libcurl.so; \
+	   fi
 	&& echo "cURL $(curl-version)" > $@
 
 
