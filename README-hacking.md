@@ -945,6 +945,24 @@ for the benefit of others.
       [reproducible-paper-output](https://gitlab.com/makhlaghi/reproducible-paper-output)
       repository.
 
+ - **Inspecting status**: When you run `./configure`, several programs and
+     libraries start to get configured and build (in many cases,
+     simultaneously). To understand the building process, or for debuging a
+     strange situation, it is sometimes useful to know which programs are
+     being built at every moment. To do this, you can look into the
+     `.build/software/build-tmp` directory (from the top project
+     directory). This temporary directory is only present while building
+     the software. At every moment, it contains the unpacked source tarball
+     directories of the all the packages that are being built. After a
+     software is successfully installed in your project, it is removed from
+     this directory. To automatically get a listing of this directory every
+     second, you can run the command below (on another terminal while the
+     software are being built). Press `CTRL-C` to stop it and return back
+     to the command-line).
+        ```
+        while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
+        ```
+
 
 
 
