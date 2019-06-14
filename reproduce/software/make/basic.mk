@@ -60,7 +60,7 @@ export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
 export LDFLAGS           := $(rpath_command) -L$(ildir) $(LDFLAGS)
 
 # Define the top-level basic programs (that don't depend on any other).
-top-level-programs = low-level-links wget metastore gcc
+top-level-programs = low-level-links gcc
 all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 
 
@@ -989,17 +989,52 @@ $(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
 
 # GCC and its prerequisites
 # -------------------------
-#
+
+$(ibidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
+               $(ibidir)/gmp
+	$(call gbuild, $<, isl-$(isl-version), static)  \
+	&& echo "GNU Integer Set Library $(isl-version)" > $@
+
+$(ibidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
+               $(ibidir)/mpfr
+	$(call gbuild, $<, mpc-$(mpc-version), static, , , make check)  \
+	&& echo "GNU Multiple Precision Complex library" > $@
+
 # Binutils' assembler (`as') and linker (`ld') will conflict with other
 # compilers. So until then, on Mac systems we'll use the host opertating
 # system's Binutils equivalents by just making links.
-ifeq ($(on_mac_os),yes)
-binutils-prerequisites =
+
+ifeq ($(host_cc),1)
+gcc-prerequisites =
 else
-binutils-prerequisites = $(tdir)/binutils-$(binutils-version).tar.lz \
-                         $(ibidir)/coreutils
+gcc-prerequisites = $(ibidir)/isl \
+                    $(ibidir)/mpc
 endif
-$(ibidir)/binutils: $(binutils-prerequisites)
+
+ifeq ($(on_mac_os),yes)
+binutils-tarball =
+else
+binutils-tarball = $(tdir)/binutils-$(binutils-version).tar.lz
+endif
+
+# The installation of Binutils can cause problems during the build of other
+# programs (http://savannah.nongnu.org/bugs/?56294). Therefore, we'll set
+# all other basic programs as Binutils prerequisite and GCC (the final
+# basic target) ultimately just depends on Binutils.
+$(ibidir)/binutils: $(binutils-tarball) \
+                    $(gcc-prerequisites) \
+                    $(ibidir)/metastore \
+                    $(ibidir)/findutils \
+                    $(ibidir)/diffutils \
+                    $(ibidir)/coreutils \
+                    $(ibidir)/glibtool \
+                    $(ibidir)/which \
+                    $(ibidir)/wget \
+                    $(ibidir)/grep \
+                    $(ibidir)/file \
+                    $(ibidir)/gawk \
+                    $(ibidir)/sed
+
 	if [ x$(on_mac_os) = xyes ]; then \
 	  $(call makelink,as); \
 	  $(call makelink,ar); \
@@ -1012,16 +1047,6 @@ $(ibidir)/binutils: $(binutils-prerequisites)
 	  $(call gbuild, $<, binutils-$(binutils-version), static) \
 	  && echo "GNU Binutils $(binutils-version)" > $@; \
 	fi
-
-$(ibidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
-               $(ibidir)/gmp
-	$(call gbuild, $<, isl-$(isl-version), static)  \
-	&& echo "GNU Integer Set Library $(isl-version)" > $@
-
-$(ibidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
-               $(ibidir)/mpfr
-	$(call gbuild, $<, mpc-$(mpc-version), static, , , make check)  \
-	&& echo "GNU Multiple Precision Complex library" > $@
 
 # We are having issues with `libiberty' (part of GCC) on Mac. So for now,
 # GCC won't be built there. Since almost no natural science paper's
@@ -1037,22 +1062,12 @@ $(ibidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
 # We are currently having problems installing GCC on macOS, so for the time
 # being, if the project is being run on a macOS, we'll just set a link.
 ifeq ($(host_cc),1)
-gcc-prerequisites =
+gcc-tarball =
 else
-gcc-prerequisites = $(tdir)/gcc-$(gcc-version).tar.xz \
-                    $(ibidir)/isl \
-                    $(ibidir)/mpc
+gcc-tarball = $(tdir)/gcc-$(gcc-version).tar.xz
 endif
-$(ibidir)/gcc: $(gcc-prerequisites) \
-               $(ibidir)/sed \
-               $(ibidir)/file \
-               $(ibidir)/gawk \
-               $(ibidir)/grep \
-               $(ibidir)/which \
-               $(ibidir)/glibtool \
-               $(ibidir)/binutils \
-               $(ibidir)/diffutils \
-               $(ibidir)/findutils
+$(ibidir)/gcc: $(gcc-tarball) \
+               $(ibidir)/binutils
 
         # GCC builds is own libraries in '$(idir)/lib64'. But all other
         # libraries are in '$(idir)/lib'. Since this project is only for a
@@ -1083,23 +1098,23 @@ $(ibidir)/gcc: $(gcc-prerequisites) \
 	  && ../configure SHELL=$(ibdir)/bash \
 	                  --prefix=$(idir) \
 	                  --with-mpc=$(idir) \
-	                  --with-mpfr=$(idir) \
 	                  --with-gmp=$(idir) \
 	                  --with-isl=$(idir) \
-	                  --with-build-time-tools=$(idir) \
-	                  --enable-shared \
-	                  --enable-lto \
-	                  --disable-multilib \
-	                  --disable-multiarch \
-	                  --enable-threads=posix \
+	                  --with-mpfr=$(idir) \
 	                  --with-local-prefix=$(idir) \
-	                  --enable-languages=c,c++,fortran,objc,obj-c++ \
-	                  --disable-libada \
-	                  --disable-nls \
+	                  --with-build-time-tools=$(idir) \
+	                  --enable-lto \
+	                  --enable-shared \
+	                  --enable-cet=auto \
 	                  --enable-default-pie \
 	                  --enable-default-ssp \
-	                  --enable-cet=auto \
 	                  --enable-decimal-float \
+	                  --enable-threads=posix \
+	                  --enable-languages=c,c++,fortran,objc,obj-c++ \
+	                  --disable-nls \
+	                  --disable-libada \
+	                  --disable-multilib \
+	                  --disable-multiarch \
 	  && make SHELL=$(ibdir)/bash -j$(numthreads) \
 	  && make SHELL=$(ibdir)/bash install \
 	  && cd ../.. \
