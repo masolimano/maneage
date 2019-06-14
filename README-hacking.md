@@ -650,8 +650,8 @@ get more advanced in later stages of your work.
      from now on.
 
      ```shell
-     git push
-     git push --tags
+     $ git push
+     $ git push --tags
      ```
 
  - **Start your exciting research**: You are now ready to add flesh and
@@ -960,9 +960,9 @@ for the benefit of others.
      software are being built). Press `CTRL-C` to stop it and return back
      to the command-line).
 
-        ```shell
-        while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
-        ```
+     ```shell
+     $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
+     ```
 
 
 
