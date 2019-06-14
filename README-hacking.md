@@ -959,7 +959,8 @@ for the benefit of others.
      second, you can run the command below (on another terminal while the
      software are being built). Press `CTRL-C` to stop it and return back
      to the command-line).
-        ```
+
+        ```shell
         while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
         ```
 
