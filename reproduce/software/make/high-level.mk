@@ -581,11 +581,6 @@ $(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
 	$(call gbuild, $<, ghostscript-$(ghostscript-version)) \
 	&& echo "GPL Ghostscript $(ghostscript-version)" > $@
 
-# The order of dependencies is based on how long they take to build (how
-# large they are): Libgit2 depends on CMake which takes a VERY long time to
-# build. Also, Ghostscript and GSL are relatively large packages. So when
-# building in parallel, its better to have these packages start building
-# early.
 $(ibidir)/gnuastro: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
                     $(ibidir)/ghostscript \
                     $(ibidir)/libjpeg \
