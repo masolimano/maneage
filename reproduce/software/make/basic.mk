@@ -108,6 +108,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.lz \
                         gzip-$(gzip-version).tar.gz \
                         isl-$(isl-version).tar.bz2 \
                         libbsd-$(libbsd-version).tar.xz	\
+                        libiconv-$(libiconv-version).tar.gz \
                         libtool-$(libtool-version).tar.xz \
                         lzip-$(lzip-version).tar.gz \
                         m4-$(m4-version).tar.gz \
@@ -155,6 +156,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = gzip      ]; then w=http://ftp.gnu.org/gnu/gzip; \
 	  elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
 	  elif [ $$n = libbsd    ]; then w=http://libbsd.freedesktop.org/releases; \
+	  elif [ $$n = libiconv  ]; then w=https://ftp.gnu.org/pub/gnu/libiconv; \
 	  elif [ $$n = libtool   ]; then w=http://ftp.gnu.org/gnu/libtool; \
 	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
 	  elif [ $$n = m         ]; then \
@@ -834,12 +836,17 @@ $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
 	   fi \
 	&& echo "GNU AWK $(gawk-version)" > $@
 
+$(ibidir)/libiconv: $(tdir)/libiconv-$(libiconv-version).tar.gz \
+                    $(ibidir)/coreutils
+	$(call gbuild, $<, libiconv-$(libiconv-version), static) \
+	&& echo "GNU libiconv $(libiconv-version)" > $@
+
 $(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
-	       $(ibidir)/coreutils \
+	       $(ibidir)/libiconv \
                $(ibidir)/curl	# Coreutils, so Git is built after it.
 	$(call gbuild, $<, git-$(git-version), static, \
-                       --without-tcltk --with-shell=$(ibdir)/bash, \
-	               V=1) \
+                       --without-tcltk --with-shell=$(ibdir)/bash \
+	               --with-iconv=$(idir), V=1) \
 	&& echo "Git $(git-version)" > $@
 
 $(ibidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
@@ -1022,18 +1029,18 @@ endif
 # all other basic programs as Binutils prerequisite and GCC (the final
 # basic target) ultimately just depends on Binutils.
 $(ibidir)/binutils: $(binutils-tarball) \
-                    $(gcc-prerequisites) \
-                    $(ibidir)/metastore \
-                    $(ibidir)/findutils \
-                    $(ibidir)/diffutils \
-                    $(ibidir)/coreutils \
-                    $(ibidir)/glibtool \
-                    $(ibidir)/which \
-                    $(ibidir)/wget \
-                    $(ibidir)/grep \
-                    $(ibidir)/file \
-                    $(ibidir)/gawk \
-                    $(ibidir)/sed
+                    | $(gcc-prerequisites) \
+                      $(ibidir)/metastore \
+                      $(ibidir)/findutils \
+                      $(ibidir)/diffutils \
+                      $(ibidir)/coreutils \
+                      $(ibidir)/glibtool \
+                      $(ibidir)/which \
+                      $(ibidir)/wget \
+                      $(ibidir)/grep \
+                      $(ibidir)/file \
+                      $(ibidir)/gawk \
+                      $(ibidir)/sed
 
 	if [ x$(on_mac_os) = xyes ]; then \
 	  $(call makelink,as); \
