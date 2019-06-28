@@ -844,8 +844,9 @@ $(ibidir)/libiconv: $(tdir)/libiconv-$(libiconv-version).tar.gz \
 $(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
 	       $(ibidir)/libiconv \
                $(ibidir)/curl	# Coreutils, so Git is built after it.
+	export LDFLAGS=-lcharset; \
 	$(call gbuild, $<, git-$(git-version), static, \
-                       --without-tcltk --with-shell=$(ibdir)/bash \
+	               --without-tcltk --with-shell=$(ibdir)/bash \
 	               --with-iconv=$(idir), V=1) \
 	&& echo "Git $(git-version)" > $@
 
