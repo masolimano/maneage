@@ -18,4 +18,4 @@
 # permitted in any medium without royalty provided the copyright notice and
 # this notice are preserved.  This file is offered as-is, without any
 # warranty.
-pdf-build-final = yes
+pdf-build-final = 

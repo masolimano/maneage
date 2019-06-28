@@ -99,6 +99,7 @@ scons-version = 3.0.5
 sextractor-version = 2.25.0
 swarp-version = 2.38.0
 swig-version = 3.0.12
+tides-version = 2.0
 yaml-version = 0.2.2
 
 

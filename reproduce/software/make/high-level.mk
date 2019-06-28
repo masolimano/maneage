@@ -135,6 +135,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         sextractor-$(sextractor-version).tar.lz \
                         swarp-$(swarp-version).tar.gz \
                         swig-$(swig-version).tar.gz \
+			tides-$(tides-version).tar.gz \
                         tiff-$(libtiff-version).tar.gz \
                         wcslib-$(wcslib-version).tar.bz2 \
                         yaml-$(yaml-version).tar.gz \
@@ -202,6 +203,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = sextractor  ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = swarp       ]; then w=https://www.astromatic.net/download/swarp
 	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
+	  elif [ $$n = tides       ]; then w=http://akhlaghi.org/src
 	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
 	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	  elif [ $$n = yaml        ]; then w=pyyaml.org/download/libyaml
@@ -439,6 +441,10 @@ $(ibidir)/yaml: $(tdir)/yaml-$(yaml-version).tar.gz
 	&& echo "LibYAML $(yaml-version)" > $@
 
 
+$(ibidir)/tides: $(tdir)/tides-$(tides-version).tar.gz
+	$(call gbuild, $<, tides-$(tides-version), static,\
+	               --with-gmp=$(idir) --with-mpfr=$(idir)) \
+	&& echo "TIDES $(tides-version)" > $@
 
 # Libraries with special attention on Mac OS
 # ------------------------------------------
@@ -532,6 +538,9 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
 	&& rm -rf astrometry.net-$(astrometrynet-version) \
 	&& cp $(dtexdir)/astrometrynet.tex $(ictdir)/ \
 	&& echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
+
+
+
 
 # cdsclient is a set of software written in c to interact with astronomical
 # database servers. It is a dependency of `scamp' to be able to download
