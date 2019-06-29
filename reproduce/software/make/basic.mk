@@ -837,7 +837,7 @@ $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
 	&& echo "GNU AWK $(gawk-version)" > $@
 
 $(ibidir)/libiconv: $(tdir)/libiconv-$(libiconv-version).tar.gz \
-                    $(ibidir)/coreutils
+                    $(ibidir)/pkg-config
 	$(call gbuild, $<, libiconv-$(libiconv-version), static) \
 	&& echo "GNU libiconv $(libiconv-version)" > $@
 
