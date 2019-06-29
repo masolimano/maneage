@@ -135,7 +135,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         sextractor-$(sextractor-version).tar.lz \
                         swarp-$(swarp-version).tar.gz \
                         swig-$(swig-version).tar.gz \
-			tides-$(tides-version).tar.gz \
+                        tides-$(tides-version).tar.gz \
                         tiff-$(libtiff-version).tar.gz \
                         wcslib-$(wcslib-version).tar.bz2 \
                         yaml-$(yaml-version).tar.gz \
@@ -236,6 +236,11 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 
 
 
+
+
+
+
+
 # Libraries
 # ---------
 #
@@ -244,105 +249,6 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # libraries. Therefore, we can't use the easy `.a' suffix for static
 # libraries as targets and there are different conventions for shared
 # library names.
-$(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
-                   $(ibidir)/curl
-
-        # CFITSIO hard-codes '@rpath' inside the shared library on
-        # Mac systems. So we need to change it to our library
-        # installation path. It doesn't affect GNU/Linux, so we'll
-        # just do it in any case to keep things clean.
-	topdir=$(pwd); cd $(ddir); tar xf $<
-	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
-	cd cfitsio-$(cfitsio-version)
-	sed configure -e's|@rpath|$(ildir)|g' > configure_tmp
-	mv configure_tmp configure
-	chmod +x configure
-	cd ..
-	tar cf $$customtar cfitsio-$(cfitsio-version)
-	cd $$topdir
-
-        # Continue the standard build on the customized tarball.
-	$(call gbuild, $$customtar, cfitsio-$(cfitsio-version), , \
-	               --enable-sse2 --enable-reentrant \
-	               --with-bzip2=$(idir), , make shared) \
-	&& rm $$customtar \
-	&& echo "CFITSIO $(cfitsio-version)" > $@
-
-$(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
-                 $(ibidir)/freetype \
-                 $(ibidir)/libpng \
-                 $(ibidir)/pixman
-	$(call gbuild, $<, cairo-$(cairo-version), static, \
-	               --with-x=no) \
-	&& echo "Cairo $(cairo-version)" > $@
-
-$(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
-	$(call gbuild, $<, gsl-$(gsl-version), static) \
-	&& echo "GNU Scientific Library $(gsl-version)" > $@
-
-$(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
-        # In order to build single and double precission libraries of
-        # `fftw', installation of `fftw' is done twice. First time is to
-        # build single precission float libraries and second time is for
-        # building the default double precission float libraries
-	$(call gbuild, $<, fftw-$(fftw-version), static, \
-	               --enable-shared enable-threads \
-		       --enable-single --enable-type-prefix) \
-	&& $(call gbuild, $<, fftw-$(fftw-version), static, \
-	               --enable-shared --enable-threads \
-		       --enable-type-prefix) \
-	&& cp $(dtexdir)/fftw.tex $(ictdir)/ \
-	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
-
-# Freetype is necessary to install matplotlib
-$(ibidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
-	                $(ibidir)/libpng
-	$(call gbuild, $<, freetype-$(freetype-version), static) \
-	&& echo "FreeType $(freetype-version)" > $@
-
-$(ibidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
-                $(ibidir)/openmpi
-	export CC=mpicc; \
-	export FC=mpif90; \
-	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
-	               --enable-parallel \
-	               --enable-fortran, -j$(numthreads) V=1) \
-	&& echo "HDF5 library $(hdf5-version)" > $@
-
-$(ibidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
-	$(call gbuild, $<, jpeg-9b, static) \
-	&& echo "Libjpeg $(libjpeg-version)" > $@
-
-$(ibidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
-	$(call gbuild, $<, libpng-$(libpng-version), static) \
-	&& echo "Libpng $(libpng-version)" > $@
-
-$(ibidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
-       # The libxml2 tarball also contains Python bindings which are built and
-       # installed to a system directory by default. If you don't need the Python
-       # bindings, the easiest solution is to compile without Python support:
-       # ./configure --without-python
-       # If you really need the Python bindings, try the
-       # --with-python-install-dir=DIR option
-	$(call gbuild, $<, libxml2-$(libxml2-version), static, \
-	               --without-python)                       \
-	&& echo "Libxml2 $(libxml2-version)" > $@
-
-$(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
-	$(call gbuild, $<, pixman-$(pixman-version), static) \
-	&& echo "Pixman $(pixman-version)" > $@
-
-$(ibidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
-                   $(ibidir)/libjpeg
-	$(call gbuild, $<, tiff-$(libtiff-version), static, \
-	               --disable-webp --disable-zstd) \
-	&& echo "Libtiff $(libtiff-version)" > $@
-
-$(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
-	$(call gbuild, $<, openmpi-$(openmpi-version), static, , \
-	               -j$(numthreads) V=1) \
-	&& echo "Open MPI $(openmpi-version)" > $@
-
 $(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
 
@@ -423,6 +329,96 @@ $(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	  echo "ATLAS $(atlas-version)" > $@; \
 	fi
 
+$(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
+                   $(ibidir)/curl
+
+        # CFITSIO hard-codes '@rpath' inside the shared library on
+        # Mac systems. So we need to change it to our library
+        # installation path. It doesn't affect GNU/Linux, so we'll
+        # just do it in any case to keep things clean.
+	topdir=$(pwd); cd $(ddir); tar xf $<
+	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
+	cd cfitsio-$(cfitsio-version)
+	sed configure -e's|@rpath|$(ildir)|g' > configure_tmp
+	mv configure_tmp configure
+	chmod +x configure
+	cd ..
+	tar cf $$customtar cfitsio-$(cfitsio-version)
+	cd $$topdir
+
+        # Continue the standard build on the customized tarball.
+	$(call gbuild, $$customtar, cfitsio-$(cfitsio-version), , \
+	               --enable-sse2 --enable-reentrant \
+	               --with-bzip2=$(idir), , make shared) \
+	&& rm $$customtar \
+	&& echo "CFITSIO $(cfitsio-version)" > $@
+
+$(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
+                 $(ibidir)/freetype \
+                 $(ibidir)/libpng \
+                 $(ibidir)/pixman
+	$(call gbuild, $<, cairo-$(cairo-version), static, \
+	               --with-x=no) \
+	&& echo "Cairo $(cairo-version)" > $@
+
+$(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
+        # In order to build single and double precission libraries of
+        # `fftw', installation of `fftw' is done twice. First time is to
+        # build single precission float libraries and second time is for
+        # building the default double precission float libraries
+	$(call gbuild, $<, fftw-$(fftw-version), static, \
+	               --enable-shared enable-threads \
+		       --enable-single --enable-type-prefix) \
+	&& $(call gbuild, $<, fftw-$(fftw-version), static, \
+	               --enable-shared --enable-threads \
+		       --enable-type-prefix) \
+	&& cp $(dtexdir)/fftw.tex $(ictdir)/ \
+	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
+
+# Freetype is necessary to install matplotlib
+$(ibidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
+	                $(ibidir)/libpng
+	$(call gbuild, $<, freetype-$(freetype-version), static) \
+	&& echo "FreeType $(freetype-version)" > $@
+
+$(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
+	$(call gbuild, $<, gsl-$(gsl-version), static) \
+	&& echo "GNU Scientific Library $(gsl-version)" > $@
+
+$(ibidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
+                $(ibidir)/openmpi
+	export CC=mpicc; \
+	export FC=mpif90; \
+	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
+	               --enable-parallel \
+	               --enable-fortran, -j$(numthreads) V=1) \
+	&& echo "HDF5 library $(hdf5-version)" > $@
+
+$(ibidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
+	$(call gbuild, $<, jpeg-9b, static) \
+	&& echo "Libjpeg $(libjpeg-version)" > $@
+
+$(ibidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
+	$(call gbuild, $<, libpng-$(libpng-version), static) \
+	&& echo "Libpng $(libpng-version)" > $@
+
+$(ibidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
+                   $(ibidir)/libjpeg
+	$(call gbuild, $<, tiff-$(libtiff-version), static, \
+	               --disable-webp --disable-zstd) \
+	&& echo "Libtiff $(libtiff-version)" > $@
+
+$(ibidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
+       # The libxml2 tarball also contains Python bindings which are built and
+       # installed to a system directory by default. If you don't need the Python
+       # bindings, the easiest solution is to compile without Python support:
+       # ./configure --without-python
+       # If you really need the Python bindings, try the
+       # --with-python-install-dir=DIR option
+	$(call gbuild, $<, libxml2-$(libxml2-version), static, \
+	               --without-python)                       \
+	&& echo "Libxml2 $(libxml2-version)" > $@
+
 $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	if [ x$(on_mac_os) = xyes ]; then \
 	  export CC=clang; \
@@ -436,15 +432,28 @@ $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	&& rm -rf OpenBLAS-$(openblas-version) \
 	&& echo "OpenBLAS $(openblas-version)" > $@
 
+$(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
+	$(call gbuild, $<, openmpi-$(openmpi-version), static, , \
+	               -j$(numthreads) V=1) \
+	&& echo "Open MPI $(openmpi-version)" > $@
+
+$(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
+	$(call gbuild, $<, pixman-$(pixman-version), static) \
+	&& echo "Pixman $(pixman-version)" > $@
+
+$(ibidir)/tides: $(tdir)/tides-$(tides-version).tar.gz
+	$(call gbuild, $<, tides-$(tides-version), static,\
+	               --with-gmp=$(idir) --with-mpfr=$(idir)) \
+	&& cp $(dtexdir)/tides.tex $(ictdir)/ \
+	&& echo "TIDES $(tides-version) \citep{tides}" > $@
+
 $(ibidir)/yaml: $(tdir)/yaml-$(yaml-version).tar.gz
 	$(call gbuild, $<, yaml-$(yaml-version), static) \
 	&& echo "LibYAML $(yaml-version)" > $@
 
 
-$(ibidir)/tides: $(tdir)/tides-$(tides-version).tar.gz
-	$(call gbuild, $<, tides-$(tides-version), static,\
-	               --with-gmp=$(idir) --with-mpfr=$(idir)) \
-	&& echo "TIDES $(tides-version)" > $@
+
+
 
 # Libraries with special attention on Mac OS
 # ------------------------------------------
@@ -497,6 +506,11 @@ $(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 
         # Write the target file.
 	echo "WCSLIB $(wcslib-version)" > $@
+
+
+
+
+
 
 
 

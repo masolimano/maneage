@@ -103,15 +103,19 @@ curdir   := $(shell echo $$(pwd))
 # itself and doesn't use the local system's default tools. With these
 # environment variables, we are setting it to prefer the software we have
 # build here.
+#
+# `TEXINPUTS': we have to remove all possible user-specified directories to
+# avoid conflicts with existing TeX Live solutions. Later (in `paper.mk'),
+# we are also going to overwrite `TEXINPUTS' just before `pdflatex'.
 .ONESHELL:
 .SHELLFLAGS             = -ec
+export TEXINPUTS       :=
 export CCACHE_DISABLE  := 1
 export PATH            := $(installdir)/bin
 export LD_LIBRARY_PATH := $(installdir)/lib
 export LDFLAGS         := -L$(installdir)/lib
 export SHELL           := $(installdir)/bin/bash
 export CPPFLAGS        := -I$(installdir)/include
-export TEXINPUTS       := $(installdir)/texlive//
 
 
 

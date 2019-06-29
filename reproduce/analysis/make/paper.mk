@@ -98,10 +98,10 @@ $(texbdir)/paper.bbl: tex/src/references.tex $(mtexdir)/dependencies-bib.tex \
 
           # We'll run LaTeX first to generate the `.bcf' file (necessary
           # for `biber') and then run `biber' to generate the `.bbl' file.
-	  p=$$(pwd);
-	  export TEXINPUTS=$$p:$$TEXINPUTS;
+	  p=$$(pwd)
+	  export TEXINPUTS=$$p:
 	  cd $(texbdir);
-	  pdflatex -shell-escape -halt-on-error $$p/paper.tex;
+	  pdflatex -shell-escape -halt-on-error $$p/paper.tex
 	  biber paper
 
 	fi
@@ -126,7 +126,7 @@ paper.pdf: $(mtexdir)/project.tex paper.tex $(texbdir)/paper.bbl
 
           # Go into the top TeX build directory and make the paper.
 	  p=$$(pwd)
-	  export TEXINPUTS=$$p:$$TEXINPUTS
+	  export TEXINPUTS=$$p:
 	  cd $(texbdir)
 	  pdflatex -shell-escape -halt-on-error $$p/paper.tex
 
