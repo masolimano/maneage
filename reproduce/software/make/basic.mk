@@ -966,6 +966,14 @@ $(ibidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
 
 $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
                       $(ibidir)/coreutils
+        # An existing `libiconv' can cause a conflict with `pkg-config',
+        # this is why `libiconv' depends on `pkg-config'. On a clean build,
+        # `pkg-config' is built first. But when we don't have a clean build
+        # (and `libiconv' exists) there will be a problem. So before
+        # re-building `pkg-config', we'll remove any installation of
+        # `libiconv'.
+	rm -f $(ildir)/libiconv*
+
         # Some Mac OS systems may have a version of the GNU C Compiler
         # (GCC) installed that doesn't support some necessary features of
         # building Glib (as part of pkg-config). So to be safe, for Mac
