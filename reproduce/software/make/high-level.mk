@@ -68,8 +68,10 @@ all: $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
 .SHELLFLAGS              := --noprofile --norc -ec
 export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir)
+export CC                := $(ibdir)/gcc
 export SHELL             := $(ibdir)/bash
 export CPPFLAGS          := -I$(idir)/include
+export F77               := $(ibdir)/gfortran
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export LD_RUN_PATH       := $(ildir):$(il64dir)
