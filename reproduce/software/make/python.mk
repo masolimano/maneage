@@ -225,8 +225,18 @@ $(pytarballs): $(tdir)/%:
 # While this Makefile is for Python programs, in some cases, we need
 # certain programs (like Python itself), or libraries for the modules.
 $(ibidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
+
+        # On some Fedora systems, libffi installs in `lib64', not
+        # `lib'. This will cause problems when building setuptools
+        # later. To fix this problem, we'll first check if this has indeed
+        # happened (it exists under `lib64', but not under `lib'). If so,
+        # we'll put a copy of the installed libffi libraries in `lib'.
 	$(call gbuild, $<, libffi-$(libffi-version)) \
-	echo "Libffi $(libffi-version)" > $@
+	&& if [ -f $(idir)/lib64/libffi.a ] \
+	      && [ ! $(idir)/lib/libffi.a ]; then \
+	        cp $(idir)/lib64/libffi* $(ildir)/; \
+	   fi \
+	&& echo "Libffi $(libffi-version)" > $@
 
 $(ibidir)/python: $(tdir)/python-$(python-version).tar.gz \
                   $(ibidir)/libffi
