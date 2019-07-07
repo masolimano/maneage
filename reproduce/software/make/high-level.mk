@@ -69,14 +69,24 @@ all: $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
 export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir)
 export CC                := $(ibdir)/gcc
+export CXX               := $(ibdir)/g++
 export SHELL             := $(ibdir)/bash
-export CPPFLAGS          := -I$(idir)/include
 export F77               := $(ibdir)/gfortran
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export LD_RUN_PATH       := $(ildir):$(il64dir)
 export LD_LIBRARY_PATH   := $(ildir):$(il64dir)
+
+# Building flags:
+#
+# C++ flags: when we build GCC, the C++ standard library needs to link with
+# libiconv. So it is necessary to generically include `-liconv' for all C++
+# builds.
+export CPPFLAGS          := -I$(idir)/include
 export LDFLAGS           := $(rpath_command) -L$(ildir)
+ifeq ($(host_cc),0)
+export CXXFLAGS          := -liconv
+endif
 
 
 # We want the download to happen on a single thread. So we need to define a
@@ -476,37 +486,27 @@ $(ibidir)/yaml: $(tdir)/yaml-$(yaml-version).tar.gz
 $(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
                    $(ibidir)/cmake \
                    $(ibidir)/curl
-        # Build and install the library.
 	$(call cbuild, $<, libgit2-$(libgit2-version), static, \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF \
-	              -DTHREADSAFE=ON )
-
-        # Correct the shared library absolute address on Mac systems.
-	if [ x$(on_mac_os) = xyes ]; then
-	  install_name_tool -id $(ildir)/libgit2.26.dylib \
-	                        $(ildir)/libgit2.26.dylib
-	fi
-
-        # Write the target file.
-	echo "Libgit2 $(libgit2-version)" > $@
+	              -DTHREADSAFE=ON ) \
+	&& if [ x$(on_mac_os) = xyes ]; then \
+	     install_name_tool -id $(ildir)/libgit2.26.dylib \
+	                           $(ildir)/libgit2.26.dylib \
+	   fi \
+	&& echo "Libgit2 $(libgit2-version)" > $@
 
 $(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                   $(ibidir)/cfitsio
-        # Build and install the library.
 	$(call gbuild, $<, wcslib-$(wcslib-version), , \
 	               LIBS="-pthread -lcurl -lm" \
                        --with-cfitsiolib=$(ildir) \
                        --with-cfitsioinc=$(idir)/include \
-                       --without-pgplot --disable-fortran)
-
-        # Correct the shared library absolute address if necessary.
-	if [ x$(on_mac_os) = xyes ]; then
-	  install_name_tool -id $(ildir)/libwcs.6.2.dylib \
-	                        $(ildir)/libwcs.6.2.dylib;
-	fi
-
-        # Write the target file.
-	echo "WCSLIB $(wcslib-version)" > $@
+                       --without-pgplot) \
+	&& if [ x$(on_mac_os) = xyes ]; then \
+	     install_name_tool -id $(ildir)/libwcs.6.2.dylib \
+	                           $(ildir)/libwcs.6.2.dylib; \
+	   fi \
+	&& echo "WCSLIB $(wcslib-version)" > $@
 
 
 
@@ -595,6 +595,7 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	&& cd cmake-$(cmake-version) \
 	&& ./bootstrap --prefix=$(idir) --system-curl --system-zlib \
 	               --system-bzip2 --system-liblzma --no-qt-gui \
+	               --parallel=$(numthreads) \
 	&& make -j$(numthreads) LIBS="$$LIBS -lssl -lcrypto -lz" VERBOSE=1  \
 	&& make install \
 	&& cd .. \
