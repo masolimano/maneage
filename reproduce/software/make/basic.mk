@@ -123,6 +123,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.lz \
                         readline-$(readline-version).tar.gz \
                         sed-$(sed-version).tar.xz \
                         tar-$(tar-version).tar.gz \
+                        texinfo-$(texinfo-version).tar.xz \
                         unzip-$(unzip-version).tar.gz \
                         wget-$(wget-version).tar.lz \
                         which-$(which-version).tar.gz \
@@ -173,6 +174,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  elif [ $$n = readline  ]; then w=http://ftp.gnu.org/gnu/readline; \
 	  elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed; \
 	  elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar; \
+	  elif [ $$n = texinfo   ]; then w=http://ftp.gnu.org/gnu/texinfo; \
 	  elif [ $$n = unzip     ]; then \
 	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//'); \
 	    w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz; \
@@ -767,9 +769,8 @@ $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
 # host system (especially a crash when these libraries are updated on the
 # host), they are disabled here.
 $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
-                $(ibidir)/pkg-config \
                 $(ibidir)/coreutils \
-                $(ibidir)/openssl # Coreutils only so Wget is built after it.
+                $(ibidir)/libiconv
 
         # We need to explicitly disable `libiconv', because of the
         # `pkg-config' and `libiconv' problem.
@@ -787,7 +788,7 @@ $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 	               --without-libidn \
 	               --disable-pcre2 \
 	               --disable-pcre \
-	               --disable-iri ) \
+	               --disable-iri, V=1) \
 	&& echo "GNU Wget $(wget-version)" > $@
 
 
@@ -881,7 +882,8 @@ $(ibidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz \
 	&& echo "Libbsd $(libbsd-version)" > $@
 
 $(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
-              $(ibidir)/coreutils
+              $(ibidir)/coreutils \
+              $(ibidir)/texinfo
 	$(call gbuild, $<, m4-$(m4-version), static) \
 	&& echo "GNU M4 $(m4-version)" > $@
 
@@ -976,7 +978,7 @@ $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
         # (and `libiconv' exists) there will be a problem. So before
         # re-building `pkg-config', we'll remove any installation of
         # `libiconv'.
-	rm -f $(ildir)/libiconv*
+	rm -f $(ildir)/libiconv* $(idir)/include/iconv.h
 
         # Some Mac OS systems may have a version of the GNU C Compiler
         # (GCC) installed that doesn't support some necessary features of
@@ -987,13 +989,22 @@ $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
 	fi; \
 	$(call gbuild, $<, pkg-config-$(pkgconfig-version), static, \
 	               $$compiler --with-internal-glib \
-	               --with-pc-path=$(ildir)/pkgconfig) \
+	               --with-pc-path=$(ildir)/pkgconfig, V=1) \
 	&& echo "pkg-config $(pkgconfig-version)" > $@
 
 $(ibidir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
                $(ibidir)/coreutils
 	$(call gbuild, $<, sed-$(sed-version), static) \
 	&& echo "GNU Sed $(sed-version)" > $@
+
+$(ibidir)/texinfo: $(tdir)/texinfo-$(texinfo-version).tar.xz \
+                   $(ibidir)/bash
+	$(call gbuild, $<, texinfo-$(texinfo-version), static) \
+	&& if [ "x$(needpatchelf)" != x ]; then \
+	     $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/info; \
+	     $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/install-info; \
+	   fi \
+	&& echo "GNU Texinfo $(sed-version)" > $@
 
 $(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
                  $(ibidir)/coreutils
@@ -1014,7 +1025,7 @@ $(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
 
 $(ibidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
                $(ibidir)/gmp
-	$(call gbuild, $<, isl-$(isl-version), static)  \
+	$(call gbuild, $<, isl-$(isl-version), static, , V=1)  \
 	&& echo "GNU Integer Set Library $(isl-version)" > $@
 
 $(ibidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \

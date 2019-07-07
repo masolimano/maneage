@@ -52,6 +52,7 @@ pkgconfig-version = 0.29.2
 readline-version = 8.0
 sed-version = 4.7
 tar-version = 1.32
+texinfo-version = 6.6
 unzip-version = 6.0
 wget-version = 1.20.3
 which-version = 2.21
