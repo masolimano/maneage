@@ -906,6 +906,22 @@ for the benefit of others.
    regularly (after any meaningful change/step/result), while not
    forgetting the following notes.
 
+   - *Commit message*: The commit message is a very important and useful
+      aspect of version control. To make the commit message useful, it
+      would be good if you follow the following convensions. You can see
+      many examples by running `git log` in the `template` branch. If you
+      intend to improve the template by forking it and pushing commits, it
+      is mandatory to follow these guidelines. 1) No line should be more
+      than 75 characters (to enable easy reading of the message when you
+      run `git log`). 2) The first line is the title of the commit and
+      should summarize it (so `git log --oneline` can be useful). The title
+      should also not end with a point (`.`). 3) After the title leave an
+      empty line and start the body of your message (possibly containing
+      many paragraphs). 4) Describe the context of your commit (the problem
+      it is trying to solve) as much as possible before going onto how you
+      solved it. One useful suggestion is to always start the main body of
+      your commit with "Until now".
+
    - *Tags*: To help manage the history, tag all major commits. This helps
       make a more human-friendly output of `git describe`: for example
       `v1-4-gaafdb04` states that we are on commit `aafdb04` which is 4
