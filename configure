@@ -710,6 +710,45 @@ ln -s $topdir/reproduce/software/config/gnuastro .gnuastro
 
 
 
+# Check for C/C++ compilers
+# -------------------------
+#
+# To build the software, we'll need some basic tools (the compilers in
+# particular) to be present.
+hascc=0;
+if type cc > /dev/null 2>/dev/null; then
+    if type c++ > /dev/null 2>/dev/null; then hascc=1; fi
+else
+    if type gcc > /dev/null 2>/dev/null; then
+        if type g++ > /dev/null 2>/dev/null; then hascc=1; fi
+    else
+        if type clang > /dev/null 2>/dev/null; then
+            if type clang++ > /dev/null 2>/dev/null; then hascc=1; fi
+        fi
+    fi
+fi
+if [ $hascc = 0 ]; then
+    cat <<EOF
+______________________________________________________
+!!!!!!!       C/C++ Compiler NOT FOUND         !!!!!!!
+
+To build the project's software, the host system needs to have basic C and
+C++ compilers. The executables that were checked are 'cc', 'gcc' and
+'clang' for a C compiler, and 'c++', 'g++' and 'clang++' for a C++
+compiler. If you have a relevant compiler that is not checked, please get
+in touch with us (with the form below) so we add it:
+
+  https://savannah.nongnu.org/support/?func=additem&group=reproduce
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    exit 1
+fi
+
+
+
+
+
 # See if the C compiler can build static libraries
 # ------------------------------------------------
 
@@ -997,6 +1036,44 @@ compiler, then re-run './configure'.
 
 EOF
         sleep 5
+    fi
+fi
+
+
+
+
+
+# Fortran compiler
+# ----------------
+#
+# If GCC is ultimately build within the project, the user won't need to
+# have a fortran compiler, we'll build it internally for high-level
+# programs. However, when the host C compiler is to be used, the user needs
+# to have a Fortran compiler available.
+if [ $host_cc = 1 ]; then
+    hasfc=0;
+    if type gfortran > /dev/null 2>/dev/null; then hasfc=1; fi
+
+    if [ $hasfc = 0 ]; then
+        cat <<EOF
+______________________________________________________
+!!!!!!!      Fortran Compiler NOT FOUND        !!!!!!!
+
+Because the project won't be building its own GCC (which includes a Fortran
+compiler), you need to have a Fortran compiler available. Fortran is
+commonly necessary for many lower-level scientific programs. Currently we
+search for 'gfortran'. If you have a Fortran compiler that is not checked,
+please get in touch with us (with the form below) so we add it:
+
+  https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+Note: GCC will not be built because you are either using the '--host-cc'
+option, or you are using an operating system that currently has bugs when
+building GCC.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+        exit 1
     fi
 fi
 
