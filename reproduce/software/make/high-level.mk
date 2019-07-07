@@ -780,6 +780,18 @@ $(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
 # the final PDF). So we'll make a simple ASCII file called
 # `texlive-ready-tlmgr' and use its contents to mark if we can use it or
 # not.
+
+# TeX Live mirror
+# ---------------
+#
+# The automatic mirror finding fails sometimes. So we'll manually set it to
+# use a fixed mirror. I first tried the LaTeX root webpage
+# (`ftp.dante.de'), however, it is far too slow (when I tested it). The
+# `rit.edu' server seems to be a good alternative (given the importance of
+# NY on the internet infrastructure).
+tlmirror=http://mirrors.rit.edu/CTAN/systems/texlive/tlnet
+
+# The core TeX Live system.
 $(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
                     reproduce/software/config/installation/texlive.conf
 
@@ -797,7 +809,7 @@ $(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
         # TeX Live's installation may fail due to any reason. But TeX Live
         # is optional (only necessary for building the final PDF). So we
         # don't want the configure script to fail if it can't run.
-	if ./install-tl --profile=texlive.conf; then
+	if ./install-tl --profile=texlive.conf -repository $(tlmirror); then
 
           # Put a symbolic link of the TeX Live executables in `ibdir'. The
           # main problem is that the year and build system (for example
@@ -837,7 +849,7 @@ $(itidir)/texlive: reproduce/software/config/installation/texlive.mk \
 
           # Before checking LaTeX packages, update tlmgr itself.
 	  tlmgr option backupdir $$backupdir
-	  tlmgr update --self
+	  tlmgr -repository $(tlmirror) update --self
 
           # Install all the extra necessary packages. If LaTeX complains
           # about not finding a command/file/what-ever/XXXXXX, simply run
