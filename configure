@@ -1139,8 +1139,9 @@ fi
 ./.local/bin/make -f reproduce/software/make/high-level.mk \
                   rpath_command=$rpath_command \
                   static_build=$static_build \
-                  on_mac_os=$on_mac_os \
                   numthreads=$numthreads \
+                  on_mac_os=$on_mac_os \
+                  host_cc=$host_cc \
                   -j$numthreads
 
 

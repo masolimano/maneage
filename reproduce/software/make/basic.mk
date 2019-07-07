@@ -1153,7 +1153,7 @@ $(ibidir)/gcc: $(gcc-tarball) \
 	  && cd ../.. \
 	  && rm -rf gcc-$(gcc-version) \
 	  && if [ "x$(on_mac_os)" != xyes ]; then \
-	       for f in $$(find $(idir)/libexec/gcc); do \
+	       for f in $$(find $(idir)/libexec/gcc) $(ildir)/libstdc++**; do \
 	         if ldd $$f &> /dev/null; then \
 	           patchelf --set-rpath $(ildir) $$f; \
 	         fi; \
