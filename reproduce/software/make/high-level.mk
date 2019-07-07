@@ -364,16 +364,15 @@ $(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
 	&& echo "Cairo $(cairo-version)" > $@
 
 $(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
-        # In order to build single and double precission libraries of
-        # `fftw', installation of `fftw' is done twice. First time is to
-        # build single precission float libraries and second time is for
-        # building the default double precission float libraries
+        # FFTW's single and double precission libraries must be built
+        # independently: for the the single-precision library, we need to
+        # add the `--enable-float' option. We will build this first, then
+        # the default double-precision library.
+	confop="--enable-shared --enable-threads --enable-avx --enable-sse2"
 	$(call gbuild, $<, fftw-$(fftw-version), static, \
-	               --enable-shared enable-threads \
-		       --enable-single --enable-type-prefix) \
+	               $$confop --enable-float) \
 	&& $(call gbuild, $<, fftw-$(fftw-version), static, \
-	               --enable-shared --enable-threads \
-		       --enable-type-prefix) \
+	               $$confop) \
 	&& cp $(dtexdir)/fftw.tex $(ictdir)/ \
 	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
