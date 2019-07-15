@@ -1157,7 +1157,11 @@ fi
 # will just stop at the stage when all the processing is complete and it is
 # only necessary to build the PDF.  So we don't want to stop the project's
 # configuration and building if its not present.
-texlive_result=$(cat $itidir/texlive-ready-tlmgr)
+if [ -f $itidir/texlive-ready-tlmgr ]; then
+    texlive_result=$(cat $itidir/texlive-ready-tlmgr)
+else
+    texlive_result="NOT!"
+fi
 if [ x"$texlive_result" = x"NOT!" ]; then
     cat <<EOF
 

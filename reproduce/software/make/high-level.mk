@@ -68,8 +68,8 @@ all: $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
 .SHELLFLAGS              := --noprofile --norc -ec
 export CCACHE_DISABLE    := 1
 export PATH              := $(ibdir)
-export CC                := $(ibdir)/gcc
 export CXX               := $(ibdir)/g++
+export CC                := $(ibdir)/gcc
 export SHELL             := $(ibdir)/bash
 export F77               := $(ibdir)/gfortran
 export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
@@ -101,7 +101,7 @@ downloadwrapper = ./reproduce/analysis/bash/download-multi-try
 
 
 
-# Python packages
+# Mini-environment software
 include reproduce/software/make/python.mk
 
 
@@ -370,7 +370,7 @@ $(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
                  $(ibidir)/libpng \
                  $(ibidir)/pixman
 	$(call gbuild, $<, cairo-$(cairo-version), static, \
-	               --with-x=no) \
+	               --with-x=no, -j$(numthreads) V=1) \
 	&& echo "Cairo $(cairo-version)" > $@
 
 $(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
@@ -449,7 +449,8 @@ $(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
 	&& echo "Open MPI $(openmpi-version)" > $@
 
 $(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
-	$(call gbuild, $<, pixman-$(pixman-version), static) \
+	$(call gbuild, $<, pixman-$(pixman-version), static, , \
+	                   -j$(numthreads) V=1) \
 	&& echo "Pixman $(pixman-version)" > $@
 
 $(ibidir)/tides: $(tdir)/tides-$(tides-version).tar.gz
