@@ -504,8 +504,8 @@ $(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                        --with-cfitsioinc=$(idir)/include \
                        --without-pgplot) \
 	&& if [ x$(on_mac_os) = xyes ]; then \
-	     install_name_tool -id $(ildir)/libwcs.6.2.dylib \
-	                           $(ildir)/libwcs.6.2.dylib; \
+	     install_name_tool -id $(ildir)/libwcs.6.3.dylib \
+	                           $(ildir)/libwcs.6.3.dylib; \
 	   fi \
 	&& echo "WCSLIB $(wcslib-version)" > $@
 
