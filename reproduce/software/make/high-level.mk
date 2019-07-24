@@ -491,8 +491,8 @@ $(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF \
 	              -DTHREADSAFE=ON ) \
 	&& if [ x$(on_mac_os) = xyes ]; then \
-	     install_name_tool -id $(ildir)/libgit2.26.dylib \
-	                           $(ildir)/libgit2.26.dylib; \
+	     install_name_tool -id $(ildir)/libgit2.28.dylib \
+	                           $(ildir)/libgit2.28.dylib; \
 	   fi \
 	&& echo "Libgit2 $(libgit2-version)" > $@
 
