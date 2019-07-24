@@ -716,31 +716,34 @@ ln -s $topdir/reproduce/software/config/gnuastro .gnuastro
 # random characters to this name and make it unique to every run (even for
 # a single user).
 tmpblddir=$sdir/build-tmp
-if [ -d /dev/shm ]; then
-    dirname=$(pwd | sed -e's/\// /g' | awk '{l=NF-1; printf("%s-%s",$l, $NF)}')
-    tbshmdir=/dev/shm/"$dirname"-$(whoami)
-else
-    tbshmdir=""
-fi
+if ! [ -d $tmpblddir ]; then
 
-# If a shared memory mounted directory exists and there is enough space
-# there (in RAM), build a temporary directory for this project.
-use_shm=0
-needed_space=2000000
-if [ x"$tbshmdir" != x ]; then
-    available_space=$(df $tbshmdir | awk 'NR==2{print $4}')
-    if [ $available_space -gt $needed_space ]; then
-        use_shm=1
-        if ! [ -d $tbshmdir ]; then mkdir $tbshmdir; fi
+    # Set the top-level shared memory location.
+    if [ -d /dev/shm ]; then     shmdir=/dev/shm
+    else                         shmdir=""
     fi
-fi
 
-# If no shared memory directory was created, just build the temporary build
-# directory under the project build directory.
-if [ x$use_shm = x0 ]; then
-    if ! [ -d $tmpblddir ]; then mkdir $tmpblddir; fi
-else
-    if ! [ -d $tmpblddir ]; then ln -s $tbshmdir $tmpblddir; fi
+    # If a shared memory mounted directory exists and there is enough space
+    # there (in RAM), build a temporary directory for this project.
+    needed_space=2000000
+    if [ x"$shmdir" != x ]; then
+        available_space=$(df $shmdir | awk 'NR==2{print $4}')
+        if [ $available_space -gt $needed_space ]; then
+            dirname=$(pwd | sed -e's/\// /g' \
+                          | awk '{l=NF-1; printf("%s-%s",$l, $NF)}')
+            tbshmdir=$shmdir/"$dirname"-$(whoami)
+            if ! [ -d $tbshmdir ]; then mkdir $tbshmdir; fi
+        fi
+    else
+        tbshmdir=""
+    fi
+
+    # If a shared memory directory was created set `build-tmp' to be a
+    # symbolic link to it. Otherwise, just build the temporary build
+    # directory under the project build directory.
+    if [ x$tbshmdir = x ]; then mkdir $tmpblddir;
+    else                        ln -s $tbshmdir $tmpblddir;
+    fi
 fi
 
 
