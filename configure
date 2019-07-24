@@ -640,10 +640,6 @@ if ! [ -d $tardir ];  then mkdir $tardir; fi
 instdir=$sdir/installed
 if ! [ -d $instdir ]; then mkdir $instdir; fi
 
-# Temporary software un-packing.
-tmpblddir=$sdir/build-tmp
-if ! [ -d $tmpblddir ]; then mkdir $tmpblddir; fi
-
 # To record software versions and citation.
 verdir=$instdir/version-info
 if ! [ -d $verdir ]; then mkdir $verdir; fi
@@ -705,6 +701,47 @@ ln -s $tikzdir tex/tikz
 # --------- Delete for no Gnuastro ---------
 ln -s $topdir/reproduce/software/config/gnuastro .gnuastro
 # ------------------------------------------
+
+
+# Temporary software un-packing/build directory: if the host has the
+# standard `/dev/shm' mounting-point, we'll do it in shared memory (on the
+# RAM), to avoid harming/over-using the HDDs/SSDs. The RAM of most systems
+# today (>8GB) is large enough for the parallel building of the software.
+#
+# For the name of the directory under `/dev/shm' (for this project), we'll
+# use the names of the two parent directories to the current/running
+# directory, separated by a `-' instead of `/'. We'll then appended that
+# with the user's name (in case multiple users may be working on similar
+# project names). Maybe later, we can use something like `mktemp' to add
+# random characters to this name and make it unique to every run (even for
+# a single user).
+tmpblddir=$sdir/build-tmp
+if [ -d /dev/shm ]; then
+    dirname=$(pwd | sed -e's/\// /g' | awk '{l=NF-1; printf("%s-%s",$l, $NF)}')
+    tbshmdir=/dev/shm/"$dirname"-$(whoami)
+else
+    tbshmdir=""
+fi
+
+# If a shared memory mounted directory exists and there is enough space
+# there (in RAM), build a temporary directory for this project.
+use_shm=0
+needed_space=2000000
+if [ x"$tbshmdir" != x ]; then
+    available_space=$(df $tbshmdir | awk 'NR==2{print $4}')
+    if [ $available_space -gt $needed_space ]; then
+        use_shm=1
+        if ! [ -d $tbshmdir ]; then mkdir $tbshmdir; fi
+    fi
+fi
+
+# If no shared memory directory was created, just build the temporary build
+# directory under the project build directory.
+if [ x$use_shm = x0 ]; then
+    if ! [ -d $tmpblddir ]; then mkdir $tmpblddir; fi
+else
+    if ! [ -d $tmpblddir ]; then ln -s $tbshmdir $tmpblddir; fi
+fi
 
 
 
@@ -1283,8 +1320,11 @@ fi
 # ---------------------------------
 #
 # By the time the script reaches here the temporary software build
-# directory should be empty, so just delete it.
-rm -rf $tmpblddir
+# directory should be empty, so just delete it. Note `tmpblddir' may be a
+# symbolic link to shared memory. So, to work in any scenario, first delete
+# the contents of the directory (if it has any), then delete `tmpblddir'.
+.local/bin/rm -rf $tmpblddir/*
+.local/bin/rm -rf $tmpblddir
 
 
 
