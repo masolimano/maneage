@@ -519,8 +519,14 @@ $(ibidir)/readline: $(tdir)/readline-$(readline-version).tar.gz \
 	                SHLIB_LIBS="-lncursesw" -j$(numthreads)) \
 	&& echo "GNU Readline $(readline-version)" > $@
 
+# Patchelf has to be built statically because it links with the C++
+# standard library. Therefore while fixing rpath in `libstdc++' with
+# Patchelf we can have a segmentation fault. Note that Patchelf is only for
+# GNU/Linux systems, so there is no problem with having the `-static' flag
+# in LDFLAGS.
 $(ibidir)/patchelf: $(tdir)/patchelf-$(patchelf-version).tar.gz \
                     $(ibidir)/make
+	export LDFLAGS="$$LDFLAGS -static"; \
 	$(call gbuild, $<, patchelf-$(patchelf-version), static) \
 	&& echo "PatchELF $(patchelf-version)" > $@
 
@@ -1153,7 +1159,7 @@ $(ibidir)/gcc: $(gcc-tarball) \
 	  && cd ../.. \
 	  && rm -rf gcc-$(gcc-version) \
 	  && if [ "x$(on_mac_os)" != xyes ]; then \
-	       for f in $$(find $(idir)/libexec/gcc) $(ildir)/libstdc++**; do \
+	       for f in $$(find $(idir)/libexec/gcc) $(ildir)/libstdc++*; do \
 	         if ldd $$f &> /dev/null; then \
 	           patchelf --set-rpath $(ildir) $$f; \
 	         fi; \
