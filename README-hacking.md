@@ -374,7 +374,7 @@ in the proper order.
 
 Finally, we import all the necessary remaining Makefiles: 1) All the
 analysis configuration-Makefiles with a wildcard. 2) The software
-configuration-Makefile that contains their versiosn (just incase its
+configuration-Makefile that contains their version (just in case its
 necessary). 3) All workhorse-Makefiles in the proper order using a Make
 `foreach` loop.
 
@@ -545,7 +545,7 @@ get more advanced in later stages of your work.
      in the `reproduce/software/config/installation/TARGETS.mk`. The
      necessary software are classified into two classes: 1) programs or
      libraries (usually written in C/C++) which are run directly by the
-     operating system. 2) Python modules/libraires that are run within
+     operating system. 2) Python modules/libraries that are run within
      Python. By default `TARGETS.mk` only has GNU Astronomy Utilities
      (Gnuastro) as one scientific program and Astropy as one scientific
      Python module. Both have many dependencies which will be installed
@@ -583,7 +583,7 @@ get more advanced in later stages of your work.
      can remove these parts in the file below
 
      - `paper.tex`: Delete the text of the abstract and the paper's main
-       body, *except* the "Acknowledgments" section. This tempmlate was
+       body, *except* the "Acknowledgments" section. This template was
        designed by funding from many grants, so its necessary to
        acknowledge them in your final research.
 
@@ -886,7 +886,7 @@ for the benefit of others.
       mirror the contents of this directory to keep a backup of all the
       software tarballs used in your project (possibly as another version
       controlled repository) that is also published with your project. Note
-      that software webpages are not written in stone and can suddenly go
+      that software web-pages are not written in stone and can suddenly go
       offline or not be accessible in some conditions. This backup is thus
       very important. If you intend to release your project in a place like
       Zenodo, you can upload/keep all the necessary tarballs (and data)
@@ -907,20 +907,26 @@ for the benefit of others.
    forgetting the following notes.
 
    - *Commit message*: The commit message is a very important and useful
-      aspect of version control. To make the commit message useful, it
-      would be good if you follow the following convensions. You can see
-      many examples by running `git log` in the `template` branch. If you
-      intend to improve the template by forking it and pushing commits, it
-      is mandatory to follow these guidelines. 1) No line should be more
-      than 75 characters (to enable easy reading of the message when you
-      run `git log`). 2) The first line is the title of the commit and
-      should summarize it (so `git log --oneline` can be useful). The title
-      should also not end with a point (`.`). 3) After the title leave an
-      empty line and start the body of your message (possibly containing
-      many paragraphs). 4) Describe the context of your commit (the problem
-      it is trying to solve) as much as possible before going onto how you
-      solved it. One useful suggestion is to always start the main body of
-      your commit with "Until now".
+      aspect of version control. To make the commit message useful for
+      others (or yourself, one year later), it is good to follow a
+      consistent style. The template already has a consistent formatting
+      (described below), which you can also follow in your project if you
+      like. You can see many examples by running `git log` in the
+      `template` branch. If you intend to push commits to the main
+      template, for the consistency of the template, it is necessary to
+      follow these guidelines. 1) No line should be more than 75 characters
+      (to enable easy reading of the message when you run `git log` on the
+      standard 80-character terminal). 2) The first line is the title of
+      the commit and should summarize it (so `git log --oneline` can be
+      useful). The title should also not end with a point (`.`, because its
+      a short single sentence, so a point is not necessary and only wastes
+      space). 3) After the title, leave an empty line and start the body of
+      your message (possibly containing many paragraphs). 4) Describe the
+      context of your commit (the problem it is trying to solve) as much as
+      possible, then go onto how you solved it. One suggestion is to start
+      the main body of your commit with "Until now ...", and continue
+      describing the problem in the first paragraph(s). Afterwards, start
+      the next paragraph with "With this commit ...".
 
    - *Tags*: To help manage the history, tag all major commits. This helps
       make a more human-friendly output of `git describe`: for example
@@ -963,7 +969,7 @@ for the benefit of others.
 
  - **Inspecting status**: When you run `./configure`, several programs and
      libraries start to get configured and build (in many cases,
-     simultaneously). To understand the building process, or for debuging a
+     simultaneously). To understand the building process, or for debugging a
      strange situation, it is sometimes useful to know which programs are
      being built at every moment. To do this, you can look into the
      `.build/software/build-tmp` directory (from the top project
