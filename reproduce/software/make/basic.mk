@@ -51,13 +51,14 @@ syspath         := $(PATH)
 
 # As we build more programs, we want to use this project's built programs
 # and libraries, not the host's.
-export CCACHE_DISABLE    := 1
-export PATH              := $(ibdir):$(PATH)
-export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
+export CCACHE_DISABLE := 1
+export PATH := $(ibdir):$(PATH)
+export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export LD_LIBRARY_PATH   := $(ildir):$(LD_LIBRARY_PATH)
-export CPPFLAGS          := -I$(idir)/include $(CPPFLAGS)
-export LDFLAGS           := $(rpath_command) -L$(ildir) $(LDFLAGS)
+export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
+export LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
+export LDFLAGS := $(rpath_command) -L$(ildir) $(LDFLAGS)
+export DYLD_LIBRARY_PATH := $(ildir):$(DYLD_LIBRARY_PATH)
 
 # Define the top-level basic programs (that don't depend on any other).
 top-level-programs = low-level-links gcc

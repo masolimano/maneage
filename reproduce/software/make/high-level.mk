@@ -65,17 +65,18 @@ all: $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
 #    2) Add `--noprofile --norc' to `.SHELLFLAGS' so doesn't load the
 #       user's environment.
 .ONESHELL:
-.SHELLFLAGS              := --noprofile --norc -ec
-export CCACHE_DISABLE    := 1
-export PATH              := $(ibdir)
-export CXX               := $(ibdir)/g++
-export CC                := $(ibdir)/gcc
-export SHELL             := $(ibdir)/bash
-export F77               := $(ibdir)/gfortran
-export PKG_CONFIG_PATH   := $(ildir)/pkgconfig
+.SHELLFLAGS := --noprofile --norc -ec
+export CCACHE_DISABLE := 1
+export PATH := $(ibdir)
+export CXX := $(ibdir)/g++
+export CC := $(ibdir)/gcc
+export SHELL := $(ibdir)/bash
+export F77 := $(ibdir)/gfortran
+export LD_RUN_PATH := $(ildir):$(il64dir)
+export PKG_CONFIG_PATH := $(ildir)/pkgconfig
+export LD_LIBRARY_PATH := $(ildir):$(il64dir)
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export LD_RUN_PATH       := $(ildir):$(il64dir)
-export LD_LIBRARY_PATH   := $(ildir):$(il64dir)
+export DYLD_LIBRARY_PATH := $(ildir):$(il64dir)
 
 # Building flags:
 #
