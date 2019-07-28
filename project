@@ -265,7 +265,7 @@ EOF
         # Remove all existing environment variables (with `env -i') and
         # only use some pre-defined environment variables, then build the
         # project.
-        envmake=".local/bin/env -i HOME= sys-rm=$(which rm) $gopt"
+        envmake=".local/bin/env -i HOME=$bdir sys_rm=$(which rm) $gopt"
         envmake="$envmake .local/bin/make -f reproduce/analysis/make/top.mk"
         if ! [ x"$debug" = x  ]; then envmake="$envmake --debug=$debug"; fi
 

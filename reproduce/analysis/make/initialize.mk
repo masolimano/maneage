@@ -200,9 +200,9 @@ distclean: clean
         # We'll be deleting the built environent programs and just need the
         # `rm' program. So for this recipe, we'll use the host system's
         # `rm', not our own.
-	$$sys-rm -rf $(BDIR)
-	$$sys-rm -f Makefile .gnuastro .local .build
-	$$sys-rm -f $(pconfdir)/LOCAL.mk $(gconfdir)/gnuastro-local.conf
+	$$sys_rm -rf $(BDIR)
+	$$sys_rm -f Makefile .gnuastro .local .build
+	$$sys_rm -f $(pconfdir)/LOCAL.mk $(gconfdir)/gnuastro-local.conf
 
 
 
