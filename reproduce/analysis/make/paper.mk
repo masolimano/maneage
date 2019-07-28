@@ -64,11 +64,9 @@ $(mtexdir)/project.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s)
 	    echo     "'reproduce/analysis/config/pdf-build.mk'."
 	    echo
 	    echo "If you don't have LaTeX within the project, please re-run"
-	    echo "'./configure' when you have internet access. To speed it up,"
-	    echo "you can keep the previous configuration files (answer 'n'"
-	    echo "when it asks about re-writing previous configuration files)."
+	    echo "'./project configure -e' when you have internet access."
 	  else
-	    echo "For more, run './.local/bin/make more-on-building-pdf=1'"
+	    echo "For more, run './project make more-on-building-pdf=1'"
 	  fi
 	  echo
 	  echo "" > $@

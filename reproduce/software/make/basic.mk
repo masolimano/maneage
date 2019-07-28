@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!
 #
-# This Makefile will be run by the initial `./configure' script. It is not
-# included into the project after that.
+# This Makefile will be run by the initial `./project configure' script. It
+# is not included into the project after that.
 #
 # This Makefile builds very low-level and basic tools like GNU Tar, GNU
 # Bash, GNU Make, GCC and etc. Therefore this is the only Makefile in the
@@ -58,7 +58,11 @@ export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
 export LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
 export LDFLAGS := $(rpath_command) -L$(ildir) $(LDFLAGS)
-export DYLD_LIBRARY_PATH := $(ildir):$(DYLD_LIBRARY_PATH)
+
+# RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
+# ultimately redundant. But on some systems, even having a single value
+# causes crashs (see bug #56682). So we'll just give it no value at all.
+export DYLD_LIBRARY_PATH :=
 
 # Define the top-level basic programs (that don't depend on any other).
 top-level-programs = low-level-links gcc

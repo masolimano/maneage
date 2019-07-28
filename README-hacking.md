@@ -240,10 +240,10 @@ first understand its architecture so you can navigate your way in the
 directories and understand how to implement your research project within
 its framework: where to add new files and which existing files to modify
 for what purpose. But before reading this theoretical discussion, please
-run the template (described in `README.md`: first run `./configure`, then
-`.local/bin/make -j8`) without any change, just to see how it works (note
-that the configure step builds all necessary software, so it can take long,
-but you can read along while its working).
+run the template (described in `README.md`: first run `./project
+configure`, then `./project make -j8`) without any change, just to see how
+it works (note that the configure step builds all necessary software, so it
+can take long, but you can read along while its working).
 
 The project has two top-level directories: `reproduce` and
 `tex`. `reproduce` hosts all the software building and analysis
@@ -253,24 +253,21 @@ a PDF using LaTeX.
 The `reproduce` directory has two sub-directories: `software` and
 `analysis`. As the name says, the former contains all the instructions to
 download, build and install (independent of the host operating system) the
-necessary software (these are called by the `./configure` script). The
-latter contains instructions on how to use those software to do your
-project's analysis.
+necessary software (these are called by the `./project configure`
+command). The latter contains instructions on how to use those software to
+do your project's analysis.
 
-After it finishes, `./configure` will create the following symbolic links
-in the project's top source directory: 1) `Makefile` in the top directory
-(which points to `reproduce/analysis/make/top.mk`). 2) `.build` which
-points to the top build directory.And 3) `.local` for easy access to the
-custom built software packages installation directory. The first is for
-practical necessity (so you can run `make` from the top source directory),
-but the latter is just for convenience (fast access to the built outputs
-and software).
+After it finishes, `./project configure` will create the following symbolic
+links in the project's top source directory: `.build` which points to the
+top build directory and `.local` for easy access to the custom built
+software installation directory.
 
-Therefore, by running `.local/bin/make` we are doing the project's analysis
-with its own custom version of GNU Make, not the host system's Make. The
-first file that is read by Make (the template's starting point) is the
-top-level `Makefile` (created by `./configure`). Therefore, we'll start
-describing the template's architecture with this file. This file is
+Once the project is configured for your system, `./project make` will doing
+the project's analysis with its own custom version of software. The process
+is managed through Make and `./project make` will start with
+`reproduce/analysis/make/top.mk` (called `top.mk` from now on).
+
+Let's continue the template's architecture with this file. `top.mk` is
 relatively short and heavily commented so hopefully the descriptions in
 each comment will be enough to understand the general details. As you read
 this section, please also look at the contents of the mentioned files and
@@ -286,13 +283,13 @@ strategy to deal with large/huge files).
 
 To keep the source and (intermediate) built files separate, you _must_
 define a top-level build directory variable (or `$(BDIR)`) to host all the
-intermediate files (you defined it during `./configure`). This directory
-doesn't need to be version controlled or even synchronized, or backed-up in
-other servers: its contents are all products, and can be easily re-created
-any time. As you define targets for your new rules, it is thus important to
-place them all under sub-directories of `$(BDIR)`. As mentioned above, you
-always have fast access to this "build"-directory with the `.build`
-symbolic link.
+intermediate files (you defined it during `./project configure`). This
+directory doesn't need to be version controlled or even synchronized, or
+backed-up in other servers: its contents are all products, and can be
+easily re-created any time. As you define targets for your new rules, it is
+thus important to place them all under sub-directories of `$(BDIR)`. As
+mentioned above, you always have fast access to this "build"-directory with
+the `.build` symbolic link.
 
 In this architecture, we have two types of Makefiles that are loaded into
 the top `Makefile`: _configuration-Makefiles_ (only independent
@@ -301,13 +298,13 @@ actually contain analysis/processing rules).
 
 The configuration-Makefiles are those that satisfy these two wildcards:
 `reproduce/software/config/installation/*.mk` (for building the necessary
-software when you run `./configure`) and `reproduce/analysis/config/*.mk`
-(for the high-level analysis, when you run `.local/bin/make`). These
-Makefiles don't actually have any rules, they just have values for various
-free parameters throughout the configuration or analysis. Open a few of
-them to see for yourself. These Makefiles must only contain raw Make
-variables (project configurations). By "raw" we mean that the Make
-variables in these files must not depend on variables in any other
+software when you run `./project configure`) and
+`reproduce/analysis/config/*.mk` (for the high-level analysis, when you run
+`./project make`). These Makefiles don't actually have any rules, they just
+have values for various free parameters throughout the configuration or
+analysis. Open a few of them to see for yourself. These Makefiles must only
+contain raw Make variables (project configurations). By "raw" we mean that
+the Make variables in these files must not depend on variables in any other
 configuration-Makefile. This is because we don't want to assume any order
 in reading them. It is also very important to *not* define any rule, or
 other Make construct, in these configuration-Makefiles.
@@ -343,18 +340,17 @@ users of a Unix group (when working on large computer clusters). In this
 scenario, each user can have their own cloned project source, but share the
 large built files between each other. To do this, it is necessary for all
 built files to give full permission to group members while not allowing any
-other users access to the contents. Therefore the `./configure` and Make
-steps must be called with special conditions which are managed in the
-`for-group` script.
+other users access to the contents. Therefore the `./project configure` and
+`./project make` steps must be called with special conditions which are
+managed in the `--group` option.
 
-Let's see how this design is implemented. The `./configure` script's final
-step is to put a `Makefile` in the top directory. This allows us to start
-"making" the project. Please open and inspect it as we go along here. The
-first step (un-commented line) is to import the local configuration
-(answers to the questions `./configure` asked you). They are defined in the
-configuration-Makefile `reproduce/software/config/installation/LOCAL.mk`
-which was also built by `./configure` (based on the `LOCAL.mk.in` template
-of the same directory).
+Let's see how this design is implemented. Please open and inspect `top.mk`
+it as we go along here. The first step (un-commented line) is to import the
+local configuration (your answers to the questions of `./project
+configure`). They are defined in the configuration-Makefile
+`reproduce/software/config/installation/LOCAL.mk` which was also built by
+`./project configure` (based on the `LOCAL.mk.in` template of the same
+directory).
 
 The next non-commented set of the top `Makefile` defines the ultimate
 target of the whole project (`paper.pdf`). But to avoid mistakes, a sanity
@@ -450,10 +446,10 @@ Customization checklist
 =======================
 
 Take the following steps to fully customize this template for your research
-project. After finishing the list, be sure to run `./configure` and `make`
-to see if everything works correctly before expanding it. If you notice
-anything missing or any in-correct part (probably a change that has not
-been explained here), please let us know to correct it.
+project. After finishing the list, be sure to run `./project configure` and
+`project make` to see if everything works correctly. If you notice anything
+missing or any in-correct part (probably a change that has not been
+explained here), please let us know to correct it.
 
 As described above, the concept of reproducibility (during a project)
 heavily relies on [version
@@ -487,21 +483,21 @@ get more advanced in later stages of your work.
 
  - **Test the template**: Before making any changes, it is important to
      test it and see if everything works properly with the commands
-     below. If there is any problem in the `./configure` or `make` steps,
-     please contact us to fix the problem before continuing. Since the
-     building of dependencies in `./configure` can take long, you can take
-     the next few steps (editing the files) while its working (they don't
-     affect the configuration). After `make` is finished, open `paper.pdf`
-     and if it looks fine, you are ready to start customizing the template
-     for your project. But before that, clean all the extra template
-     outputs with `make clean` as shown below.
+     below. If there is any problem in the `./project configure` or
+     `./project make` steps, please contact us to fix the problem before
+     continuing. Since the building of dependencies in configuration can
+     take long, you can take the next few steps (editing the files) while
+     its working (they don't affect the configuration). After `./project
+     make` is finished, open `paper.pdf`. If it looks fine, you are ready
+     to start customizing the template for your project. But before that,
+     clean all the extra template outputs with `make clean` as shown below.
 
      ```shell
-     $ ./configure --host-cc    # Set top directories and build dependencies (except for GCC which can take long).
-     $ .local/bin/make          # Do the (mainly symbolic) processing and build paper
+     $ ./project configure --host-cc # Configure project (except for GCC which can take long).
+     $ ./project make                # Do the (mainly symbolic) processing and build paper
 
      # Open 'paper.pdf' and see if everything is ok.
-     $ .local/bin/make clean    # Delete high-level outputs.
+     $ ./project make clean          # Delete high-level outputs (keep software)
      ```
 
  - **Setup the remote**: You can use any [hosting
@@ -636,8 +632,8 @@ get more advanced in later stages of your work.
      commit to be sure it works as expected).
 
      ```shell
-     $ .local/bin/make clean      # Delete outputs ('make distclean' for everything)
-     $ .local/bin/make            # Build the project to ensure everything is fine.
+     $ ./project make clean       # Delete outputs ('make distclean' for everything)
+     $ ./project make             # Build the project to ensure everything is fine.
      $ git add -u                 # Stage all the changes.
      $ git status                 # Make sure everything is fine.
      $ git commit                 # Your first commit, add a nice description.
@@ -711,7 +707,7 @@ get more advanced in later stages of your work.
      script will crash). To do that, just modify the years in
      `reproduce/software/config/installation/texlive.conf`, then delete
      `.build/software/tarballs/install-tl-unx.tar.gz`. The next time you
-     run `./configure`, the new TeXLive will be installed and used.
+     run `./project configure`, the new TeXLive will be installed and used.
 
  - **Pre-publication: add notice on reproducibility**: Add a notice
      somewhere prominent in the first page within your paper, informing the
@@ -967,12 +963,12 @@ for the benefit of others.
       [reproducible-paper-output](https://gitlab.com/makhlaghi/reproducible-paper-output)
       repository.
 
- - **Inspecting status**: When you run `./configure`, several programs and
-     libraries start to get configured and build (in many cases,
-     simultaneously). To understand the building process, or for debugging a
-     strange situation, it is sometimes useful to know which programs are
-     being built at every moment. To do this, you can look into the
-     `.build/software/build-tmp` directory (from the top project
+ - **Inspecting status**: When you run `./project configure`, several
+     programs and libraries start to get configured and build (in many
+     cases, simultaneously). To understand the building process, or for
+     debugging a strange situation, it is sometimes useful to know which
+     programs are being built at every moment. To do this, you can look
+     into the `.build/software/build-tmp` directory (from the top project
      directory). This temporary directory is only present while building
      the software. At every moment, it contains the unpacked source tarball
      directories of the all the packages that are being built. After a

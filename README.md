@@ -19,8 +19,8 @@ a compressed tarball of the project).
 
 ```shell
 $ git clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-$ ./configure
-$ .local/bin/make -j8
+$ ./project configure
+$ ./project make -j8
 ```
 
 For a general introduction to reproducible science as implemented in this
@@ -44,8 +44,8 @@ This project was designed to have as few dependencies as possible.
    1.1: Minimal software building tools like C compiler, Make, and other
         tools found on any Unix-like operating system (GNU/Linux, BSD, Mac
         OS, and others). All necessary dependencies will be built from
-        source (for use only within this project) by the `./configure'
-        script (next step).
+        source (for use only within this project) by the `./project
+        configure' script (next step).
 
    1.2: (OPTIONAL) Tarball of dependencies. If they are already present (in
         a directory given at configuration time), they will be
@@ -69,7 +69,7 @@ This project was designed to have as few dependencies as possible.
    programs (project dependencies). So it may take a while to complete.
 
      ```shell
-     $ ./configure
+     $ ./project configure
      ```
 
 3. Run the following command (local build of the Make software) to
@@ -79,7 +79,7 @@ This project was designed to have as few dependencies as possible.
    system by running `./.local/bin/nproc`)
 
      ```shell
-     $ .local/bin/make -j8
+     $ ./project make -j8
      ```
 
 

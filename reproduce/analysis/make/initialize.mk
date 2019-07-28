@@ -84,8 +84,6 @@ tikzdir     = $(texbdir)/tikz
 # Before defining the local sub-environment here, we'll need to save the
 # system's environment for some scenarios (for example after `clean'ing the
 # built programs).
-sys-path := $(PATH)
-sys-rm   := $(shell which rm)
 curdir   := $(shell echo $$(pwd))
 
 
@@ -97,7 +95,7 @@ curdir   := $(shell echo $$(pwd))
 #
 # We want the full recipe to be executed in one call to the shell. Also we
 # want Make to run the specific version of Bash that we have installed
-# during `./configure' time.
+# during `./project configure' time.
 #
 # Regarding the directories, this project builds its major dependencies
 # itself and doesn't use the local system's default tools. With these
@@ -116,7 +114,11 @@ export LDFLAGS := -L$(installdir)/lib
 export SHELL := $(installdir)/bin/bash
 export CPPFLAGS := -I$(installdir)/include
 export LD_LIBRARY_PATH := $(installdir)/lib
-export DYLD_LIBRARY_PATH := $(installdir)/lib
+
+# RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
+# ultimately redundant. But on some systems, even having a single value
+# causes crashs (see bug #56682). So we'll just give it no value at all.
+export DYLD_LIBRARY_PATH :=
 
 
 
@@ -190,15 +192,17 @@ clean: clean-mmap
         # features like ignoring the listing of a file with `!()' that we
         # are using afterwards.
 	shopt -s extglob
-	rm -rf $(BDIR)/!(software)
+	rm -rf $(BDIR)/tex/macros/!(dependencies.tex|dependencies-bib.tex)
+	rm -rf $(BDIR)/!(software|tex) $(BDIR)/tex/!(macros|build)
+	rm -rf $(BDIR)/tex/build/!(tikz) $(BDIR)/tex/build/tikz/*
 
 distclean: clean
         # We'll be deleting the built environent programs and just need the
         # `rm' program. So for this recipe, we'll use the host system's
         # `rm', not our own.
-	$(sys-rm) -rf $(BDIR)
-	$(sys-rm) -f Makefile .gnuastro .local .build
-	$(sys-rm) -f $(pconfdir)/LOCAL.mk $(gconfdir)/gnuastro-local.conf
+	$$sys-rm -rf $(BDIR)
+	$$sys-rm -f Makefile .gnuastro .local .build
+	$$sys-rm -f $(pconfdir)/LOCAL.mk $(gconfdir)/gnuastro-local.conf
 
 
 

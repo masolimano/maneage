@@ -27,150 +27,6 @@ set -e
 
 
 
-# Default option values
-jobs=0
-build_dir=
-input_dir=
-host_cc=0
-software_dir=
-existing_conf=0
-minmapsize=10000000000
-scriptname="./configure"
-
-
-
-
-
-# Output of --help
-# ----------------
-print_help() {
-    # Print the output.
-    cat <<EOF
-Usage: $scriptname [OPTION]...
-
-Configure the reproducible paper template for this system (set local
-settings for this system). The local settings can be given on the
-command-line through the options below. If not, the configure script will
-interactively ask for a value to each one (with basic necessary background
-information printed before them). Alternatively, if you have already
-configured this script for your system, you can use the '--existing-conf'
-to use its values directly.
-
-RECOMMENDATION: If this is the first time you are running this template,
-please don't use the options and let the script explain each parameter in
-full detail by simply running './configure'.
-
-The only mandatory value is the local build directory. This is where all
-the (temporary) built files will be stored. Optionally, you can also
-provide directories that host input data, or software source codes. If the
-necessary files don't exist there, the template will automatically download
-them.
-
-With the options below you can modify the default behavior. Just note that
-you should not put an '=' sign between an option name and its value.
-
-Configure options:
- Top-level directory settings:
-  -b, --build-dir=STR     Top directory to build the project in.
-  -i, --input-dir=STR     Directory containing input datasets (optional).
-  -s, --software-dir=STR  Directory containing necessary software tarballs.
-
- Operating mode options:
-      --host-cc           Use host system's C compiler, don't build GCC.
-  -m, --minmapsize=INT    (Gnuastro) Minimum number of bytes to use RAM.
-  -j, --jobs=INT          Number of threads to build the software.
-  -e, --existing-conf     Use (possibly existing) local configuration.
-  -h, --help              Print this help list.
-
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
-
-Reproducible paper template: https://gitlab.com/makhlaghi/reproducible-paper
-
-Report bugs to mohammad@akhlaghi.org
-EOF
-}
-
-
-
-
-
-# Functions to check option values and complain if necessary.
-function on_off_option_error() {
-    if [ "x$2" = x ]; then
-        echo "$scriptname: '$1' doesn't take any values."
-    else
-        echo "$scriptname: '$1' (or '$2') doesn't take any values."
-    fi
-    exit 1
-}
-
-function check_v() {
-    if [ x"$2" = x ]; then
-        echo "$scriptname: option '$1' requires an argument."
-        echo "Try '$scriptname --help' for more information."
-        exit 1;
-    fi
-}
-
-
-
-
-
-# Separate command-line arguments from options. Then put the option
-# value into the respective variable.
-#
-# Each option has two lines because we want to process both these formats:
-# `--name=value' and `--name value'. The former (with `=') is a single
-# command-line argument, so we just need to shift the counter by one. The
-# latter (without `=') is two arguments, so we'll need two shifts.
-#
-# Note on the case strings: for every option, we need three lines: one when
-# the option name and value are separate. Another when there is an equal
-# between them, and finally one where the value is immediately after the
-# short-format. This exact order is important. Otherwise, there will be a
-# conflict between them.
-while [[ $# -gt 0 ]]
-do
- case $1 in
-  # Input parameters.
-  -b|--builddir)         build_dir="$2";                             check_v "$1" "$build_dir";    shift;shift;;
-  -b=*|--build-dir=*)    build_dir="${1#*=}";                        check_v "$1" "$build_dir";    shift;;
-  -b*)                   build_dir=$(echo    "$1" | sed -e's/-b//'); check_v "$1" "$build_dir";    shift;;
-  -i|--inputdir)         input_dir="$2";                             check_v "$1" "$input_dir";    shift;shift;;
-  -i=*|--inputdir=*)     input_dir="${1#*=}";                        check_v "$1" "$input_dir";    shift;;
-  -i*)                   input_dir=$(echo    "$1" | sed -e's/-i//'); check_v "$1" "$input_dir";    shift;;
-  -s|--software-dir)     software_dir="$2";                          check_v "$1" "$software_dir"; shift;shift;;
-  -s=*|--software-dir=*) software_dir="${1#*=}";                     check_v "$1" "$software_dir"; shift;;
-  -s*)                   software_dir=$(echo "$1" | sed -e's/-s//'); check_v "$1" "$software_dir"; shift;;
-  -m|--minmapsize)       minmapsize="$2";                            check_v "$1" "$minmapsize";   shift;shift;;
-  -m=*|--minmapsize=*)   minmapsize="${1#*=}";                       check_v "$1" "$minmapsize";   shift;;
-  -m*)                   minmapsize=$(echo   "$1" | sed -e's/-m//'); check_v "$1" "$minmapsize";   shift;;
-
-  # Operating mode options
-  --host-cc)              host_cc=1;                                                shift;;
-  --host-cc=*)            on_off_option_error --host-cc;;
-  -j|--jobs)              jobs="$2";                          check_v "$1" "$jobs"; shift;shift;;
-  -j=*|--jobs=*)          jobs="${1#*=}";                     check_v "$1" "$jobs"; shift;;
-  -j*)                    jobs=$(echo "$1" | sed -e's/-j//'); check_v "$1" "$jobs"; shift;;
-  -e|--existing-conf)     existing_conf=1;                                          shift;;
-  -e*|--existing-conf=*)  on_off_option_error --existing-conf -e;;
-  -?|--help)              print_help; exit 0;;
-  -'?'*|--help=*)         on_off_option_error --help -?;;
-
-  # Unrecognized option:
-  -*) echo "$scriptname: unknown option '$1'"; exit 1;;
-
-  # Not an option, an argument.
-  *) echo "The configure script doesn't accept arguments.";
-     echo "For a description of options, please run with '--help'."; exit 1;;
- esac
-done
-
-
-
-
-
 # Internal directories
 # --------------------
 #
@@ -194,19 +50,6 @@ glconf=$cdir/gnuastro/gnuastro-local.conf
 
 
 
-# Delete final target of configuration
-# ------------------------------------
-#
-# Without the top-level `Makefile' the user can't run `make' in this
-# directory. But we only want to make it available when we know everything
-# else is set up. So we'll delete it at the start of this configuration and
-# reset the link in the absolute end.
-rm -f Makefile
-
-
-
-
-
 # Notice for top of generated files
 # ---------------------------------
 #
@@ -214,12 +57,12 @@ rm -f Makefile
 # a text editor and wants to edit them, it is important to let them know
 # that their changes are not going to be permenant.
 function create_file_with_notice() {
-    if echo "# IMPORTANT: file can be RE-WRITTEN after './configure'"  > "$1"
+    if echo "# IMPORTANT: file can be RE-WRITTEN after './project configure'" > "$1"
     then
         echo "#"                                                      >> "$1"
         echo "# This file was created during configuration"           >> "$1"
-        echo "# ('./configure'). Therefore, it is not under version"  >> "$1"
-        echo "# control and any manual changes to it will be"         >> "$1"
+        echo "# ('./project configure'). Therefore, it is not under"  >> "$1"
+        echo "# version control and any manual changes to it will be" >> "$1"
         echo "# over-written if the project re-configured."           >> "$1"
         echo "#"                                                      >> "$1"
     else
@@ -275,7 +118,7 @@ EOF
 #
 # `LOCAL.mk' is the top-most local configuration for the project. If it
 # already exists when this script is run, we'll make a copy of it as backup
-# (for example the user might have ran `./configure' by mistake).
+# (for example the user might have ran `./project configure' by mistake).
 printnotice=yes
 rewritepconfig=yes
 rewritegconfig=yes
@@ -302,10 +145,10 @@ if [ $rewritepconfig = no ]; then
         echo "-----------------------------"
         if [ "x$oldgroupname" = x ]; then
             status="NOT configured for groups"
-            confcommand="./configure"
+            confcommand="./project configure"
         else
             status="configured for '$oldgroupname' group"
-            confcommand="./for-group $oldgroupname configure"
+            confcommand="./project configure --group=$oldgroupname"
         fi
         echo "Project was previously $status!"
         echo "Either enable re-write of this configuration file,"
@@ -323,8 +166,8 @@ fi
 # Identify the downloader tool
 # ----------------------------
 #
-# After this `./configure' script finishes, we will have both Wget and cURL
-# for downloading any necessary dataset during the processing. However, to
+# After this script finishes, we will have both Wget and cURL for
+# downloading any necessary dataset during the processing. However, to
 # complete the configuration, we may also need to download the source code
 # of some necessary software packages (including the downloaders). So we
 # need to check the host's available tool for downloading at this step.
@@ -607,7 +450,7 @@ version that this project was designed to use in '$depverfile'
 ($gversion). Please re-run after removing the former file:
 
    $ rm $glconf
-   $ ./configure
+   $ ./project configure
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -621,6 +464,23 @@ fi
 
 
 
+# Delete final configuration target
+# ---------------------------------
+#
+# We only want to start running the project later if this script has
+# completed successfully. To make sure it hasn't crashed in the middle
+# (without the user noticing), in the end of this script we make a file and
+# we'll delete it here (at the start). Therefore if the script crashed in
+# the middle that file won't exist.
+sdir=$bdir/software
+finaltarget=$sdir/configuration-done.txt
+if ! [ -d $sdir ];  then mkdir $sdir; fi
+rm -f $finaltarget
+
+
+
+
+
 # Project's top-level directories
 # -------------------------------
 #
@@ -628,10 +488,6 @@ fi
 # avoid too many directory dependencies throughout the software and
 # analysis Makefiles (thus making them hard to read), we are just building
 # them here
-# Top-level software
-sdir=$bdir/software
-if ! [ -d $sdir ];  then mkdir $sdir; fi
-
 # Software tarballs
 tardir=$sdir/tarballs
 if ! [ -d $tardir ];  then mkdir $tardir; fi
@@ -716,34 +572,34 @@ ln -s $topdir/reproduce/software/config/gnuastro .gnuastro
 # random characters to this name and make it unique to every run (even for
 # a single user).
 tmpblddir=$sdir/build-tmp
-if ! [ -d $tmpblddir ]; then
+rm -rf $tmpblddir/* $tmpblddir  # If its a link, we need to empty its
+                                # contents first, then itself.
 
-    # Set the top-level shared memory location.
-    if [ -d /dev/shm ]; then     shmdir=/dev/shm
-    else                         shmdir=""
-    fi
+# Set the top-level shared memory location.
+if [ -d /dev/shm ]; then     shmdir=/dev/shm
+else                         shmdir=""
+fi
 
-    # If a shared memory mounted directory exists and there is enough space
-    # there (in RAM), build a temporary directory for this project.
-    needed_space=2000000
-    if [ x"$shmdir" != x ]; then
-        available_space=$(df $shmdir | awk 'NR==2{print $4}')
-        if [ $available_space -gt $needed_space ]; then
-            dirname=$(pwd | sed -e's/\// /g' \
-                          | awk '{l=NF-1; printf("%s-%s",$l, $NF)}')
-            tbshmdir=$shmdir/"$dirname"-$(whoami)
-            if ! [ -d $tbshmdir ]; then mkdir $tbshmdir; fi
-        fi
-    else
-        tbshmdir=""
+# If a shared memory mounted directory exists and there is enough space
+# there (in RAM), build a temporary directory for this project.
+needed_space=2000000
+if [ x"$shmdir" != x ]; then
+    available_space=$(df $shmdir | awk 'NR==2{print $4}')
+    if [ $available_space -gt $needed_space ]; then
+        dirname=$(pwd | sed -e's/\// /g' \
+                      | awk '{l=NF-1; printf("%s-%s",$l, $NF)}')
+        tbshmdir=$shmdir/"$dirname"-$(whoami)
+        if ! [ -d $tbshmdir ]; then mkdir $tbshmdir; fi
     fi
+else
+    tbshmdir=""
+fi
 
-    # If a shared memory directory was created set `build-tmp' to be a
-    # symbolic link to it. Otherwise, just build the temporary build
-    # directory under the project build directory.
-    if [ x$tbshmdir = x ]; then mkdir $tmpblddir;
-    else                        ln -s $tbshmdir $tmpblddir;
-    fi
+# If a shared memory directory was created set `build-tmp' to be a
+# symbolic link to it. Otherwise, just build the temporary build
+# directory under the project build directory.
+if [ x$tbshmdir = x ]; then mkdir $tmpblddir;
+else                        ln -s $tbshmdir $tmpblddir;
 fi
 
 
@@ -834,7 +690,7 @@ static_build=no
 #
 #If you have other compilers on your system, you can select a different
 #compiler by setting the 'CC' environment variable before running
-#'./configure'.
+#'./project configure'.
 #
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #
@@ -1072,7 +928,7 @@ PLEASE SEE THE WARNINGS ABOVE.
 Since GCC is pretty low-level, this configuration script will continue in 5
 seconds and use your system's C compiler (it won't build a custom GCC). But
 please consider installing the necessary package(s) to complete your C
-compiler, then re-run './configure'.
+compiler, then re-run './project configure'.
 
 EOF
         sleep 5
@@ -1176,13 +1032,14 @@ if [ $jobs = 0 ]; then
 else
     numthreads=$jobs
 fi
-./.local/bin/make -f reproduce/software/make/high-level.mk \
-                  rpath_command=$rpath_command \
-                  static_build=$static_build \
-                  numthreads=$numthreads \
-                  on_mac_os=$on_mac_os \
-                  host_cc=$host_cc \
-                  -j$numthreads
+.local/bin/env -i HOME=$bdir \
+    .local/bin/make -f reproduce/software/make/high-level.mk \
+                    rpath_command=$rpath_command \
+                    static_build=$static_build \
+                    numthreads=$numthreads \
+                    on_mac_os=$on_mac_os \
+                    host_cc=$host_cc \
+                    -j$numthreads
 
 
 
@@ -1223,7 +1080,7 @@ below. Within configure, answer 'n' (for "no") when asked to re-write the
 configuration files.
 
     rm .local/version-info/tex/texlive-ready-tlmgr
-    ./configure
+    ./project configure
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1326,20 +1183,16 @@ fi
 # directory should be empty, so just delete it. Note `tmpblddir' may be a
 # symbolic link to shared memory. So, to work in any scenario, first delete
 # the contents of the directory (if it has any), then delete `tmpblddir'.
-.local/bin/rm -rf $tmpblddir/*
-.local/bin/rm -rf $tmpblddir
+.local/bin/rm -rf $tmpblddir/* $tmpblddir
 
 
 
 
 
-# Final step: available Makefile
+# Register successful completion
 # ------------------------------
-#
-# We only want `make' to work after the configuration is complete. So we
-# will only put in the top-level Makefile after all the steps above are
-# done.
-.local/bin/ln -s $topdir/reproduce/analysis/make/top.mk Makefile
+echo `.local/bin/date` > $finaltarget
+
 
 
 
@@ -1351,9 +1204,9 @@ fi
 # The configuration is now complete, we can inform the user on the next
 # step(s) to take.
 if [ x$reproducible_paper_group_name = x ]; then
-    buildcommand=".local/bin/make -j8"
+    buildcommand="./project make -j8"
 else
-    buildcommand="./for-group $reproducible_paper_group_name make -j8"
+    buildcommand="./project make --group=$reproducible_paper_group_name -j8"
 fi
 cat <<EOF
 
@@ -1365,7 +1218,7 @@ Please run the following command to start.
 
     $buildcommand
 
-To change the configuration later, please re-run './configure',
-DO NOT manually edit the relevant files.
+To change the configuration later, please re-run './project configure', DO
+NOT manually edit the relevant files.
 
 EOF

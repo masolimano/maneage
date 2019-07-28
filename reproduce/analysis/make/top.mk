@@ -19,7 +19,8 @@
 
 
 
-# Load the local configuration (created after running `./configure').
+# Load the local configuration (created after running
+# `./project configure').
 include reproduce/software/config/installation/LOCAL.mk
 
 
@@ -49,9 +50,8 @@ include reproduce/software/config/installation/LOCAL.mk
 #
 # Controlling this requires two variables that are available at this stage:
 #
-#   - `GROUP-NAME': from `LOCAL.mk' (which was built by `./configure').
-#   - `reproducible_paper_group_name': from the `./for-group' script (if it
-#     was used to call Make).
+#   - `GROUP-NAME': from `LOCAL.mk' (which was built by `./project configure').
+#   - `reproducible_paper_group_name': value to the `--group' option.
 #
 # The analysis is only done when both have the same group name. Note that
 # when the project isn't being built for a group, both variables will be an
@@ -70,10 +70,10 @@ else
 all:
 	@if [ "x$(GROUP-NAME)" = x ]; then \
 	  echo "Project is NOT configured for groups, please run"; \
-	  echo "   $$ .local/bin/make"; \
+	  echo "   $$ ./project make"; \
 	else \
 	  echo "Project is configured for groups, please run"; \
-	  echo "   $$ ./for-group $(GROUP-NAME) make -j8"; \
+	  echo "   $$ ./project make --group=$(GROUP-NAME) -j8"; \
 	fi
 endif
 

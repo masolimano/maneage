@@ -1,0 +1,291 @@
+#!/bin/bash
+#
+# High-level script to manage the project.
+# Run `./project --help' for a description of how to use it.
+#
+# Copyright (C) 2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+#
+# This script is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# This script is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+# Public License for more details. See <http://www.gnu.org/licenses/>.
+
+
+# Basic settings
+# --------------
+# Stop the script if there are any errors.
+set -e
+
+# Default option values
+jobs=0     # 0 is for the default for the `configure.sh' script.
+group=
+debug=
+host_cc=0
+operation=
+build_dir=
+input_dir=
+make_targets=
+software_dir=
+existing_conf=0
+scriptname="./project"
+minmapsize=10000000000
+
+
+
+
+
+# Parse the options
+# -----------------
+#
+# Separate command-line arguments from options. Then put the option value
+# into the respective variable.
+#
+# Each option has two lines because we want to process both these formats:
+# `--name=value' and `--name value'. The former (with `=') is a single
+# command-line argument, so we just need to shift the counter by one. The
+# latter (without `=') is two arguments, so we'll need two shifts.
+#
+# Note on the case strings: for every option, we need three lines: one when
+# the option name and value are separate. Another when there is an equal
+# between them, and finally one where the value is immediately after the
+# short-format. This exact order is important. Otherwise, there will be a
+# conflict between them.
+
+print_help() {
+    # Print the output.
+    cat <<EOF
+Usage: $scriptname configure [OPTIONS]
+       $scriptname make      [OPTIONS]
+
+Top-level script to manage the reproducible project. The high-level
+operation is defined by the (mandatory) second argument:
+
+  configure    - Configure project for this machine (e.g., build software).
+  make         - Run the project (do analysis and build outputs).
+
+RECOMMENDATION: If this is the first time you are configuring this
+template, please don't use the options and let the script explain each
+parameter in full detail by simply running './project configure'.
+
+With the options below you can modify the default behavior.
+
+Configure options:
+  -b, --build-dir=STR     Top directory to build the project in.
+  -e, --existing-conf     Use (possibly existing) local configuration.
+      --host-cc           Use host system's C compiler, don't build GCC.
+  -i, --input-dir=STR     Directory containing input datasets (optional).
+  -m, --minmapsize=INT    [Gnuastro] Minimum number of bytes to use RAM.
+  -s, --software-dir=STR  Directory containing necessary software tarballs.
+
+Configure and Make options:
+  -g, --group=STR         Build and run with write permissions for a group.
+  -j, --jobs=INT          Number of threads to build/run the software.
+  -?, --help              Print this help list.
+
+Make options:
+  -d, --debug=FLAGS       Print various types of debugging information.
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+Reproducible paper template: https://gitlab.com/makhlaghi/reproducible-paper
+
+Report bugs to mohammad@akhlaghi.org
+EOF
+}
+
+on_off_option_error() {
+    if [ "x$2" = x ]; then
+        echo "$scriptname: '$1' doesn't take any values."
+    else
+        echo "$scriptname: '$1' (or '$2') doesn't take any values."
+    fi
+    exit 1
+}
+
+check_v() {
+    if [ x"$2" = x ]; then
+        echo "$scriptname: option '$1' requires an argument."
+        echo "Try '$scriptname --help' for more information."
+        exit 1;
+    fi
+}
+
+func_operation_set() {
+    if [ x$operation = x ]; then
+        operation=$1
+    else
+        echo "Only one operation ('configure' or 'make') may be given."
+        exit 1
+    fi
+}
+
+while [[ $# -gt 0 ]]
+do
+ case $1 in
+  # Main operation.
+  configure)    func_operation_set $1; shift;;
+  make)         func_operation_set $1; shift;;
+
+
+  # Configure options:
+  -b|--builddir)         build_dir="$2";                             check_v "$1" "$build_dir";    shift;shift;;
+  -b=*|--build-dir=*)    build_dir="${1#*=}";                        check_v "$1" "$build_dir";    shift;;
+  -b*)                   build_dir=$(echo    "$1" | sed -e's/-b//'); check_v "$1" "$build_dir";    shift;;
+  -e|--existing-conf)    existing_conf=1;                                                          shift;;
+  -e*|--existing-conf=*) on_off_option_error --existing-conf -e;;
+  --host-cc)             host_cc=1;                                                                shift;;
+  --host-cc=*)           on_off_option_error --host-cc;;
+  -i|--inputdir)         input_dir="$2";                             check_v "$1" "$input_dir";    shift;shift;;
+  -i=*|--inputdir=*)     input_dir="${1#*=}";                        check_v "$1" "$input_dir";    shift;;
+  -i*)                   input_dir=$(echo    "$1" | sed -e's/-i//'); check_v "$1" "$input_dir";    shift;;
+  -m|--minmapsize)       minmapsize="$2";                            check_v "$1" "$minmapsize";   shift;shift;;
+  -m=*|--minmapsize=*)   minmapsize="${1#*=}";                       check_v "$1" "$minmapsize";   shift;;
+  -m*)                   minmapsize=$(echo   "$1" | sed -e's/-m//'); check_v "$1" "$minmapsize";   shift;;
+  -s|--software-dir)     software_dir="$2";                          check_v "$1" "$software_dir"; shift;shift;;
+  -s=*|--software-dir=*) software_dir="${1#*=}";                     check_v "$1" "$software_dir"; shift;;
+  -s*)                   software_dir=$(echo "$1" | sed -e's/-s//'); check_v "$1" "$software_dir"; shift;;
+
+  # Configure and Make options:
+  -g|--group)             group="$2";                            check_v group "$group";   shift;shift;;
+  -g=*|--group=*)         group="${1#*=}";                       check_v group "$group";   shift;;
+  -g*)                    group=$(echo   "$1" | sed -e's/-g//'); check_v group "$group";   shift;;
+  -j|--jobs)              jobs="$2";                             check_v jobs  "$jobs";    shift;shift;;
+  -j=*|--jobs=*)          jobs="${1#*=}";                        check_v jobs  "$jobs";    shift;;
+  -j*)                    jobs=$(echo "$1" | sed -e's/-j//');    check_v jobs  "$jobs";    shift;;
+  -'?'|--help)            print_help; exit 0;;
+  -'?'*|--help=*)         on_off_option_error --help -?;;
+
+  # Make options (note that Make's `debug' can take values, but when called
+  # without any value, it is like giving it a value of `a'):
+  -d|--debug)             if [ x"$2" = x ]; then debug=a;          shift;
+                          else debug="$2"; check_v debug "$debug"; shift;shift; fi;;
+  -d=*|--debug=*)         debug="${1#*=}";                       check_v debug "$debug";   shift;;
+  -d*)                    debug=$(echo "$1" | sed -e's/-d//');   check_v debug "$debug";   shift;;
+
+  # Unrecognized option:
+  -*) echo "$scriptname: unknown option '$1'"; exit 1;;
+
+  # Not an option, an argument (so its a Make target).
+  *) make_targets="$make_targets $1"; shift;;
+ esac
+done
+
+
+
+
+
+# Basic group settings
+# --------------------
+if ! [ x$group = x ]; then
+
+    # Check if group is usable.
+    if ! sg "$group" "echo test &> /dev/null" &> /dev/null; then
+        echo "$scriptname: '$group' is not a usable group name on this system.";
+        echo "(TIP: you can use the 'groups' command to see your groups)"
+        exit 1
+    fi
+
+    # Set the group option for running Make.
+    gopt="reproducible_paper_group_name=$group"
+fi
+
+
+
+
+
+# Do requested operation
+# ----------------------
+perms="u+r,u+w,g+r,g+w,o-r,o-w,o-x"
+configscript=./reproduce/software/bash/configure.sh
+case $operation in
+
+    # Build the project's software.
+    configure)
+
+        # Variables to pass to the configuration script.
+        export jobs=$jobs
+        export host_cc=$host_cc
+        export build_dir=$build_dir
+        export input_dir=$input_dir
+        export scriptname=$scriptname
+        export minmapsize=$minmapsize
+        export software_dir=$software_dir
+        export existing_conf=$existing_conf
+        export reproducible_paper_group_name=$group
+
+        # Run the configuration script
+        if [ x"$group" = x ]; then
+            $configscript
+        else
+            # Set the group and permission flags.
+            sg "$group" "umask $perms && $configscript"
+
+            # Set the group writing permission for everything in the
+            # installed software directory. The common build process sets
+            # the writing permissions of the installed programs/libraries
+            # to `755'. So group members can't write over a file. This
+            # creates problems when another group member wants to update
+            # the software for example. We thus need to manually add the
+            # group writing flag to all installed software files.
+            echo "Enabling group writing permission on all installed software..."
+            .local/bin/chmod -R g+w .local/;
+        fi
+        ;;
+
+    # Run the project
+    make)
+
+        # Make sure the configure script has been completed properly
+        # (`configuration-done.txt' exists).
+        if ! [ -f .build/software/configuration-done.txt ]; then
+            cat <<EOF
+
+The project isn't configured for this system, or the configuration wasn't
+successful. To configure the project, please use this command:
+
+      '$ ./project configure'
+
+(TIP: if you have already ran this command once, run it with '-e' to use
+the previous configuration, run with '--help' for more info)
+
+EOF
+            exit 1
+        fi
+
+        # Get the full address of the build directory:
+        bdir=`.local/bin/realpath .build`
+
+
+        # Remove all existing environment variables (with `env -i') and
+        # only use some pre-defined environment variables, then build the
+        # project.
+        envmake=".local/bin/env -i HOME= sys-rm=$(which rm) $gopt"
+        envmake="$envmake .local/bin/make -f reproduce/analysis/make/top.mk"
+        if ! [ x"$debug" = x  ]; then envmake="$envmake --debug=$debug"; fi
+
+        # Set the number of jobs. Note that for the `configure.sh' script
+        # the default value has to be 0, so the default is the maximum
+        # number of threads. But here, the default value is 1.
+        if ! [ x"$jobs"  = x0 ]; then envmake="$envmake -j$jobs";  fi
+
+        # Run the project
+        if [ x"$group" = x ]; then
+            $envmake $make_targets
+        else
+            # Set the group and permission flags.
+            sg "$group" "umask $perms && $envmake $make_targets"
+        fi
+        ;;
+
+    # Operation not specified.
+    *)
+        echo "No operation defined (you can give 'configure' or 'make')."
+        exit 1
+    ;;
+esac

@@ -3,8 +3,8 @@
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!
 #
-# This Makefile will be run by the initial `./configure' script. It is not
-# included into the reproduction pipe after that.
+# This Makefile will be run by the initial `./project configure' script. It
+# is not included into the reproduction pipe after that.
 #
 # ------------------------------------------------------------------------
 #
@@ -76,7 +76,11 @@ export LD_RUN_PATH := $(ildir):$(il64dir)
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export LD_LIBRARY_PATH := $(ildir):$(il64dir)
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export DYLD_LIBRARY_PATH := $(ildir):$(il64dir)
+
+# RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
+# ultimately redundant. But on some systems, even having a single value
+# causes crashs (see bug #56682). So we'll just give it no value at all.
+export DYLD_LIBRARY_PATH :=
 
 # Building flags:
 #
@@ -88,6 +92,9 @@ export LDFLAGS           := $(rpath_command) -L$(ildir)
 ifeq ($(host_cc),0)
 export CXXFLAGS          := -liconv
 endif
+
+
+
 
 
 # We want the download to happen on a single thread. So we need to define a

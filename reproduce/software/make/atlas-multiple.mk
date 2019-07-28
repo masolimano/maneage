@@ -3,8 +3,8 @@
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!
 #
-# This Makefile will be run during the initial `./configure' script. It is
-# not included into the reproduction pipe after that.
+# This Makefile will be run during the initial `./project configure'
+# script. It is not included into the reproduction pipe after that.
 #
 # ------------------------------------------------------------------------
 #
