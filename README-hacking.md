@@ -409,6 +409,42 @@ project is designed to grow in this framework.
 
 
 
+File modification dates (meta data)
+-----------------------------------
+
+While git does an excellent job at keeping a history of the contents of
+files, it makes no effort in keeping the file meta data, and in particular
+the dates of files. Therefore when you checkout to a different branch,
+files that are re-written by Git will have a newer date than the other
+project files. However, file dates are important in the current design of
+the template: Make uses file dates of the pre-requisits and targets to see
+if the target should be re-built.
+
+To fix this problem, for this template we use a forked version of
+[Metastore](https://github.com/mohammad-akhlaghi/metastore). Metastore use
+a binary database file (which is called `.file-metadata`) to keep the
+modification dates of all the files under version control. This file is
+also under version control, but is hidden (because it shouldn't be modified
+by hand). During the project's configuration, the template installs to Git
+hooks to run Metastore 1) before making a commit to update its database
+with the file dates in a branch, and 2) after doing a checkout, to reset
+the file-dates after the checkout is complete and re-set the file dates
+back to what they were.
+
+In practice, Metastore should work almost fully invisiablly within your
+project. The only place you might notice its presence is that you'll see
+`.file-metadata` in the list of modified/staged files (commonly after
+merging your branches). Since its a binary file, Git also won't show you
+the changed contents. In a merge, you can simply accept any changes with
+`git add -u`. But if Git is telling you that it has changed without a merge
+(for example if you started a commit, but cancelled it in the middle), you
+can just do `git checkout .file-metadata` and set it back to its original
+state.
+
+
+
+
+
 Summary
 -------
 
