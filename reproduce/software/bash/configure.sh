@@ -767,6 +767,16 @@ will be installed in:
 
   $sdir/installed
 
+**TIP**: you can see which software is being installed at every moment with
+the following command. See "Inspecting status" section of
+'README-hacking.md' for more. In short, run it while the project is being
+configured (in another terminal, but on this same directory: '`pwd`'):
+
+  $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
+
+-------------------------
+
+
 EOF
     sleep $tsec
 fi
