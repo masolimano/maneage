@@ -42,6 +42,7 @@ pconf=$sbdir/LOCAL.mk
 ptconf=$sbdir/LOCAL_tmp.mk
 poconf=$sbdir/LOCAL_old.mk
 depverfile=$cdir/installation/versions.mk
+depshafile=$cdir/installation/checksums.mk
 # --------- Delete for no Gnuastro ---------
 glconf=$cdir/gnuastro/gnuastro-local.conf
 # ------------------------------------------
@@ -817,16 +818,19 @@ fi
 # The reason that `flock' is sepecial is that we need it to serialize the
 # download process of the software tarballs.
 flockversion=$(awk '/flock-version/{print $3}' $depverfile)
+flockchecksum=$(awk '/flock-checksum/{print $3}' $depshafile)
 flocktar=flock-$flockversion.tar.gz
 flockurl=http://github.com/discoteq/flock/releases/download/v$flockversion/
 
 # Prepare/download the tarball.
 if ! [ -f $tardir/$flocktar ]; then
+    flocktarname=$tardir/$flocktar
+    ucname=$flocktarname.unchecked
     if [ -f $ddir/$flocktar ]; then
-        cp $ddir/$flocktar $tardir/$flocktar
+        cp $ddir/$flocktar $ucname
     else
-        if ! $downloader $tardir/$flocktar $flockurl/$flocktar; then
-            rm -f $tardir/$flocktar;
+        if ! $downloader $ucname $flockurl/$flocktar; then
+            rm -f $ucname;
             echo
             echo "DOWNLOAD ERROR: Couldn't download the 'flock' tarball:"
             echo "  $flockurl"
@@ -834,6 +838,15 @@ if ! [ -f $tardir/$flocktar ]; then
             echo "You can manually place it in '$ddir' to avoid downloading."
             exit 1
         fi
+    fi
+
+    # Make sure this is the correct tarball.
+    if type sha512sum > /dev/null 2>/dev/null; then
+        checksum=$(sha512sum "$ucname" | awk '{print $1}')
+        if [ x$checksum = x$flockchecksum ]; then mv "$ucname" "$flocktarname"
+        else echo "ERROR: Non-matching checksum for '$flocktar'."; exit 1
+        fi;
+    else mv "$ucname" "$flocktarname"
     fi
 fi
 

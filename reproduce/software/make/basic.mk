@@ -36,6 +36,7 @@
 include reproduce/software/make/build-rules.mk
 include reproduce/software/config/installation/LOCAL.mk
 include reproduce/software/config/installation/versions.mk
+include reproduce/software/config/installation/checksums.mk
 
 lockdir = $(BDIR)/locks
 tdir    = $(BDIR)/software/tarballs
@@ -137,66 +138,71 @@ tarballs = $(foreach t, bash-$(bash-version).tar.lz \
                         zlib-$(zlib-version).tar.gz \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
-	if [ -f $(DEPENDENCIES-DIR)/$* ]; then \
-	  cp $(DEPENDENCIES-DIR)/$* $@; \
+
+	n=$$(echo $* | sed -e's/[0-9\-]/ /g' \
+	                   -e's/\./ /g' \
+	             | awk '{print $$1}' ); \
+	                                    \
+	mergenames=1; \
+	if   [ $$n = bash      ]; then c=$(bash-checksum); w=http://akhlaghi.org/src; \
+	elif [ $$n = binutils  ]; then c=$(binutils-checksum); w=http://ftp.gnu.org/gnu/binutils; \
+	elif [ $$n = bzip      ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/src; \
+	elif [ $$n = cert      ]; then c=$(cert-checksum); w=http://akhlaghi.org/src; \
+	elif [ $$n = coreutils ]; then c=$(coreutils-checksum); w=http://ftp.gnu.org/gnu/coreutils;\
+	elif [ $$n = curl      ]; then c=$(curl-checksum); w=https://curl.haxx.se/download; \
+	elif [ $$n = diffutils ]; then c=$(diffutils-checksum); w=http://ftp.gnu.org/gnu/diffutils;\
+	elif [ $$n = file      ]; then c=$(file-checksum); w=ftp://ftp.astron.com/pub/file; \
+	elif [ $$n = findutils ]; then c=$(findutils-checksum); w=http://akhlaghi.org/src; \
+	elif [ $$n = gawk      ]; then c=$(gawk-checksum); w=http://ftp.gnu.org/gnu/gawk; \
+	elif [ $$n = gcc       ]; then c=$(gcc-checksum); w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
+	elif [ $$n = git       ]; then c=$(git-checksum); w=http://mirrors.edge.kernel.org/pub/software/scm/git; \
+	elif [ $$n = gmp       ]; then c=$(gmp-checksum); w=https://gmplib.org/download/gmp; \
+	elif [ $$n = grep      ]; then c=$(grep-checksum); w=http://ftp.gnu.org/gnu/grep; \
+	elif [ $$n = gzip      ]; then c=$(gzip-checksum); w=http://ftp.gnu.org/gnu/gzip; \
+	elif [ $$n = isl       ]; then c=$(isl-checksum); w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
+	elif [ $$n = libbsd    ]; then c=$(libbsd-checksum); w=http://libbsd.freedesktop.org/releases; \
+	elif [ $$n = libiconv  ]; then c=$(libiconv-checksum); w=https://ftp.gnu.org/pub/gnu/libiconv; \
+	elif [ $$n = libtool   ]; then c=$(libtool-checksum); w=http://ftp.gnu.org/gnu/libtool; \
+	elif [ $$n = lzip      ]; then c=$(lzip-checksum); w=http://download.savannah.gnu.org/releases/lzip; \
+	elif [ $$n = m         ]; then \
+	  mergenames=0; \
+	  c=$(m4-checksum); \
+	  w=http://akhlaghi.org/src/m4-1.4.18-patched.tar.gz; \
+	elif [ $$n = make      ]; then c=$(make-checksum); w=http://akhlaghi.org/src; \
+	elif [ $$n = metastore ]; then c=$(metastore-checksum); w=http://akhlaghi.org/src; \
+	elif [ $$n = mpc       ]; then c=$(mpc-checksum); w=http://ftp.gnu.org/gnu/mpc; \
+	elif [ $$n = mpfr      ]; then c=$(mpfr-checksum); w=http://www.mpfr.org/mpfr-current;\
+	elif [ $$n = ncurses   ]; then c=$(ncurses-checksum); w=http://ftp.gnu.org/gnu/ncurses; \
+	elif [ $$n = openssl   ]; then c=$(openssl-checksum); w=http://www.openssl.org/source; \
+	elif [ $$n = patchelf  ]; then c=$(patchelf-checksum); w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version); \
+	elif [ $$n = pkg       ]; then c=$(pkgconfig-checksum); w=http://pkg-config.freedesktop.org/releases; \
+	elif [ $$n = readline  ]; then c=$(readline-checksum); w=http://ftp.gnu.org/gnu/readline; \
+	elif [ $$n = sed       ]; then c=$(sed-checksum); w=http://ftp.gnu.org/gnu/sed; \
+	elif [ $$n = tar       ]; then c=$(tar-checksum); w=http://ftp.gnu.org/gnu/tar; \
+	elif [ $$n = texinfo   ]; then c=$(texinfo-checksum); w=http://ftp.gnu.org/gnu/texinfo; \
+	elif [ $$n = unzip     ]; then \
+	  c=$(unzip-checksum); \
+	  mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//'); \
+	  w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz; \
+	elif [ $$n = wget      ]; then c=$(wget-checksum); w=http://ftp.gnu.org/gnu/wget; \
+	elif [ $$n = which     ]; then c=$(which-checksum); w=http://ftp.gnu.org/gnu/which; \
+	elif [ $$n = xz        ]; then c=$(xz-checksum); w=http://tukaani.org/xz; \
+	elif [ $$n = zip       ]; then \
+	  c=$(zip-checksum); \
+	  mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//'); \
+	  w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz; \
+	elif [ $$n = zlib      ]; then c=$(zlib-checksum); w=http://www.zlib.net; \
 	else \
-	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' \
-	                     -e's/\./ /g' \
-	               | awk '{print $$1}' ); \
-	                                      \
-	  mergenames=1; \
-	  if   [ $$n = bash      ]; then w=http://akhlaghi.org/src; \
-	  elif [ $$n = binutils  ]; then w=http://ftp.gnu.org/gnu/binutils; \
-	  elif [ $$n = bzip      ]; then w=http://akhlaghi.org/src; \
-	  elif [ $$n = cert      ]; then w=http://akhlaghi.org/src; \
-	  elif [ $$n = coreutils ]; then w=http://ftp.gnu.org/gnu/coreutils;\
-	  elif [ $$n = curl      ]; then w=https://curl.haxx.se/download; \
-	  elif [ $$n = diffutils ]; then w=http://ftp.gnu.org/gnu/diffutils;\
-	  elif [ $$n = file      ]; then w=ftp://ftp.astron.com/pub/file; \
-	  elif [ $$n = findutils ]; then w=http://akhlaghi.org/src; \
-	  elif [ $$n = gawk      ]; then w=http://ftp.gnu.org/gnu/gawk; \
-	  elif [ $$n = gcc       ]; then w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
-	  elif [ $$n = git       ]; then w=http://mirrors.edge.kernel.org/pub/software/scm/git; \
-	  elif [ $$n = gmp       ]; then w=https://gmplib.org/download/gmp; \
-	  elif [ $$n = grep      ]; then w=http://ftp.gnu.org/gnu/grep; \
-	  elif [ $$n = gzip      ]; then w=http://ftp.gnu.org/gnu/gzip; \
-	  elif [ $$n = isl       ]; then w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
-	  elif [ $$n = libbsd    ]; then w=http://libbsd.freedesktop.org/releases; \
-	  elif [ $$n = libiconv  ]; then w=https://ftp.gnu.org/pub/gnu/libiconv; \
-	  elif [ $$n = libtool   ]; then w=http://ftp.gnu.org/gnu/libtool; \
-	  elif [ $$n = lzip      ]; then w=http://download.savannah.gnu.org/releases/lzip; \
-	  elif [ $$n = m         ]; then \
-	    mergenames=0; \
-	    w=http://akhlaghi.org/src/m4-1.4.18-patched.tar.gz; \
-	  elif [ $$n = make      ]; then w=http://akhlaghi.org/src; \
-	  elif [ $$n = metastore ]; then w=http://akhlaghi.org/src; \
-	  elif [ $$n = mpfr      ]; then w=http://www.mpfr.org/mpfr-current;\
-	  elif [ $$n = mpc       ]; then w=http://ftp.gnu.org/gnu/mpc; \
-	  elif [ $$n = ncurses   ]; then w=http://ftp.gnu.org/gnu/ncurses; \
-	  elif [ $$n = openssl   ]; then w=http://www.openssl.org/source; \
-	  elif [ $$n = patchelf  ]; then w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version); \
-	  elif [ $$n = pkg       ]; then w=http://pkg-config.freedesktop.org/releases; \
-	  elif [ $$n = readline  ]; then w=http://ftp.gnu.org/gnu/readline; \
-	  elif [ $$n = sed       ]; then w=http://ftp.gnu.org/gnu/sed; \
-	  elif [ $$n = tar       ]; then w=http://ftp.gnu.org/gnu/tar; \
-	  elif [ $$n = texinfo   ]; then w=http://ftp.gnu.org/gnu/texinfo; \
-	  elif [ $$n = unzip     ]; then \
-	    mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//'); \
-	    w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz; \
-	  elif [ $$n = wget      ]; then w=http://ftp.gnu.org/gnu/wget; \
-	  elif [ $$n = which     ]; then w=http://ftp.gnu.org/gnu/which; \
-	  elif [ $$n = xz        ]; then w=http://tukaani.org/xz; \
-	  elif [ $$n = zip       ]; then \
-	    mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//'); \
-	    w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz; \
-	  elif [ $$n = zlib      ]; then w=http://www.zlib.net; \
-	  else \
-	    echo; echo; echo; \
-	    echo "'$$n' not a basic dependency name (for downloading)." \
-	    echo; echo; echo; \
-	    exit 1; \
-	  fi; \
-	      \
+	  echo; echo; echo; \
+	  echo "'$$n' not recognized as a software tarball name to download."; \
+	  echo; echo; echo; \
+	  exit 1; \
+	fi; \
+	                                       \
+	                                       \
+	if [ -f $(DEPENDENCIES-DIR)/$* ]; then \
+	  cp $(DEPENDENCIES-DIR)/$* "$@.unchecked"; \
+	else \
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"; \
 	  else                           tarballurl=$$w; \
 	  fi; \
@@ -210,8 +216,18 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	      \
 	  touch $(lockdir)/download; \
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
-	                     $$tarballurl $@; \
-	fi
+	                     $$tarballurl "$@.unchecked"; \
+	fi; \
+	                                                \
+	                                                \
+	if type sha512sum > /dev/null 2>/dev/null; then \
+	  checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}'); \
+	  echo "$*: should be '$$c', is '$$checksum'"; \
+	  if [ x$$checksum = x$$c ]; then mv "$@.unchecked" "$@"; \
+	  else echo "ERROR: Non-matching checksum for '$*'."; exit 1; \
+	  fi; \
+	else mv "$@.unchecked" "$@"; \
+	fi;
 
 
 

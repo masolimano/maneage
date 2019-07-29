@@ -32,6 +32,7 @@ include reproduce/software/config/installation/LOCAL.mk
 include reproduce/software/config/installation/TARGETS.mk
 include reproduce/software/config/installation/texlive.mk
 include reproduce/software/config/installation/versions.mk
+include reproduce/software/config/installation/checksums.mk
 
 lockdir = $(BDIR)/locks
 tdir    = $(BDIR)/software/tarballs
@@ -161,86 +162,96 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         yaml-$(yaml-version).tar.gz \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
-	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
-	  cp $(DEPENDENCIES-DIR)/$* $@
+
+        # Remove all numbers, `-' and `.' from the tarball name so we can
+        # search more easily only with the program name.
+	n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g' \
+	             | awk '{print $$1}' )
+
+	# Set the top download link of the requested tarball.
+	mergenames=1
+	if   [ $$n = astrometry  ]; then c=$(astrometrynet-checksum); w=http://astrometry.net/downloads
+	elif [ $$n = atlas       ]; then
+	  mergenames=0
+	  c=$(atlas-checksum)
+	  w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
+	elif [ $$n = cairo       ]; then c=$(cairo-checksum); w=https://www.cairographics.org/releases
+	elif [ $$n = cdsclient   ]; then c=$(cdsclient-checksum); w=http://cdsarc.u-strasbg.fr/ftp/pub/sw
+	elif [ $$n = cfitsio     ]; then c=$(cfitsio-checksum); w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
+	elif [ $$n = cmake       ]; then
+	  mergenames=0
+	  c=$(cmake-checksum)
+	  majv=$$(echo $(cmake-version) \
+	               | sed -e's/\./ /' \
+	               | awk '{printf("%d.%d", $$1, $$2)}')
+	  w=https://cmake.org/files/v$$majv/cmake-$(cmake-version).tar.gz
+	elif [ $$n = fftw        ]; then c=$(fftw-checksum); w=ftp://ftp.fftw.org/pub/fftw
+	elif [ $$n = freetype    ]; then c=$(freetype-checksum); w=https://download.savannah.gnu.org/releases/freetype
+	elif [ $$n = ghostscript ]; then c=$(ghostscript-checksum); w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
+	elif [ $$n = gnuastro    ]; then c=$(gnuastro-checksum); w=http://ftp.gnu.org/gnu/gnuastro
+	elif [ $$n = gsl         ]; then c=$(gsl-checksum); w=http://ftp.gnu.org/gnu/gsl
+	elif [ $$n = hdf         ]; then
+	  mergenames=0
+	  c=$(hdf5-checksum)
+	  majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
+	  w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
+	elif [ $$n = imagemagick ]; then
+	  mergenames=0
+	  c=$(imagemagick-checksum)
+	  w=https://www.imagemagick.org/download/releases/ImageMagick-$(imagemagick-version).tar.xz
+	elif [ $$n = imfit       ]; then
+	  mergenames=0
+	  c=$(imfit-checksum)
+	  w=http://www.mpe.mpg.de/~erwin/resources/imfit/imfit-$(imfit-version)-source.tar.gz
+	elif [ $$n = install     ]; then c=NO-CHECK-SUM; w=http://mirror.ctan.org/systems/texlive/tlnet
+	elif [ $$n = jpegsrc     ]; then c=$(libjpeg-checksum); w=http://ijg.org/files
+	elif [ $$n = lapack      ]; then c=$(lapack-checksum); w=http://www.netlib.org/lapack
+	elif [ $$n = libpng      ]; then c=$(libpng-checksum); w=https://download.sourceforge.net/libpng
+	elif [ $$n = libgit      ]; then
+	  mergenames=0
+	  c=$(libgit2-checksum)
+	  w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
+	elif [ $$n = libxml      ]; then c=$(libxml-checksum); w=ftp://xmlsoft.org/libxml2
+	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = openblas    ]; then
+	  mergenames=0
+	  c=$(openblas-checksum)
+	  w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
+	elif [ $$n = openmpi     ]; then
+	  mergenames=0
+	  c=$(openmpi-checksum)
+	  majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
+	  w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
+	elif [ $$n = pixman      ]; then c=$(pixman-checksum); w=https://www.cairographics.org/releases
+	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = scons       ]; then
+	  mergenames=0
+	  c=$(scons-checksum)
+	  w=https://sourceforge.net/projects/scons/files/scons/$(scons-version)/scons-$(scons-version).tar.gz/download
+	elif [ $$n = sextractor  ]; then c=$(sextractor-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = swarp       ]; then c=$(swarp-checksum); w=https://www.astromatic.net/download/swarp
+	elif [ $$n = swig        ]; then c=$(swig-checksum); w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
+	elif [ $$n = tides       ]; then c=$(tides-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = tiff        ]; then c=$(libtiff-checksum); w=https://download.osgeo.org/libtiff
+	elif [ $$n = wcslib      ]; then c=$(wcslib-checksum); w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
+	elif [ $$n = yaml        ]; then c=$(yaml-checksum); w=pyyaml.org/download/libyaml
 	else
-	  # Remove all numbers, `-' and `.' from the tarball name so we can
-	  # search more easily only with the program name.
-	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g' \
-	               | awk '{print $$1}' )
+	  echo; echo; echo;
+	  echo "'$$n' not recognized as a software tarball name to download."
+	  echo; echo; echo;
+	  exit 1
+	fi
 
-	  # Set the top download link of the requested tarball.
-	  mergenames=1
-	  if   [ $$n = astrometry  ]; then w=http://astrometry.net/downloads
-	  elif [ $$n = atlas       ]; then
-	    mergenames=0
-	    w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
-	  elif [ $$n = cairo       ]; then w=https://www.cairographics.org/releases
-	  elif [ $$n = cdsclient   ]; then w=http://cdsarc.u-strasbg.fr/ftp/pub/sw
-	  elif [ $$n = cfitsio     ]; then w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
-	  elif [ $$n = cmake       ]; then
-	    mergenames=0
-	    majv=$$(echo $(cmake-version) \
-	                 | sed -e's/\./ /' \
-	                 | awk '{printf("%d.%d", $$1, $$2)}')
-	    w=https://cmake.org/files/v$$majv/cmake-$(cmake-version).tar.gz
-	  elif [ $$n = fftw        ]; then w=ftp://ftp.fftw.org/pub/fftw
-	  elif [ $$n = freetype    ]; then w=https://download.savannah.gnu.org/releases/freetype
-	  elif [ $$n = hdf         ]; then
-	    mergenames=0
-	    majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
-	    w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
-	  elif [ $$n = ghostscript ]; then w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
-	  elif [ $$n = gnuastro    ]; then w=http://ftp.gnu.org/gnu/gnuastro
-	  elif [ $$n = gsl         ]; then w=http://ftp.gnu.org/gnu/gsl
-	  elif [ $$n = imagemagick ]; then
-	    mergenames=0
-	    w=https://www.imagemagick.org/download/releases/ImageMagick-$(imagemagick-version).tar.xz
-	  elif [ $$n = imfit       ]; then
-	    mergenames=0
-	    w=http://www.mpe.mpg.de/~erwin/resources/imfit/imfit-$(imfit-version)-source.tar.gz
-	  elif [ $$n = install     ]; then w=http://mirror.ctan.org/systems/texlive/tlnet
-	  elif [ $$n = jpegsrc     ]; then w=http://ijg.org/files
-	  elif [ $$n = lapack      ]; then w=http://www.netlib.org/lapack
-	  elif [ $$n = libpng      ]; then w=https://download.sourceforge.net/libpng
-	  elif [ $$n = libgit      ]; then
-	    mergenames=0
-	    w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
-	  elif [ $$n = libxml      ]; then w=ftp://xmlsoft.org/libxml2
-	  elif [ $$n = netpbm      ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = openblas    ]; then
-	    mergenames=0
-	    w=https://github.com/xianyi/OpenBLAS/archive/v$(openblas-version).tar.gz
-	  elif [ $$n = openmpi     ]; then
-	    mergenames=0
-	    majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
-	    w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
-	  elif [ $$n = pixman      ]; then w=https://www.cairographics.org/releases
-	  elif [ $$n = scamp       ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = scons       ]; then
-	    mergenames=0
-	    w=https://sourceforge.net/projects/scons/files/scons/$(scons-version)/scons-$(scons-version).tar.gz/download
-	  elif [ $$n = sextractor  ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = swarp       ]; then w=https://www.astromatic.net/download/swarp
-	  elif [ $$n = swig        ]; then w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
-	  elif [ $$n = tides       ]; then w=http://akhlaghi.org/src
-	  elif [ $$n = tiff        ]; then w=https://download.osgeo.org/libtiff
-	  elif [ $$n = wcslib      ]; then w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
-	  elif [ $$n = yaml        ]; then w=pyyaml.org/download/libyaml
-	  else
-	    echo; echo; echo;
-	    echo "'$$n' not recognized as a dependency name to download."
-	    echo; echo; echo;
-	    exit 1
-	  fi
-
-      # Download the requested tarball. Note that some packages may not
-      # follow our naming convention (where the package name is merged
-      # with its version number). In such cases, `w' will be the full
-      # address, not just the top directory address. But since we are
-      # storing all the tarballs in one directory, we want it to have
-      # the same naming convention, so we'll download it to a temporary
-      # name, then rename that.
+        # Download the requested tarball. Note that some packages may not
+        # follow our naming convention (where the package name is merged
+        # with its version number). In such cases, `w' will be the full
+        # address, not just the top directory address. But since we are
+        # storing all the tarballs in one directory, we want it to have the
+        # same naming convention, so we'll download it to a temporary name,
+        # then rename that.
+	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
+	  cp $(DEPENDENCIES-DIR)/$* "$@.unchecked"
+	else
 	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"
 	  else                           tarballurl=$$w
 	  fi
@@ -249,7 +260,20 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  touch $(lockdir)/download
 	  downloader="wget --no-use-server-timestamps -O"
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
-	                     $$tarballurl $@
+	                     $$tarballurl "$@.unchecked"
+	fi
+
+        # Make sure this is the expected tarball. Note that we now have a
+        # controlled `sha512sum' build (as part of GNU Coreutils). So we
+        # don't need to check its existance like `basic.mk'. But for LaTeX,
+        # we need to ignore a checksum (it downloads the binaries).
+	if [ $$c == NO-CHECK-SUM ]; then
+	  mv "$@.unchecked" "$@"
+	else
+	  checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}')
+	  if [ x$$checksum = x$$c ]; then mv "$@.unchecked" "$@"
+	    else echo "ERROR: Non-matching checksum for '$*'."; exit 1
+	  fi
 	fi
 
 

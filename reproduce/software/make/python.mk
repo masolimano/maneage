@@ -102,108 +102,113 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz \
                       , $(tdir)/$(t) )
 pytopurl=https://files.pythonhosted.org/packages
 $(pytarballs): $(tdir)/%:
-	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
-	  cp $(DEPENDENCIES-DIR)/$* $@
+
+        # Convenience variable
+        # --------------------
+        #
+        # `n' is just for convenience and to avoid having to repeat the
+        # package tarball name in the conditional to find its URL.
+        #
+        # For some packages (for example `python-dateutil', or those with
+        # a number or dash in their name), we need special consideration
+        # because the tokenization above will produce `python' as the
+        # first string.
+	if [ $* = python-dateutil-$(python-dateutil-version).tar.gz ]; then
+	  n=dateutil
+	elif [ $* = h5py-$(h5py-version).tar.gz ]; then
+	  n=h5py
+
+        # elif [ $* = strange-tarball5name-version.tar.gz ]; then
+        #  n=strange5-name
 	else
+          # Remove all numbers, `-' and `.' from the tarball name so we can
+          # search more easily only with the program name.
+	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
+	            | awk '{print $$1}')
+	fi
 
-          # Convenience variable
-          # --------------------
-          #
-          # `n' is just for convenience and to avoid having to repeat the
-          # package tarball name in the conditional to find its URL.
-          #
-          # For some packages (for example `python-dateutil', or those with
-          # a number or dash in their name), we need special consideration
-          # because the tokenization above will produce `python' as the
-          # first string.
-	  if [ $* = python-dateutil-$(python-dateutil-version).tar.gz ]; then
-	    n=dateutil
-	  elif [ $* = h5py-$(h5py-version).tar.gz ]; then
-	    n=h5py
+        # Set the top download link of the requested tarball. The ones
+        # that have non-standard filenames (differing from our archived
+        # tarball names) are treated first, then the standard ones.
+	mergenames=1
+	if [ $$n = cython         ]; then
+	  mergenames=0
+	  c=$(cython-checksum)
+	  hash=36/da/fcb979fc8cb486a67a013d6aefefbb95a3e19e67e49dff8a35e014046c5e
+	  h=$(pytopurl)/$$hash/Cython-$(cython-version).tar.gz
+	elif [ $$n = python           ]; then
+	  mergenames=0
+	  c=$(python-checksum)
+	  h=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
+	elif [ $$n = pyyaml           ]; then
+	  mergenames=0
+	  c=$(pyyaml-checksum)
+	  hash=9f/2c/9417b5c774792634834e730932745bc09a7d36754ca00acf1ccd1ac2594d
+	  h=$(pytopurl)/$$hash/PyYAML-$(pyyaml-version).tar.gz
+	elif [ $$n = libffi         ]; then
+	  mergenames=0
+	  c=$(libffi-checksum)
+	  h=ftp://sourceware.org/pub/libffi/libffi-$(libffi-version).tar.gz
+	elif [ $$n = secretstorage  ]; then
+	  mergenames=0
+	  c=$(secretstorage-checksum)
+	  hash=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5
+	  h=$(pytopurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
+	elif [ $$n = asn            ]; then h=fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4; c=$(asn1crypto-checksum)
+	elif [ $$n = astroquery     ]; then h=61/50/a7a08f9e54d7d9d97e69433cd88231e1ad2901811c9d1ae9ac7ccaef9396; c=$(astroquery-checksum)
+	elif [ $$n = astropy        ]; then h=eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352; c=$(astropy-checksum)
+	elif [ $$n = beautifulsoup  ]; then h=80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748; c=$(beautifulsoup-checksum)
+	elif [ $$n = certifi        ]; then h=55/54/3ce77783acba5979ce16674fc98b1920d00b01d337cfaaf5db22543505ed; c=$(certifi-checksum)
+	elif [ $$n = cffi           ]; then h=64/7c/27367b38e6cc3e1f49f193deb761fe75cda9f95da37b67b422e62281fcac; c=$(cffi-checksum)
+	elif [ $$n = chardet        ]; then h=fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d; c=$(chardet-checksum)
+	elif [ $$n = cryptography   ]; then h=07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449; c=$(cryptography-checksum)
+	elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488; c=$(cycler-checksum)
+	elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c; c=$(entrypoints-checksum)
+	elif [ $$n = h5py           ]; then h=43/27/a6e7dcb8ae20a4dbf3725321058923fec262b6f7835179d78ccc8d98deec; c=$(h5py-checksum)
+	elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f; c=$(html5lib-checksum)
+	elif [ $$n = idna           ]; then h=ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7; c=$(idna-checksum)
+	elif [ $$n = jeepney        ]; then h=16/1d/74adf3b164a8d19a60d0fcf706a751ffa2a1eaa8e5bbb1b6705c92a05263; c=$(jeepney-checksum)
+	elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2; c=$(keyring-checksum)
+	elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864; c=$(kiwisolver-checksum)
+	elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f; c=$(matplotlib-checksum)
+	elif [ $$n = mpi            ]; then h=55/a2/c827b196070e161357b49287fa46d69f25641930fd5f854722319d431843; c=$(mpi4py-checksum)
+	elif [ $$n = mpmath         ]; then h=ca/63/3384ebb3b51af9610086b23ea976e6d27d6d97bf140a76a365bd77a3eb32; c=$(mpmath-checksum)
+	elif [ $$n = numpy          ]; then h=cf/8d/6345b4f32b37945fedc1e027e83970005fc9c699068d2f566b82826515f2; c=$(numpy-checksum)
+	elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af; c=$(pip-checksum)
+	elif [ $$n = pkgconfig      ]; then h=6e/a9/ff67ef67217dfdf2aca847685fe789f82b931a6957a3deac861297585db6; c=$(pypkgconfig-checksum)
+	elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a; c=$(pycparser-checksum)
+	elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc; c=$(pyparsing-checksum)
+	elif [ $$n = dateutil       ]; then h=ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c; c=$(python-dateutil-checksum)
+	elif [ $$n = requests       ]; then h=52/2c/514e4ac25da2b08ca5a464c50463682126385c4272c18193876e91f4bc38; c=$(requests-checksum)
+	elif [ $$n = scipy          ]; then h=a9/b4/5598a706697d1e2929eaf7fe68898ef4bea76e4950b9efbe1ef396b8813a; c=$(scipy-checksum)
+	elif [ $$n = secretstorage  ]; then h=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5; c=$(secretstorage-checksum)
+	elif [ $$n = setuptools     ]; then h=c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0; c=$(setuptools-checksum)
+	elif [ $$n = setuptools_scm ]; then h=54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3; c=$(setuptools_scm-checksum)
+	elif [ $$n = six            ]; then h=dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca; c=$(six-checksum)
+	elif [ $$n = sip_tpv        ]; then h=27/93/a973aab2a3bf0c12cb385611819710921e13b090304c6bd015026cf9c502; c=$(sip_tpv-checksum)
+	elif [ $$n = soupsieve      ]; then h=0c/52/e9088bb9b96e2d39fc3b33fcda5b4fde9d71473536ac660a1ca9a0958a2f; c=$(soupsieve-checksum)
+	elif [ $$n = sympy          ]; then h=54/2e/6adb11fe599d4cfb7e8833753350ac51aa2c0603c226b36f9051cc9d2425; c=$(sympy-checksum)
+	elif [ $$n = urllib         ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1; c=$(urllib3-checksum)
+	elif [ $$n = virtualenv     ]; then h=51/aa/c395a6e6eaaedfa5a04723b6446a1df783b16cca6fec66e671cede514688; c=$(virtualenv-checksum)
+	elif [ $$n = webencodings   ]; then h=0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47; c=$(webencodings-checksum)
+#	elif [ $$n = strange5-name  ]; then h=XXXXX; c=$(XXXXX-checksum)
+	else
+	  echo; echo; echo;
+	  echo "'$$n' not recognized as a dependency name to download."
+	  echo; echo; echo;
+	  exit 1
+	fi
 
-          # elif [ $* = strange-tarball5name-version.tar.gz ]; then
-          #  n=strange5-name
-	  else
-            # Remove all numbers, `-' and `.' from the tarball name so we can
-            # search more easily only with the program name.
-	    n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
-	              | awk '{print $$1}')
-	  fi
-
-          # Set the top download link of the requested tarball. The ones
-          # that have non-standard filenames (differing from our archived
-          # tarball names) are treated first, then the standard ones.
-	  mergenames=1
-	  if [ $$n = cython         ]; then
-	    mergenames=0
-	    hash=36/da/fcb979fc8cb486a67a013d6aefefbb95a3e19e67e49dff8a35e014046c5e
-	    h=$(pytopurl)/$$hash/Cython-$(cython-version).tar.gz
-	  elif [ $$n = python           ]; then
-	    mergenames=0
-	    h=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
-	  elif [ $$n = pyyaml           ]; then
-	    mergenames=0
-	    hash=9f/2c/9417b5c774792634834e730932745bc09a7d36754ca00acf1ccd1ac2594d
-	    h=$(pytopurl)/$$hash/PyYAML-$(pyyaml-version).tar.gz
-	  elif [ $$n = libffi         ]; then
-	    mergenames=0
-	    h=ftp://sourceware.org/pub/libffi/libffi-$(libffi-version).tar.gz
-	  elif [ $$n = secretstorage  ]; then
-	    mergenames=0
-	    hash=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5
-	    h=$(pytopurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
-	  elif [ $$n = asn            ]; then h=fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4
-	  elif [ $$n = astroquery     ]; then h=61/50/a7a08f9e54d7d9d97e69433cd88231e1ad2901811c9d1ae9ac7ccaef9396
-	  elif [ $$n = astropy        ]; then h=eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352
-	  elif [ $$n = beautifulsoup  ]; then h=80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748
-	  elif [ $$n = certifi        ]; then h=55/54/3ce77783acba5979ce16674fc98b1920d00b01d337cfaaf5db22543505ed
-	  elif [ $$n = cffi           ]; then h=64/7c/27367b38e6cc3e1f49f193deb761fe75cda9f95da37b67b422e62281fcac
-	  elif [ $$n = chardet        ]; then h=fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d
-	  elif [ $$n = cryptography   ]; then h=07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449
-	  elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488
-	  elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c
-	  elif [ $$n = h5py           ]; then h=43/27/a6e7dcb8ae20a4dbf3725321058923fec262b6f7835179d78ccc8d98deec
-	  elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f
-	  elif [ $$n = idna           ]; then h=ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7
-	  elif [ $$n = jeepney        ]; then h=16/1d/74adf3b164a8d19a60d0fcf706a751ffa2a1eaa8e5bbb1b6705c92a05263
-	  elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2
-	  elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864
-	  elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f
-	  elif [ $$n = mpi            ]; then h=55/a2/c827b196070e161357b49287fa46d69f25641930fd5f854722319d431843
-	  elif [ $$n = mpmath         ]; then h=ca/63/3384ebb3b51af9610086b23ea976e6d27d6d97bf140a76a365bd77a3eb32
-	  elif [ $$n = numpy          ]; then h=cf/8d/6345b4f32b37945fedc1e027e83970005fc9c699068d2f566b82826515f2
-	  elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af
-	  elif [ $$n = pkgconfig      ]; then h=6e/a9/ff67ef67217dfdf2aca847685fe789f82b931a6957a3deac861297585db6
-	  elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a
-	  elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc
-	  elif [ $$n = dateutil       ]; then h=ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c
-	  elif [ $$n = requests       ]; then h=52/2c/514e4ac25da2b08ca5a464c50463682126385c4272c18193876e91f4bc38
-	  elif [ $$n = scipy          ]; then h=a9/b4/5598a706697d1e2929eaf7fe68898ef4bea76e4950b9efbe1ef396b8813a
-	  elif [ $$n = secretstorage  ]; then h=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5
-	  elif [ $$n = setuptools     ]; then h=c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0
-	  elif [ $$n = setuptools_scm ]; then h=54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3
-	  elif [ $$n = six            ]; then h=dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca
-	  elif [ $$n = sip_tpv        ]; then h=27/93/a973aab2a3bf0c12cb385611819710921e13b090304c6bd015026cf9c502
-	  elif [ $$n = soupsieve      ]; then h=0c/52/e9088bb9b96e2d39fc3b33fcda5b4fde9d71473536ac660a1ca9a0958a2f
-	  elif [ $$n = sympy          ]; then h=54/2e/6adb11fe599d4cfb7e8833753350ac51aa2c0603c226b36f9051cc9d2425
-	  elif [ $$n = urllib         ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1
-	  elif [ $$n = virtualenv     ]; then h=51/aa/c395a6e6eaaedfa5a04723b6446a1df783b16cca6fec66e671cede514688
-	  elif [ $$n = webencodings   ]; then h=0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47
-#	  elif [ $$n = strange5-name  ]; then h=XXXXX
-	  else
-	    echo; echo; echo;
-	    echo "'$$n' not recognized as a dependency name to download."
-	    echo; echo; echo;
-	    exit 1
-	  fi
-
-          # Download the requested tarball. Note that some packages may not
-          # follow our naming convention (where the package name is merged
-          # with its version number). In such cases, `w' will be the full
-          # address, not just the top directory address. But since we are
-          # storing all the tarballs in one directory, we want it to have
-          # the same naming convention, so we'll download it to a temporary
-          # name, then rename that.
+        # Download the requested tarball. Note that some packages may not
+        # follow our naming convention (where the package name is merged
+        # with its version number). In such cases, `w' will be the full
+        # address, not just the top directory address. But since we are
+        # storing all the tarballs in one directory, we want it to have
+        # the same naming convention, so we'll download it to a temporary
+        # name, then rename that.
+	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
+	  cp $(DEPENDENCIES-DIR)/$* "$@.unchecked"
+	else
 	  if [ $$mergenames = 1 ]; then  tarballurl=$(pytopurl)/$$h/"$*"
 	  else                           tarballurl=$$h
 	  fi
@@ -212,7 +217,15 @@ $(pytarballs): $(tdir)/%:
 	  touch $(lockdir)/download
 	  downloader="wget --no-use-server-timestamps -O"
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
-	                     $$tarballurl $@
+	                     $$tarballurl "$@.unchecked"
+	fi
+
+        # Make sure this is the expected tarball. Note that we now have a
+        # controlled `sha512sum' build (as part of GNU Coreutils). So we
+        # don't need to check its existance like `basic.mk'.
+	checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}')
+	if [ x$$checksum = x$$c ]; then mv "$@.unchecked" "$@"
+	  else echo "ERROR: Non-matching checksum for '$*'."; exit 1
 	fi
 
 
