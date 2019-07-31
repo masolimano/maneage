@@ -1180,6 +1180,7 @@ $(ibidir)/gcc: $(gcc-tarball) \
 	  && cd ../.. \
 	  && rm -rf gcc-$(gcc-version) \
 	  && if [ "x$(on_mac_os)" != xyes ]; then \
+	       patchelf --add-needed $(ildir)/libiconv.so $(ildir)/libstdc++.so; \
 	       for f in $$(find $(idir)/libexec/gcc) $(ildir)/libstdc++*; do \
 	         if ldd $$f &> /dev/null; then \
 	           patchelf --set-rpath $(ildir) $$f; \
