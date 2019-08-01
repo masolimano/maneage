@@ -201,6 +201,11 @@ clean: clean-mmap
 	rm -rf $(BDIR)/tex/build/!(tikz) $(BDIR)/tex/build/tikz/*
 
 distclean: clean
+        #  Without cleaning the Git hooks, we won't be able to easily
+        #  commit or checkout after this task is done. So we'll remove them
+        #  first.
+	rm .git/hooks/post-checkout .git/hooks/pre-commit
+
         # We'll be deleting the built environent programs and just need the
         # `rm' program. So for this recipe, we'll use the host system's
         # `rm', not our own.
