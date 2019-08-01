@@ -54,7 +54,6 @@ syspath         := $(PATH)
 # and libraries, not the host's.
 export CCACHE_DISABLE := 1
 export PATH := $(ibdir):$(PATH)
-export BASH_ENV = $(BDIR)/.bashrc
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
