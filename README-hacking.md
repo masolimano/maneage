@@ -856,6 +856,14 @@ for the benefit of others.
      learn over the years in using Make and are useful/handy in research
      contexts.
 
+   - *Environment of each recipe*: If you need to define a special
+      environment (or alises, or scripts to run) for all the recipes in
+      your Makefiles, you can use the Bash startup file
+      `reproduce/software/bash/bashrc.sh`. This file is loaded before every
+      Make recipe is run, just like the `.bashrc` in your home directory is
+      loaded everytime you start a new interactive, non-login terminal. See
+      the comments in that file for more.
+
    - *Automatic variables*: These are wonderful and very useful Make
       constructs that greatly shrink the text, while helping in
       read-ability, robustness (less bugs in typos for example) and

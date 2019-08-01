@@ -120,6 +120,10 @@ export LD_LIBRARY_PATH := $(installdir)/lib
 # causes crashs (see bug #56682). So we'll just give it no value at all.
 export DYLD_LIBRARY_PATH :=
 
+# Recipe startup script, see `reproduce/software/bash/bashrc.sh'.
+export PROJECT_STATUS := make
+export BASH_ENV := $(shell pwd)/reproduce/software/bash/bashrc.sh
+
 
 
 

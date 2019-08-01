@@ -54,6 +54,7 @@ syspath         := $(PATH)
 # and libraries, not the host's.
 export CCACHE_DISABLE := 1
 export PATH := $(ibdir):$(PATH)
+export BASH_ENV = $(BDIR)/.bashrc
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
@@ -64,6 +65,10 @@ export LDFLAGS := $(rpath_command) -L$(ildir) $(LDFLAGS)
 # ultimately redundant. But on some systems, even having a single value
 # causes crashs (see bug #56682). So we'll just give it no value at all.
 export DYLD_LIBRARY_PATH :=
+
+# Recipe startup script, see `reproduce/software/bash/bashrc.sh'.
+export PROJECT_STATUS := configure_basic
+export BASH_ENV := $(shell pwd)/reproduce/software/bash/bashrc.sh
 
 # Define the top-level basic programs (that don't depend on any other).
 top-level-programs = low-level-links gcc

@@ -83,6 +83,10 @@ export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 # causes crashs (see bug #56682). So we'll just give it no value at all.
 export DYLD_LIBRARY_PATH :=
 
+# Recipe startup script, see `reproduce/software/bash/bashrc.sh'.
+export PROJECT_STATUS := configure_highlevel
+export BASH_ENV := $(shell pwd)/reproduce/software/bash/bashrc.sh
+
 # Building flags:
 #
 # C++ flags: when we build GCC, the C++ standard library needs to link with
