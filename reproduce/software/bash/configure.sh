@@ -646,6 +646,98 @@ fi
 
 
 
+# Check C compiler
+# ----------------
+gcc_works=0
+testprog=$tmpblddir/test-c
+testsource=$tmpblddir/test.c
+echo; echo; echo "Checking host C compiler...";
+echo "#include <stdio.h>"                                > $testsource
+echo "#include <stdlib.h>"                              >> $testsource
+echo "int main(void){printf(\"...C compiler works.\");" >> $testsource
+echo "               return EXIT_SUCCESS;}"             >> $testsource
+if gcc $testsource -o$testprog && $testprog; then
+    rm $testsource $testprog
+else
+    rm $testsource
+    cat <<EOF
+
+______________________________________________________
+!!!!!!!        C compiler doesn't work         !!!!!!!
+
+Host C compiler ('gcc') can't build a simple program.
+
+A working C compiler is necessary for building the project's software.
+Please use the error message above to find a good solution and re-run the
+project configuration.
+
+If you can't find a solution, please send the error message above to the
+link below and we'll try to help
+
+https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+TIP: Once you find the solution, you can use the '-e' option to use
+existing configuration:
+
+   $ ./project configure -e
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    exit 1
+fi
+
+
+
+
+
+# See if the linker accepts -Wl,-rpath-link
+# -----------------------------------------
+#
+# `-rpath-link' is used to write the information of the linked shared
+# library into the shared object (library or program). But some versions of
+# LLVM's linker don't accept it an can cause problems.
+oprog=$sdir/rpath-test
+cprog=$sdir/rpath-test.c
+echo "#include <stdio.h>"          > $cprog
+echo "int main(void) {return 0;}" >> $cprog
+if [ x$CC = x ]; then CC=gcc; fi;
+if $CC $cprog -o$oprog -Wl,-rpath-link &> /dev/null; then
+    export rpath_command="-Wl,-rpath-link=$instdir/lib"
+else
+    export rpath_command=""
+fi
+rm -f $oprog $cprog
+
+
+
+
+
+# See if we need the dynamic-linker (-ldl)
+# ----------------------------------------
+#
+# Some programs (like Wget) need dynamic loading (using `libdl'). On
+# GNU/Linux systems, we'll need the `-ldl' flag to link such programs.  But
+# Mac OS doesn't need any explicit linking. So we'll check here to see if
+# it is present (thus necessary) or not.
+oprog=$sdir/ldl-test
+cprog=$sdir/ldl-test.c
+cat > $cprog <<EOF
+#include <stdio.h>
+#include <dlfcn.h>
+int
+main(void) {
+    void *handle=dlopen ("/lib/CEDD_LIB.so.6", RTLD_LAZY);
+    return 0;
+}
+EOF
+if gcc $cprog -o$oprog &> /dev/null; then needs_ldl=no; else needs_ldl=yes; fi
+rm -f $oprog $cprog
+
+
+
+
+
 # See if the C compiler can build static libraries
 # ------------------------------------------------
 
@@ -703,53 +795,6 @@ static_build=no
 
 
 
-# See if the linker accepts -Wl,-rpath-link
-# -----------------------------------------
-#
-# `-rpath-link' is used to write the information of the linked shared
-# library into the shared object (library or program). But some versions of
-# LLVM's linker don't accept it an can cause problems.
-oprog=$sdir/rpath-test
-cprog=$sdir/rpath-test.c
-echo "#include <stdio.h>"          > $cprog
-echo "int main(void) {return 0;}" >> $cprog
-if [ x$CC = x ]; then CC=gcc; fi;
-if $CC $cprog -o$oprog -Wl,-rpath-link &> /dev/null; then
-    export rpath_command="-Wl,-rpath-link=$instdir/lib"
-else
-    export rpath_command=""
-fi
-rm -f $oprog $cprog
-
-
-
-
-
-# See if we need the dynamic-linker (-ldl)
-# ----------------------------------------
-#
-# Some programs (like Wget) need dynamic loading (using `libdl'). On
-# GNU/Linux systems, we'll need the `-ldl' flag to link such programs.  But
-# Mac OS doesn't need any explicit linking. So we'll check here to see if
-# it is present (thus necessary) or not.
-oprog=$sdir/ldl-test
-cprog=$sdir/ldl-test.c
-cat > $cprog <<EOF
-#include <stdio.h>
-#include <dlfcn.h>
-int
-main(void) {
-    void *handle=dlopen ("/lib/CEDD_LIB.so.6", RTLD_LAZY);
-    return 0;
-}
-EOF
-if gcc $cprog -o$oprog &> /dev/null; then needs_ldl=no; else needs_ldl=yes; fi
-rm -f $oprog $cprog
-
-
-
-
-
 # inform the user that the build process is starting
 # -------------------------------------------------
 if [ $printnotice = yes ]; then
@@ -801,74 +846,6 @@ if type otool > /dev/null 2>/dev/null; then
     on_mac_os=yes
 else
     on_mac_os=no
-fi
-
-
-
-
-
-# Build `flock'
-# -------------
-#
-# Flock (or file-lock) is a unique program that is necessary to serialize
-# the (generally parallel) processing of make when necessary. GNU/Linux
-# machines have it as part of their `util-linux' programs. But to be
-# consistent in non-GNU/Linux systems, we will be using our own build.
-#
-# The reason that `flock' is sepecial is that we need it to serialize the
-# download process of the software tarballs.
-flockversion=$(awk '/flock-version/{print $3}' $depverfile)
-flockchecksum=$(awk '/flock-checksum/{print $3}' $depshafile)
-flocktar=flock-$flockversion.tar.gz
-flockurl=http://github.com/discoteq/flock/releases/download/v$flockversion/
-
-# Prepare/download the tarball.
-if ! [ -f $tardir/$flocktar ]; then
-    flocktarname=$tardir/$flocktar
-    ucname=$flocktarname.unchecked
-    if [ -f $ddir/$flocktar ]; then
-        cp $ddir/$flocktar $ucname
-    else
-        if ! $downloader $ucname $flockurl/$flocktar; then
-            rm -f $ucname;
-            echo
-            echo "DOWNLOAD ERROR: Couldn't download the 'flock' tarball:"
-            echo "  $flockurl"
-            echo
-            echo "You can manually place it in '$ddir' to avoid downloading."
-            exit 1
-        fi
-    fi
-
-    # Make sure this is the correct tarball.
-    if type sha512sum > /dev/null 2>/dev/null; then
-        checksum=$(sha512sum "$ucname" | awk '{print $1}')
-        if [ x$checksum = x$flockchecksum ]; then mv "$ucname" "$flocktarname"
-        else echo "ERROR: Non-matching checksum for '$flocktar'."; exit 1
-        fi;
-    else mv "$ucname" "$flocktarname"
-    fi
-fi
-
-# If the tarball is newer than the (possibly existing) program (the version
-# has changed), then delete the program.
-if [ -f .local/bin/flock ]; then
-    if [ $tardir/$flocktar -nt $ibidir/flock ]; then
-        rm $ibidir/flock
-    fi
-fi
-
-# Build `flock' if necessary.
-if ! [ -f $ibidir/flock ]; then
-    cd $tmpblddir
-    tar xf $tardir/$flocktar
-    cd flock-$flockversion
-    ./configure --prefix=$instdir
-    make
-    make install
-    cd $topdir
-    rm -rf $tmpblddir/flock-$flockversion
-    echo "Discoteq flock $flockversion" > $ibidir/flock
 fi
 
 
@@ -970,9 +947,10 @@ fi
 # programs. However, when the host C compiler is to be used, the user needs
 # to have a Fortran compiler available.
 if [ $host_cc = 1 ]; then
+
+    # See if a Fortran compiler exists.
     hasfc=0;
     if type gfortran > /dev/null 2>/dev/null; then hasfc=1; fi
-
     if [ $hasfc = 0 ]; then
         cat <<EOF
 ______________________________________________________
@@ -989,6 +967,42 @@ please get in touch with us (with the form below) so we add it:
 Note: GCC will not be built because you are either using the '--host-cc'
 option, or you are using an operating system that currently has bugs when
 building GCC.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+        exit 1
+    fi
+
+    # See if the Fortran compiler works
+    gfortran_works=0
+    testprog=$tmpblddir/test-f
+    testsource=$tmpblddir/test.f
+    echo; echo; echo "Checking host Fortran compiler...";
+    echo "      PRINT *, \"... Fortran Compiler works.\"" > $testsource
+    echo "      END"                                      >> $testsource
+    if gfortran $testsource -o$testprog && $testprog; then gfortran_works=1;
+    else
+        cat <<EOF
+
+______________________________________________________
+!!!!!!!     Fortran compiler doesn't work      !!!!!!!
+
+Host Fortran compiler ('gfortran') can't build a simple program.
+
+A working Fortran compiler is necessary for building some of the project's
+software.  Please use the error message above to find a good solution and
+re-run the project configuration.
+
+If you can't find a solution, please send the error message above to the
+link below and we'll try to help
+
+https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+TIP: Once you find the solution, you can use the '-e' option to use
+existing configuration:
+
+   $ ./project configure -e
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EOF
@@ -1024,12 +1038,81 @@ fi
 
 
 
+# Build `flock' before other program
+# ----------------------------------
+#
+# Flock (or file-lock) is a unique program that is necessary to serialize
+# the (generally parallel) processing of make when necessary. GNU/Linux
+# machines have it as part of their `util-linux' programs. But to be
+# consistent in non-GNU/Linux systems, we will be using our own build.
+#
+# The reason that `flock' is sepecial is that we need it to serialize the
+# download process of the software tarballs.
+flockversion=$(awk '/flock-version/{print $3}' $depverfile)
+flockchecksum=$(awk '/flock-checksum/{print $3}' $depshafile)
+flocktar=flock-$flockversion.tar.gz
+flockurl=http://github.com/discoteq/flock/releases/download/v$flockversion/
+
+# Prepare/download the tarball.
+if ! [ -f $tardir/$flocktar ]; then
+    flocktarname=$tardir/$flocktar
+    ucname=$flocktarname.unchecked
+    if [ -f $ddir/$flocktar ]; then
+        cp $ddir/$flocktar $ucname
+    else
+        if ! $downloader $ucname $flockurl/$flocktar; then
+            rm -f $ucname;
+            echo
+            echo "DOWNLOAD ERROR: Couldn't download the 'flock' tarball:"
+            echo "  $flockurl"
+            echo
+            echo "You can manually place it in '$ddir' to avoid downloading."
+            exit 1
+        fi
+    fi
+
+    # Make sure this is the correct tarball.
+    if type sha512sum > /dev/null 2>/dev/null; then
+        checksum=$(sha512sum "$ucname" | awk '{print $1}')
+        if [ x$checksum = x$flockchecksum ]; then mv "$ucname" "$flocktarname"
+        else echo "ERROR: Non-matching checksum for '$flocktar'."; exit 1
+        fi;
+    else mv "$ucname" "$flocktarname"
+    fi
+fi
+
+# If the tarball is newer than the (possibly existing) program (the version
+# has changed), then delete the program.
+if [ -f .local/bin/flock ]; then
+    if [ $tardir/$flocktar -nt $ibidir/flock ]; then
+        rm $ibidir/flock
+    fi
+fi
+
+# Build `flock' if necessary.
+if ! [ -f $ibidir/flock ]; then
+    cd $tmpblddir
+    tar xf $tardir/$flocktar
+    cd flock-$flockversion
+    ./configure --prefix=$instdir
+    make
+    make install
+    cd $topdir
+    rm -rf $tmpblddir/flock-$flockversion
+    echo "Discoteq flock $flockversion" > $ibidir/flock
+fi
+
+
+
+
+
 # Build basic software
 # --------------------
 #
 # When building these software we don't have our own un-packing software,
 # Bash, Make, or AWK. In this step, we'll install such low-level basic
 # tools, but we have to be very portable (and use minimal features in all).
+echo; echo "Building necessary software (if necessary)..."
 make -f reproduce/software/make/basic.mk \
      rpath_command=$rpath_command \
      static_build=$static_build \
