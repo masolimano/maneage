@@ -85,10 +85,12 @@ all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 # have to make sure the recipe doesn't break into multiple shell calls (so
 # we can preserve the variables).
 #
-# Software hosted at akhlaghi.org/src: As of our latest check (November
-# 2018) their major release tarballs either crash or don't build on some
-# systems (for example Make or Gzip), or they don't exist (for example
-# Bzip2).
+# Software with main webpage at our backup repository
+# (http://akhlaghi.org/reproduce-software): As of our latest check their
+# major release tarballs either crash or don't build on some systems (for
+# example Make or Gzip), or they don't exist (for example Bzip2). So we are
+# building them from their Git history (which builds properly) or host them
+# directly.
 #
 # In the first case, we used their Git repo and bootstrapped them (just
 # like Gnuastro) and built the most recent tarball off of that. In the case
@@ -148,15 +150,15 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	             | awk '{print $$1}' ); \
 	                                    \
 	mergenames=1; \
-	if   [ $$n = bash      ]; then c=$(bash-checksum); w=http://akhlaghi.org/src; \
+	if   [ $$n = bash      ]; then c=$(bash-checksum); w=http://akhlaghi.org/reproduce-software; \
 	elif [ $$n = binutils  ]; then c=$(binutils-checksum); w=http://ftp.gnu.org/gnu/binutils; \
-	elif [ $$n = bzip      ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/src; \
-	elif [ $$n = cert      ]; then c=$(cert-checksum); w=http://akhlaghi.org/src; \
+	elif [ $$n = bzip      ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/reproduce-software; \
+	elif [ $$n = cert      ]; then c=$(cert-checksum); w=http://akhlaghi.org/reproduce-software; \
 	elif [ $$n = coreutils ]; then c=$(coreutils-checksum); w=http://ftp.gnu.org/gnu/coreutils;\
 	elif [ $$n = curl      ]; then c=$(curl-checksum); w=https://curl.haxx.se/download; \
 	elif [ $$n = diffutils ]; then c=$(diffutils-checksum); w=http://ftp.gnu.org/gnu/diffutils;\
 	elif [ $$n = file      ]; then c=$(file-checksum); w=ftp://ftp.astron.com/pub/file; \
-	elif [ $$n = findutils ]; then c=$(findutils-checksum); w=http://akhlaghi.org/src; \
+	elif [ $$n = findutils ]; then c=$(findutils-checksum); w=http://akhlaghi.org/reproduce-software; \
 	elif [ $$n = gawk      ]; then c=$(gawk-checksum); w=http://ftp.gnu.org/gnu/gawk; \
 	elif [ $$n = gcc       ]; then c=$(gcc-checksum); w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
 	elif [ $$n = git       ]; then c=$(git-checksum); w=http://mirrors.edge.kernel.org/pub/software/scm/git; \
@@ -171,9 +173,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = m         ]; then \
 	  mergenames=0; \
 	  c=$(m4-checksum); \
-	  w=http://akhlaghi.org/src/m4-1.4.18-patched.tar.gz; \
-	elif [ $$n = make      ]; then c=$(make-checksum); w=http://akhlaghi.org/src; \
-	elif [ $$n = metastore ]; then c=$(metastore-checksum); w=http://akhlaghi.org/src; \
+	  w=http://akhlaghi.org/reproduce-software/m4-1.4.18-patched.tar.gz; \
+	elif [ $$n = make      ]; then c=$(make-checksum); w=http://akhlaghi.org/reproduce-software; \
+	elif [ $$n = metastore ]; then c=$(metastore-checksum); w=http://akhlaghi.org/reproduce-software; \
 	elif [ $$n = mpc       ]; then c=$(mpc-checksum); w=http://ftp.gnu.org/gnu/mpc; \
 	elif [ $$n = mpfr      ]; then c=$(mpfr-checksum); w=http://www.mpfr.org/mpfr-current;\
 	elif [ $$n = ncurses   ]; then c=$(ncurses-checksum); w=http://ftp.gnu.org/gnu/ncurses; \

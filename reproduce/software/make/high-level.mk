@@ -216,7 +216,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(libgit2-checksum)
 	  w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	elif [ $$n = libxml      ]; then c=$(libxml-checksum); w=ftp://xmlsoft.org/libxml2
-	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = openblas    ]; then
 	  mergenames=0
 	  c=$(openblas-checksum)
@@ -227,15 +227,15 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	elif [ $$n = pixman      ]; then c=$(pixman-checksum); w=https://www.cairographics.org/releases
-	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = scons       ]; then
 	  mergenames=0
 	  c=$(scons-checksum)
 	  w=https://sourceforge.net/projects/scons/files/scons/$(scons-version)/scons-$(scons-version).tar.gz/download
-	elif [ $$n = sextractor  ]; then c=$(sextractor-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = sextractor  ]; then c=$(sextractor-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = swarp       ]; then c=$(swarp-checksum); w=https://www.astromatic.net/download/swarp
 	elif [ $$n = swig        ]; then c=$(swig-checksum); w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
-	elif [ $$n = tides       ]; then c=$(tides-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = tides       ]; then c=$(tides-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = tiff        ]; then c=$(libtiff-checksum); w=https://download.osgeo.org/libtiff
 	elif [ $$n = wcslib      ]; then c=$(wcslib-checksum); w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	elif [ $$n = yaml        ]; then c=$(yaml-checksum); w=pyyaml.org/download/libyaml
