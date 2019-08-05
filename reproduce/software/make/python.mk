@@ -244,7 +244,8 @@ $(ibidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
         # later. To fix this problem, we'll first check if this has indeed
         # happened (it exists under `lib64', but not under `lib'). If so,
         # we'll put a copy of the installed libffi libraries in `lib'.
-	$(call gbuild, $<, libffi-$(libffi-version)) \
+	$(call gbuild, $<, libffi-$(libffi-version), , \
+                       CFLAGS="-DNO_JAVA_RAW_API=1") \
 	&& if [ -f $(idir)/lib64/libffi.a ] \
 	      && [ ! $(idir)/lib/libffi.a ]; then \
 	        cp $(idir)/lib64/libffi* $(ildir)/; \
