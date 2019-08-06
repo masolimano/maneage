@@ -152,8 +152,9 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         libgit2-$(libgit2-version).tar.gz \
                         libxml2-$(libxml2-version).tar.gz \
                         netpbm-$(netpbm-version).tar.gz \
-                        openmpi-$(openmpi-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
+                        openmpi-$(openmpi-version).tar.gz \
+                        openssh-$(openssh-version).tar.gz \
                         pixman-$(pixman-version).tar.gz \
                         scamp-$(scamp-version).tar.lz \
                         scons-$(scons-version).tar.gz \
@@ -226,6 +227,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(openmpi-checksum)
 	  majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
+	elif [ $$n = openssh     ]; then c=$(openssh-checksum); w=https://artfiles.org/openbsd/OpenSSH/portable
 	elif [ $$n = pixman      ]; then c=$(pixman-checksum); w=https://www.cairographics.org/releases
 	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = scons       ]; then
@@ -479,10 +481,19 @@ $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	&& rm -rf OpenBLAS-$(openblas-version) \
 	&& echo "OpenBLAS $(openblas-version)" > $@
 
-$(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
+$(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz \
+                   | $(ibidir)/openssh
 	$(call gbuild, $<, openmpi-$(openmpi-version), static, , \
 	               -j$(numthreads) V=1) \
 	&& echo "Open MPI $(openmpi-version)" > $@
+
+$(ibidir)/openssh: $(tdir)/openssh-$(openssh-version).tar.gz
+	$(call gbuild, $<, openssh-$(openssh-version), static, \
+	               --with-ssl-engine \
+	               --with-privsep-user=nobody \
+	               --with-md5-passwords \
+	               , -j$(numthreads) V=1) \
+	&& echo "OpenSSH $(openssh-version)" > $@
 
 $(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
 	$(call gbuild, $<, pixman-$(pixman-version), static, , \

@@ -93,6 +93,7 @@ libtiff-version = 4.0.10
 libxml2-version = 2.9.9
 openblas-version = 0.3.5
 openmpi-version = 4.0.1
+openssh-version = 8.0p1
 pixman-version = 0.38.0
 python-version = 3.7.3
 scamp-version = 2.6.7
