@@ -974,14 +974,15 @@ EOF
     fi
 
     # See if the Fortran compiler works
-    gfortran_works=0
     testprog=$tmpblddir/test-f
     testsource=$tmpblddir/test.f
     echo; echo; echo "Checking host Fortran compiler...";
     echo "      PRINT *, \"... Fortran Compiler works.\"" > $testsource
     echo "      END"                                      >> $testsource
-    if gfortran $testsource -o$testprog && $testprog; then gfortran_works=1;
+    if gfortran $testsource -o$testprog && $testprog; then
+        rm $testsource $testprog
     else
+        rm $testsource
         cat <<EOF
 
 ______________________________________________________
