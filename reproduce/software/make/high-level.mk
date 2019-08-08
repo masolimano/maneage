@@ -677,8 +677,7 @@ ifeq ($(static_build),yes)
 	staticopts="--enable-static=yes --enable-shared=no";
 endif
 	$(call gbuild, $<, gnuastro-$(gnuastro-version), static, \
-	               $$staticopts, -j$(numthreads), \
-	               make check -j$(numthreads)) \
+	               $$staticopts, -j$(numthreads)) \
 	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/ \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
