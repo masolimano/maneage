@@ -247,7 +247,7 @@ $(ibidir)/libffi: $(tdir)/libffi-$(libffi-version).tar.gz
 	$(call gbuild, $<, libffi-$(libffi-version), , \
                        CFLAGS="-DNO_JAVA_RAW_API=1") \
 	&& if [ -f $(idir)/lib64/libffi.a ] \
-	      && [ ! $(idir)/lib/libffi.a ]; then \
+	      && ! [ -f $(idir)/lib/libffi.a ]; then \
 	        cp $(idir)/lib64/libffi* $(ildir)/; \
 	   fi \
 	&& echo "Libffi $(libffi-version)" > $@
