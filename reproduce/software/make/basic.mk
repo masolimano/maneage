@@ -546,14 +546,17 @@ $(ibidir)/readline: $(tdir)/readline-$(readline-version).tar.gz \
 	                SHLIB_LIBS="-lncursesw" -j$(numthreads)) \
 	&& echo "GNU Readline $(readline-version)" > $@
 
-# Patchelf has to be built statically because it links with the C++
-# standard library. Therefore while fixing rpath in `libstdc++' with
-# Patchelf we can have a segmentation fault. Note that Patchelf is only for
-# GNU/Linux systems, so there is no problem with having the `-static' flag
-# in LDFLAGS.
+# When we have a static C library, PatchELF will be built statically. This
+# is because PatchELF links with the C++ standard library. But we need to
+# run PatchELF later on `libstdc++'! This circular dependency can cause a
+# crash, so when PatchELF can't be built statically, we won't build GCC
+# either, see the `configure.sh' script where we define `good_static_libc'
+# for more.
 $(ibidir)/patchelf: $(tdir)/patchelf-$(patchelf-version).tar.gz \
                     $(ibidir)/make
-	export LDFLAGS="$$LDFLAGS -static"; \
+	if [ $(good_static_libc) = 1 ]; then \
+	  export LDFLAGS="$$LDFLAGS -static"; \
+	fi; \
 	$(call gbuild, $<, patchelf-$(patchelf-version), static) \
 	&& echo "PatchELF $(patchelf-version)" > $@
 
@@ -595,7 +598,7 @@ needpatchelf = $(ibidir)/patchelf
 endif
 $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.lz \
                 $(ibidir)/readline                  \
-                $(needpatchelf)
+                | $(needpatchelf)
 
         # Delete the (possibly) existing Bash executable.
 	rm -f $(ibdir)/bash

@@ -866,11 +866,11 @@ fi
 # example `/usr/include/x86_64-linux-gnu/') that are automatically included
 # in an installed GCC. HOWEVER during the build of GCC, all those other
 # directories are ignored. So even if they exist, they are useless.
-warningsleep=0
+gccwarning=0
 if [ $host_cc = 0 ]; then
     if ! [ -f /usr/include/sys/cdefs.h ]; then
         host_cc=1
-        warningsleep=1
+        gccwarning=1
         cat <<EOF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -893,7 +893,7 @@ EOF
         host_cc=$host_cc
     else
         host_cc=1
-        warningsleep=1
+        gccwarning=1
         cat <<EOF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -902,8 +902,8 @@ EOF
 
 This system doesn't have '/usr/lib/libc.a' or '/usr/lib64/libc.a'. Because
 of this, the project can't build its custom GCC to ensure better
-reproducibility. We strongly recommend installing the proper package (for
-your operating system) that installs this necessary file.
+reproducibility. We recommend installing the proper package (for your
+operating system) that installs this necessary file.
 
 Some possible solutions:
   1. On some Debian-based GNU/Linux distros, these two packages may fix the
@@ -919,8 +919,60 @@ Some possible solutions:
 
 EOF
     fi
+fi
 
-    if [ $warningsleep = 1 ]; then
+# See if a link-able static C library exists
+# ------------------------------------------
+#
+# After building GCC, we must use PatchELF to correct its RPATHs. However,
+# PatchELF links internally with `libstdc++'. So a dynamicly linked
+# PatchELF cannot be used to correct the links to `libstdc++' in general
+# (on some systems this causes no problem, but on others it doesn't!).
+#
+# However, to build a Static PatchELF, we need to be able to link with the
+# static C library, which is not always available on some GNU/Linux
+# systems. Therefore we need to check this here. If we can't build a static
+# PatchELF, we won't build any GCC either.
+if [ $host_cc = 0 ]; then
+    testprog=$tmpblddir/test-c
+    testsource=$tmpblddir/test.c
+    echo; echo; echo "Checking if static C library is available...";
+    echo "#include <stdio.h>"                       > $testsource
+    echo "#include <stdlib.h>"                     >> $testsource
+    echo "int main(void){printf(\"...yes\");"      >> $testsource
+    echo "               return EXIT_SUCCESS;}"    >> $testsource
+    if gcc $testsource -o$testprog -static -lc && $testprog; then
+        good_static_libc=1
+        rm $testsource $testprog
+    else
+        good_static_libc=0
+        rm $testsource
+        gccwarning=1
+        host_cc=1
+        cat <<EOF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+A usable static C library ('libc.a', in any directory) cannot be linked in
+the current settings of this system. Because of this we can't build a
+static PatchELF, hence we can't build GCC.
+
+If you have 'libc.a', but in a non-standard location (for example in
+'/PATH/TO/STATIC/LIBC/libc.a'), please run this command, then re-configure
+the project to fix this problem.
+
+export LDFLAGS="-L/PATH/TO/STATIC/LIBC \$LDFLAGS"
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    fi
+fi
+
+# Print a warning if GCC is not meant to be built.
+if [ $gccwarning = 1 ]; then
         cat <<EOF
 
 PLEASE SEE THE WARNINGS ABOVE.
@@ -932,7 +984,6 @@ compiler, then re-run './project configure'.
 
 EOF
         sleep 5
-    fi
 fi
 
 
@@ -1115,6 +1166,7 @@ fi
 # tools, but we have to be very portable (and use minimal features in all).
 echo; echo "Building necessary software (if necessary)..."
 make -f reproduce/software/make/basic.mk \
+     good_static_libc=$good_static_libc \
      rpath_command=$rpath_command \
      static_build=$static_build \
      needs_ldl=$needs_ldl \
