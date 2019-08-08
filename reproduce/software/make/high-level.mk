@@ -148,8 +148,10 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         install-tl-unx.tar.gz \
                         jpegsrc.$(libjpeg-version).tar.gz \
                         lapack-$(lapack-version).tar.gz \
-                        libpng-$(libpng-version).tar.xz \
                         libgit2-$(libgit2-version).tar.gz \
+                        libnsl-$(libnsl-version).tar.gz \
+                        libpng-$(libpng-version).tar.xz \
+                        libtirpc-$(libtirpc-version).tar.bz2 \
                         libxml2-$(libxml2-version).tar.gz \
                         netpbm-$(netpbm-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
@@ -161,6 +163,7 @@ tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         sextractor-$(sextractor-version).tar.lz \
                         swarp-$(swarp-version).tar.gz \
                         swig-$(swig-version).tar.gz \
+                        rpcsvc-proto-$(rpcsvc-proto-version).tar.xz \
                         tides-$(tides-version).tar.gz \
                         tiff-$(libtiff-version).tar.gz \
                         wcslib-$(wcslib-version).tar.bz2 \
@@ -173,7 +176,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g' \
 	             | awk '{print $$1}' )
 
-	# Set the top download link of the requested tarball.
+        # Set the top download link of the requested tarball.
 	mergenames=1
 	if   [ $$n = astrometry  ]; then c=$(astrometrynet-checksum); w=http://astrometry.net/downloads
 	elif [ $$n = atlas       ]; then
@@ -211,11 +214,13 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = install     ]; then c=NO-CHECK-SUM; w=http://mirror.ctan.org/systems/texlive/tlnet
 	elif [ $$n = jpegsrc     ]; then c=$(libjpeg-checksum); w=http://ijg.org/files
 	elif [ $$n = lapack      ]; then c=$(lapack-checksum); w=http://www.netlib.org/lapack
+	elif [ $$n = libnsl      ]; then c=$(libnsl-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = libpng      ]; then c=$(libpng-checksum); w=https://download.sourceforge.net/libpng
 	elif [ $$n = libgit      ]; then
 	  mergenames=0
 	  c=$(libgit2-checksum)
 	  w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
+	elif [ $$n = libtirpc    ]; then c=$(libtirpc-checksum); w=https://downloads.sourceforge.net/libtirpc
 	elif [ $$n = libxml      ]; then c=$(libxml-checksum); w=ftp://xmlsoft.org/libxml2
 	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = openblas    ]; then
@@ -229,6 +234,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	elif [ $$n = openssh     ]; then c=$(openssh-checksum); w=https://artfiles.org/openbsd/OpenSSH/portable
 	elif [ $$n = pixman      ]; then c=$(pixman-checksum); w=https://www.cairographics.org/releases
+	elif [ $$n = rpcsvc      ]; then c=$(rpcsvc-proto-checksum); w=https://github.com/thkukuk/rpcsvc-proto/releases/download/v$(rpcsvc-proto-version)
 	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = scons       ]; then
 	  mergenames=0
@@ -273,12 +279,15 @@ $(tarballs): $(tdir)/%: | $(lockdir)
         # controlled `sha512sum' build (as part of GNU Coreutils). So we
         # don't need to check its existance like `basic.mk'. But for LaTeX,
         # we need to ignore a checksum (it downloads the binaries).
-	if [ $$c == NO-CHECK-SUM ]; then
+	if [ x"$$c" == x"NO-CHECK-SUM" ]; then
 	  mv "$@.unchecked" "$@"
 	else
 	  checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}')
-	  if [ x$$checksum = x$$c ]; then mv "$@.unchecked" "$@"
-	    else echo "ERROR: Non-matching checksum for '$*'."; exit 1
+	  if [ x"$$checksum" = x"$$c" ]; then mv "$@.unchecked" "$@"
+	    else echo "ERROR: Non-matching checksum for '$*'."
+	    echo "Checksum should be: $$c"
+	    echo "Checksum is:        $$checksum"
+	    exit 1
 	  fi
 	fi
 
@@ -447,6 +456,13 @@ $(ibidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) \
 	&& echo "Libjpeg $(libjpeg-version)" > $@
 
+$(ibidir)/libnsl: $(tdir)/libnsl-$(libnsl-version).tar.gz \
+                  $(ibidir)/rpcsvc-proto \
+                  $(ibidir)/libtirpc
+	$(call gbuild, $<, libnsl-$(libnsl-version), static, \
+	               --sysconfdir=$(idir)/etc) \
+	&& echo "Libnsl $(libnsl-version)" > $@
+
 $(ibidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
 	$(call gbuild, $<, libpng-$(libpng-version), static) \
 	&& echo "Libpng $(libpng-version)" > $@
@@ -456,6 +472,11 @@ $(ibidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
 	$(call gbuild, $<, tiff-$(libtiff-version), static, \
 	               --disable-webp --disable-zstd) \
 	&& echo "Libtiff $(libtiff-version)" > $@
+
+$(ibidir)/libtirpc: $(tdir)/libtirpc-$(libtirpc-version).tar.bz2
+	$(call gbuild, $<, libtirpc-$(libtirpc-version), static, \
+	               --disable-gssapi, V=1) \
+	echo "libtirpc $(libtirpc-version)" > $@
 
 $(ibidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
        # The libxml2 tarball also contains Python bindings which are built and
@@ -499,6 +520,10 @@ $(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
 	$(call gbuild, $<, pixman-$(pixman-version), static, , \
 	                   -j$(numthreads) V=1) \
 	&& echo "Pixman $(pixman-version)" > $@
+
+$(ibidir)/rpcsvc-proto: $(tdir)/rpcsvc-proto-$(rpcsvc-proto-version).tar.xz
+	$(call gbuild, $<, rpcsvc-proto-$(rpcsvc-proto-version), static) \
+	&& echo "rpcsvc $(rpcsvc-proto-version)" > $@
 
 $(ibidir)/tides: $(tdir)/tides-$(tides-version).tar.gz
 	$(call gbuild, $<, tides-$(tides-version), static,\
@@ -894,8 +919,20 @@ $(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
 # To keep things modular and simple, we'll break up the installation of TeX
 # Live itself (only very basic TeX and LaTeX) and the installation of its
 # necessary packages into two packages.
+#
+# Note that Biber needs to link with libraries like libnsl. However, we
+# don't currently build biber from source. So we can't choose the library
+# version. But we have the source and build instructions for the `nsl'
+# library. When we later build biber from source, we can easily use them.
+#
+#ifeq ($(on_mac_os),yes)
+#forbiber =
+#else
+#forbiber = $(ibidir)/libnsl
+#endif
 $(itidir)/texlive: reproduce/software/config/installation/texlive.mk \
-                   $(itidir)/texlive-ready-tlmgr
+                   $(itidir)/texlive-ready-tlmgr \
+                   $(forbiber)
 
         # To work with TeX live installation, we'll need the internet.
 	@res=$$(cat $(itidir)/texlive-ready-tlmgr)
