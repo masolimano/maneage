@@ -568,28 +568,16 @@ $(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
 	   fi \
 	&& echo "Libgit2 $(libgit2-version)" > $@
 
-# LIBS with `-lcfitsio': For some reason WCSLIB 6.3 has some linking
-# problems on some versions of macOS, giving the following error:
-#
-#       Undefined symbols for architecture x86_64:
-#         "_fits_read_wcstab", referenced from:
-#             _ftwcst_ in getwcstab_f.o
-#         "_gFitsFiles", referenced from:
-#             _ftwcst_ in getwcstab_f.o
-#       ld: symbol(s) not found for architecture x86_64
-#
-# For the time being, the best/most-generic solution we found was to
-# explicitly force linking with CFITSIO (which happens anyway).
 $(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
                   $(ibidir)/cfitsio
 	$(call gbuild, $<, wcslib-$(wcslib-version), , \
-	               LIBS="-pthread -lcfitsio -lcurl -lm" \
+	               LIBS="-pthread -lcurl -lm" \
                        --with-cfitsiolib=$(ildir) \
                        --with-cfitsioinc=$(idir)/include \
                        --without-pgplot) \
 	&& if [ x$(on_mac_os) = xyes ]; then \
-	     install_name_tool -id $(ildir)/libwcs.6.3.dylib \
-	                           $(ildir)/libwcs.6.3.dylib; \
+	     install_name_tool -id $(ildir)/libwcs.6.4.dylib \
+	                           $(ildir)/libwcs.6.4.dylib; \
 	   fi \
 	&& echo "WCSLIB $(wcslib-version)" > $@
 

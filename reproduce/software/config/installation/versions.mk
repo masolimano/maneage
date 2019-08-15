@@ -181,4 +181,4 @@ bzip2-version = 1.0.6
 lapack-version = 3.8.0
 libgit2-version = 0.28.2
 netpbm-version = 10.86.99
-wcslib-version = 6.3
+wcslib-version = 6.4
