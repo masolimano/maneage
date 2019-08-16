@@ -470,7 +470,9 @@ $(ibidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
 $(ibidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
                    $(ibidir)/libjpeg
 	$(call gbuild, $<, tiff-$(libtiff-version), static, \
-	               --disable-webp --disable-zstd) \
+	               --disable-jbig \
+	               --disable-webp \
+	               --disable-zstd) \
 	&& echo "Libtiff $(libtiff-version)" > $@
 
 $(ibidir)/libtirpc: $(tdir)/libtirpc-$(libtirpc-version).tar.bz2
@@ -676,7 +678,8 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	&& rm -rf cmake-$(cmake-version) \
 	&& echo "CMake $(cmake-version)" > $@
 
-$(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz
+$(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz \
+                       $(ibidir)/libtiff
 	$(call gbuild, $<, ghostscript-$(ghostscript-version)) \
 	&& echo "GPL Ghostscript $(ghostscript-version)" > $@
 
