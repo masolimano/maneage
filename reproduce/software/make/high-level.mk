@@ -510,9 +510,10 @@ $(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz \
 
 $(ibidir)/openssh: $(tdir)/openssh-$(openssh-version).tar.gz
 	$(call gbuild, $<, openssh-$(openssh-version), static, \
-	               --with-ssl-engine \
+	               --with-privsep-path=$(ibdir)/.ssh_privsep \
 	               --with-privsep-user=nobody \
 	               --with-md5-passwords \
+	               --with-ssl-engine \
 	               , -j$(numthreads) V=1) \
 	&& echo "OpenSSH $(openssh-version)" > $@
 
