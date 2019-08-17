@@ -34,7 +34,7 @@
 
 
 
-%% Start writing.
+%% Start creating the paper.
 \begin{document}
 
 %% Project abstract and keywords.
@@ -67,7 +67,7 @@
 
 
 
-%% Start of the main body of text.
+%% Start of main body.
 \section{Congratulations!}
 Congratulations on running the raw template project! You can now follow the
 checklist in the \texttt{README.md} file to customize this template to your
@@ -179,6 +179,7 @@ paper that used the early versions of this template: \citet{gnuastro}.
 After publication, don't forget to upload all the necessary data, software
 source code and the project's source to a long-lasting host like Zenodo
 (\url{https://zenodo.org}).
+%% End of main body.
 
 
 
@@ -203,10 +204,15 @@ and innovation programme under Marie Sklodowska-Curie grant agreement No
 721463 to the SUNDIAL ITN, and from the Spanish Ministry of Economy and
 Competitiveness (MINECO) under grant number AYA2016-76219-P.
 
-\input{tex/build/macros/dependencies.tex}
-
 %% Tell BibLaTeX to put the bibliography list here.
 \printbibliography
+
+%% Start appendix.
+\appendix
+
+%% Mention all used software in an appendix.
+\section{Software acknowledgement}
+\input{tex/build/macros/dependencies.tex}
 
 %% Finish LaTeX
 \end{document}

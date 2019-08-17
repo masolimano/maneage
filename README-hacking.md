@@ -496,6 +496,9 @@ already familiar with Git, please read the first three chapters of the
 practical understanding of the basics. You can read later chapters as you
 get more advanced in later stages of your work.
 
+First custom commit
+-------------------
+
  - **Get this repository and its history** (if you don't already have it):
      Arguably the easiest way to start is to clone this repository as shown
      below. As you see, after the cloning some further corrections to your
@@ -529,11 +532,20 @@ get more advanced in later stages of your work.
      clean all the extra template outputs with `make clean` as shown below.
 
      ```shell
-     $ ./project configure --host-cc # Configure project (except for GCC which can take long).
+     $ ./project configure           # Configure project (except for GCC which can take long).
      $ ./project make                # Do the (mainly symbolic) processing and build paper
 
      # Open 'paper.pdf' and see if everything is ok.
-     $ ./project make clean          # Delete high-level outputs (keep software)
+     ```
+
+ - **Software building status**: While the `./project configure` command of
+     the step above is busy building all the different software, you can
+     check the status by running the following command in another terminal
+     (but same project source directory). See the "Inspecting status"
+     section below for more.
+
+     ```shell
+     $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
      ```
 
  - **Setup the remote**: You can use any [hosting
@@ -560,68 +572,36 @@ get more advanced in later stages of your work.
      git remote add origin XXXXXXXXXX        # Newly created repo is now called 'origin'.
      git push --set-upstream origin master   # Push 'master' branch to 'origin' (enable tracking).
      git push origin template                # Push 'template' branch to 'origin' (no tracking).
-     git branch -vv                          # Just to check of the trackings.
      ```
 
- - **Title**, **short description** and **author** in source files: In this
-     raw skeleton, the title or short description of your project should be
-     added in the following two files: `reproduce/analysis/make/top.mk`
-     (the first line), and `tex/src/preamble-header.tex`. In both cases,
-     the texts you should replace are all in capital letters to make them
-     easier to identify. Of course, if you use a different LaTeX method of
-     managing the title and authors, please feel free to use your own
-     methods after finishing this checklist and doing your first commit.
-
- - **High-level software**: The template installs all the software that
-     your project needs. You can specify which software your project needs
-     in the `reproduce/software/config/installation/TARGETS.mk`. The
-     necessary software are classified into two classes: 1) programs or
-     libraries (usually written in C/C++) which are run directly by the
-     operating system. 2) Python modules/libraries that are run within
-     Python. By default `TARGETS.mk` only has GNU Astronomy Utilities
-     (Gnuastro) as one scientific program and Astropy as one scientific
-     Python module. Both have many dependencies which will be installed
-     into your project before they are. To see a list of software that are
-     currently ready to be built in the template, see
-     `reproduce/software/config/installation/versions.mk` (which has their
-     versions also), the comments in `TARGETS.mk` describe how to use the
-     software name from `versions.mk`. Currently the raw pipeline just uses
-     Gnuastro to make the demonstration plots. Therefore if you don't need
-     Gnuastro, go through the analysis steps in `reproduce/analysis` and
-     remove all its use cases (clearly marked).
-
- - **Input dataset (can be done later)**: The input datasets are managed
-     through the `reproduce/analysis/config/INPUTS.mk` file. It is best to
-     gather all the information regarding all the input datasets into this
-     one central file. To ensure that the proper dataset is being
-     downloaded and used by the project, it is also recommended get an [MD5
-     checksum](https://en.wikipedia.org/wiki/MD5) of the file and include
-     that in `INPUTS.mk` so the project can check it automatically. The
-     preparation/downloading of the input datasets is done in
-     `reproduce/analysis/make/download.mk`. Have a look there to see how
-     these values are to be used. This information about the input datasets
-     is also used in the initial `configure` script (to inform the users),
-     so also modify that file. You can find all occurrences of the template
-     dataset with the command below and replace it with your input's
-     dataset.
-
-     ```shell
-     $ grep -ir wfpc2 ./*
-     ```
+ - **Title**, **short description** and **author**: The title and basic
+     information of your project's output PDF paper should be added in
+     `tex/src/preamble-header.tex`. Scroll down this file and you will see
+     parts that must be changed. Of course, if you use a different LaTeX
+     method of managing the title and authors, please feel free to use your
+     own methods after finishing this checklist and doing your first
+     commit. After you are done, run the `./project make` command again to
+     see your changes in the final PDF.
 
  - **Delete dummy parts (can be done later)**: The template contains some
      parts that are only for the initial/test run, mainly as a
      demonstration of important steps. They not for any real analysis. You
      can remove these parts in the file below
 
-     - `paper.tex`: Delete the text of the abstract and the paper's main
-       body, *except* the "Acknowledgments" section. This template was
-       designed by funding from many grants, so its necessary to
-       acknowledge them in your final research.
+     - `paper.tex`: 1) Delete the text of the abstract (from
+       `\includeabstract{` to `\vspace{0.25cm}`) and start writing your own
+       (a single sentence can be enough now). 2) Add some keywords under it
+       in the keywords part. 3) Delete everything between `%% Start of main
+       body.` and `%% Start of main body.`. 4) Remove the notice in the
+       "Acknowledgments" section (in `\new{}`) and add Acknowledge your
+       funding sources. Just don't delete the existing acknowledgment
+       statement: this template was designed by funding from many
+       grants. Since you are using it in your work, it is necessary to
+       acknowledge them in your work also.
 
-     - `Makefile`: Delete the lines containing `delete-me` in the `foreach`
-       loop. Just make sure the other lines that end in `\` are immediately
-       after each other (except the last line).
+     - `reproduce/analysis/make/top.mk`: Delete the `delete-me` line in the
+       `makesrc` definition. Just make sure there is no empty line between
+       the `download \` and `paper` lines.
 
      - Delete all `delete-me*` files in the following directories:
 
@@ -631,15 +611,13 @@ get more advanced in later stages of your work.
        $ rm reproduce/analysis/config/delete-me*
        ```
 
- - **`README.md`**: Correct all the `XXXXX` place holders (name of your
-     project, your own name, address of the template's online/remote
-     repository, link to download dependencies and etc). Generally, read
-     over the text and update it where necessary to fit your project. Don't
-     forget that this is the first file that is displayed on your online
-     repository and also your colleagues will first be drawn to read this
-     file. Therefore, make it as easy as possible for them to start
-     with. Also check and update this file one last time when you are ready
-     to publish your project's paper/source.
+     - Re-make the project (after a cleaning) to see if you haven't
+       introduced any errors.
+
+       ```shell
+       $ ./project make clean
+       $ ./project make
+       ```
 
  - **Copyright and License notice**: To be usable/modifiable by others
      after publication, _all_ the "copyright-able" files in your project
@@ -653,7 +631,9 @@ get more advanced in later stages of your work.
      add these _two_ notices to any new file you add to this template for
      your project. When you modify an existing template file (which already
      has the notices), just add a copyright notice in your name under the
-     existing one(s), like the line below:
+     existing one(s), like the line with capital letters below. Please add
+     this line with your name and email address to `paper.tex` and
+     `tex/src/preamble-header.tex`.
 
      ```
      Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
@@ -668,9 +648,10 @@ get more advanced in later stages of your work.
      commit to be sure it works as expected).
 
      ```shell
-     $ ./project make clean       # Delete outputs ('make distclean' for everything)
-     $ ./project make             # Build the project to ensure everything is fine.
-     $ git add -u                 # Stage all the changes.
+     $ git status                 # See which files you have changed.
+     $ git diff                   # See the lines you have added/changed.
+     $ ./project make             # Make sure everything builds successfully.
+     $ git add -u                 # Put all tracked changes in staging area.
      $ git status                 # Make sure everything is fine.
      $ git commit                 # Your first commit, add a nice description.
      $ git tag -a v0              # Tag this as the zero-th version of your project.
@@ -693,47 +674,63 @@ get more advanced in later stages of your work.
      from. Also, don't hesitate to contact us if you have any
      questions.
 
+
+Other basic customizations
+--------------------------
+
+ - **High-level software**: The template installs all the software that
+     your project needs. You can specify which software your project needs
+     in `reproduce/software/config/installation/TARGETS.mk`. The necessary
+     software are classified into two classes: 1) programs or libraries
+     (usually written in C/C++) which are run directly by the operating
+     system. 2) Python modules/libraries that are run within Python. By
+     default `TARGETS.mk` only has GNU Astronomy Utilities (Gnuastro) as
+     one scientific program and Astropy as one scientific Python
+     module. Both have many dependencies which will be installed into your
+     project during the configuration step. To see a list of software that
+     are currently ready to be built in the template, see
+     `reproduce/software/config/installation/versions.mk` (which has their
+     versions also), the comments in `TARGETS.mk` describe how to use the
+     software name from `versions.mk`. Currently the raw pipeline just uses
+     Gnuastro to make the demonstration plots. Therefore if you don't need
+     Gnuastro, go through the analysis steps in `reproduce/analysis` and
+     remove all its use cases (clearly marked).
+
+ - **Input dataset**: The input datasets are managed through the
+     `reproduce/analysis/config/INPUTS.mk` file. It is best to gather all
+     the information regarding all the input datasets into this one central
+     file. To ensure that the proper dataset is being downloaded and used
+     by the project, it is also recommended get an [MD5
+     checksum](https://en.wikipedia.org/wiki/MD5) of the file and include
+     that in `INPUTS.mk` so the project can check it automatically. The
+     preparation/downloading of the input datasets is done in
+     `reproduce/analysis/make/download.mk`. Have a look there to see how
+     these values are to be used. This information about the input datasets
+     is also used in the initial `configure` script (to inform the users),
+     so also modify that file. You can find all occurrences of the template
+     dataset with the command below and replace it with your input's
+     dataset.
+
+     ```shell
+     $ grep -ir wfpc2 ./*
+     ```
+
+ - **`README.md`**: Correct all the `XXXXX` place holders (name of your
+     project, your own name, address of the template's online/remote
+     repository, link to download dependencies and etc). Generally, read
+     over the text and update it where necessary to fit your project. Don't
+     forget that this is the first file that is displayed on your online
+     repository and also your colleagues will first be drawn to read this
+     file. Therefore, make it as easy as possible for them to start
+     with. Also check and update this file one last time when you are ready
+     to publish your project's paper/source.
+
  - **Feedback**: As you use the template you will notice many things that
      if implemented from the start would have been very useful for your
      work. This can be in the actual scripting and architecture of the
      template, or useful implementation and usage tips, like those
      below. In any case, please share your thoughts and suggestions with
      us, so we can add them here for everyone's benefit.
-
- - **Keep template up-to-date**: In time, this template is going to become
-     more and more mature and robust (thanks to your feedback and the
-     feedback of other users). Bugs will be fixed and new/improved features
-     will be added. So every once and a while, you can run the commands
-     below to pull new work that is done in this template. If the changes
-     are useful for your work, you can merge them with your project to
-     benefit from them. Just pay **very close attention** to resolving
-     possible **conflicts** which might happen in the merge (updated
-     settings that you have customized in the template).
-
-     ```shell
-     $ git checkout template
-     $ git pull                            # Get recent work in the template
-     $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
-     $ git log --oneline --graph --decorate --all # General view of branches.
-     $ git checkout master                 # Go to your top working branch.
-     $ git merge template                  # Import all the work into master.
-     ```
-
- - **Adding this template to a fork of your project**: As you and your
-     colleagues continue your project, it will be necessary to have
-     separate forks/clones of it. But when you clone your own project on a
-     different system, or a colleague clones it to collaborate with you,
-     the clone won't have the `template-origin` remote that you started the
-     project with. As shown in the previous item above, you need this
-     remote to be able to pull recent updates from the template. The steps
-     below will setup the `template-origin` remote, and a local `template`
-     branch to track it, on the new clone.
-
-     ```shell
-     $ git remote add template-origin git://git.sv.gnu.org/reproduce
-     $ git fetch template-origin
-     $ git checkout -b template --track template-origin/master
-     ```
 
  - **Updating TeXLive**: Currently the only software package that the
      template doesn't build is TeXLive (since its not part of the analysis,
@@ -941,10 +938,47 @@ for the benefit of others.
       project's reproducibility, so like the above for software, make sure
       you have a backup of them, or their persistent identifiers (PIDs).
 
- - **Version control**: It is important (and extremely useful) to have the
-   history of your project under version control. So try to make commits
-   regularly (after any meaningful change/step/result), while not
-   forgetting the following notes.
+ - **Version control**: Version control is a critical component of this
+     template. Here are some tips to help in effectively using it.
+
+   - *Regular commits*: It is important (and extremely useful) to have the
+      history of your project under version control. So try to make commits
+      regularly (after any meaningful change/step/result).
+
+   - *Keep template up-to-date*: In time, this template is going to become
+      more and more mature and robust (thanks to your feedback and the
+      feedback of other users). Bugs will be fixed and new/improved
+      features will be added. So every once and a while, you can run the
+      commands below to pull new work that is done in this template. If the
+      changes are useful for your work, you can merge them with your
+      project to benefit from them. Just pay **very close attention** to
+      resolving possible **conflicts** which might happen in the merge
+      (updated settings that you have customized in the template).
+
+        ```shell
+        $ git checkout template
+        $ git pull                            # Get recent work in the template
+        $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
+        $ git log --oneline --graph --decorate --all # General view of branches.
+        $ git checkout master                 # Go to your top working branch.
+        $ git merge template                  # Import all the work into master.
+        ```
+
+   - *Adding this template to a fork of your project*: As you and your
+      colleagues continue your project, it will be necessary to have
+      separate forks/clones of it. But when you clone your own project on a
+      different system, or a colleague clones it to collaborate with you,
+      the clone won't have the `template-origin` remote that you started
+      the project with. As shown in the previous item above, you need this
+      remote to be able to pull recent updates from the template. The steps
+      below will setup the `template-origin` remote, and a local `template`
+      branch to track it, on the new clone.
+
+        ```shell
+        $ git remote add template-origin git://git.sv.gnu.org/reproduce
+        $ git fetch template-origin
+        $ git checkout -b template --track template-origin/master
+        ```
 
    - *Commit message*: The commit message is a very important and useful
       aspect of version control. To make the commit message useful for
@@ -1007,20 +1041,20 @@ for the benefit of others.
       [reproducible-paper-output](https://gitlab.com/makhlaghi/reproducible-paper-output)
       repository.
 
- - **Inspecting status**: When you run `./project configure`, several
-     programs and libraries start to get configured and build (in many
-     cases, simultaneously). To understand the building process, or for
-     debugging a strange situation, it is sometimes useful to know which
-     programs are being built at every moment. To do this, you can look
-     into the `.build/software/build-tmp` directory (from the top project
-     directory). This temporary directory is only present while building
-     the software. At every moment, it contains the unpacked source tarball
-     directories of the all the packages that are being built. After a
-     software is successfully installed in your project, it is removed from
-     this directory. To automatically get a listing of this directory every
-     second, you can run the command below (on another terminal while the
-     software are being built). Press `CTRL-C` to stop it and return back
-     to the command-line).
+ - **Inspecting software building status**: When you run `./project
+     configure`, several programs and libraries start to get configured and
+     build (in many cases, simultaneously). To understand the building
+     process, or for debugging a strange situation, it is sometimes useful
+     to know which programs are being built at every moment. To do this,
+     you can look into the `.build/software/build-tmp` directory (from the
+     top project directory). This temporary directory is only present while
+     building the software. At every moment, it contains the unpacked
+     source tarball directories of the all the packages that are being
+     built. After a software is successfully installed in your project, it
+     is removed from this directory. To automatically get a listing of this
+     directory every second, you can run the command below (on another
+     terminal while the software are being built). Press `CTRL-C` to stop
+     it and return back to the command-line).
 
      ```shell
      $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
