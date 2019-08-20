@@ -592,7 +592,7 @@ First custom commit
        `\includeabstract{` to `\vspace{0.25cm}`) and start writing your own
        (a single sentence can be enough now). 2) Add some keywords under it
        in the keywords part. 3) Delete everything between `%% Start of main
-       body.` and `%% Start of main body.`. 4) Remove the notice in the
+       body.` and `%% End of main body.`. 4) Remove the notice in the
        "Acknowledgments" section (in `\new{}`) and add Acknowledge your
        funding sources. Just don't delete the existing acknowledgment
        statement: this template was designed by funding from many
