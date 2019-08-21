@@ -576,12 +576,14 @@ First custom commit
 
  - **Title**, **short description** and **author**: The title and basic
      information of your project's output PDF paper should be added in
-     `tex/src/preamble-header.tex`. Scroll down this file and you will see
-     parts that must be changed. Of course, if you use a different LaTeX
-     method of managing the title and authors, please feel free to use your
-     own methods after finishing this checklist and doing your first
-     commit. After you are done, run the `./project make` command again to
-     see your changes in the final PDF.
+     `paper.tex`. You should see the relevant place in the preamble (prior
+     to `\begin{document}`. After you are done, run the `./project make`
+     command again to see your changes in the final PDF, and make sure that
+     your changes don't cause a crash in LaTeX. Of course, if you use a
+     different LaTeX package/style for managing the title and authors (in
+     particular a specific journal's style), please feel free to use it
+     your own methods after finishing this checklist and doing your first
+     commit.
 
  - **Delete dummy parts (can be done later)**: The template contains some
      parts that are only for the initial/test run, mainly as a
