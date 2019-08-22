@@ -120,10 +120,14 @@ export LD_LIBRARY_PATH := $(installdir)/lib
 # causes crashs (see bug #56682). So we'll just give it no value at all.
 export DYLD_LIBRARY_PATH :=
 
+# OpenMPI can depend on an existing `ssh' or `rsh' binary. However, because
+# of security reasons, its best to not install them, disable any
+# remote-shell accesss through this environment variable.
+export OMPI_MCA_plm_rsh_agent=/bin/false
+
 # Recipe startup script, see `reproduce/software/bash/bashrc.sh'.
 export PROJECT_STATUS := make
 export BASH_ENV := $(shell pwd)/reproduce/software/bash/bashrc.sh
-
 
 
 

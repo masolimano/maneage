@@ -506,12 +506,16 @@ $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	&& rm -rf OpenBLAS-$(openblas-version) \
 	&& echo "OpenBLAS $(openblas-version)" > $@
 
-$(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz \
-                   | $(ibidir)/openssh
+$(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
 	$(call gbuild, $<, openmpi-$(openmpi-version), static, , \
 	               -j$(numthreads) V=1) \
 	&& echo "Open MPI $(openmpi-version)" > $@
 
+# IMPORTANT NOTE: The build instructions for OpenSSH are defined here, but
+# it is best that it not be prerequisite of any program and thus not built
+# within the project because of all the security issues it may cause. Only
+# enable/build it in a project with caution, and if there is no other
+# solution (for example to disable SSH in a program that may ask for it.
 $(ibidir)/openssh: $(tdir)/openssh-$(openssh-version).tar.gz
 	$(call gbuild, $<, openssh-$(openssh-version), static, \
 	               --with-privsep-path=$(ibdir)/.ssh_privsep \
