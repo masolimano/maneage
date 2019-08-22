@@ -405,9 +405,9 @@ $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
 	tar cf $$customtar cfitsio-$(cfitsio-version)
 	cd $$topdir
 
-	# Continue the standard build on the customized tarball. Note that
-	# with the installation of CFITSIO, `fpack' and `funpack' are not
-	# installed by default. Because of that, they are added explicity.
+        # Continue the standard build on the customized tarball. Note that
+        # with the installation of CFITSIO, `fpack' and `funpack' are not
+        # installed by default. Because of that, they are added explicity.
 	$(call gbuild, $$customtar, cfitsio-$(cfitsio-version), , \
 	               --enable-sse2 --enable-reentrant \
 	               --with-bzip2=$(idir), , make shared fpack funpack) \
