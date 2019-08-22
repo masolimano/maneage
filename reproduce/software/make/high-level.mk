@@ -559,12 +559,16 @@ $(ibidir)/yaml: $(tdir)/yaml-$(yaml-version).tar.gz
 # libraries at runtime can be extremely problematic.". This is a major
 # problem we have been having so far with Mac systems:
 # https://libgit2.org/docs/guides/build-and-link
+# On macOS system, `libgit2' complains about not finding `_iconv*'
+# functions! But apparently `libgit2' has its own implementation of libiconv
+# that it uses if it can't find libiconv on macOS. So, to fix this problem
+# it is necessary to use the option `-DUSE_ICONV=OFF` in the configure step.
 $(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
                    $(ibidir)/cmake \
                    $(ibidir)/curl
 	$(call cbuild, $<, libgit2-$(libgit2-version), static, \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF \
-	              -DTHREADSAFE=ON ) \
+	              -DTHREADSAFE=ON -DUSE_ICONV=OFF ) \
 	&& if [ x$(on_mac_os) = xyes ]; then \
 	     install_name_tool -id $(ildir)/libgit2.28.dylib \
 	                           $(ildir)/libgit2.28.dylib; \
