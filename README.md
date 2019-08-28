@@ -1,7 +1,7 @@
 Reproducible source for paper XXXXXXX
 =====================================
 
-Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
 See the end of the file for license conditions.
 
 This is the reproducible project source for the paper titled "**XXXXXX**",
@@ -89,7 +89,7 @@ This project was designed to have as few dependencies as possible.
 Copyright information
 ---------------------
 
-This file and `.file-metadata' (a binary file, used by Metastore to store
+This file and `.file-metadata` (a binary file, used by Metastore to store
 file dates when doing Git checkouts) are part of the reproducible paper
 template (https://gitlab.com/makhlaghi/reproducible-paper) and share the
 same copyright notice (at the start of this file) and license notice
