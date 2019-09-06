@@ -22,16 +22,16 @@
 
 # Basic/low-level programs and libraires (installed in any case)
 # --------------------------------------------------------------
-bash-version = 5.0.7
+bash-version = 5.0.11
 binutils-version = 2.32
 coreutils-version = 8.31
-curl-version = 7.65.1
+curl-version = 7.65.3
 diffutils-version = 3.7
 file-version = 5.36
-findutils-version = 4.6.0.199-e3fc
-gawk-version = 5.0.0
-gcc-version = 9.1.0
-git-version = 2.22.0
+findutils-version = 4.7.0
+gawk-version = 5.0.1
+gcc-version = 9.2.0
+git-version = 2.23.0
 gmp-version = 6.1.2
 grep-version = 3.3
 gzip-version = 1.10
@@ -76,13 +76,13 @@ atlas-version = 3.10.3
 cairo-version = 1.16.0
 cdsclient-version = 3.84
 cfitsio-version = 3.47
-cmake-version = 3.14.2
+cmake-version = 3.15.3
 fftw-version = 3.3.8
 flock-version = 0.2.3
 freetype-version = 2.9
-ghostscript-version = 9.26
+ghostscript-version = 9.27
 gnuastro-version = 0.10
-gsl-version = 2.5
+gsl-version = 2.6
 hdf5-version = 1.10.5
 imagemagick-version = 7.0.8-61
 imfit-version = 1.6.1
@@ -120,7 +120,7 @@ yaml-version = 0.2.2
 # modules/libraries below, please fix the hash strings of the respective
 # URL in `reproduce/software/make/python.mk'.
 asn1crypto-version = 0.24.0
-astropy-version = 3.1.1
+astropy-version = 3.2.1
 astroquery-version = 0.3.9
 beautifulsoup4-version = 4.7.1
 certifi-version = 2018.11.29

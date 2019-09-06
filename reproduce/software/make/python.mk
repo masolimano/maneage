@@ -156,7 +156,7 @@ $(pytarballs): $(tdir)/%:
 	  h=$(pytopurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
 	elif [ $$n = asn            ]; then h=fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4; c=$(asn1crypto-checksum)
 	elif [ $$n = astroquery     ]; then h=61/50/a7a08f9e54d7d9d97e69433cd88231e1ad2901811c9d1ae9ac7ccaef9396; c=$(astroquery-checksum)
-	elif [ $$n = astropy        ]; then h=eb/f7/1251bf6881861f24239efe0c24cbcfc4191ccdbb69ac3e9bb740d0c23352; c=$(astropy-checksum)
+	elif [ $$n = astropy        ]; then h=b9/10/523355eb8cb9839552c8f0fbc9425a1c87c8ff2e55f4df85469a5a4164d3; c=$(astropy-checksum)
 	elif [ $$n = beautifulsoup  ]; then h=80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748; c=$(beautifulsoup4-checksum)
 	elif [ $$n = certifi        ]; then h=55/54/3ce77783acba5979ce16674fc98b1920d00b01d337cfaaf5db22543505ed; c=$(certifi-checksum)
 	elif [ $$n = cffi           ]; then h=64/7c/27367b38e6cc3e1f49f193deb761fe75cda9f95da37b67b422e62281fcac; c=$(cffi-checksum)

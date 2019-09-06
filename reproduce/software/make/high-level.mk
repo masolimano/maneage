@@ -195,7 +195,10 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  w=https://cmake.org/files/v$$majv/cmake-$(cmake-version).tar.gz
 	elif [ $$n = fftw        ]; then c=$(fftw-checksum); w=ftp://ftp.fftw.org/pub/fftw
 	elif [ $$n = freetype    ]; then c=$(freetype-checksum); w=https://download.savannah.gnu.org/releases/freetype
-	elif [ $$n = ghostscript ]; then c=$(ghostscript-checksum); w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926
+	elif [ $$n = ghostscript ]; then
+	  c=$(ghostscript-checksum)
+	  v=$$(echo $(ghostscript-version) | sed -e's/\.//')
+	  w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs$$v
 	elif [ $$n = gnuastro    ]; then c=$(gnuastro-checksum); w=http://ftp.gnu.org/gnu/gnuastro
 	elif [ $$n = gsl         ]; then c=$(gsl-checksum); w=http://ftp.gnu.org/gnu/gsl
 	elif [ $$n = hdf         ]; then
