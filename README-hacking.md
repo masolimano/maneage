@@ -1043,6 +1043,30 @@ for the benefit of others.
       [reproducible-paper-output](https://gitlab.com/makhlaghi/reproducible-paper-output)
       repository.
 
+   - *Full Git history in one file*: When you are publishing your project
+      (for example to Zenodo for long term preservation), it is more
+      convenient to have the whole project's Git history into one file to
+      save with your datasets. Afterall, you can't be sure that your
+      current Git server (for example Gitlab, Github, or Bitbucket) will be
+      active for ever. You can't rely on them for archival
+      purposes. Fortunately keeping your whole history in one file is easy
+      with Git using the following commands. To learn more about it, run
+      `git help bundle`.
+
+     - "bundle" your project's history into one file:
+
+        ```shell
+        $ git bundle create my-project-git.bundle --all
+        ```
+
+      - You now have one file with the whole history that you can easily
+        upload anywhere. Later, if you need to unbundle it, you can use
+        the following command.
+
+        ```shell
+        $ git clone my-project-git.bundle
+        ```
+
  - **Inspecting software building status**: When you run `./project
      configure`, several programs and libraries start to get configured and
      build (in many cases, simultaneously). To understand the building
