@@ -1048,20 +1048,21 @@ for the benefit of others.
       convenient to have the whole project's Git history into one file to
       save with your datasets. Afterall, you can't be sure that your
       current Git server (for example Gitlab, Github, or Bitbucket) will be
-      active for ever. You can't rely on them for archival
-      purposes. Fortunately keeping your whole history in one file is easy
-      with Git using the following commands. To learn more about it, run
-      `git help bundle`.
+      active forever. While they are good for the immediate future, you
+      can't rely on them for archival purposes. Fortunately keeping your
+      whole history in one file is easy with Git using the following
+      commands. To learn more about it, run `git help bundle`.
 
-     - "bundle" your project's history into one file:
+     - "bundle" your project's history into one file (just don't forget to
+       change `my-project-git.bundle` to a descriptive name of your
+       project):
 
         ```shell
         $ git bundle create my-project-git.bundle --all
         ```
 
-      - You now have one file with the whole history that you can easily
-        upload anywhere. Later, if you need to unbundle it, you can use
-        the following command.
+      - You can easily upload `my-project-git.bundle` anywhere. Later, if
+        you need to unbundle it, you can use the following command.
 
         ```shell
         $ git clone my-project-git.bundle
