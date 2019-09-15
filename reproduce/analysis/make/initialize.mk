@@ -228,7 +228,7 @@ distclean: clean
 # that is ready for building the final PDF with LaTeX. This is useful for
 # collaborators who only want to contribute to the text of your project,
 # without having to worry about the technicalities of the analysis.
-$(packagecontents): | $(texdir)
+$(packagecontents): paper.pdf | $(texdir)
 
         # Set up the output directory, delete it if it exists and remake it
         # to fill with new contents.
@@ -250,7 +250,7 @@ $(packagecontents): | $(texdir)
 	printf "\trm -f *.blg *.log *.out *.run.xml\n"           >> $$m
 
         # Copy the top-level contents into it.
-	cp configure COPYING for-group README.md README-hacking.md $$dir/
+	cp COPYING project README.md README-hacking.md $$dir/
 
         # Build the top-level directories.
 	mkdir $$dir/reproduce $$dir/tex $$dir/tex/tikz $$dir/tex/build
@@ -259,7 +259,7 @@ $(packagecontents): | $(texdir)
 	shopt -s extglob
 	cp -r tex/src                            $$dir/tex/src
 	cp tex/tikz/*.pdf                        $$dir/tex/tikz
-	cp -r reproduce/                         $$dir/reproduce
+	cp -r reproduce/*                        $$dir/reproduce
 	cp -r tex/build/!($(packagebasename))    $$dir/tex/build
 
         # Clean up un-necessary/local files: 1) the $(texdir)/build*
@@ -272,18 +272,35 @@ $(packagecontents): | $(texdir)
 	rm $$dir/reproduce/software/config/installation/LOCAL.mk
 	rm $$dir/reproduce/software/config/gnuastro/gnuastro-local.conf
 
-        # PROJECT SPECIFIC: under this comment, copy any other file for
-        # packaging, or remove any of the copied files above to suite your
-        # project.
+        # When submitting to places like arXiv, they will just run LaTeX
+        # once and won't run `biber'. So we need to also keep the `.bbl'
+        # file into the distributing tarball. However, BibLaTeX is
+        # particularly sensitive to versioning (a `.bbl' file has to be
+        # read by the same BibLaTeX version that created it). This is hard
+        # to do with non-up-to-date places like arXiv. Therefore, we thus
+        # just copy the whole of BibLaTeX's source (the version we are
+        # using) into the top tarball directory. In this way, arXiv's LaTeX
+        # engine will use the same BibLaTeX version to interpret the `.bbl'
+        # file. TIP: you can use the same strategy for other LaTeX packages
+        # that may cause problems on the arXiv server.
+	cp tex/build/build/paper.bbl $$dir/
+	tltopdir=.local/texlive/2019/texmf-dist/tex/latex
+	find $$tltopdir/biblatex/ -maxdepth 1 -type f -print0 \
+	     | xargs -0 cp -t $$dir
+
+        # PROJECT SPECIFIC
+        # ----------------
+        # Put any project specific distribution steps here.
+        # ----------------
 
         # Since the packaging is mainly intended for high-level building of
         # the PDF with LaTeX, we'll comment the `makepdf' LaTeX macro in
-        # the paper.
+        # the paper. This will disable usage of TiKZ.
 	sed -e's|\\newcommand{\\makepdf}{}|%\\newcommand{\\makepdf}{}|' \
 	    paper.tex > $$dir/paper.tex
 
         # Just in case the package users want to rebuild some of the
-        # figures (manually un-comments the `makepdf' command we commented
+        # figures (manually un-comment the `makepdf' command we commented
         # above), correct the TikZ external directory, so the figures can
         # be rebuilt.
 	pgfsettings="$$dir/tex/src/preamble-pgfplots.tex"
