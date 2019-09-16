@@ -181,7 +181,7 @@ $(lockdir): | $(BDIR); mkdir $@
 # we want to ensure that the file is always built in every run: it contains
 # the project version which may change between two separate runs, even when
 # no file actually differs.
-packagebasename := $(shell echo paper-$$(git describe --dirty --always))
+packagebasename := $(shell echo paper-$$(git describe --dirty --always --long))
 packagecontents = $(texdir)/$(packagebasename)
 .PHONY: all clean dist dist-zip distclean clean-mmap $(packagecontents) \
         $(mtexdir)/initialize.tex
@@ -342,5 +342,5 @@ dist-zip: $(packagecontents)
 $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Version of the project.
-	@v=$$(git describe --dirty --always);
+	@v=$$(git describe --dirty --always --long);
 	echo "\newcommand{\projectversion}{$$v}" > $@
