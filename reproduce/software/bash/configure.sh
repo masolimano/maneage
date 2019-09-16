@@ -230,8 +230,14 @@ during this configuration. It can help encourage you to set the actual
 build directory in a very different address from this one (one that can be
 deleted and has large volume), while having easy access to it from here.
 
+--- CAUTION ---
+Do not choose any directory under the top source directory (this
+directory). The build directory cannot be a subdirectory of the source.
+---------------
+
 EOF
     bdir=
+    currentdir=$(pwd)
     junkname=pure-junk-974adfkj38
     while [ x$bdir == x ]
     do
@@ -243,18 +249,36 @@ EOF
         # If it exists, see if we can write in it. If not, try making it.
         if [ -d $build_dir ]; then
             if mkdir $build_dir/$junkname 2> /dev/null; then
+                instring="the already existing"
                 bdir=$(absolute_dir $build_dir)
-                echo " -- Build directory: '$bdir'"
                 rm -rf $build_dir/$junkname
             else
-                echo " -- Can't write in '$build_dir'"
+                echo " -- Can't write in '$build_dir'"; echo
             fi
         else
             if mkdir $build_dir 2> /dev/null; then
+                instring="the newly created"
                 bdir=$(absolute_dir $build_dir)
-                echo " -- Build directory set to (the newly created): '$bdir'"
             else
-                echo " -- Can't create '$build_dir'"
+                echo " -- Can't create '$build_dir'"; echo
+            fi
+        fi
+
+        # Make sure the given directory is not a subdirectory of the
+        # source directory.
+        if ! [ x"$bdir" = x ]; then
+            if [[ $bdir == $currentdir* ]]; then
+
+                # If it was newly created, it will be empty, so delete it.
+                if ! [ "$(ls -A $bdir)" ]; then rm --dir $bdir; fi
+
+                # Inform the user that this is not acceptable and reset `bdir'.
+                bdir=
+                echo " -- The build-directory cannot be under the source-directory."
+                echo "    Please specify another build-directory that is outside of the source."
+                echo ""
+            else
+                echo " -- Build directory set to ($instring): '$bdir'"
             fi
         fi
 
