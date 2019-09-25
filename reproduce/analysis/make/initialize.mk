@@ -260,7 +260,7 @@ $(packagecontents): paper.pdf | $(texdir)
 	cp -r tex/src                            $$dir/tex/src
 	cp tex/tikz/*.pdf                        $$dir/tex/tikz
 	cp -r reproduce/*                        $$dir/reproduce
-	cp -r tex/build/!($(packagebasename))    $$dir/tex/build
+	cp -r tex/build/!(paper-v*)              $$dir/tex/build
 
         # Clean up un-necessary/local files: 1) the $(texdir)/build*
         # directories (when building in a group structure, there will be
