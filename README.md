@@ -131,22 +131,16 @@ this source from arXiv, some minor extra steps are necessary:
      COPYING  paper.tex  project  README-hacking.md  README.md  reproduce  tex
      ```
 
-4. To build the figures from scratch, please you need to make the following
-   corrections to the respective source files.
+4. To build the figures from scratch, you need to make the following
+   corrections to the LaTeX source files below.
 
-   4.1: `paper.tex`: uncomment the following line, so it looks like
-         below. See the comments above it for more information.
-
-          ```shell
-          \newcommand{\makepdf}{}
-          ```
+   4.1: `paper.tex`: uncomment (remove the starting `%`) of the line
+         containing `\newcommand{\makepdf}{}`. See the comments above it
+         for more information.
 
    4.2: `tex/src/preamble-pgfplots.tex`: set the `tikzsetexternalprefix`
-        variable to `tikz/`, so it looks like this:
-
-          ```shell
-          \tikzsetexternalprefix{tikz/}
-          ```
+        variable value to `tikz/`, so it looks like this:
+        `\tikzsetexternalprefix{tikz/}`.
 
 5. In order to let arXiv build the LaTeX paper without bothering to run the
    analysis pipeline it was necessary to create and fill the two
