@@ -31,6 +31,7 @@ build_dir=
 input_dir=
 make_targets=
 software_dir=
+clean_texdir=0
 existing_conf=0
 scriptname="./project"
 minmapsize=10000000000
@@ -90,6 +91,9 @@ Configure options:
   -i, --input-dir=STR      Directory containing input datasets (optional).
   -m, --minmapsize=INT     [Gnuastro] Minimum number of bytes to use RAM.
   -s, --software-dir=STR   Directory containing necessary software tarballs.
+      --clean-texdir       Remove possibly existing build-time subdirectories
+                           under the project's 'tex/' directory (can happen
+                           when source is from arXiv for example).
 
 Configure and Make options:
   -g, --group=STR          Build and run with write permissions for a group.
@@ -159,6 +163,8 @@ do
   -s|--software-dir)     software_dir="$2";                          check_v "$1" "$software_dir"; shift;shift;;
   -s=*|--software-dir=*) software_dir="${1#*=}";                     check_v "$1" "$software_dir"; shift;;
   -s*)                   software_dir=$(echo "$1" | sed -e's/-s//'); check_v "$1" "$software_dir"; shift;;
+  --clean-texdir)        clean_texdir=1;                                                           shift;;
+  --clean-texdir=*)      on_off_option_error --clean-texdir;;
 
   # Configure and Make options:
   -g|--group)             group="$2";                            check_v group "$group";   shift;shift;;
@@ -216,6 +222,13 @@ case $operation in
 
     # Build the project's software.
     configure)
+
+        # If the user requested, clean the TeX directory from the extra
+        # (to-be-built) directories that may already be there (and will not
+        # allow the configuration to complete).
+        if [ x"$clean_texdir" = x1 ]; then
+            rm -rf tex/build tex/tikz
+        fi
 
         # Variables to pass to the configuration script.
         export jobs=$jobs

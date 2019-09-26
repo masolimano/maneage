@@ -14,7 +14,8 @@ on your system if you have ever built and installed a software from source)
 and a downloader (Wget or cURL). Note that **Git is not mandatory**: if you
 don't have Git to run the first command below, go to the URL given in the
 command on your browser, and download the project's source (there is a
-button to download a compressed tarball of the project).
+button to download a compressed tarball of the project). If you have
+received this source from arXiv, please see the respective section below.
 
 ```shell
 $ git clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -82,6 +83,81 @@ requiring root/administrator permissions.
 
      ```shell
      $ ./project make -j8
+     ```
+
+
+
+
+
+Source from arXiv
+-----------------
+If the paper is also published on arXiv, it is highly likely that the
+authors also uploaded/published the full reproducible paper template there
+along with the LaTeX sources. If you have downloaded (or plan to download)
+this source from arXiv, some minor extra steps are necessary:
+
+1. If the arXiv code for the paper is 1234.56789, then the downloaded
+   source will be called `1234.56789` (no special identification
+   suffix). However, it is actually a `.tar.gz` file. So take these steps
+   to unpack it to see its contents.
+
+     ```shell
+     $ arxiv=1234.56789
+     $ mv $arxiv $arxiv.tar.gz
+     $ mkdir $arxiv
+     $ cd $arxiv
+     $ tar xf ../$arxiv.tar.gz
+     ```
+
+2. arXiv removes the executable flag from the files (for its own
+   security). So before following the standard procedure of projects
+   described in the sections above, its necessary to make the necessary
+   script files executable with the command below:
+
+     ```shell
+     $ chmod +x project reproduce/software/bash/* reproduce/analysis/bash/*
+     ```
+
+3. Remove extra files. In order to make sure arXiv can build the paper
+   (resolve conflicts due to different versions of LaTeX packages), it is
+   sometimes necessary to copy raw LaTeX package files in the tarball
+   uploaded to arXiv. Later, we will implement a feature to automatically
+   delete these extra files, but for now, the project's top directory
+   should only have the following contents (where `reproduce` and `tex` are
+   directories). You can safely remove any other file/directory.
+
+     ```shell
+     $ ls
+     COPYING  paper.tex  project  README-hacking.md  README.md  reproduce  tex
+     ```
+
+4. To build the figures from scratch, please you need to make the following
+   corrections to the respective source files.
+
+   4.1: `paper.tex`: uncomment the following line, so it looks like
+         below. See the comments above it for more information.
+
+          ```shell
+          \newcommand{\makepdf}{}
+          ```
+
+   4.2: `tex/src/preamble-pgfplots.tex`: set the `tikzsetexternalprefix`
+        variable to `tikz/`, so it looks like this:
+
+          ```shell
+          \tikzsetexternalprefix{tikz/}
+          ```
+
+5. In order to let arXiv build the LaTeX paper without bothering to run the
+   analysis pipeline it was necessary to create and fill the two
+   `tex/build` and `tex/tikz` subdirectories. But to do a clean build of
+   the project, it is necessary for these to be symbolic links to the build
+   directory. So when you are first configuring the project, run it with
+   `--clean-texdir` (only once is enough, they will be deleted permanently
+   after that), for example:
+
+     ```shell
+     $ ./project configure --clean-texdir
      ```
 
 

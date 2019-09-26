@@ -968,6 +968,11 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
         #
         # We want to inform the user if Metastore isn't built, so we don't
         # continue the call to `gbuild' with an `&&'.
+        #
+        # Checking for presence of `.git'. When the project source is
+        # downloaded from a non-Git source (for example from arXiv), there
+        # is no `.git' directory to work with. So until we find a better
+        # solution, avoid the step to to add the Git hooks.
 	current_dir=$$(pwd); \
 	$(call gbuild, $<, metastore-$(metastore-version), static,, \
 	               NO_XATTR=1 V=1,,pwd,PREFIX=$(idir)); \
@@ -975,18 +980,20 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 	  if [ "x$(needpatchelf)" != x ]; then \
 	    $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/metastore; \
 	  fi; \
-	  user=$$(whoami); \
-	  group=$$(groups | awk '{print $$1}'); \
-	  cd $$current_dir; \
-	  for f in pre-commit post-checkout; do \
-	     sed -e's|@USER[@]|'$$user'|g' \
-	         -e's|@GROUP[@]|'$$group'|g' \
-	         -e's|@BINDIR[@]|$(ibdir)|g' \
-	         -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g' \
-	         reproduce/software/bash/git-$$f > .git/hooks/$$f \
-	     && chmod +x .git/hooks/$$f \
-	     && echo "Metastore (forked) $(metastore-version)" > $@; \
-	  done; \
+	  if [ -d .git ]; then \
+	    user=$$(whoami); \
+	    group=$$(groups | awk '{print $$1}'); \
+	    cd $$current_dir; \
+	    for f in pre-commit post-checkout; do \
+	       sed -e's|@USER[@]|'$$user'|g' \
+	           -e's|@GROUP[@]|'$$group'|g' \
+	           -e's|@BINDIR[@]|$(ibdir)|g' \
+	           -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g' \
+	           reproduce/software/bash/git-$$f > .git/hooks/$$f \
+	       && chmod +x .git/hooks/$$f; \
+	    done; \
+	  fi \
+	  && echo "Metastore (forked) $(metastore-version)" > $@; \
 	else \
 	  echo; echo; echo; \
 	  echo "*****************"; \
