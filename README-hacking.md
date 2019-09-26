@@ -175,9 +175,8 @@ with (earlier versions of) this template. Note that this template is
 evolving, so some details may be different in them. The more recent ones
 can be used as a good working example besides the default template.
 
- - Akhlaghi ([2019](https://arxiv.org/abs/1909.11230)), Proceedings of the
-   International Astronomical Union (Symposium 355). The version controlled
-   project source is available [on
+ - Akhlaghi ([2019](https://arxiv.org/abs/1909.11230), IAU Symposium
+   355). The version controlled project source is available [on
    GitLab](https://gitlab.com/makhlaghi/iau-symposium-355) and is also
    archived on Zenodo with all the necessary software tarballs:
    [zenodo.3408481](https://doi.org/10.5281/zenodo.3408481).
