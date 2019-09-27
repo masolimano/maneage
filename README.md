@@ -19,6 +19,7 @@ received this source from arXiv, please see the respective section below.
 
 ```shell
 $ git clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+$ cd XXXXXXXXXXXXXXXXXX
 $ ./project configure
 $ ./project make
 ```
