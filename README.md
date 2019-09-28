@@ -112,11 +112,11 @@ this source from arXiv, some minor extra steps are necessary:
 
 2. arXiv removes the executable flag from the files (for its own
    security). So before following the standard procedure of projects
-   described in the sections above, its necessary to make the necessary
-   script files executable with the command below:
+   described in the sections above, its necessary to set the executable
+   flag of the main project management file with this command:
 
      ```shell
-     $ chmod +x project reproduce/software/bash/* reproduce/analysis/bash/*
+     $ chmod +x project
      ```
 
 3. Remove extra files. In order to make sure arXiv can build the paper

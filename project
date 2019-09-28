@@ -21,6 +21,10 @@
 # Stop the script if there are any errors.
 set -e
 
+
+
+
+
 # Default option values
 jobs=0     # 0 is for the default for the `configure.sh' script.
 group=
@@ -222,6 +226,22 @@ case $operation in
 
     # Build the project's software.
     configure)
+
+        # Set executable flags
+        # --------------------
+        #
+        # In some scenarios (for example when using a tarball from arXiv),
+        # it may happen that the host server has removed the executable
+        # flags of all the files. In `README.md' we instruct the readers on
+        # setting the executable flag of this script. But we don't want the
+        # user to have to worry about any other file that needs an
+        # executable flag.
+        #
+        # Basically, all the files (shell scripts) in the two
+        # `reproduce/*/bash' should need executable flags, so we are giving
+        # them executable flags by default. If any other file in your project
+        # needs such flags, add them here.
+        chmod +x reproduce/software/bash/* reproduce/analysis/bash/*
 
         # If the user requested, clean the TeX directory from the extra
         # (to-be-built) directories that may already be there (and will not
