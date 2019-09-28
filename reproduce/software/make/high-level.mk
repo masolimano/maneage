@@ -838,7 +838,7 @@ $(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
 	               --with-openblas-incdir=$(idir)/include) \
 	&& ln -fs $(ibdir)/sex $(ibdir)/sextractor \
 	&& cp $(dtexdir)/sextractor.tex $(ictdir)/ \
-	&& echo "Sextractor $(sextractor-version) \citep{sextractor}" > $@
+	&& echo "SExtractor $(sextractor-version) \citep{sextractor}" > $@
 
 $(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
                  $(ibidir)/fftw
