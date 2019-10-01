@@ -170,17 +170,17 @@ $(pytarballs): $(tdir)/%:
 	elif [ $$n = jeepney        ]; then h=16/1d/74adf3b164a8d19a60d0fcf706a751ffa2a1eaa8e5bbb1b6705c92a05263; c=$(jeepney-checksum)
 	elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2; c=$(keyring-checksum)
 	elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864; c=$(kiwisolver-checksum)
-	elif [ $$n = matplotlib     ]; then h=89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f; c=$(matplotlib-checksum)
+	elif [ $$n = matplotlib     ]; then h=12/d1/7b12cd79c791348cb0c78ce6e7d16bd72992f13c9f1e8e43d2725a6d8adf; c=$(matplotlib-checksum)
 	elif [ $$n = mpi            ]; then h=04/f5/a615603ce4ab7f40b65dba63759455e3da610d9a155d4d4cece1d8fd6706; c=$(mpi4py-checksum)
 	elif [ $$n = mpmath         ]; then h=ca/63/3384ebb3b51af9610086b23ea976e6d27d6d97bf140a76a365bd77a3eb32; c=$(mpmath-checksum)
-	elif [ $$n = numpy          ]; then h=cf/8d/6345b4f32b37945fedc1e027e83970005fc9c699068d2f566b82826515f2; c=$(numpy-checksum)
+	elif [ $$n = numpy          ]; then h=ac/36/325b27ef698684c38b1fe2e546e2e7ef9cecd7037bcdb35c87efec4356af; c=$(numpy-checksum)
 	elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af; c=$(pip-checksum)
 	elif [ $$n = pkgconfig      ]; then h=6e/a9/ff67ef67217dfdf2aca847685fe789f82b931a6957a3deac861297585db6; c=$(pypkgconfig-checksum)
 	elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a; c=$(pycparser-checksum)
 	elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc; c=$(pyparsing-checksum)
 	elif [ $$n = dateutil       ]; then h=ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c; c=$(python-dateutil-checksum)
 	elif [ $$n = requests       ]; then h=52/2c/514e4ac25da2b08ca5a464c50463682126385c4272c18193876e91f4bc38; c=$(requests-checksum)
-	elif [ $$n = scipy          ]; then h=a9/b4/5598a706697d1e2929eaf7fe68898ef4bea76e4950b9efbe1ef396b8813a; c=$(scipy-checksum)
+	elif [ $$n = scipy          ]; then h=ee/5b/5afcd1c46f97b3c2ac3489dbc95d6ca28eacf8e3634e51f495da68d97f0f; c=$(scipy-checksum)
 	elif [ $$n = secretstorage  ]; then h=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5; c=$(secretstorage-checksum)
 	elif [ $$n = setuptools     ]; then h=c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0; c=$(setuptools-checksum)
 	elif [ $$n = setuptools_scm ]; then h=54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3; c=$(setuptools_scm-checksum)
@@ -224,8 +224,11 @@ $(pytarballs): $(tdir)/%:
         # controlled `sha512sum' build (as part of GNU Coreutils). So we
         # don't need to check its existance like `basic.mk'.
 	checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}')
-	if [ x$$checksum = x$$c ]; then mv "$@.unchecked" "$@"
-	  else echo "ERROR: Non-matching checksum for '$*'."; exit 1
+	if [ x"$$checksum" = x"$$c" ]; then mv "$@.unchecked" "$@"
+	  else echo "ERROR: Non-matching checksum for '$*'."
+	  echo "Checksum should be: $$c"
+	  echo "Checksum is:        $$checksum"
+	  exit 1
 	fi
 
 

@@ -206,10 +206,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(hdf5-checksum)
 	  majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
-	elif [ $$n = imagemagick ]; then
-	  mergenames=0
-	  c=$(imagemagick-checksum)
-	  w=https://www.imagemagick.org/download/releases/ImageMagick-$(imagemagick-version).tar.xz
+	elif [ $$n = imagemagick ]; then c=$(imagemagick-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = imfit       ]; then
 	  mergenames=0
 	  c=$(imfit-checksum)
