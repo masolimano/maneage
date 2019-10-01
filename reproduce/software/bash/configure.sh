@@ -1387,9 +1387,9 @@ echo `.local/bin/date` > $finaltarget
 # The configuration is now complete, we can inform the user on the next
 # step(s) to take.
 if [ x$reproducible_paper_group_name = x ]; then
-    buildcommand="./project make -j8"
+    buildcommand="./project prepare -j8"
 else
-    buildcommand="./project make --group=$reproducible_paper_group_name -j8"
+    buildcommand="./project prepare --group=$reproducible_paper_group_name -j8"
 fi
 cat <<EOF
 
@@ -1397,7 +1397,7 @@ cat <<EOF
 The project and its environment are configured with no errors.
 
 Please run the following command to start.
-(Replace '8' with the number of CPU threads)
+(Replace '8' with the number of CPU threads on your system)
 
     $buildcommand
 

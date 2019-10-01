@@ -65,12 +65,14 @@ print_help() {
     # Print the output.
     cat <<EOF
 Usage: $scriptname configure [OPTIONS]
+       $scriptname prepare   [OPTIONS]
        $scriptname make      [OPTIONS]
 
 Top-level script to manage the reproducible project. The high-level
 operation is defined by the (mandatory) second argument:
 
   configure    - Configure project for this machine (e.g., build software).
+  prepare      - Low-level preparations to optimize building with 'make'.
   make         - Run the project (do analysis and build outputs).
 
 RECOMMENDATION: If this is the first time you are configuring this
@@ -147,6 +149,7 @@ do
  case $1 in
   # Main operation.
   configure)    func_operation_set $1; shift;;
+  prepare)      func_operation_set $1; shift;;
   make)         func_operation_set $1; shift;;
 
 
@@ -218,6 +221,74 @@ fi
 
 
 
+# Run operations in controlled environment
+# ----------------------------------------
+controlled_env() {
+    # Get the full address of the build directory:
+    bdir=`.local/bin/realpath .build`
+
+    # Remove all existing environment variables (with `env -i') and only
+    # use some pre-defined environment variables, then build the project.
+    envmake=".local/bin/env -i HOME=$bdir sys_rm=$(which rm) $gopt"
+    envmake="$envmake .local/bin/make -f $1"
+    if ! [ x"$debug" = x  ]; then envmake="$envmake --debug=$debug"; fi
+
+    # Set the number of jobs. Note that for the `configure.sh' script the
+    # default value has to be 0, so the default is the maximum number of
+    # threads. But here, the default value is 1.
+    if ! [ x"$jobs"  = x0 ]; then envmake="$envmake -j$jobs";  fi
+
+    # Run the project
+    if [ x"$group" = x ]; then
+        $envmake $make_targets
+    else
+        # Set the group and permission flags.
+        sg "$group" "umask $perms && $envmake $make_targets"
+    fi
+}
+
+
+
+
+
+# Error messages
+# --------------
+#
+# Having the error messages here helps the over-all process be more
+# readable.
+print_error_abort() {
+    case $1 in
+        prepare)
+            cat <<EOF
+
+The project isn't configured for this system, or the configuration wasn't
+successful. To configure the project, please use this command:
+
+      $ ./project configure
+
+(TIP: if you have already ran this command once, run it with '-e' to use
+the previous configuration, run with '--help' for more info)
+
+EOF
+            exit 1;
+        ;;
+        make)
+            cat <<EOF
+
+The project preparation hasn't been completed, or it wasn't successful. To
+prepare the project prior to building it, please use this command:
+
+      $ ./project prepare
+
+EOF
+            exit 1;
+        ;;
+    esac
+}
+
+
+
+
 # Do requested operation
 # ----------------------
 perms="u+r,u+w,g+r,g+w,o-r,o-w,o-x"
@@ -280,54 +351,49 @@ case $operation in
         fi
         ;;
 
+
+
+
+
+    # Run the input management.
+    prepare)
+
+        # Make sure the configure script has been completed properly
+        # (`configuration-done.txt' exists).
+        if ! [ -f .build/software/configuration-done.txt ]; then
+            print_error_abort $operation
+        fi
+
+        # Run input-preparations in control environment
+        controlled_env reproduce/analysis/make/top-prepare.mk
+        ;;
+
+
+
+
+
     # Run the project
     make)
 
         # Make sure the configure script has been completed properly
         # (`configuration-done.txt' exists).
-        if ! [ -f .build/software/configuration-done.txt ]; then
-            cat <<EOF
-
-The project isn't configured for this system, or the configuration wasn't
-successful. To configure the project, please use this command:
-
-      '$ ./project configure'
-
-(TIP: if you have already ran this command once, run it with '-e' to use
-the previous configuration, run with '--help' for more info)
-
-EOF
-            exit 1
+        if ! [ -f .build/software/preparation-done.txt ]; then
+            print_error_abort $operation
         fi
 
-        # Get the full address of the build directory:
-        bdir=`.local/bin/realpath .build`
-
-
-        # Remove all existing environment variables (with `env -i') and
-        # only use some pre-defined environment variables, then build the
-        # project.
-        envmake=".local/bin/env -i HOME=$bdir sys_rm=$(which rm) $gopt"
-        envmake="$envmake .local/bin/make -f reproduce/analysis/make/top.mk"
-        if ! [ x"$debug" = x  ]; then envmake="$envmake --debug=$debug"; fi
-
-        # Set the number of jobs. Note that for the `configure.sh' script
-        # the default value has to be 0, so the default is the maximum
-        # number of threads. But here, the default value is 1.
-        if ! [ x"$jobs"  = x0 ]; then envmake="$envmake -j$jobs";  fi
-
-        # Run the project
-        if [ x"$group" = x ]; then
-            $envmake $make_targets
-        else
-            # Set the group and permission flags.
-            sg "$group" "umask $perms && $envmake $make_targets"
-        fi
+        # Run the actual project.
+        controlled_env reproduce/analysis/make/top-make.mk
         ;;
+
+
+
+
 
     # Operation not specified.
     *)
-        echo "No operation defined (you can give 'configure' or 'make')."
+        echo "No operation defined."
+        echo "Please run with '--help' for more information."
+        echo "Available operations are: 'configure', 'prepare', or 'make')."
         exit 1
     ;;
 esac

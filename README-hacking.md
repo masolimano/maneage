@@ -245,11 +245,11 @@ In order to customize this template to your research, it is important to
 first understand its architecture so you can navigate your way in the
 directories and understand how to implement your research project within
 its framework: where to add new files and which existing files to modify
-for what purpose. But before reading this theoretical discussion, please
-run the template (described in `README.md`: first run `./project
-configure`, then `./project make -j8`) without any change, just to see how
-it works (note that the configure step builds all necessary software, so it
-can take long, but you can read along while its working).
+for what purpose. But if this the first time you are using this template,
+before reading this theoretical discussion, please run the template once
+from scratch without any chages (described in `README.md`). You will see
+how it works (note that the configure step builds all necessary software,
+so it can take long, but you can continue reading while its working).
 
 The project has two top-level directories: `reproduce` and
 `tex`. `reproduce` hosts all the software building and analysis
@@ -266,28 +266,44 @@ do your project's analysis.
 After it finishes, `./project configure` will create the following symbolic
 links in the project's top source directory: `.build` which points to the
 top build directory and `.local` for easy access to the custom built
-software installation directory.
+software installation directory. With these you can easily access the build
+directory and project-specific software from your top source directory. For
+example if you run `.local/bin/ls` you will be using the `ls` of the
+template, which is problably different from your system's `ls` (run them
+both with `--version` to check).
 
-Once the project is configured for your system, `./project make` will doing
-the project's analysis with its own custom version of software. The process
-is managed through Make and `./project make` will start with
-`reproduce/analysis/make/top.mk` (called `top.mk` from now on).
+Once the project is configured for your system, `./project prepare` and
+`./project make` will do the basic preparations and run the project's
+analysis with the custom version of software. The `project` script is just
+a wrapper, and with the commands above, it will call `top-prepare.mk` and
+`top-make.mk` (both are in the `reproduce/analysis/make` directory).
 
-Let's continue the template's architecture with this file. `top.mk` is
-relatively short and heavily commented so hopefully the descriptions in
-each comment will be enough to understand the general details. As you read
-this section, please also look at the contents of the mentioned files and
-directories to fully understand what is going on.
+In the template, no particular preparation is necessary, so it will
+immediately finish and instruct you to run `./project make`. But in some
+projects, it can be very useful to do some very basic preparatory steps on
+the input data that can greatly optimize running of `./project make`. For
+example, you may need to query a server, to find how many input files there
+are. Once that number is known in the preparation phase, `./project make`
+can parallelize the analysis much more effectively.
 
-Before starting to look into the top `Makefile`, it is important to recall
-that Make defines dependencies by files. Therefore, the input/prerequisite
-and output of every step/rule must be a file. Also recall that Make will
-use the modification date of the prerequisite(s) and target files to see if
-the target must be re-built or not. Therefore during the processing, _many_
-intermediate files will be created (see the tips section below on a good
-strategy to deal with large/huge files).
+In terms of organization, `top-prepare.mk` and `top-make.mk` have an
+identical design, only a minor difference. So, let's continue the
+template's architecture with `top-make.mk`. Once you understand that,
+you'll clearly understand `top-prepare.mk` also. These very high-level
+files are relatively short and heavily commented so hopefully the
+descriptions in each comment will be enough to understand the general
+details. As you read this section, please also look at the contents of the
+mentioned files and directories to fully understand what is going on.
 
-To keep the source and (intermediate) built files separate, you _must_
+Before starting to look into the top `top-make.mk`, it is important to
+recall that Make defines dependencies by files. Therefore, the
+input/prerequisite and output of every step/rule must be a file. Also
+recall that Make will use the modification date of the prerequisite(s) and
+target files to see if the target must be re-built or not. Therefore during
+the processing, _many_ intermediate files will be created (see the tips
+section below on a good strategy to deal with large/huge files).
+
+To keep the source and (intermediate) built files separate, the user _must_
 define a top-level build directory variable (or `$(BDIR)`) to host all the
 intermediate files (you defined it during `./project configure`). This
 directory doesn't need to be version controlled or even synchronized, or
@@ -295,7 +311,9 @@ backed-up in other servers: its contents are all products, and can be
 easily re-created any time. As you define targets for your new rules, it is
 thus important to place them all under sub-directories of `$(BDIR)`. As
 mentioned above, you always have fast access to this "build"-directory with
-the `.build` symbolic link.
+the `.build` symbolic link. Also, beware to *never* make any manual change
+in the files of the build-directory, just delete them (so they are
+re-built).
 
 In this architecture, we have two types of Makefiles that are loaded into
 the top `Makefile`: _configuration-Makefiles_ (only independent
@@ -350,10 +368,10 @@ other users access to the contents. Therefore the `./project configure` and
 `./project make` steps must be called with special conditions which are
 managed in the `--group` option.
 
-Let's see how this design is implemented. Please open and inspect `top.mk`
-it as we go along here. The first step (un-commented line) is to import the
-local configuration (your answers to the questions of `./project
-configure`). They are defined in the configuration-Makefile
+Let's see how this design is implemented. Please open and inspect
+`top-make.mk` it as we go along here. The first step (un-commented line) is
+to import the local configuration (your answers to the questions of
+`./project configure`). They are defined in the configuration-Makefile
 `reproduce/software/config/installation/LOCAL.mk` which was also built by
 `./project configure` (based on the `LOCAL.mk.in` template of the same
 directory).
@@ -607,9 +625,9 @@ First custom commit
        grants. Since you are using it in your work, it is necessary to
        acknowledge them in your work also.
 
-     - `reproduce/analysis/make/top.mk`: Delete the `delete-me` line in the
-       `makesrc` definition. Just make sure there is no empty line between
-       the `download \` and `paper` lines.
+     - `reproduce/analysis/make/top-make.mk`: Delete the `delete-me` line
+       in the `makesrc` definition. Just make sure there is no empty line
+       between the `download \` and `paper` lines.
 
      - Delete all `delete-me*` files in the following directories:
 
