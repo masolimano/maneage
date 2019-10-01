@@ -36,7 +36,7 @@ include reproduce/software/config/installation/LOCAL.mk
 #
 # See `top-make.mk' for complete explanation.
 ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
-all: $(BDIR)/software/preparation-done.txt
+all: $(BDIR)/software/preparation-done.mk
 	@echo "";
 	echo "----------------"
 	echo "Project preparation has been completed without any errors."
@@ -86,6 +86,6 @@ makesrc = initialize \
 # ------------------------------
 #
 # See `top-make.mk' for complete explanation.
+project-phase = prepare
 include reproduce/analysis/config/*.mk
-include reproduce/software/config/installation/versions.mk
 include $(foreach s,$(makesrc), reproduce/analysis/make/$(s).mk)

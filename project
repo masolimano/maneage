@@ -377,7 +377,7 @@ case $operation in
 
         # Make sure the configure script has been completed properly
         # (`configuration-done.txt' exists).
-        if ! [ -f .build/software/preparation-done.txt ]; then
+        if ! [ -f .build/software/preparation-done.mk ]; then
             print_error_abort $operation
         fi
 

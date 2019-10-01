@@ -33,6 +33,7 @@
 texdir      = $(BDIR)/tex
 lockdir     = $(BDIR)/locks
 indir       = $(BDIR)/inputs
+prepdir     = $(BDIR)/prepare
 mtexdir     = $(texdir)/macros
 bashdir     = reproduce/analysis/bash
 pconfdir    = reproduce/analysis/config
@@ -40,6 +41,29 @@ installdir  = $(BDIR)/software/installed
 # --------- Delete for no Gnuastro ---------
 gconfdir    = reproduce/software/config/gnuastro
 # ------------------------------------------
+
+
+
+
+
+# Preparation phase
+# -----------------
+#
+# This Makefile is loaded both for the `prepare' phase and the `make'
+# phase. But the preparation files should be dealt with differently
+# (depending on the phase). In the `prepare' phase, the main directory
+# should be created, and in the `make' phase, its contents should be
+# loaded.
+#
+# If you don't need any preparation, please simply comment these lines.
+ifeq (x$(project-phase),xprepare)
+$(prepdir):; mkdir $@
+else
+include $(BDIR)/software/preparation-done.mk
+ifeq (x$(include-prepare-results),xyes)
+include $(prepdir)/*.mk
+endif
+endif
 
 
 

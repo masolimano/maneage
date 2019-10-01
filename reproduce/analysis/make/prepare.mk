@@ -19,17 +19,27 @@
 # Final-target
 #
 # Without this file, `./project make' won't work.
-$(BDIR)/software/preparation-done.txt:
+$(BDIR)/software/preparation-done.mk:
 
         # If you need to add preparations define targets above to do the
-        # preparations. Recall that before this file, `top-prepare.mk'
-        # loads `initialize.mk' and `download.mk', so you can safely assume
-        # everything that is defined there in this Makefile.
+        # preparations, then set the value below to `yes'. Recall that just
+        # like `./project make', before loading this file, `./project
+        # prepare' loads loads `initialize.mk' and `download.mk', so you
+        # can safely assume everything that is defined there in the
+        # preparation phase also.
         #
         # TIP: the targets can actually be automatically generated
         # Makefiles that are used by `./project make'. They can include
-        # variables, or actual rules. Just make sure that those Makefiles
-        # aren't written in the source directory! Even though they are
-        # Makefiles, they are automatically built, so they should be
-        # somewhere under $(BDIR).
-	@touch $@
+        # variables, or automatically generated rules. Just make sure that
+        # those Makefiles aren't written in the source directory. Even
+        # though they are Makefiles, they are automatically built, so they
+        # don't belong in the source. `$(prepdir)' has been defined for
+        # this purpose (see `initialize.mk'), we recommend that you put all
+        # automatically generated Makefiles under this directory. In the
+        # `make' phase, `initialize.mk' will automatically load all the
+        # `*.mk' files. If you need to load your generated
+        # configuration-makefiles before automatically generated Makefiles
+        # containing rules, you can use some naming convension like
+        # `conf-*.mk' and `rule-*.mk', or you can put them in
+        # subdirectories.
+	@echo "include-prepare-results = no" > $@

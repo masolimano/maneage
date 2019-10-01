@@ -125,12 +125,11 @@ makesrc = initialize \
 #   1) All the analysis configuration-Makefiles (Makefiles that only define
 #      variables with no rules or order).
 #
-#   2) From the software configuration-Makefiles, we only include the one
-#      containing software versions, just incase its necessary to
-#      use/report outside of the acknowledgments section of the paper.
-#
-#   3) Finally, we'll import all the analysis workhorse-Makefiles which
+#   2) Finally, we'll import all the analysis workhorse-Makefiles which
 #      contain rules to actually do this project's processing.
+#
+# But before that, we need to identify the phase for the Makefiles that are
+# run both in `./project prepare' and `./project make'.
+project-phase = make
 include reproduce/analysis/config/*.mk
-include reproduce/software/config/installation/versions.mk
 include $(foreach s,$(makesrc), reproduce/analysis/make/$(s).mk)
