@@ -713,7 +713,7 @@ $(ibidir)/imagemagick: $(tdir)/imagemagick-$(imagemagick-version).tar.xz \
                        $(ibidir)/libtiff \
                        $(ibidir)/zlib
 	$(call gbuild, $<, ImageMagick-$(imagemagick-version), static, \
-		       --without-x --disable-openmp, V=1) \
+		       --without-x --disable-openmp, V=1 -j$(numthreads)) \
 	&& echo "ImageMagick $(imagemagick-version)" > $@
 
 # `imfit' doesn't use the traditional `configure' and `make' to install

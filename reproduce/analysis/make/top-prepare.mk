@@ -44,20 +44,20 @@ all: $(BDIR)/software/preparation-done.mk
 	echo "Please run the following command to start building the project."
 	echo "(Replace '8' with the number of CPU threads on your system)"
 	echo ""
-	if [ "x$(GROUP-NAME)" = x ]; then
-	  echo "   $$ ./project make"
-	else
-	  echo "   $$ ./project make --group=$(GROUP-NAME) -j8"
+	if [ "x$(GROUP-NAME)" = x ]; then \
+	  echo "   $$ ./project make"; \
+	else \
+	  echo "   $$ ./project make --group=$(GROUP-NAME) -j8"; \
 	fi
 	echo ""
 else
 all:
-	@if [ "x$(GROUP-NAME)" = x ]; then
-	  echo "Project is NOT configured for groups, please run"
-	  echo "   $$ ./project prepare"
-	else
-	  echo "Project is configured for groups, please run"
-	  echo "   $$ ./project prepare --group=$(GROUP-NAME) -j8"
+	@if [ "x$(GROUP-NAME)" = x ]; then \
+	  echo "Project is NOT configured for groups, please run"; \
+	  echo "   $$ ./project prepare"; \
+	else \
+	  echo "Project is configured for groups, please run"; \
+	  echo "   $$ ./project prepare --group=$(GROUP-NAME) -j8"; \
 	fi
 endif
 
