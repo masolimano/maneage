@@ -89,13 +89,14 @@ endif
 # changed). So in terms of over-all efficiency and processing steps, this
 # doesn't change anything.
 ifeq (x$(GROUP-NAME),x)
-texbdir     = $(texdir)/build
+texbtopdir  = build
 final-paper = paper.pdf
 else
 user        = $(shell whoami)
-texbdir     = $(texdir)/build-$(user)
+texbtopdir  = build-$(user)
 final-paper = paper-$(user).pdf
 endif
+texbdir     = $(texdir)/$(texbtopdir)
 tikzdir     = $(texbdir)/tikz
 
 
@@ -226,7 +227,7 @@ clean: clean-mmap
         # are using afterwards.
 	shopt -s extglob
 	rm -rf $(BDIR)/tex/macros/!(dependencies.tex|dependencies-bib.tex)
-	rm -rf $(BDIR)/!(software|tex) $(BDIR)/tex/!(macros|build)
+	rm -rf $(BDIR)/!(software|tex) $(BDIR)/tex/!(macros|$(texbtopdir))
 	rm -rf $(BDIR)/tex/build/!(tikz) $(BDIR)/tex/build/tikz/*
 
 distclean: clean
