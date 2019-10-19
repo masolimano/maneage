@@ -275,8 +275,14 @@ $(packagecontents): paper.pdf | $(texdir)
 	printf "\trm -f *.aux *.auxlock *.bbl *.bcf\n"           >> $$m
 	printf "\trm -f *.blg *.log *.out *.run.xml\n"           >> $$m
 
-        # Copy the top-level contents into it.
+        # Copy the top-level contents (see next step for `paper.tex').
 	cp COPYING project README.md README-hacking.md $$dir/
+
+        # Since the packaging is mainly intended for high-level building of
+        # the PDF with LaTeX, we'll comment the `makepdf' LaTeX macro in
+        # the paper. This will disable usage of TiKZ.
+	sed -e's|\\newcommand{\\makepdf}{}|%\\newcommand{\\makepdf}{}|' \
+	    paper.tex > $$dir/paper.tex
 
         # Build the top-level directories.
 	mkdir $$dir/reproduce $$dir/tex $$dir/tex/tikz $$dir/tex/build
@@ -314,17 +320,6 @@ $(packagecontents): paper.pdf | $(texdir)
 	find $$tltopdir/biblatex/ -maxdepth 1 -type f -print0 \
 	     | xargs -0 cp -t $$dir
 
-        # PROJECT SPECIFIC
-        # ----------------
-        # Put any project specific distribution steps here.
-        # ----------------
-
-        # Since the packaging is mainly intended for high-level building of
-        # the PDF with LaTeX, we'll comment the `makepdf' LaTeX macro in
-        # the paper. This will disable usage of TiKZ.
-	sed -e's|\\newcommand{\\makepdf}{}|%\\newcommand{\\makepdf}{}|' \
-	    paper.tex > $$dir/paper.tex
-
         # Just in case the package users want to rebuild some of the
         # figures (manually un-comment the `makepdf' command we commented
         # above), correct the TikZ external directory, so the figures can
@@ -337,12 +332,18 @@ $(packagecontents): paper.pdf | $(texdir)
 	cd $(texdir)
 	find $(packagebasename) -name \*~ -delete
 
+        # PROJECT SPECIFIC
+        # ----------------
+        # Put any project specific distribution steps here.
+        # ----------------
+
 # Package into `.tar.gz'.
 dist: $(packagecontents)
 	curdir=$$(pwd)
 	cd $(texdir)
 	tar -cf $(packagebasename).tar $(packagebasename)
 	gzip -f --best $(packagebasename).tar
+	rm -rf $(packagebasename)
 	cd $$curdir
 	mv $(texdir)/$(packagebasename).tar.gz ./
 
@@ -351,6 +352,7 @@ dist-zip: $(packagecontents)
 	curdir=$$(pwd)
 	cd $(texdir)
 	zip -q -r $(packagebasename).zip $(packagebasename)
+	rm -rf $(packagebasename)
 	cd $$curdir
 	mv $(texdir)/$(packagebasename).zip ./
 
