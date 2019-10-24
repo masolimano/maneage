@@ -71,13 +71,17 @@ zlib-version = 1.2.11
 # `reproduce/software/config/installation/TARGETS.mk' will be built as part
 # of a project. To specify a software there, just remove the `-version'
 # suffix from the list below.
+apr-version = 1.7.0
+apr-util-version = 1.6.1
 astrometrynet-version = 0.77
 atlas-version = 3.10.3
 bison-version = 3.4.2
+boost-version = 1.71.0
 cairo-version = 1.16.0
 cdsclient-version = 3.84
 cfitsio-version = 3.47
 cmake-version = 3.15.3
+eigen-version = 3.3.7
 fftw-version = 3.3.8
 flex-version = 2.6.4
 flock-version = 0.2.3

@@ -40,6 +40,7 @@ ddir    = $(BDIR)/software/build-tmp
 idir    = $(BDIR)/software/installed
 ibdir   = $(BDIR)/software/installed/bin
 ildir   = $(BDIR)/software/installed/lib
+iidir   = $(BDIR)/software/installed/include
 dtexdir = $(shell pwd)/reproduce/software/bibtex
 itidir  = $(BDIR)/software/installed/version-info/tex
 ictdir  = $(BDIR)/software/installed/version-info/cite
@@ -131,13 +132,17 @@ include reproduce/software/make/python.mk
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
+tarballs = $(foreach t, apr-$(apr-version).tar.gz \
+                        apr-util-$(apr-util-version).tar.gz \
+                        astrometry.net-$(astrometrynet-version).tar.gz \
                         atlas-$(atlas-version).tar.bz2 \
                         bison-$(bison-version).tar.xz \
+                        boost-$(boost-version).tar.gz \
                         cairo-$(cairo-version).tar.xz \
                         cdsclient-$(cdsclient-version).tar.gz \
                         cfitsio-$(cfitsio-version).tar.gz \
                         cmake-$(cmake-version).tar.gz \
+                        eigen-$(eigen-version).tar.gz \
                         fftw-$(fftw-version).tar.gz \
                         flex-$(flex-version).tar.gz \
                         freetype-$(freetype-version).tar.gz \
@@ -181,12 +186,20 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 
         # Set the top download link of the requested tarball.
 	mergenames=1
-	if   [ $$n = astrometry  ]; then c=$(astrometrynet-checksum); w=http://astrometry.net/downloads
+	if [ $* = apr-util-$(apr-util-version).tar.gz ];
+	  then c=$(apr-util-checksum); w=https://www-us.apache.org/dist/apr
+	elif [ $$n = apr         ]; then c=$(apr-checksum); w=https://www-us.apache.org/dist/apr
+	elif [ $$n = astrometry  ]; then c=$(astrometrynet-checksum); w=http://astrometry.net/downloads
 	elif [ $$n = atlas       ]; then
 	  mergenames=0
 	  c=$(atlas-checksum)
 	  w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
 	elif [ $$n = bison       ]; then c=$(bison-checksum); w=http://ftp.gnu.org/gnu/bison/
+	elif [ $$n = boost       ]; then
+	  mergenames=0
+	  c=$(boost-checksum)
+	  vstr=$$(echo $(boost-version) | sed -e's/\./_/g')
+	  w=https://dl.bintray.com/boostorg/release/$(boost-version)/source/boost_$$vstr.tar.gz
 	elif [ $$n = cairo       ]; then c=$(cairo-checksum); w=https://www.cairographics.org/releases
 	elif [ $$n = cdsclient   ]; then c=$(cdsclient-checksum); w=http://cdsarc.u-strasbg.fr/ftp/pub/sw
 	elif [ $$n = cfitsio     ]; then c=$(cfitsio-checksum); w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
@@ -197,6 +210,10 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	               | sed -e's/\./ /' \
 	               | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://cmake.org/files/v$$majv/cmake-$(cmake-version).tar.gz
+	elif [ $$n = eigen       ]; then
+	  mergenames=0
+	  c=$(eigen-checksum);
+	  w=http://bitbucket.org/eigen/eigen/get/$(eigen-version).tar.gz
 	elif [ $$n = fftw        ]; then c=$(fftw-checksum); w=ftp://ftp.fftw.org/pub/fftw
 	elif [ $$n = flex        ]; then c=$(flex-checksum); w=https://github.com/westes/flex/files/981163
 	elif [ $$n = freetype    ]; then c=$(freetype-checksum); w=https://download.savannah.gnu.org/releases/freetype
@@ -314,6 +331,19 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # libraries. Therefore, we can't use the easy `.a' suffix for static
 # libraries as targets and there are different conventions for shared
 # library names.
+$(ibidir)/apr: $(tdir)/apr-$(apr-version).tar.gz
+	$(call gbuild, $<, apr-$(apr-version), ,--disable-static) \
+	&& echo "Apache Portable Runtime $(apr-version)" > $@
+
+$(ibidir)/apr-util: $(tdir)/apr-util-$(apr-util-version).tar.gz \
+                       $(ibidir)/apr
+	$(call gbuild, $<, apr-util-$(apr-util-version), , \
+	               --disable-static \
+	               --with-apr=$(idir) \
+	               --with-openssl=$(idir) \
+	               --with-crypto ) \
+	&& echo "Apache Portable Runtime Utility $(apr-util-version)" > $@
+
 $(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	         $(tdir)/lapack-$(lapack-version).tar.gz
 
@@ -394,6 +424,23 @@ $(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	  echo "ATLAS $(atlas-version)" > $@; \
 	fi
 
+# Boost doesn't use the standard GNU Build System.
+$(ibidir)/boost: $(tdir)/boost-$(boost-version).tar.gz \
+                 $(ibidir)/openmpi \
+                 $(ibidir)/python
+	vstr=$$(echo $(boost-version) | sed -e's/\./_/g')
+	rm -rf $(ddir)/boost_$$vstr
+	topdir=$(pwd); cd $(ddir); tar xf $<
+	cd boost_$$vstr
+	./bootstrap.sh --prefix=$(idir) --with-libraries=all \
+	               --with-python=python3 \
+	&& echo "using mpi ;" > project-config.jam \
+	&& ./b2 stage threading=multi link=shared --prefix=$(idir) -j$(numthreads) \
+	&& ./b2 install threading=multi link=shared --prefix=$(idir) -j$(numthreads) \
+	&& cd $$topdir \
+	&& rm -rf $(ddir)/boost_$$vstr \
+	&& echo "Boost $(boost-version)" > $@
+
 $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
                    $(ibidir)/curl
 
@@ -427,6 +474,18 @@ $(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
 	$(call gbuild, $<, cairo-$(cairo-version), static, \
 	               --with-x=no, -j$(numthreads) V=1) \
 	&& echo "Cairo $(cairo-version)" > $@
+
+# Eigen is just headers! So it doesn't need to be compiled. Once unpacked
+# it has a checksum after `eigen-eigen', so we'll just use a `*' to choose
+# the unpacked directory.
+$(ibidir)/eigen: $(tdir)/eigen-$(eigen-version).tar.gz
+	rm -rf $(ddir)/eigen-eigen-*
+	topdir=$(pwd); cd $(ddir); tar xf $<
+	cd eigen-eigen-*
+	cp -r Eigen $(iidir)/eigen3 \
+	&& cd $$topdir \
+	&& rm -rf $(ddir)/eigen-eigen-* \
+	&& echo "Eigen $(eigen-version)" > $@
 
 $(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
         # FFTW's single and double precission libraries must be built

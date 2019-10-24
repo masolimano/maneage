@@ -271,6 +271,7 @@ $(ibidir)/python: $(tdir)/python-$(python-version).tar.gz \
 	    {printf "%d.%d\n", $$1, $$2}') \
 	&& ln -sf $(ildir)/python$$v $(ildir)/python \
 	&& ln -sf $(ibdir)/python$$v $(ibdir)/python \
+	&& ln -sf $(iidir)/python$$v"m" $(iidir)/python$$v \
 	&& rm -rf $(ipydir) \
 	&& mkdir $(ipydir) \
 	&& echo "Python $(python-version)" > $@
