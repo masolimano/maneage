@@ -133,16 +133,19 @@ include reproduce/software/make/python.mk
 # downloaded file has our desired format.
 tarballs = $(foreach t, astrometry.net-$(astrometrynet-version).tar.gz \
                         atlas-$(atlas-version).tar.bz2 \
+                        bison-$(bison-version).tar.xz \
                         cairo-$(cairo-version).tar.xz \
                         cdsclient-$(cdsclient-version).tar.gz \
                         cfitsio-$(cfitsio-version).tar.gz \
                         cmake-$(cmake-version).tar.gz \
-                        freetype-$(freetype-version).tar.gz \
                         fftw-$(fftw-version).tar.gz \
+                        flex-$(flex-version).tar.gz \
+                        freetype-$(freetype-version).tar.gz \
                         ghostscript-$(ghostscript-version).tar.gz \
                         gnuastro-$(gnuastro-version).tar.lz \
                         gsl-$(gsl-version).tar.gz \
                         hdf5-$(hdf5-version).tar.gz \
+                        help2man-$(help2man-version).tar.xz \
                         imagemagick-$(imagemagick-version).tar.xz \
                         imfit-$(imfit-version).tar.gz \
                         install-tl-unx.tar.gz \
@@ -183,6 +186,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  mergenames=0
 	  c=$(atlas-checksum)
 	  w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
+	elif [ $$n = bison       ]; then c=$(bison-checksum); w=http://ftp.gnu.org/gnu/bison/
 	elif [ $$n = cairo       ]; then c=$(cairo-checksum); w=https://www.cairographics.org/releases
 	elif [ $$n = cdsclient   ]; then c=$(cdsclient-checksum); w=http://cdsarc.u-strasbg.fr/ftp/pub/sw
 	elif [ $$n = cfitsio     ]; then c=$(cfitsio-checksum); w=https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
@@ -194,6 +198,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	               | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://cmake.org/files/v$$majv/cmake-$(cmake-version).tar.gz
 	elif [ $$n = fftw        ]; then c=$(fftw-checksum); w=ftp://ftp.fftw.org/pub/fftw
+	elif [ $$n = flex        ]; then c=$(flex-checksum); w=https://github.com/westes/flex/files/981163
 	elif [ $$n = freetype    ]; then c=$(freetype-checksum); w=https://download.savannah.gnu.org/releases/freetype
 	elif [ $$n = ghostscript ]; then
 	  c=$(ghostscript-checksum)
@@ -206,6 +211,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(hdf5-checksum)
 	  majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
+	elif [ $$n = help        ]; then c=$(help2man-checksum); w=http://ftp.gnu.org/gnu/help2man
 	elif [ $$n = imagemagick ]; then c=$(imagemagick-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = imfit       ]; then
 	  mergenames=0
@@ -640,8 +646,10 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
 	&& cp $(dtexdir)/astrometrynet.tex $(ictdir)/ \
 	&& echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
 
-
-
+$(ibidir)/bison: $(tdir)/bison-$(bison-version).tar.xz \
+                 $(ibidir)/help2man
+	$(call gbuild, $<, bison-$(bison-version), static, ,V=1) \
+	&& echo "GNU Bison $(bison-version)" > $@
 
 # cdsclient is a set of software written in c to interact with astronomical
 # database servers. It is a dependency of `scamp' to be able to download
@@ -688,6 +696,11 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	&& rm -rf cmake-$(cmake-version) \
 	&& echo "CMake $(cmake-version)" > $@
 
+$(ibidir)/flex: $(tdir)/flex-$(flex-version).tar.gz \
+                $(ibidir)/bison
+	$(call gbuild, $<, flex-$(flex-version), static, ,V=1) \
+	&& echo "Flex $(swig-version)" > $@
+
 $(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz \
                        $(ibidir)/libtiff
 	$(call gbuild, $<, ghostscript-$(ghostscript-version)) \
@@ -707,6 +720,10 @@ endif
 	               $$staticopts, -j$(numthreads)) \
 	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/ \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
+
+$(ibidir)/help2man: $(tdir)/help2man-$(help2man-version).tar.xz
+	$(call gbuild, $<, help2man-$(help2man-version), static, ,V=1) \
+	&& echo "Help2man $(Help2man-version)" > $@
 
 $(ibidir)/imagemagick: $(tdir)/imagemagick-$(imagemagick-version).tar.xz \
                        $(ibidir)/libjpeg \
