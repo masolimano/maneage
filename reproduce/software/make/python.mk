@@ -44,6 +44,10 @@ export MPI_PYTHON_SITEARCH    :=
 export MPI_PYTHON2_SITEARCH   :=
 export MPI_PYTHON3_SITEARCH   :=
 
+# Python-specific installation directories.
+python-major-version = $(shell echo $(python-version) | awk 'BEGIN{FS="."} \
+	                            {printf "%d.%d\n", $$1, $$2}')
+
 
 
 
@@ -68,7 +72,12 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz \
                         cryptography-$(cryptography-version).tar.gz \
                         cycler-$(cycler-version).tar.gz \
                         cython-$(cython-version).tar.gz \
+                        eigency-$(eigency-version).tar.gz \
+                        esutil-$(esutil-version).tar.gz \
                         entrypoints-$(entrypoints-version).tar.gz \
+                        flake8-$(flake8-version).tar.gz \
+                        future-$(future-version).tar.gz \
+                        galsim-$(galsim-version).tar.gz \
                         h5py-$(h5py-version).tar.gz \
                         html5lib-$(html5lib-version).tar.gz \
                         idna-$(idna-version).tar.gz \
@@ -76,13 +85,17 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz \
                         kiwisolver-$(kiwisolver-version).tar.gz \
                         keyring-$(keyring-version).tar.gz \
                         libffi-$(libffi-version).tar.gz \
+                        lsstdesccoord-$(lsstdesccoord-version).tar.gz \
                         matplotlib-$(matplotlib-version).tar.gz \
                         mpi4py-$(mpi4py-version).tar.gz \
                         mpmath-$(mpmath-version).tar.gz \
                         numpy-$(numpy-version).zip \
                         pkgconfig-$(pypkgconfig-version).tar.gz \
                         pip-$(pip-version).tar.gz \
+                        pybind11-$(pybind11-version).tar.gz \
+                        pycodestyle-$(pycodestyle-version).tar.gz \
                         pycparser-$(pycparser-version).tar.gz \
+                        pyflakes-$(pyflakes-version).tar.gz \
                         python-$(python-version).tar.gz \
                         python-dateutil-$(python-dateutil-version).tar.gz \
                         pyparsing-$(pyparsing-version).tar.gz \
@@ -131,21 +144,31 @@ $(pytarballs): $(tdir)/%:
         # that have non-standard filenames (differing from our archived
         # tarball names) are treated first, then the standard ones.
 	mergenames=1
-	if [ $$n = cython         ]; then
+	if [ $$n = cython ]; then
 	  mergenames=0
 	  c=$(cython-checksum)
 	  hash=36/da/fcb979fc8cb486a67a013d6aefefbb95a3e19e67e49dff8a35e014046c5e
 	  h=$(pytopurl)/$$hash/Cython-$(cython-version).tar.gz
-	elif [ $$n = python           ]; then
+	elif [ $$n = galsim ]; then
+	  mergenames=0
+	  c=$(galsim-checksum)
+	  hash=8f/3b/bbc7cff7590d3624d528564f08745f071e316c67fce154ad38210833c103
+	  h=$(pytopurl)/$$hash/GalSim-$(galsim-version).tar.gz
+	elif [ $$n = lsstdesccoord ]; then
+	  mergenames=0
+	  c=$(lsstdesccoord-checksum)
+	  hash=9d/39/ad17697571c9aed36d20ed9ae0a135e3a734fb7f15a8605f92bf27c3b02c
+	  h=$(pytopurl)/$$hash/LSSTDESC.Coord-$(lsstdesccoord-version).tar.gz
+	elif [ $$n = python ]; then
 	  mergenames=0
 	  c=$(python-checksum)
 	  h=https://www.python.org/ftp/python/$(python-version)/Python-$(python-version).tgz
-	elif [ $$n = pyyaml           ]; then
+	elif [ $$n = pyyaml ]; then
 	  mergenames=0
 	  c=$(pyyaml-checksum)
 	  hash=9f/2c/9417b5c774792634834e730932745bc09a7d36754ca00acf1ccd1ac2594d
 	  h=$(pytopurl)/$$hash/PyYAML-$(pyyaml-version).tar.gz
-	elif [ $$n = libffi         ]; then
+	elif [ $$n = libffi ]; then
 	  mergenames=0
 	  c=$(libffi-checksum)
 	  h=ftp://sourceware.org/pub/libffi/libffi-$(libffi-version).tar.gz
@@ -163,7 +186,11 @@ $(pytarballs): $(tdir)/%:
 	elif [ $$n = chardet        ]; then h=fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d; c=$(chardet-checksum)
 	elif [ $$n = cryptography   ]; then h=07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449; c=$(cryptography-checksum)
 	elif [ $$n = cycler         ]; then h=c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488; c=$(cycler-checksum)
+	elif [ $$n = eigency        ]; then h=fb/6e/bc4359fbfb0bb0b588ec328251b0d0836bdd7c0a4c568959ea06df023e18; c=$(eigency-checksum)
 	elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c; c=$(entrypoints-checksum)
+	elif [ $$n = esutil         ]; then h=5b/91/77e38282fd3d47b55e351544ab179eb209b309a8d2d40f8cdb6241beda00; c=$(esutil-checksum)
+	elif [ $$n = flake          ]; then h=8d/a7/99222c9200af533c1ecb1120d99adbd1c033b57296ac5cb39d121db007a8; c=$(flake8-checksum)
+	elif [ $$n = future         ]; then h=3f/bf/57733d44afd0cf67580658507bd11d3ec629612d5e0e432beb4b8f6fbb04; c=$(future-checksum)
 	elif [ $$n = h5py           ]; then h=43/27/a6e7dcb8ae20a4dbf3725321058923fec262b6f7835179d78ccc8d98deec; c=$(h5py-checksum)
 	elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f; c=$(html5lib-checksum)
 	elif [ $$n = idna           ]; then h=ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7; c=$(idna-checksum)
@@ -176,7 +203,10 @@ $(pytarballs): $(tdir)/%:
 	elif [ $$n = numpy          ]; then h=ac/36/325b27ef698684c38b1fe2e546e2e7ef9cecd7037bcdb35c87efec4356af; c=$(numpy-checksum)
 	elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af; c=$(pip-checksum)
 	elif [ $$n = pkgconfig      ]; then h=6e/a9/ff67ef67217dfdf2aca847685fe789f82b931a6957a3deac861297585db6; c=$(pypkgconfig-checksum)
+	elif [ $$n = pybind         ]; then h=aa/91/deb6743e79e22ab01502296570b39b8404f10cc507a6692d612a7fee8d51; c=$(pybind11-checksum)
+	elif [ $$n = pycodestyle    ]; then h=1c/d1/41294da5915f4cae7f4b388cea6c2cd0d6cd53039788635f6875dfe8c72f; c=$(pycodestyle-checksum)
 	elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a; c=$(pycparser-checksum)
+	elif [ $$n = pyflakes       ]; then h=52/64/87303747635c2988fcaef18af54bfdec925b6ea3b80bcd28aaca5ba41c9e; c=$(pyflakes-checksum)
 	elif [ $$n = pyparsing      ]; then h=b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc; c=$(pyparsing-checksum)
 	elif [ $$n = dateutil       ]; then h=ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c; c=$(python-dateutil-checksum)
 	elif [ $$n = requests       ]; then h=52/2c/514e4ac25da2b08ca5a464c50463682126385c4272c18193876e91f4bc38; c=$(requests-checksum)
@@ -267,11 +297,9 @@ $(ibidir)/python: $(tdir)/python-$(python-version).tar.gz \
 	       --without-ensurepip \
 	       --with-system-ffi \
 	       --enable-shared) \
-	&& v=$$(echo $(python-version) | awk 'BEGIN{FS="."} \
-	    {printf "%d.%d\n", $$1, $$2}') \
-	&& ln -sf $(ildir)/python$$v $(ildir)/python \
-	&& ln -sf $(ibdir)/python$$v $(ibdir)/python \
-	&& ln -sf $(iidir)/python$$v"m" $(iidir)/python$$v \
+	&& ln -sf $(ildir)/python$(python-major-version)  $(ildir)/python \
+	&& ln -sf $(ibdir)/python$(python-major-version)  $(ibdir)/python \
+	&& ln -sf $(iidir)/python$(python-major-version)m $(iidir)/python(python-major-version) \
 	&& rm -rf $(ipydir) \
 	&& mkdir $(ipydir) \
 	&& echo "Python $(python-version)" > $@
@@ -291,6 +319,7 @@ $(ibidir)/python: $(tdir)/python-$(python-version).tar.gz \
 #   3) Unpacked directory name after unpacking the tarball
 #   4) site.cfg file (optional)
 #   5) Official software name.(for paper).
+#   6) Manual step after installation.
 pybuild = cd $(ddir); rm -rf $(3); \
 	 if ! $(1) $(2); then echo; echo "Tar error"; exit 1; fi; \
 	 cd $(3); \
@@ -299,8 +328,11 @@ pybuild = cd $(ddir); rm -rf $(3); \
 	       -e 's|@INCDIR[@]|'"$(idir)/include"'|' \
 	       $(4) > site.cfg; \
 	 fi; \
-	 python setup.py build \
+	 if [ x"$(6)" = x ]; then after="echo no after"; \
+	 else after="$(6)"; fi \
+	 && python setup.py build \
 	 && python setup.py install \
+	 && $$after \
 	 && cd .. \
 	 && rm -rf $(3) \
 	 && echo "$(5)" > $@
@@ -374,10 +406,41 @@ $(ipydir)/cython: $(tdir)/cython-$(cython-version).tar.gz \
 	&& cp $(dtexdir)/cython.tex $(ictdir)/ \
 	&& echo "Cython $(cython-version) \citep{cython2011}" > $@
 
+$(ipydir)/esutil: $(tdir)/esutil-$(esutil-version).tar.gz \
+                  $(ipydir)/numpy
+	$(call pybuild, tar xf, $<, esutil-$(esutil-version), ,\
+	                esutil $(esutil-version))
+
+$(ipydir)/eigency: $(tdir)/eigency-$(eigency-version).tar.gz \
+                   $(ibidir)/eigen
+	$(call pybuild, tar xf, $<, eigency-$(eigency-version), ,\
+	                eigency $(eigency-version))
+
 $(ipydir)/entrypoints: $(tdir)/entrypoints-$(entrypoints-version).tar.gz \
                        $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, entrypoints-$(entrypoints-version), ,\
 	                EntryPoints $(entrypoints-version))
+
+$(ipydir)/flake8: $(tdir)/flake8-$(flake8-version).tar.gz \
+                  $(ipydir)/pycodestyle \
+                  $(ipydir)/pyflakes
+	$(call pybuild, tar xf, $<, flake8-$(flake8-version), ,\
+	                Flake8 $(flake8-version))
+
+$(ipydir)/future: $(tdir)/future-$(future-version).tar.gz \
+                  $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, future-$(future-version), ,\
+	                Future $(future-version))
+
+$(ipydir)/galsim: $(tdir)/galsim-$(galsim-version).tar.gz \
+                  $(ipydir)/lsstdesccoord \
+                  $(ipydir)/pybind11 \
+                  $(ipydir)/astropy \
+                  $(ipydir)/eigency \
+                  $(ipydir)/future
+	$(call pybuild, tar xf, $<, GalSim-$(galsim-version), ,) \
+	&& cp $(dtexdir)/galsim.tex $(ictdir)/ \
+	&& echo "Galsim $(galsim-version) \citep{galsim}" > $@
 
 $(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
                 $(ipydir)/pypkgconfig \
@@ -419,6 +482,11 @@ $(ipydir)/kiwisolver: $(tdir)/kiwisolver-$(kiwisolver-version).tar.gz \
                       $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, kiwisolver-$(kiwisolver-version), ,\
 	                Kiwisolver $(kiwisolver-version))
+
+$(ipydir)/lsstdesccoord: $(tdir)/lsstdesccoord-$(lsstdesccoord-version).tar.gz \
+                      $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, LSSTDESC.Coord-$(lsstdesccoord-version), ,\
+	                LSSTDESC.Coord $(lsstdesccoord-version))
 
 $(ipydir)/matplotlib: $(tdir)/matplotlib-$(matplotlib-version).tar.gz \
                       $(ipydir)/python-dateutil \
@@ -466,20 +534,38 @@ $(ibidir)/pip3: $(tdir)/pip-$(pip-version).tar.gz \
 	$(call pybuild, tar xf, $<, pip-$(pip-version), ,\
 	                PiP $(pip-version))
 
-$(ipydir)/pypkgconfig: $(tdir)/pkgconfig-$(pypkgconfig-version).tar.gz \
+$(ipydir)/pycodestyle: $(tdir)/pycodestyle-$(pycodestyle-version).tar.gz \
                        $(ipydir)/setuptools
-	$(call pybuild, tar xf, $<, pkgconfig-$(pypkgconfig-version), ,
-	                pkgconfig $(pypkgconfig-version))
+	$(call pybuild, tar xf, $<, pycodestyle-$(pycodestyle-version), ,\
+	                pycodestyle $(pycodestyle-version))
+
+$(ipydir)/pybind11: $(tdir)/pybind11-$(pybind11-version).tar.gz \
+                    $(ipydir)/setuptools \
+                    $(ibidir)/boost \
+                    $(ibidir)/eigen
+	$(call pybuild, tar xf, $<, pybind11-$(pybind11-version), ,\
+	                pybind11 $(pybind11-version),
+	                cp -r include/pybind11 $(iidir)/python$(python-major-version)m/)
 
 $(ipydir)/pycparser: $(tdir)/pycparser-$(pycparser-version).tar.gz \
                      $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pycparser-$(pycparser-version), ,\
 	                pycparser $(pycparser-version))
 
+$(ipydir)/pyflakes: $(tdir)/pyflakes-$(pyflakes-version).tar.gz \
+                    $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, pyflakes-$(pyflakes-version), ,\
+	                pyflakes $(pyflakes-version))
+
 $(ipydir)/pyparsing: $(tdir)/pyparsing-$(pyparsing-version).tar.gz \
                      $(ipydir)/setuptools
 	$(call pybuild, tar xf, $<, pyparsing-$(pyparsing-version), ,\
 	                PyParsing $(pyparsing-version))
+
+$(ipydir)/pypkgconfig: $(tdir)/pkgconfig-$(pypkgconfig-version).tar.gz \
+                       $(ipydir)/setuptools
+	$(call pybuild, tar xf, $<, pkgconfig-$(pypkgconfig-version), ,
+	                pkgconfig $(pypkgconfig-version))
 
 $(ipydir)/python-dateutil: $(tdir)/python-dateutil-$(python-dateutil-version).tar.gz  \
                            $(ipydir)/setuptools_scm \
