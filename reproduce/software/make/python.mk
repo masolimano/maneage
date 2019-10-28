@@ -455,6 +455,16 @@ $(ipydir)/h5py: $(tdir)/h5py-$(h5py-version).tar.gz \
 	$(call pybuild, tar xf, $<, h5py-$(h5py-version), ,\
 	                h5py $(h5py-version))
 
+# `healpy' is actually installed as part of the HEALPix package. It will be
+# installed with its C/C++ libraries if any other Python library is
+# requested with HEALPix. So actually calling for `healpix' (when `healpix'
+# is requested) is not necessary. But some users might not know about this
+# and just ask for `healpy'. To avoid confusion in such cases, we'll just
+# set `healpy' to be dependent on `healpix' and not download any tarball
+# for it, or write anything in the final target.
+$(ipydir)/healpy: $(ibidir)/healpix
+	touch $@
+
 $(ipydir)/html5lib: $(tdir)/html5lib-$(html5lib-version).tar.gz  \
                     $(ipydir)/webencodings \
                     $(ipydir)/six

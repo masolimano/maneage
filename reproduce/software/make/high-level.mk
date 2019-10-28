@@ -136,6 +136,8 @@ tarballs = $(foreach t, apr-$(apr-version).tar.gz \
                         apr-util-$(apr-util-version).tar.gz \
                         astrometry.net-$(astrometrynet-version).tar.gz \
                         atlas-$(atlas-version).tar.bz2 \
+                        autoconf-$(autoconf-version).tar.lz \
+                        automake-$(automake-version).tar.gz \
                         bison-$(bison-version).tar.xz \
                         boost-$(boost-version).tar.gz \
                         cairo-$(cairo-version).tar.xz \
@@ -150,6 +152,7 @@ tarballs = $(foreach t, apr-$(apr-version).tar.gz \
                         gnuastro-$(gnuastro-version).tar.lz \
                         gsl-$(gsl-version).tar.gz \
                         hdf5-$(hdf5-version).tar.gz \
+                        healpix-$(healpix-version).tar.gz \
                         help2man-$(help2man-version).tar.xz \
                         imagemagick-$(imagemagick-version).tar.xz \
                         imfit-$(imfit-version).tar.gz \
@@ -194,7 +197,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  mergenames=0
 	  c=$(atlas-checksum)
 	  w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
-	elif [ $$n = bison       ]; then c=$(bison-checksum); w=http://ftp.gnu.org/gnu/bison/
+	elif [ $$n = autoconf    ]; then c=$(autoconf-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = automake    ]; then c=$(automake-checksum); w=http://ftp.gnu.org/gnu/automake
+	elif [ $$n = bison       ]; then c=$(bison-checksum); w=http://ftp.gnu.org/gnu/bison
 	elif [ $$n = boost       ]; then
 	  mergenames=0
 	  c=$(boost-checksum)
@@ -228,6 +233,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(hdf5-checksum)
 	  majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
+	elif [ $$n = healpix     ]; then c=$(healpix-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = help        ]; then c=$(help2man-checksum); w=http://ftp.gnu.org/gnu/help2man
 	elif [ $$n = imagemagick ]; then c=$(imagemagick-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = imfit       ]; then
@@ -519,6 +525,53 @@ $(ibidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
 	               --enable-fortran, -j$(numthreads) V=1) \
 	&& echo "HDF5 library $(hdf5-version)" > $@
 
+# HEALPix includes the source of its C, C++, Python (and several other
+# languages) libraries within one tarball. We will include the Python
+# installation only when any other Python module is requested (in
+# `TARGETS.mk').
+#
+# Note that the default `./configure' script is an interactive script which
+# is hard to automate. So we need to go into the `autotools' directory of
+# the `C' and `cxx' directories and configure the GNU Build System (with
+# `autoreconf', which uses `autoconf' and `automake') to easily build the
+# HEALPix C/C++ libraries in batch mode.
+ifeq ($(strip $(top-level-python)),)
+healpix-python-dep =
+else
+healpix-python-dep = $(ipydir)/matplotlib $(ipydir)/astropy
+endif
+$(ibidir)/healpix: $(tdir)/healpix-$(healpix-version).tar.gz \
+                   $(healpix-python-dep) \
+                   $(ibidir)/autoconf \
+                   $(ibidir)/automake \
+                   $(ibidir)/cfitsio
+	if [ x"$(healpix-python-dep)" = x ]; then
+	   pycommand1="echo no-healpy-because-no-other-python"
+	   pycommand2="echo no-healpy-because-no-other-python"
+	else
+	   pycommand1="python setup.py build"
+	   pycommand2="python setup.py install"
+	fi
+	rm -rf $(ddir)/Healpix_$(healpix-version)
+	topdir=$(pwd); cd $(ddir); tar xf $<
+	cd Healpix_$(healpix-version)/src/C/autotools/ \
+	&& autoreconf --install \
+	&& ./configure --prefix=$(idir) \
+	&& make V=1 -j$(numthreads) SHELL=$(ibdir)/bash \
+	&& make install \
+	&& cd ../../cxx/autotools/ \
+	&& autoreconf --install \
+	&& ./configure --prefix=$(idir) \
+	&& make V=1 -j$(numthreads) SHELL=$(ibdir)/bash \
+	&& make install \
+	&& cd ../../healpy \
+	&& $$pycommand1 \
+	&& $$pycommand2 \
+	&& cd $$topdir \
+	&& rm -rf $(ddir)/Healpix_$(healpix-version) \
+	&& cp $(dtexdir)/healpix.tex $(ictdir)/ \
+	&& echo "HEALPix $(healpix-version) \citep{healpix}" > $@
+
 $(ibidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
 	$(call gbuild, $<, jpeg-9b, static) \
 	&& echo "Libjpeg $(libjpeg-version)" > $@
@@ -704,6 +757,14 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
 	&& rm -rf astrometry.net-$(astrometrynet-version) \
 	&& cp $(dtexdir)/astrometrynet.tex $(ictdir)/ \
 	&& echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
+
+$(ibidir)/autoconf: $(tdir)/autoconf-$(autoconf-version).tar.lz
+	$(call gbuild, $<, autoconf-$(autoconf-version), static, ,V=1) \
+	&& echo "GNU Autoconf $(autoconf-version)" > $@
+
+$(ibidir)/automake: $(tdir)/automake-$(automake-version).tar.gz
+	$(call gbuild, $<, automake-$(automake-version), static, ,V=1) \
+	&& echo "GNU Automake $(automake-version)" > $@
 
 $(ibidir)/bison: $(tdir)/bison-$(bison-version).tar.xz \
                  $(ibidir)/help2man

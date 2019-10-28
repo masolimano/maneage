@@ -904,6 +904,7 @@ $(ibidir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz \
                     | $(ibidir)/m4
 	$(call gbuild, $<, libtool-$(libtool-version), static, \
                        --program-prefix=g) \
+	&& ln -s $(ibdir)/glibtoolize $(ibdir)/libtoolize \
 	&& echo "GNU Libtool $(libtool-version)" > $@
 
 $(ibidir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
