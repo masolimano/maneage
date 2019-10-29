@@ -913,12 +913,13 @@ for the benefit of others.
 
    - *Large files*: If you are dealing with very large files (thus having
       multiple copies of them for intermediate steps is not possible), one
-      solution is the following strategy. Set a small plain text file as
-      the actual target and delete the large file when it is no longer
-      needed by the project (in the last rule that needs it). Below is a
-      simple demonstration of doing this. In it, we use Gnuastro's
-      Arithmetic program to add all pixels of the input image with 2 and
-      create `large1.fits`. We then subtract 2 from `large1.fits` to create
+      solution is the following strategy (Also see the next item on "Fast
+      access to temporary files"). Set a small plain text file as the
+      actual target and delete the large file when it is no longer needed
+      by the project (in the last rule that needs it). Below is a simple
+      demonstration of doing this. In it, we use Gnuastro's Arithmetic
+      program to add all pixels of the input image with 2 and create
+      `large1.fits`. We then subtract 2 from `large1.fits` to create
       `large2.fits` and delete `large1.fits` in the same rule (when its no
       longer needed). We can later do the same with `large2.fits` when it
       is no longer needed and so on.
@@ -937,6 +938,56 @@ for the benefit of others.
      wrapper will replace `$(subst .txt,,XXXXX)`. Therefore, it will be
      possible to greatly simplify this repetitive statement and make the
      code even more readable throughout the whole project.
+
+   - *Fast access to temporary files*: Most Unix-like operating systems
+      will give you a special shared-memory device (directory) called
+      `/dev/shm`. This directory is actually in your RAM, not in your
+      persistance storage like the HDD or SSD. Reading and writing from/to
+      the RAM is much faster than persistant storage, so if you have enough
+      ram available, it can be very beneficial for large temporary
+      files. You can make random file names in `/dev/shm` (that don't exist
+      at the time they are created) with the `mktemp` command and use text
+      files as targets to keep the temporary name (as described in the item
+      above under "Large files") for later deletion. For example this fully
+      working Makefile (which you can actually put in a `Makefile` and run
+      if you have an `input.fits` in the same directory).
+        ```
+        .ONESHELL:
+        .SHELLFLAGS = -ec
+        all: mean-std.txt
+        shm-template = /dev/shm/$(shell whoami)-XXXXXXXXXX
+        large1.txt: input.fits
+                out=$$(mktemp $(shm-template))
+                astarithmetic $< 2 + --output=$$out.fits
+                echo "$$out" > $@
+        large2.txt: large1.txt
+                input=$$(cat $<)
+                out=$$(mktemp $(shm-template))
+                astarithmetic $$input.fits 2 - --output=$$out.fits
+                rm $$input.fits $$input
+                echo "$$out" > $@
+        mean-std.txt: large2.txt
+                input=$$(cat $<)
+                aststatistics $$input.fits --mean --std > $@
+                rm $$input.fits $$input
+        ```
+      The important point here is that the template has no suffix. So you
+      can add the suffix corresponding to your desired format. But more
+      importantly, when `mktemp` sets the random name, it also checks if no
+      file exists with that name and creates a file with that exact name at
+      that moment. So at the end of each recipe above, you'll have two
+      files in your `/dev/shm`, one empty file with no suffix one with a
+      suffix. The role of the file without suffix is just to ensure that
+      string of random characters will not be set by other calls to
+      `mktemp` and it should be deleted with the file containing a
+      suffix. This is the reason behind the `rm $$input.fits $$input`
+      command above: to make sure that first the file with a suffix is
+      deleted, then the core random file (note that when working in
+      parallel on powerful systems, other things can happen even in the
+      time between deleting two files of a single `rm` command). When using
+      this template, you can put the definition of `shm-template` in
+      `reproduce/analysis/make/initialize.mk` to be usable in all the
+      different Makefiles of your analysis.
 
 
  - **Software tarballs and raw inputs**: It is critically important to
