@@ -940,17 +940,18 @@ for the benefit of others.
      code even more readable throughout the whole project.
 
    - *Fast access to temporary files*: Most Unix-like operating systems
-      will give you a special shared-memory device (directory) called
-      `/dev/shm`. This directory is actually in your RAM, not in your
+      will give you a special shared-memory device (directory): on systems
+      using the GNU C Library (all GNU/Linux system), it is `/dev/shm`. The
+      contents of this directory are actually in your RAM, not in your
       persistance storage like the HDD or SSD. Reading and writing from/to
       the RAM is much faster than persistant storage, so if you have enough
-      ram available, it can be very beneficial for large temporary
-      files. You can make random file names in `/dev/shm` (that don't exist
-      at the time they are created) with the `mktemp` command and use text
-      files as targets to keep the temporary name (as described in the item
-      above under "Large files") for later deletion. For example this fully
-      working Makefile (which you can actually put in a `Makefile` and run
-      if you have an `input.fits` in the same directory).
+      RAM available, it can be very beneficial for large temporary files to
+      be put there. You can use the `mktemp` program to give the temporary
+      files a randomly-set name, and use text files as targets to keep that
+      name (as described in the item above under "Large files") for later
+      deletion. For example, see the minimal working example Makefile below
+      (which you can actually put in a `Makefile` and run if you have an
+      `input.fits` in the same directory, and Gnuastro is installed).
         ```
         .ONESHELL:
         .SHELLFLAGS = -ec
@@ -973,26 +974,28 @@ for the benefit of others.
         ```
       The important point here is that the temporary name template
       (`shm-template`) has no suffix. So you can add the suffix
-      corresponding to your desired format afterwards. But more
-      importantly, when `mktemp` sets the random name, it also checks if no
-      file exists with that name and creates a file with that exact name at
-      that moment. So at the end of each recipe above, you'll have two
-      files in your `/dev/shm`, one empty file with no suffix one with a
-      suffix. The role of the file without suffix is just to ensure that
-      string of random characters will not be set by other calls to
-      `mktemp` and it should be deleted with the file containing a
-      suffix. This is the reason behind the `rm $$input.fits $$input`
-      command above: to make sure that first the file with a suffix is
-      deleted, then the core random file (note that when working in
-      parallel on powerful systems, other things can happen even in the
-      time between deleting two files of a single `rm` command). When using
-      this template, you can put the definition of `shm-template` in
+      corresponding to your desired format afterwards (for example
+      `$$out.fits`, or `$$out.txt`). But more importantly, when `mktemp`
+      sets the random name, it also checks if no file exists with that name
+      and creates a file with that exact name at that moment. So at the end
+      of each recipe above, you'll have two files in your `/dev/shm`, one
+      empty file with no suffix one with a suffix. The role of the file
+      without a suffix is just to ensure that the randomly set name will
+      not be used by other calls to `mktemp` (when running in parallel) and
+      it should be deleted with the file containing a suffix. This is the
+      reason behind the `rm $$input.fits $$input` command above: to make
+      sure that first the file with a suffix is deleted, then the core
+      random file (note that when working in parallel on powerful systems,
+      in the time between deleting two files of a single `rm` command, many
+      things can happen!). When using this template, you can put the
+      definition of `shm-template` in
       `reproduce/analysis/make/initialize.mk` to be usable in all the
-      different Makefiles of your analysis. **Finally, BE RESPONSIBLE: **
-      after you are finished, be sure to clean up any possibly remaining
-      files (due to crashes in the processing while you are working),
-      otherwise your RAM may fill up very fast. You can do it easily with a
-      command like this on your command-line: `rm -f /dev/shm/$(whoami)-*`.
+      different Makefiles of your analysis, and you won't need the three
+      lines above it. **Finally, BE RESPONSIBLE:** after you are finished,
+      be sure to clean up any possibly remaining files (due to crashes in
+      the processing while you are working), otherwise your RAM may fill up
+      very fast. You can do it easily with a command like this on your
+      command-line: `rm -f /dev/shm/$(whoami)-*`.
 
 
  - **Software tarballs and raw inputs**: It is critically important to
