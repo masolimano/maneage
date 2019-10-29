@@ -971,7 +971,6 @@ for the benefit of others.
                 aststatistics $$input.fits --mean --std > $@
                 rm $$input.fits $$input
         ```
-
       The important point here is that the temporary name template
       (`shm-template`) has no suffix. So you can add the suffix
       corresponding to your desired format afterwards. But more
@@ -989,11 +988,11 @@ for the benefit of others.
       time between deleting two files of a single `rm` command). When using
       this template, you can put the definition of `shm-template` in
       `reproduce/analysis/make/initialize.mk` to be usable in all the
-      different Makefiles of your analysis. *Finally, BE RESPONSIBLE: *
+      different Makefiles of your analysis. **Finally, BE RESPONSIBLE: **
       after you are finished, be sure to clean up any possibly remaining
       files (due to crashes in the processing while you are working),
       otherwise your RAM may fill up very fast. You can do it easily with a
-      command like this: `rm -f /dev/shm/$(shell whoami)-*`.
+      command like this on your command-line: `rm -f /dev/shm/$(whoami)-*`.
 
 
  - **Software tarballs and raw inputs**: It is critically important to
