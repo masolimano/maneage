@@ -39,4 +39,4 @@
 top-level-programs  = gnuastro
 
 # Python libraries/modules.
-top-level-python    = astropy
+top-level-python    = astropy lmfit
