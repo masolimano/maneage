@@ -184,7 +184,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 
         # Remove all numbers, `-' and `.' from the tarball name so we can
         # search more easily only with the program name.
-	n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g' \
+	@n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g' \
 	             | awk '{print $$1}' )
 
         # Set the top download link of the requested tarball.
@@ -312,8 +312,10 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  mv "$@.unchecked" "$@"
 	else
 	  checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}')
-	  if [ x"$$checksum" = x"$$c" ]; then mv "$@.unchecked" "$@"
-	    else echo "ERROR: Non-matching checksum for '$*'."
+	  if [ x"$$checksum" = x"$$c" ]; then
+	    mv "$@.unchecked" "$@"
+	  else
+	    echo "ERROR: Non-matching checksum for '$*'."
 	    echo "Checksum should be: $$c"
 	    echo "Checksum is:        $$checksum"
 	    exit 1
@@ -337,21 +339,21 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # libraries. Therefore, we can't use the easy `.a' suffix for static
 # libraries as targets and there are different conventions for shared
 # library names.
-$(ibidir)/apr: $(tdir)/apr-$(apr-version).tar.gz
-	$(call gbuild, $<, apr-$(apr-version), ,--disable-static) \
+$(ibidir)/apr: | $(tdir)/apr-$(apr-version).tar.gz
+	$(call gbuild, apr-$(apr-version), ,--disable-static) \
 	&& echo "Apache Portable Runtime $(apr-version)" > $@
 
-$(ibidir)/apr-util: $(tdir)/apr-util-$(apr-util-version).tar.gz \
-                       $(ibidir)/apr
-	$(call gbuild, $<, apr-util-$(apr-util-version), , \
+$(ibidir)/apr-util: $(ibidir)/apr \
+                    | $(tdir)/apr-util-$(apr-util-version).tar.gz
+	$(call gbuild, apr-util-$(apr-util-version), , \
 	               --disable-static \
 	               --with-apr=$(idir) \
 	               --with-openssl=$(idir) \
 	               --with-crypto ) \
 	&& echo "Apache Portable Runtime Utility $(apr-util-version)" > $@
 
-$(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
-	         $(tdir)/lapack-$(lapack-version).tar.gz
+$(ibidir)/atlas: | $(tdir)/atlas-$(atlas-version).tar.bz2 \
+	           $(tdir)/lapack-$(lapack-version).tar.gz
 
         # Get the operating system specific features (how to get
         # CPU frequency and the library suffixes). To make the steps
@@ -391,13 +393,13 @@ $(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
         # `rpath_command'.
 	export LDFLAGS=-L$(ildir)
 	cd $(ddir) \
-	&& tar xf $< \
+	&& tar xf $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	&& cd ATLAS \
 	&& rm -rf build \
 	&& mkdir build \
 	&& cd build \
 	&& ../configure -b 64 -D c -DPentiumCPS=$$core \
-	             --with-netlib-lapack-tarfile=$(word 2, $^) \
+	             --with-netlib-lapack-tarfile=$(tdir)/lapack-$(lapack-version).tar.gz \
 	             --cripple-atlas-performance \
 	             -Fa alg -fPIC --shared $$clangflag \
 	             --prefix=$(idir) \
@@ -431,15 +433,16 @@ $(ibidir)/atlas: $(tdir)/atlas-$(atlas-version).tar.bz2 \
 	fi
 
 # Boost doesn't use the standard GNU Build System.
-$(ibidir)/boost: $(tdir)/boost-$(boost-version).tar.gz \
-                 $(ibidir)/openmpi \
-                 $(ibidir)/python
+$(ibidir)/boost: $(ibidir)/openmpi \
+                 | $(ibidir)/python \
+                   $(tdir)/boost-$(boost-version).tar.gz
 	vstr=$$(echo $(boost-version) | sed -e's/\./_/g')
 	rm -rf $(ddir)/boost_$$vstr
-	topdir=$(pwd); cd $(ddir); tar xf $<
-	cd boost_$$vstr
-	./bootstrap.sh --prefix=$(idir) --with-libraries=all \
-	               --with-python=python3 \
+	topdir=$(pwd); cd $(ddir);
+	tar xf $(word 1,$(filter $(tdir)/%,$|))
+	&& cd boost_$$vstr
+	&& ./bootstrap.sh --prefix=$(idir) --with-libraries=all \
+	                  --with-python=python3 \
 	&& echo "using mpi ;" > project-config.jam \
 	&& ./b2 stage threading=multi link=shared --prefix=$(idir) -j$(numthreads) \
 	&& ./b2 install threading=multi link=shared --prefix=$(idir) -j$(numthreads) \
@@ -447,14 +450,14 @@ $(ibidir)/boost: $(tdir)/boost-$(boost-version).tar.gz \
 	&& rm -rf $(ddir)/boost_$$vstr \
 	&& echo "Boost $(boost-version)" > $@
 
-$(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
-                   $(ibidir)/curl
+$(ibidir)/cfitsio: $(ibidir)/curl \
+                   | $(tdir)/cfitsio-$(cfitsio-version).tar.gz
 
         # CFITSIO hard-codes '@rpath' inside the shared library on
         # Mac systems. So we need to change it to our library
         # installation path. It doesn't affect GNU/Linux, so we'll
         # just do it in any case to keep things clean.
-	topdir=$(pwd); cd $(ddir); tar xf $<
+	topdir=$(pwd); cd $(ddir); tar xf $(word 1,$(filter $(tdir)/%,$|))
 	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
 	cd cfitsio-$(cfitsio-version)
 	sed configure -e's|@rpath|$(ildir)|g' > configure_tmp
@@ -467,60 +470,61 @@ $(ibidir)/cfitsio: $(tdir)/cfitsio-$(cfitsio-version).tar.gz \
         # Continue the standard build on the customized tarball. Note that
         # with the installation of CFITSIO, `fpack' and `funpack' are not
         # installed by default. Because of that, they are added explicity.
-	$(call gbuild, $$customtar, cfitsio-$(cfitsio-version), , \
+	export gbuild_tar=$$customtar
+	$(call gbuild, cfitsio-$(cfitsio-version), , \
 	               --enable-sse2 --enable-reentrant \
 	               --with-bzip2=$(idir), , make shared fpack funpack) \
 	&& rm $$customtar \
 	&& echo "CFITSIO $(cfitsio-version)" > $@
 
-$(ibidir)/cairo: $(tdir)/cairo-$(cairo-version).tar.xz \
-                 $(ibidir)/freetype \
+$(ibidir)/cairo: $(ibidir)/freetype \
                  $(ibidir)/libpng \
-                 $(ibidir)/pixman
-	$(call gbuild, $<, cairo-$(cairo-version), static, \
+                 $(ibidir)/pixman \
+                 | $(tdir)/cairo-$(cairo-version).tar.xz
+	$(call gbuild, cairo-$(cairo-version), static, \
 	               --with-x=no, -j$(numthreads) V=1) \
 	&& echo "Cairo $(cairo-version)" > $@
 
 # Eigen is just headers! So it doesn't need to be compiled. Once unpacked
 # it has a checksum after `eigen-eigen', so we'll just use a `*' to choose
 # the unpacked directory.
-$(ibidir)/eigen: $(tdir)/eigen-$(eigen-version).tar.gz
+$(ibidir)/eigen: | $(tdir)/eigen-$(eigen-version).tar.gz
 	rm -rf $(ddir)/eigen-eigen-*
-	topdir=$(pwd); cd $(ddir); tar xf $<
+	topdir=$(pwd); cd $(ddir); tar xf $(word 1,$(filter $(tdir)/%,$|))
 	cd eigen-eigen-*
 	cp -r Eigen $(iidir)/eigen3 \
 	&& cd $$topdir \
 	&& rm -rf $(ddir)/eigen-eigen-* \
 	&& echo "Eigen $(eigen-version)" > $@
 
-$(ibidir)/fftw: $(tdir)/fftw-$(fftw-version).tar.gz
+$(ibidir)/fftw: | $(tdir)/fftw-$(fftw-version).tar.gz
         # FFTW's single and double precission libraries must be built
         # independently: for the the single-precision library, we need to
         # add the `--enable-float' option. We will build this first, then
         # the default double-precision library.
 	confop="--enable-shared --enable-threads --enable-avx --enable-sse2"
-	$(call gbuild, $<, fftw-$(fftw-version), static, \
+	$(call gbuild, fftw-$(fftw-version), static, \
 	               $$confop --enable-float) \
-	&& $(call gbuild, $<, fftw-$(fftw-version), static, \
+	&& $(call gbuild, fftw-$(fftw-version), static, \
 	               $$confop) \
 	&& cp $(dtexdir)/fftw.tex $(ictdir)/ \
 	&& echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
 # Freetype is necessary to install matplotlib
-$(ibidir)/freetype: $(tdir)/freetype-$(freetype-version).tar.gz \
-	                $(ibidir)/libpng
-	$(call gbuild, $<, freetype-$(freetype-version), static) \
+$(ibidir)/freetype: $(ibidir)/libpng \
+                    | $(tdir)/freetype-$(freetype-version).tar.gz
+	$(call gbuild, freetype-$(freetype-version), static) \
 	&& echo "FreeType $(freetype-version)" > $@
 
-$(ibidir)/gsl: $(tdir)/gsl-$(gsl-version).tar.gz
-	$(call gbuild, $<, gsl-$(gsl-version), static) \
+$(ibidir)/gsl: | $(tdir)/gsl-$(gsl-version).tar.gz
+	$(call gbuild, gsl-$(gsl-version), static) \
 	&& echo "GNU Scientific Library $(gsl-version)" > $@
 
-$(ibidir)/hdf5: $(tdir)/hdf5-$(hdf5-version).tar.gz  \
-                $(ibidir)/openmpi
+$(ibidir)/hdf5: $(ibidir)/openmpi \
+                | $(tdir)/hdf5-$(hdf5-version).tar.gz
 	export CC=mpicc; \
 	export FC=mpif90; \
-	$(call gbuild, $<, hdf5-$(hdf5-version), static, \
+	$(call gbuild, hdf5-$(hdf5-version), static, \
 	               --enable-parallel \
 	               --enable-fortran, -j$(numthreads) V=1) \
 	&& echo "HDF5 library $(hdf5-version)" > $@
@@ -540,11 +544,11 @@ healpix-python-dep =
 else
 healpix-python-dep = $(ipydir)/matplotlib $(ipydir)/astropy
 endif
-$(ibidir)/healpix: $(tdir)/healpix-$(healpix-version).tar.gz \
+$(ibidir)/healpix: $(ibidir)/cfitsio \
                    $(healpix-python-dep) \
-                   $(ibidir)/autoconf \
-                   $(ibidir)/automake \
-                   $(ibidir)/cfitsio
+                   | $(ibidir)/autoconf \
+                     $(ibidir)/automake \
+                     $(tdir)/healpix-$(healpix-version).tar.gz
 	if [ x"$(healpix-python-dep)" = x ]; then
 	   pycommand1="echo no-healpy-because-no-other-python"
 	   pycommand2="echo no-healpy-because-no-other-python"
@@ -553,8 +557,9 @@ $(ibidir)/healpix: $(tdir)/healpix-$(healpix-version).tar.gz \
 	   pycommand2="python setup.py install"
 	fi
 	rm -rf $(ddir)/Healpix_$(healpix-version)
-	topdir=$(pwd); cd $(ddir); tar xf $<
-	cd Healpix_$(healpix-version)/src/C/autotools/ \
+	topdir=$(pwd); cd $(ddir);
+	tar xf $(word 1,$(filter $(tdir)/%,$|))
+	&& cd Healpix_$(healpix-version)/src/C/autotools/ \
 	&& autoreconf --install \
 	&& ./configure --prefix=$(idir) \
 	&& make V=1 -j$(numthreads) SHELL=$(ibdir)/bash \
@@ -572,51 +577,51 @@ $(ibidir)/healpix: $(tdir)/healpix-$(healpix-version).tar.gz \
 	&& cp $(dtexdir)/healpix.tex $(ictdir)/ \
 	&& echo "HEALPix $(healpix-version) \citep{healpix}" > $@
 
-$(ibidir)/libjpeg: $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
-	$(call gbuild, $<, jpeg-9b, static) \
+$(ibidir)/libjpeg: | $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
+	$(call gbuild, jpeg-9b, static) \
 	&& echo "Libjpeg $(libjpeg-version)" > $@
 
-$(ibidir)/libnsl: $(tdir)/libnsl-$(libnsl-version).tar.gz \
+$(ibidir)/libnsl: $(ibidir)/libtirpc \
                   $(ibidir)/rpcsvc-proto \
-                  $(ibidir)/libtirpc
-	$(call gbuild, $<, libnsl-$(libnsl-version), static, \
+                  | $(tdir)/libnsl-$(libnsl-version).tar.gz
+	$(call gbuild, libnsl-$(libnsl-version), static, \
 	               --sysconfdir=$(idir)/etc) \
 	&& echo "Libnsl $(libnsl-version)" > $@
 
-$(ibidir)/libpng: $(tdir)/libpng-$(libpng-version).tar.xz
-	$(call gbuild, $<, libpng-$(libpng-version), static) \
+$(ibidir)/libpng: | $(tdir)/libpng-$(libpng-version).tar.xz
+	$(call gbuild, libpng-$(libpng-version), static) \
 	&& echo "Libpng $(libpng-version)" > $@
 
-$(ibidir)/libtiff: $(tdir)/tiff-$(libtiff-version).tar.gz \
-                   $(ibidir)/libjpeg
-	$(call gbuild, $<, tiff-$(libtiff-version), static, \
+$(ibidir)/libtiff: $(ibidir)/libjpeg \
+                   | $(tdir)/tiff-$(libtiff-version).tar.gz
+	$(call gbuild, tiff-$(libtiff-version), static, \
 	               --disable-jbig \
 	               --disable-webp \
 	               --disable-zstd) \
 	&& echo "Libtiff $(libtiff-version)" > $@
 
-$(ibidir)/libtirpc: $(tdir)/libtirpc-$(libtirpc-version).tar.bz2
-	$(call gbuild, $<, libtirpc-$(libtirpc-version), static, \
+$(ibidir)/libtirpc: | $(tdir)/libtirpc-$(libtirpc-version).tar.bz2
+	$(call gbuild, libtirpc-$(libtirpc-version), static, \
 	               --disable-gssapi, V=1) \
 	echo "libtirpc $(libtirpc-version)" > $@
 
-$(ibidir)/libxml2: $(tdir)/libxml2-$(libxml2-version).tar.gz
+$(ibidir)/libxml2: | $(tdir)/libxml2-$(libxml2-version).tar.gz
        # The libxml2 tarball also contains Python bindings which are built and
        # installed to a system directory by default. If you don't need the Python
        # bindings, the easiest solution is to compile without Python support:
        # ./configure --without-python
        # If you really need the Python bindings, try the
        # --with-python-install-dir=DIR option
-	$(call gbuild, $<, libxml2-$(libxml2-version), static, \
+	$(call gbuild, libxml2-$(libxml2-version), static, \
 	               --without-python)                       \
 	&& echo "Libxml2 $(libxml2-version)" > $@
 
-$(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
+$(ibidir)/openblas: | $(tdir)/openblas-$(openblas-version).tar.gz
 	if [ x$(on_mac_os) = xyes ]; then \
 	  export CC=clang; \
 	fi; \
 	cd $(ddir) \
-	&& tar xf $< \
+	&& tar xf $(word 1,$(filter $(tdir)/%,$|)) \
 	&& cd OpenBLAS-$(openblas-version) \
 	&& make \
 	&& make PREFIX=$(idir) install \
@@ -624,8 +629,8 @@ $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	&& rm -rf OpenBLAS-$(openblas-version) \
 	&& echo "OpenBLAS $(openblas-version)" > $@
 
-$(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
-	$(call gbuild, $<, openmpi-$(openmpi-version), static, , \
+$(ibidir)/openmpi: | $(tdir)/openmpi-$(openmpi-version).tar.gz
+	$(call gbuild, openmpi-$(openmpi-version), static, , \
 	               -j$(numthreads) V=1) \
 	&& echo "Open MPI $(openmpi-version)" > $@
 
@@ -634,8 +639,8 @@ $(ibidir)/openmpi: $(tdir)/openmpi-$(openmpi-version).tar.gz
 # within the project because of all the security issues it may cause. Only
 # enable/build it in a project with caution, and if there is no other
 # solution (for example to disable SSH in a program that may ask for it.
-$(ibidir)/openssh: $(tdir)/openssh-$(openssh-version).tar.gz
-	$(call gbuild, $<, openssh-$(openssh-version), static, \
+$(ibidir)/openssh: | $(tdir)/openssh-$(openssh-version).tar.gz
+	$(call gbuild, openssh-$(openssh-version), static, \
 	               --with-privsep-path=$(ibdir)/.ssh_privsep \
 	               --with-privsep-user=nobody \
 	               --with-md5-passwords \
@@ -643,23 +648,23 @@ $(ibidir)/openssh: $(tdir)/openssh-$(openssh-version).tar.gz
 	               , -j$(numthreads) V=1) \
 	&& echo "OpenSSH $(openssh-version)" > $@
 
-$(ibidir)/pixman: $(tdir)/pixman-$(pixman-version).tar.gz
-	$(call gbuild, $<, pixman-$(pixman-version), static, , \
+$(ibidir)/pixman: | $(tdir)/pixman-$(pixman-version).tar.gz
+	$(call gbuild, pixman-$(pixman-version), static, , \
 	                   -j$(numthreads) V=1) \
 	&& echo "Pixman $(pixman-version)" > $@
 
-$(ibidir)/rpcsvc-proto: $(tdir)/rpcsvc-proto-$(rpcsvc-proto-version).tar.xz
-	$(call gbuild, $<, rpcsvc-proto-$(rpcsvc-proto-version), static) \
+$(ibidir)/rpcsvc-proto: | $(tdir)/rpcsvc-proto-$(rpcsvc-proto-version).tar.xz
+	$(call gbuild, rpcsvc-proto-$(rpcsvc-proto-version), static) \
 	&& echo "rpcsvc $(rpcsvc-proto-version)" > $@
 
-$(ibidir)/tides: $(tdir)/tides-$(tides-version).tar.gz
-	$(call gbuild, $<, tides-$(tides-version), static,\
+$(ibidir)/tides: | $(tdir)/tides-$(tides-version).tar.gz
+	$(call gbuild, tides-$(tides-version), static,\
 	               --with-gmp=$(idir) --with-mpfr=$(idir)) \
 	&& cp $(dtexdir)/tides.tex $(ictdir)/ \
 	&& echo "TIDES $(tides-version) \citep{tides}" > $@
 
-$(ibidir)/yaml: $(tdir)/yaml-$(yaml-version).tar.gz
-	$(call gbuild, $<, yaml-$(yaml-version), static) \
+$(ibidir)/yaml: | $(tdir)/yaml-$(yaml-version).tar.gz
+	$(call gbuild, yaml-$(yaml-version), static) \
 	&& echo "LibYAML $(yaml-version)" > $@
 
 
@@ -687,10 +692,10 @@ $(ibidir)/yaml: $(tdir)/yaml-$(yaml-version).tar.gz
 # functions! But apparently `libgit2' has its own implementation of libiconv
 # that it uses if it can't find libiconv on macOS. So, to fix this problem
 # it is necessary to use the option `-DUSE_ICONV=OFF` in the configure step.
-$(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
-                   $(ibidir)/cmake \
-                   $(ibidir)/curl
-	$(call cbuild, $<, libgit2-$(libgit2-version), static, \
+$(ibidir)/libgit2: $(ibidir)/curl \
+                   | $(ibidir)/cmake \
+                     $(tdir)/libgit2-$(libgit2-version).tar.gz
+	$(call cbuild, libgit2-$(libgit2-version), static, \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF \
 	              -DTHREADSAFE=ON -DUSE_ICONV=OFF ) \
 	&& if [ x$(on_mac_os) = xyes ]; then \
@@ -699,9 +704,9 @@ $(ibidir)/libgit2: $(tdir)/libgit2-$(libgit2-version).tar.gz \
 	   fi \
 	&& echo "Libgit2 $(libgit2-version)" > $@
 
-$(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
-                  $(ibidir)/cfitsio
-	$(call gbuild, $<, wcslib-$(wcslib-version), , \
+$(ibidir)/wcslib: $(ibidir)/cfitsio \
+                  | $(tdir)/wcslib-$(wcslib-version).tar.bz2
+	$(call gbuild, wcslib-$(wcslib-version), , \
 	               LIBS="-pthread -lcurl -lm" \
                        --with-cfitsiolib=$(ildir) \
                        --with-cfitsioinc=$(idir)/include \
@@ -727,24 +732,25 @@ $(ibidir)/wcslib: $(tdir)/wcslib-$(wcslib-version).tar.bz2 \
 # Astrometry-net contains a lot of programs. We need to specify the
 # installation directory and the Python executable (by default it will look
 # for /usr/bin/python)
-$(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz \
-                         $(ibidir)/cfitsio \
-                         $(ibidir)/libjpeg \
+$(ibidir)/astrometrynet: $(ibidir)/gsl \
+                         $(ibidir)/swig \
+                         $(ipydir)/numpy \
+                         $(ibidir)/cairo \
                          $(ibidir)/libpng \
                          $(ibidir)/netpbm \
-                         $(ibidir)/python \
                          $(ibidir)/wcslib \
-                         $(ibidir)/cairo \
-                         $(ipydir)/numpy \
-                         $(ibidir)/swig \
-                         $(ibidir)/gsl
+                         $(ibidir)/cfitsio \
+                         $(ibidir)/libjpeg \
+                         | $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz
         # We are modifying the Makefile in two steps because on Mac OS
         # system we do not have `/proc/cpuinfo' nor `free'. Since this is
         # only for the `report.txt', this changes do not causes problems in
         # running `astrometrynet'
 	cd $(ddir) \
 	&& rm -rf astrometry.net-$(astrometrynet-version) \
-	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
 	&& cd astrometry.net-$(astrometrynet-version) \
 	&& sed -e 's|cat /proc/cpuinfo|echo "Ignoring CPU info"|' \
 	       -e 's|-free|echo "Ignoring RAM info"|' Makefile > Makefile.tmp \
@@ -758,17 +764,17 @@ $(ibidir)/astrometrynet: $(tdir)/astrometry.net-$(astrometrynet-version).tar.gz 
 	&& cp $(dtexdir)/astrometrynet.tex $(ictdir)/ \
 	&& echo "Astrometry.net $(astrometrynet-version) \citep{astrometrynet}" > $@
 
-$(ibidir)/autoconf: $(tdir)/autoconf-$(autoconf-version).tar.lz
-	$(call gbuild, $<, autoconf-$(autoconf-version), static, ,V=1) \
+$(ibidir)/autoconf: | $(tdir)/autoconf-$(autoconf-version).tar.lz
+	$(call gbuild, autoconf-$(autoconf-version), static, ,V=1) \
 	&& echo "GNU Autoconf $(autoconf-version)" > $@
 
-$(ibidir)/automake: $(tdir)/automake-$(automake-version).tar.gz
-	$(call gbuild, $<, automake-$(automake-version), static, ,V=1) \
+$(ibidir)/automake: | $(tdir)/automake-$(automake-version).tar.gz
+	$(call gbuild, automake-$(automake-version), static, ,V=1) \
 	&& echo "GNU Automake $(automake-version)" > $@
 
-$(ibidir)/bison: $(tdir)/bison-$(bison-version).tar.xz \
-                 $(ibidir)/help2man
-	$(call gbuild, $<, bison-$(bison-version), static, ,V=1) \
+$(ibidir)/bison: | $(ibidir)/help2man \
+                   $(tdir)/bison-$(bison-version).tar.xz
+	$(call gbuild, bison-$(bison-version), static, ,V=1) \
 	&& echo "GNU Bison $(bison-version)" > $@
 
 # cdsclient is a set of software written in c to interact with astronomical
@@ -778,9 +784,9 @@ $(ibidir)/bison: $(tdir)/bison-$(bison-version).tar.xz \
 # programs are scripts and we need to touch them before installing.
 # Otherwise this software will be re-built each time the configure step is
 # invoked.
-$(ibidir)/cdsclient: $(tdir)/cdsclient-$(cdsclient-version).tar.gz
+$(ibidir)/cdsclient: | $(tdir)/cdsclient-$(cdsclient-version).tar.gz
 	cd $(ddir) \
-	&& tar xf $< \
+	&& tar xf $(word 1,$(filter $(tdir)/%,$|)) \
 	&& cd cdsclient-$(cdsclient-version) \
 	&& touch * \
 	&& ./configure --prefix=$(idir) \
@@ -791,8 +797,8 @@ $(ibidir)/cdsclient: $(tdir)/cdsclient-$(cdsclient-version).tar.gz
 	&& echo "cdsclient $(cdsclient-version)" > $@
 
 # CMake can be built with its custom `./bootstrap' script.
-$(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
-                 $(ibidir)/curl
+$(ibidir)/cmake: $(ibidir)/curl \
+                 | $(tdir)/cmake-$(cmake-version).tar.gz
         # After searching in `bootstrap', I couldn't find `LIBS', only
         # `LDFLAGS'. So the extra libraries are being added to `LDFLAGS',
         # not `LIBS'.
@@ -805,7 +811,7 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	fi; \
 	cd $(ddir) \
 	&& rm -rf cmake-$(cmake-version) \
-	&& tar xf $< \
+	&& tar xf $(word 1,$(filter $(tdir)/%,$|)) \
 	&& cd cmake-$(cmake-version) \
 	&& ./bootstrap --prefix=$(idir) --system-curl --system-zlib \
 	               --system-bzip2 --system-liblzma --no-qt-gui \
@@ -816,40 +822,40 @@ $(ibidir)/cmake: $(tdir)/cmake-$(cmake-version).tar.gz \
 	&& rm -rf cmake-$(cmake-version) \
 	&& echo "CMake $(cmake-version)" > $@
 
-$(ibidir)/flex: $(tdir)/flex-$(flex-version).tar.gz \
-                $(ibidir)/bison
-	$(call gbuild, $<, flex-$(flex-version), static, ,V=1) \
+$(ibidir)/flex: $(ibidir)/bison \
+                | $(tdir)/flex-$(flex-version).tar.gz
+	$(call gbuild, flex-$(flex-version), static, ,V=1) \
 	&& echo "Flex $(swig-version)" > $@
 
-$(ibidir)/ghostscript: $(tdir)/ghostscript-$(ghostscript-version).tar.gz \
-                       $(ibidir)/libtiff
-	$(call gbuild, $<, ghostscript-$(ghostscript-version)) \
+$(ibidir)/ghostscript: $(ibidir)/libtiff \
+                       | $(tdir)/ghostscript-$(ghostscript-version).tar.gz
+	$(call gbuild, ghostscript-$(ghostscript-version)) \
 	&& echo "GPL Ghostscript $(ghostscript-version)" > $@
 
-$(ibidir)/gnuastro: $(tdir)/gnuastro-$(gnuastro-version).tar.lz \
-                    $(ibidir)/ghostscript \
+$(ibidir)/gnuastro: $(ibidir)/gsl \
+                    $(ibidir)/wcslib \
                     $(ibidir)/libjpeg \
                     $(ibidir)/libtiff \
                     $(ibidir)/libgit2 \
-                    $(ibidir)/wcslib \
-                    $(ibidir)/gsl
+                    $(ibidir)/ghostscript \
+                    | $(tdir)/gnuastro-$(gnuastro-version).tar.lz
 ifeq ($(static_build),yes)
 	staticopts="--enable-static=yes --enable-shared=no";
 endif
-	$(call gbuild, $<, gnuastro-$(gnuastro-version), static, \
+	$(call gbuild, gnuastro-$(gnuastro-version), static, \
 	               $$staticopts, -j$(numthreads)) \
 	&& cp $(dtexdir)/gnuastro.tex $(ictdir)/ \
 	&& echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
-$(ibidir)/help2man: $(tdir)/help2man-$(help2man-version).tar.xz
-	$(call gbuild, $<, help2man-$(help2man-version), static, ,V=1) \
+$(ibidir)/help2man: | $(tdir)/help2man-$(help2man-version).tar.xz
+	$(call gbuild, help2man-$(help2man-version), static, ,V=1) \
 	&& echo "Help2man $(Help2man-version)" > $@
 
-$(ibidir)/imagemagick: $(tdir)/imagemagick-$(imagemagick-version).tar.xz \
+$(ibidir)/imagemagick: $(ibidir)/zlib \
                        $(ibidir)/libjpeg \
                        $(ibidir)/libtiff \
-                       $(ibidir)/zlib
-	$(call gbuild, $<, ImageMagick-$(imagemagick-version), static, \
+                       | $(tdir)/imagemagick-$(imagemagick-version).tar.xz
+	$(call gbuild, ImageMagick-$(imagemagick-version), static, \
 		       --without-x --disable-openmp, V=1 -j$(numthreads)) \
 	&& echo "ImageMagick $(imagemagick-version)" > $@
 
@@ -862,15 +868,17 @@ $(ibidir)/imagemagick: $(tdir)/imagemagick-$(imagemagick-version).tar.xz \
 # by `$(idir)'. After that, each compiled program (`imfit', `imfit-mcmc'
 # and `makeimage') is copied into the installation directory and an `rpath'
 # is added.
-$(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
-                 $(ibidir)/cfitsio \
-                 $(ibidir)/scons \
+$(ibidir)/imfit: $(ibidir)/gsl \
                  $(ibidir)/fftw \
-                 $(ibidir)/gsl
+                 $(ibidir)/scons \
+                 $(ibidir)/cfitsio \
+                 | $(tdir)/imfit-$(imfit-version).tar.gz
 	cd $(ddir) \
 	&& unpackdir=imfit-$(imfit-version) \
 	&& rm -rf $$unpackdir \
-	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
 	&& cd $$unpackdir \
 	&& sed -i 's|/usr/local|$(idir)|g' SConstruct \
 	&& sed -i 's|/usr/include|$(idir)/include|g' SConstruct \
@@ -903,12 +911,12 @@ $(ibidir)/imfit: $(tdir)/imfit-$(imfit-version).tar.gz \
 # ask to the user. We give all answers with a pipe to the scripts (configure
 # and install). The questions are different depending on the system (tested
 # on GNU/Linux and Mac OS).
-$(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tar.gz \
+$(ibidir)/netpbm: $(ibidir)/unzip \
+                  $(ibidir)/libpng \
                   $(ibidir)/libjpeg \
                   $(ibidir)/libtiff \
                   $(ibidir)/libxml2 \
-                  $(ibidir)/libpng \
-                  $(ibidir)/unzip
+                  | $(tdir)/netpbm-$(netpbm-version).tar.gz
 	if [ x$(on_mac_os) = xyes ]; then \
 	  answers='\n\n$(ildir)\n\n\n\n\n\n$(ildir)/include\n\n$(ildir)/include\n\n$(ildir)/include\nnone\n\n'; \
 	else \
@@ -917,7 +925,9 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tar.gz \
 	cd $(ddir) \
 	&& unpackdir=netpbm-$(netpbm-version) \
 	&& rm -rf $$unpackdir \
-	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
 	&& cd $$unpackdir \
 	&& printf "$$answers" | ./configure \
 	&& make \
@@ -934,11 +944,11 @@ $(ibidir)/netpbm: $(tdir)/netpbm-$(netpbm-version).tar.gz \
 # libraries that are not yet solved. However, we tried to install it with
 # the option --enable-openblas and it worked (same issue happened with
 # `sextractor'.
-$(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz \
-                 $(ibidir)/cdsclient \
+$(ibidir)/scamp: $(ibidir)/fftw \
                  $(ibidir)/openblas \
-                 $(ibidir)/fftw
-	$(call gbuild, $<, scamp-$(scamp-version), static, \
+                 $(ibidir)/cdsclient \
+                 | $(tdir)/scamp-$(scamp-version).tar.lz
+	$(call gbuild, scamp-$(scamp-version), static, \
                    --enable-threads --enable-openblas \
                    --with-fftw-libdir=$(idir) \
                    --with-fftw-incdir=$(idir)/include \
@@ -949,12 +959,14 @@ $(ibidir)/scamp: $(tdir)/scamp-$(scamp-version).tar.lz \
 
 # Since `scons' doesn't use the traditional GNU installation with
 # `configure' and `make' it is installed manually using `python'.
-$(ibidir)/scons: $(tdir)/scons-$(scons-version).tar.gz \
-                 $(ibidir)/python
+$(ibidir)/scons: | $(ibidir)/python \
+                   $(tdir)/scons-$(scons-version).tar.gz
 	cd $(ddir) \
 	&& unpackdir=scons-$(scons-version) \
 	&& rm -rf $$unpackdir \
-	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
 	&& cd $$unpackdir \
 	&& python setup.py install \
 	&& echo "SCons $(scons-version)" > $@
@@ -963,10 +975,10 @@ $(ibidir)/scons: $(tdir)/scons-$(scons-version).tar.gz \
 # libraries. But we can override this issue since we have Openblas
 # installed, it is just necessary to explicity tell sextractor to use it in
 # the configuration step.
-$(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
+$(ibidir)/sextractor: $(ibidir)/fftw \
                       $(ibidir)/openblas \
-                      $(ibidir)/fftw
-	$(call gbuild, $<, sextractor-$(sextractor-version), static, \
+                      | $(tdir)/sextractor-$(sextractor-version).tar.lz
+	$(call gbuild, sextractor-$(sextractor-version), static, \
 	               --enable-threads --enable-openblas \
 	               --with-openblas-libdir=$(ildir) \
 	               --with-openblas-incdir=$(idir)/include) \
@@ -974,18 +986,18 @@ $(ibidir)/sextractor: $(tdir)/sextractor-$(sextractor-version).tar.lz \
 	&& cp $(dtexdir)/sextractor.tex $(ictdir)/ \
 	&& echo "SExtractor $(sextractor-version) \citep{sextractor}" > $@
 
-$(ibidir)/swarp: $(tdir)/swarp-$(swarp-version).tar.gz \
-                 $(ibidir)/fftw
-	$(call gbuild, $<, swarp-$(swarp-version), static, \
+$(ibidir)/swarp: $(ibidir)/fftw \
+                 | $(tdir)/swarp-$(swarp-version).tar.gz
+	$(call gbuild, swarp-$(swarp-version), static, \
                        --enable-threads) \
 	&& cp $(dtexdir)/swarp.tex $(ictdir)/ \
 	&& echo "SWarp $(swarp-version) \citep{swarp}" > $@
 
-$(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
+$(ibidir)/swig: | $(tdir)/swig-$(swig-version).tar.gz
         # Option --without-pcre was a suggestion once the configure step
         # was tried and it failed. It was not recommended but it works!
         # pcr is a dependency of swig
-	$(call gbuild, $<, swig-$(swig-version), static, --without-pcre) \
+	$(call gbuild, swig-$(swig-version), static, --without-pcre) \
 	&& echo "Swig $(swig-version)" > $@
 
 
@@ -1015,8 +1027,8 @@ $(ibidir)/swig: $(tdir)/swig-$(swig-version).tar.gz
 tlmirror=http://mirrors.rit.edu/CTAN/systems/texlive/tlnet
 
 # The core TeX Live system.
-$(itidir)/texlive-ready-tlmgr: $(tdir)/install-tl-unx.tar.gz \
-                    reproduce/software/config/installation/texlive.conf
+$(itidir)/texlive-ready-tlmgr: reproduce/software/config/installation/texlive.conf \
+                               | $(tdir)/install-tl-unx.tar.gz
 
         # Unpack, enter the directory, and install based on the given
         # configuration (prerequisite of this rule).

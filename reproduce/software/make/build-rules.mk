@@ -38,14 +38,13 @@
 # ----------------
 #
 # Arguments:
-#  1: Tarball full address.
-#  2: Directory name after unpacking.
-#  3: Set to `static' for a static build.
-#  4: Extra configuration options.
-#  5: Extra options/arguments to pass to Make.
-#  6: Step to run between `make' and `make install': usually `make check'.
-#  7: The configuration script (`configure' by default).
-#  8: Arguments for `make install'.
+#  1: Directory name after unpacking.
+#  2: Set to `static' for a static build.
+#  3: Extra configuration options.
+#  4: Extra options/arguments to pass to Make.
+#  5: Step to run between `make' and `make install': usually `make check'.
+#  6: The configuration script (`configure' by default).
+#  7: Arguments for `make install'.
 #
 # NOTE: Unfortunately the configure script of `zlib' doesn't recognize
 # `SHELL'. So we'll have to remove it from the call to the configure
@@ -54,17 +53,22 @@
 # NOTE: A program might not contain any configure script. In this case,
 # we'll just pass a non-relevant function like `pwd'. So SED should be used
 # to modify `confscript' or to set `configop'.
-gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then \
+gbuild = if [ x$(static_build) = xyes ] && [ "x$(2)" = xstatic ]; then \
 	   export LDFLAGS="$$LDFLAGS -static"; \
 	 fi; \
-	 check="$(6)"; \
+	 check="$(5)"; \
 	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi; \
-	 cd $(ddir); rm -rf $(2); \
-	 if ! tar xf $(1); then echo; echo "Tar error"; exit 1; fi; \
-	 cd $(2); \
+	 cd $(ddir); rm -rf $(1); \
+	 if [ x"$$gbuild_tar" = x ]; then \
+	   tarball=$(word 1,$(filter $(tdir)/%,$|)); \
+	 else tarball=$$gbuild_tar; \
+	 fi; \
+	 if ! tar xf $$tarball; then \
+	   echo; echo "Tar error"; exit 1; fi; \
+	 cd $(1); \
 	          \
-	 if   [ x"$(strip $(7))" = x ]; then confscript=./configure; \
-	 else confscript="$(strip $(7))"; \
+	 if   [ x"$(strip $(6))" = x ]; then confscript=./configure; \
+	 else confscript="$(strip $(6))"; \
 	 fi; \
              \
 	 if   [ -f $(ibdir)/bash ]; then \
@@ -81,20 +85,20 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then \
 	 fi; \
              \
 	 if [ -f $$confscript ]; then \
-	   if [ x"$(strip $(2))" = x"zlib-$(zlib-version)" ]; then \
+	   if [ x"$(strip $(1))" = x"zlib-$(zlib-version)" ]; then \
 	     configop="--prefix=$(idir)"; \
 	   else configop="$$shellop --prefix=$(idir)"; \
 	   fi; \
 	 fi; \
 	     \
 	 echo; echo "Using '$$confscript' to configure:"; echo; \
-	 echo "$$confscript $(4) $$configop"; echo; \
-	 $$confscript $(4) $$configop \
-	 && make "$$shellop" $(5) \
+	 echo "$$confscript $(3) $$configop"; echo; \
+	 $$confscript $(3) $$configop \
+	 && make "$$shellop" $(4) \
 	 && $$check \
-	 && make "$$shellop" install $(8) \
+	 && make "$$shellop" install $(7) \
 	 && cd .. \
-	 && rm -rf $(2)
+	 && rm -rf $(1)
 
 
 
@@ -103,23 +107,23 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(3)" = xstatic ]; then \
 # -----
 #
 # According to the link below, in CMake `/bin/sh' is hardcoded, so there is
-# no way to change it.
+# no way to change it unfortunately!
 #
 # https://stackoverflow.com/questions/21167014/how-to-set-shell-variable-in-makefiles-generated-by-cmake
-cbuild = if [ x$(static_build) = xyes ] && [ $(3)x = staticx ]; then \
+cbuild = if [ x$(static_build) = xyes ] && [ $(2)x = staticx ]; then \
 	   export LDFLAGS="$$LDFLAGS -static"; \
 	   opts="-DBUILD_SHARED_LIBS=OFF"; \
 	 fi; \
 	 cd $(ddir) \
-	 && rm -rf $(2) \
-	 && tar xf $(1) \
-	 && cd $(2) \
+	 && rm -rf $(1) \
+	 && tar xf $(word 1,$(filter $(tdir)/%,$|)) \
+	 && cd $(1) \
 	 && rm -rf project-build \
 	 && mkdir project-build \
 	 && cd project-build \
 	 && cmake .. -DCMAKE_LIBRARY_PATH=$(ildir) \
 	             -DCMAKE_INSTALL_PREFIX=$(idir) \
-	             -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $$opts $(4) \
+	             -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $$opts $(3) \
 	 && make && make install \
 	 && cd ../.. \
-	 && rm -rf $(2)
+	 && rm -rf $(1)

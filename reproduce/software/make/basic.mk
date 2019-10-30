@@ -324,8 +324,8 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
 # The first set of programs to be built are those that we need to unpack
 # the source code tarballs of each program. First, we'll build the
 # necessary programs, then we'll build GNU Tar.
-$(ibidir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz
-	$(call gbuild, $<, gzip-$(gzip-version), static, , V=1) \
+$(ibidir)/gzip: | $(tdir)/gzip-$(gzip-version).tar.gz
+	$(call gbuild, gzip-$(gzip-version), static, , V=1) \
 	&& echo "GNU Gzip $(gzip-version)" > $@
 
 # GNU Lzip: For a static build, the `-static' flag should be given to
@@ -335,15 +335,15 @@ lzipconf="LDFLAGS=-static"
 else
 lzipconf=
 endif
-$(ibidir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
-	$(call gbuild, $<, lzip-$(lzip-version), , $(lzipconf)) \
+$(ibidir)/lzip: | $(tdir)/lzip-$(lzip-version).tar.gz
+	$(call gbuild, lzip-$(lzip-version), , $(lzipconf)) \
 	&& echo "Lzip $(lzip-version)" > $@
 
-$(ibidir)/xz: $(tdir)/xz-$(xz-version).tar.gz
-	$(call gbuild, $<, xz-$(xz-version), static) \
+$(ibidir)/xz: | $(tdir)/xz-$(xz-version).tar.gz
+	$(call gbuild, xz-$(xz-version), static) \
 	&& echo "XZ Utils $(xz-version)" > $@
 
-$(ibidir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
+$(ibidir)/bzip2: | $(tdir)/bzip2-$(bzip2-version).tar.gz
         # Bzip2 doesn't have a `./configure' script, and its Makefile
         # doesn't build a shared library. So we can't use the `gbuild'
         # function here and we need to take some extra steps (inspired
@@ -365,7 +365,9 @@ $(ibidir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	    makeshared="make -f Makefile-libbz2_so"; \
 	  fi; \
 	fi; \
-	cd $(ddir) && rm -rf $$tdir && tar xf $< && cd $$tdir \
+	cd $(ddir) && rm -rf $$tdir \
+	&& tar xf $(word 1,$(filter $(tdir)/%,$|)) \
+	&& cd $$tdir \
 	&& sed -e 's@\(ln -s -f \)$$(PREFIX)/bin/@\1@' Makefile \
 	       > Makefile.sed \
 	&& mv Makefile.sed Makefile \
@@ -380,18 +382,18 @@ $(ibidir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	&& ln -fs libbz2.so.1.0 libbz2.so \
 	&& echo "Bzip2 $(bzip2-version)" > $@
 
-$(ibidir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
+$(ibidir)/unzip: | $(tdir)/unzip-$(unzip-version).tar.gz
 	v=$$(echo $(unzip-version) | sed -e's/\.//'); \
-	$(call gbuild, $<, unzip$$v, static,, \
+	$(call gbuild, unzip$$v, static,, \
 	               -f unix/Makefile generic_gcc \
 	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
 	               -f unix/Makefile \
 	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
 	&& echo "Unzip $(unzip-version)" > $@
 
-$(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
+$(ibidir)/zip: | $(tdir)/zip-$(zip-version).tar.gz
 	v=$$(echo $(zip-version) | sed -e's/\.//'); \
-	$(call gbuild, $<, zip$$v, static,, \
+	$(call gbuild, zip$$v, static,, \
 	               -f unix/Makefile generic_gcc \
 	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
 	               -f unix/Makefile \
@@ -403,8 +405,8 @@ $(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 #
 # Note for a static-only build: Zlib's `./configure' doesn't use Autoconf's
 # configure script, it just accepts a direct `--static' option.
-$(ibidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
-	$(call gbuild, $<, zlib-$(zlib-version)) \
+$(ibidir)/zlib: | $(tdir)/zlib-$(zlib-version).tar.gz
+	$(call gbuild, zlib-$(zlib-version)) \
 	&& echo "Zlib $(zlib-version)" > $@
 
 # GNU Tar: When built statically, tar gives a segmentation fault on
@@ -412,19 +414,19 @@ $(ibidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
 # and unzip aren't dependencies of Tar, but for a clean build, we'll set
 # Tar to be the last compression-related software (the first-set of
 # software to be built).
-$(ibidir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
-	       $(ibidir)/bzip2 \
-	       $(ibidir)/unzip \
+$(ibidir)/tar: $(ibidir)/xz \
+	       $(ibidir)/zip \
 	       $(ibidir)/gzip \
 	       $(ibidir)/lzip \
                $(ibidir)/zlib \
-	       $(ibidir)/zip \
-	       $(ibidir)/xz
+               $(ibidir)/bzip2 \
+	       $(ibidir)/unzip \
+               | $(tdir)/tar-$(tar-version).tar.gz
         # Since all later programs depend on Tar, the configuration will be
         # stuck here, only making Tar. So its more efficient to built it on
         # multiple threads (when the user's Make doesn't pass down the
         # number of threads).
-	$(call gbuild, $<, tar-$(tar-version), , , -j$(numthreads) V=1) \
+	$(call gbuild, tar-$(tar-version), , , -j$(numthreads) V=1) \
 	&& echo "GNU Tar $(tar-version)" > $@
 
 
@@ -447,14 +449,14 @@ $(ibidir)/tar: $(tdir)/tar-$(tar-version).tar.gz \
 # function (for tilde expansion). The first can be disabled with
 # `--disable-load', but unfortunately I don't know any way to fix the
 # second. So, we'll have to build it dynamically for now.
-$(ibidir)/make: $(tdir)/make-$(make-version).tar.gz \
-                $(ibidir)/tar
+$(ibidir)/make: | $(ibidir)/tar \
+                  $(tdir)/make-$(make-version).tar.gz
         # See Tar's comments for the `-j' option.
-	$(call gbuild, $<, make-$(make-version), , , -j$(numthreads)) \
+	$(call gbuild, make-$(make-version), , , -j$(numthreads)) \
 	&& echo "GNU Make $(make-version)" > $@
 
-$(ibidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
-                   | $(ibidir)/make
+$(ibidir)/ncurses: | $(ibidir)/make \
+                     $(tdir)/ncurses-$(ncurses-version).tar.gz
 
         # Delete the library that will be installed (so we can make sure
         # the build process completed afterwards and reset the links).
@@ -468,7 +470,7 @@ $(ibidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
 	rm -f $(ibdir)/bash* $(ibdir)/awk* $(ibdir)/gawk*
 
         # Standard build process.
-	$(call gbuild, $<, ncurses-$(ncurses-version), static, \
+	$(call gbuild, ncurses-$(ncurses-version), static, \
 	               --with-shared --enable-rpath --without-normal \
 	               --without-debug --with-cxx-binding \
 	               --with-cxx-shared --enable-widec --enable-pc-files \
@@ -539,11 +541,11 @@ $(ibidir)/ncurses: $(tdir)/ncurses-$(ncurses-version).tar.gz       \
 	  exit 1; \
 	fi
 
-$(ibidir)/readline: $(tdir)/readline-$(readline-version).tar.gz \
-                    $(ibidir)/ncurses
-	$(call gbuild, $<, readline-$(readline-version), static, \
-	                --with-curses --disable-install-examples, \
-	                SHLIB_LIBS="-lncursesw" -j$(numthreads)) \
+$(ibidir)/readline: $(ibidir)/ncurses \
+                    | $(tdir)/readline-$(readline-version).tar.gz
+	$(call gbuild, readline-$(readline-version), static, \
+	               --with-curses --disable-install-examples, \
+	               SHLIB_LIBS="-lncursesw" -j$(numthreads)) \
 	&& echo "GNU Readline $(readline-version)" > $@
 
 # When we have a static C library, PatchELF will be built statically. This
@@ -552,12 +554,12 @@ $(ibidir)/readline: $(tdir)/readline-$(readline-version).tar.gz \
 # crash, so when PatchELF can't be built statically, we won't build GCC
 # either, see the `configure.sh' script where we define `good_static_libc'
 # for more.
-$(ibidir)/patchelf: $(tdir)/patchelf-$(patchelf-version).tar.gz \
-                    | $(ibidir)/make
+$(ibidir)/patchelf: | $(ibidir)/make \
+                      $(tdir)/patchelf-$(patchelf-version).tar.gz
 	if [ $(good_static_libc) = 1 ]; then \
 	  export LDFLAGS="$$LDFLAGS -static"; \
 	fi; \
-	$(call gbuild, $<, patchelf-$(patchelf-version), static) \
+	$(call gbuild, patchelf-$(patchelf-version), static) \
 	&& echo "PatchELF $(patchelf-version)" > $@
 
 
@@ -596,9 +598,9 @@ needpatchelf =
 else
 needpatchelf = $(ibidir)/patchelf
 endif
-$(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.lz \
-                $(ibidir)/readline                  \
-                | $(needpatchelf)
+$(ibidir)/bash: $(ibidir)/readline \
+                | $(needpatchelf) \
+                  $(tdir)/bash-$(bash-version).tar.lz
 
         # Delete the (possibly) existing Bash executable.
 	rm -f $(ibdir)/bash
@@ -622,9 +624,9 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.lz \
 	if [ "x$(static_build)" = xyes ]; then stopt="--enable-static-link";\
 	else                                   stopt=""; \
 	fi; \
-	$(call gbuild, $<, bash-$(bash-version),, \
-	                   --with-installed-readline=$(ildir) $$stopt, \
-                           -j$(numthreads))
+	$(call gbuild, bash-$(bash-version),, \
+	               --with-installed-readline=$(ildir) $$stopt, \
+                       -j$(numthreads))
 
         # Atleast on GNU/Linux systems, Bash doesn't include RPATH by
         # default. So, we have to manually include it, currently we are
@@ -672,12 +674,14 @@ $(ibidir)/bash: $(tdir)/bash-$(bash-version).tar.lz \
 # The echo after the PatchELF loop is to avoid a crash if the last
 # file that PatchELF encounters is not usable (and it returns with
 # an error).
-$(ibidir)/coreutils: $(tdir)/coreutils-$(coreutils-version).tar.xz \
-                     $(ibidir)/openssl \
-	             | $(ibidir)/bash
+$(ibidir)/coreutils: $(ibidir)/openssl \
+	             | $(ibidir)/bash \
+                       $(tdir)/coreutils-$(coreutils-version).tar.xz
 	cd $(ddir) \
 	&& rm -rf coreutils-$(coreutils-version) \
-	&& if ! tar xf $<; then echo; echo "Tar error"; exit 1; fi \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
 	&& cd coreutils-$(coreutils-version) \
 	&& sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
 	       -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
@@ -717,10 +721,10 @@ $(ibidir)/coreutils: $(tdir)/coreutils-$(coreutils-version).tar.xz \
 #openssl-static = no-dso no-dynamic-engine no-shared
 #endif
 $(idir)/etc:; mkdir $@
-$(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
-                   $(tdir)/cert.pem \
+$(ibidir)/openssl: $(tdir)/cert.pem \
                    | $(idir)/etc \
-                     $(ibidir)/make
+                     $(ibidir)/make  \
+                     $(tdir)/openssl-$(openssl-version).tar.gz
         # According to OpenSSL's Wiki (link bellow), it can't automatically
         # detect Mac OS's structure. It will need some help. So we'll use
         # the `on_mac_os' Make variable that we defined in the configure
@@ -732,7 +736,7 @@ $(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
 	  export KERNEL_BITS=64; \
 	  copt="shared no-ssl2 no-ssl3 enable-ec_nistp_64_gcc_128";  \
 	fi; \
-	$(call gbuild, $<, openssl-$(openssl-version), , \
+	$(call gbuild, openssl-$(openssl-version), , \
 	               zlib \
 	               $$copt \
 	               $(rpath_command) \
@@ -765,9 +769,9 @@ $(ibidir)/openssl: $(tdir)/openssl-$(openssl-version).tar.gz \
 # them. Note that if it does link with them, the configuration will crash
 # when the library is updated/changed by the host, and the whole purpose of
 # this project is avoid dependency on the host as much as possible.
-$(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
-                | $(ibidir)/coreutils
-	$(call gbuild, $<, curl-$(curl-version), , \
+$(ibidir)/curl: | $(ibidir)/coreutils \
+                  $(tdir)/curl-$(curl-version).tar.gz
+	$(call gbuild, curl-$(curl-version), , \
 	               LIBS="-pthread" \
 	               --with-zlib=$(ildir) \
 	               --with-ssl=$(idir) \
@@ -803,15 +807,14 @@ $(ibidir)/curl: $(tdir)/curl-$(curl-version).tar.gz \
 # building as part of this project. So to avoid too much dependency on the
 # host system (especially a crash when these libraries are updated on the
 # host), they are disabled here.
-$(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
-                $(ibidir)/libiconv \
-                | $(ibidir)/coreutils
-
+$(ibidir)/wget: $(ibidir)/libiconv \
+                | $(ibidir)/coreutils \
+                  $(tdir)/wget-$(wget-version).tar.lz
         # We need to explicitly disable `libiconv', because of the
         # `pkg-config' and `libiconv' problem.
 	libs="-pthread"; \
 	if [ x$(needs_ldl) = xyes ]; then libs="$$libs -ldl"; fi; \
-	$(call gbuild, $<, wget-$(wget-version), , \
+	$(call gbuild, wget-$(wget-version), , \
 	               LIBS="$$LIBS $$libs" \
 	               --with-libssl-prefix=$(idir) \
 	               --without-libiconv-prefix \
@@ -839,31 +842,31 @@ $(ibidir)/wget: $(tdir)/wget-$(wget-version).tar.lz \
 # process of the higher-level programs and libraries. Note that during the
 # building of those higher-level programs (after this Makefile finishes),
 # there is no access to the system's PATH.
-$(ibidir)/diffutils: $(tdir)/diffutils-$(diffutils-version).tar.xz \
-                     | $(ibidir)/coreutils
-	$(call gbuild, $<, diffutils-$(diffutils-version), static, , V=1) \
+$(ibidir)/diffutils: | $(ibidir)/coreutils \
+                       $(tdir)/diffutils-$(diffutils-version).tar.xz
+	$(call gbuild, diffutils-$(diffutils-version), static, , V=1) \
 	&& echo "GNU Diffutils $(diffutils-version)" > $@
 
-$(ibidir)/file: $(tdir)/file-$(file-version).tar.gz \
-                | $(ibidir)/coreutils
-	$(call gbuild, $<, file-$(file-version), static) \
+$(ibidir)/file: | $(ibidir)/coreutils \
+                  $(tdir)/file-$(file-version).tar.gz
+	$(call gbuild, file-$(file-version), static) \
 	&& echo "File $(file-version)" > $@
 
-$(ibidir)/findutils: $(tdir)/findutils-$(findutils-version).tar.xz \
-                     | $(ibidir)/coreutils
-	$(call gbuild, $<, findutils-$(findutils-version), static, , V=1) \
+$(ibidir)/findutils: | $(ibidir)/coreutils \
+                       $(tdir)/findutils-$(findutils-version).tar.xz
+	$(call gbuild, findutils-$(findutils-version), static, , V=1) \
 	&& echo "GNU Findutils $(findutils-version)" > $@
 
-$(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
-                | $(ibidir)/coreutils \
+$(ibidir)/gawk: $(ibidir)/gmp \
                 $(ibidir)/mpfr \
-                $(ibidir)/gmp
+                | $(ibidir)/coreutils \
+                  $(tdir)/gawk-$(gawk-version).tar.lz
         # AWK doesn't include RPATH by default, so we'll have to manually
         # include it using the `patchelf' program (which was a dependency
         # of Bash). Just note that AWK produces two executables (for
         # example `gawk-4.2.1' and `gawk') and a symbolic link `awk' to one
         # of those executables.
-	$(call gbuild, $<, gawk-$(gawk-version), static, \
+	$(call gbuild, gawk-$(gawk-version), static, \
 	               --with-readline=$(idir)) \
 	&& if [ "x$(needpatchelf)" != x ]; then \
 	     if [ -f $(ibdir)/gawk ]; then \
@@ -876,51 +879,51 @@ $(ibidir)/gawk: $(tdir)/gawk-$(gawk-version).tar.lz \
 	   fi \
 	&& echo "GNU AWK $(gawk-version)" > $@
 
-$(ibidir)/libiconv: $(tdir)/libiconv-$(libiconv-version).tar.gz \
-                    $(ibidir)/pkg-config
-	$(call gbuild, $<, libiconv-$(libiconv-version), static) \
+$(ibidir)/libiconv: | $(ibidir)/pkg-config \
+                      $(tdir)/libiconv-$(libiconv-version).tar.gz
+	$(call gbuild, libiconv-$(libiconv-version), static) \
 	&& echo "GNU libiconv $(libiconv-version)" > $@
 
-$(ibidir)/git: $(tdir)/git-$(git-version).tar.xz \
-	       $(ibidir)/libiconv \
-               $(ibidir)/curl	# Coreutils, so Git is built after it.
+$(ibidir)/git: $(ibidir)/curl \
+               $(ibidir)/libiconv \
+               | $(tdir)/git-$(git-version).tar.xz
 	if [ x$(on_mac_os) = xyes ]; then \
 	  export LDFLAGS="$$LDFLAGS -lcharset"; \
 	fi; \
-	$(call gbuild, $<, git-$(git-version), static, \
+	$(call gbuild, git-$(git-version), static, \
 	               --without-tcltk --with-shell=$(ibdir)/bash \
 	               --with-iconv=$(idir), V=1) \
 	&& echo "Git $(git-version)" > $@
 
-$(ibidir)/gmp: $(tdir)/gmp-$(gmp-version).tar.lz \
-               | $(ibidir)/coreutils \
-                 $(ibidir)/m4
-	$(call gbuild, $<, gmp-$(gmp-version), static, , , make check)  \
+$(ibidir)/gmp: | $(ibidir)/m4 \
+                 $(ibidir)/coreutils \
+                 $(tdir)/gmp-$(gmp-version).tar.lz
+	$(call gbuild, gmp-$(gmp-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
 # prefix GNU's libtool executables with `glibtool'.
-$(ibidir)/glibtool: $(tdir)/libtool-$(libtool-version).tar.xz \
-                    | $(ibidir)/m4
-	$(call gbuild, $<, libtool-$(libtool-version), static, \
+$(ibidir)/glibtool: | $(ibidir)/m4 \
+                      $(tdir)/libtool-$(libtool-version).tar.xz
+	$(call gbuild, libtool-$(libtool-version), static, \
                        --program-prefix=g) \
 	&& ln -s $(ibdir)/glibtoolize $(ibdir)/libtoolize \
 	&& echo "GNU Libtool $(libtool-version)" > $@
 
-$(ibidir)/grep: $(tdir)/grep-$(grep-version).tar.xz \
-                | $(ibidir)/coreutils
-	$(call gbuild, $<, grep-$(grep-version), static) \
+$(ibidir)/grep: | $(ibidir)/coreutils \
+                  $(tdir)/grep-$(grep-version).tar.xz
+	$(call gbuild, grep-$(grep-version), static) \
 	&& echo "GNU Grep $(grep-version)" > $@
 
-$(ibidir)/libbsd: $(tdir)/libbsd-$(libbsd-version).tar.xz \
-                  | $(ibidir)/coreutils
-	$(call gbuild, $<, libbsd-$(libbsd-version), static,,V=1) \
+$(ibidir)/libbsd: | $(ibidir)/coreutils \
+                    $(tdir)/libbsd-$(libbsd-version).tar.xz
+	$(call gbuild, libbsd-$(libbsd-version), static,,V=1) \
 	&& echo "Libbsd $(libbsd-version)" > $@
 
-$(ibidir)/m4: $(tdir)/m4-$(m4-version).tar.gz \
-              | $(ibidir)/coreutils \
-                $(ibidir)/texinfo
-	$(call gbuild, $<, m4-$(m4-version), static) \
+$(ibidir)/m4: | $(ibidir)/coreutils \
+                $(ibidir)/texinfo \
+                $(tdir)/m4-$(m4-version).tar.gz
+	$(call gbuild, m4-$(m4-version), static) \
 	&& echo "GNU M4 $(m4-version)" > $@
 
 # Metastore is used (through a Git hook) to restore the source modification
@@ -945,12 +948,12 @@ needlibbsd =
 else
 needlibbsd = $(ibidir)/libbsd
 endif
-$(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
-                     $(needlibbsd) \
-                     | $(ibidir)/coreutils \
-                       $(ibidir)/gawk \
+$(ibidir)/metastore: $(needlibbsd) \
+                     | $(ibidir)/sed \
                        $(ibidir)/git \
-                       $(ibidir)/sed
+                       $(ibidir)/gawk \
+                       $(ibidir)/coreutils \
+                       $(tdir)/metastore-$(metastore-version).tar.gz
 
         # Metastore doesn't have any `./configure' script. So we'll just
         # call `pwd' as a place-holder for the `./configure' command.
@@ -975,7 +978,7 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
         # is no `.git' directory to work with. So until we find a better
         # solution, avoid the step to to add the Git hooks.
 	current_dir=$$(pwd); \
-	$(call gbuild, $<, metastore-$(metastore-version), static,, \
+	$(call gbuild, metastore-$(metastore-version), static,, \
 	               NO_XATTR=1 V=1,,pwd,PREFIX=$(idir)); \
 	if [ -f $(ibdir)/metastore ]; then \
 	  if [ "x$(needpatchelf)" != x ]; then \
@@ -1008,13 +1011,13 @@ $(ibidir)/metastore: $(tdir)/metastore-$(metastore-version).tar.gz \
 	fi
 
 
-$(ibidir)/mpfr: $(tdir)/mpfr-$(mpfr-version).tar.xz \
-                $(ibidir)/gmp
-	$(call gbuild, $<, mpfr-$(mpfr-version), static, , , make check)  \
+$(ibidir)/mpfr: $(ibidir)/gmp \
+                | $(tdir)/mpfr-$(mpfr-version).tar.xz
+	$(call gbuild, mpfr-$(mpfr-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
-$(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
-                      | $(ibidir)/coreutils
+$(ibidir)/pkg-config: | $(ibidir)/coreutils \
+                        $(tdir)/pkg-config-$(pkgconfig-version).tar.gz
         # An existing `libiconv' can cause a conflict with `pkg-config',
         # this is why `libiconv' depends on `pkg-config'. On a clean build,
         # `pkg-config' is built first. But when we don't have a clean build
@@ -1030,28 +1033,28 @@ $(ibidir)/pkg-config: $(tdir)/pkg-config-$(pkgconfig-version).tar.gz \
 	if [ x$(on_mac_os) = xyes ]; then export compiler="CC=clang"; \
 	else                              export compiler=""; \
 	fi; \
-	$(call gbuild, $<, pkg-config-$(pkgconfig-version), static, \
+	$(call gbuild, pkg-config-$(pkgconfig-version), static, \
 	               $$compiler --with-internal-glib \
 	               --with-pc-path=$(ildir)/pkgconfig, V=1) \
 	&& echo "pkg-config $(pkgconfig-version)" > $@
 
-$(ibidir)/sed: $(tdir)/sed-$(sed-version).tar.xz \
-               | $(ibidir)/coreutils
-	$(call gbuild, $<, sed-$(sed-version), static) \
+$(ibidir)/sed: | $(ibidir)/coreutils \
+                 $(tdir)/sed-$(sed-version).tar.xz
+	$(call gbuild, sed-$(sed-version), static) \
 	&& echo "GNU Sed $(sed-version)" > $@
 
-$(ibidir)/texinfo: $(tdir)/texinfo-$(texinfo-version).tar.xz \
-                   | $(ibidir)/bash
-	$(call gbuild, $<, texinfo-$(texinfo-version), static) \
+$(ibidir)/texinfo: | $(ibidir)/bash \
+                     $(tdir)/texinfo-$(texinfo-version).tar.xz
+	$(call gbuild, texinfo-$(texinfo-version), static) \
 	&& if [ "x$(needpatchelf)" != x ]; then \
 	     $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/info; \
 	     $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/install-info; \
 	   fi \
 	&& echo "GNU Texinfo $(sed-version)" > $@
 
-$(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
-                 | $(ibidir)/coreutils
-	$(call gbuild, $<, which-$(which-version), static) \
+$(ibidir)/which: | $(ibidir)/coreutils \
+                   $(tdir)/which-$(which-version).tar.gz
+	$(call gbuild, which-$(which-version), static) \
 	&& echo "GNU Which $(which-version)" > $@
 
 
@@ -1066,14 +1069,14 @@ $(ibidir)/which: $(tdir)/which-$(which-version).tar.gz \
 # GCC and its prerequisites
 # -------------------------
 
-$(ibidir)/isl: $(tdir)/isl-$(isl-version).tar.bz2 \
-               $(ibidir)/gmp
-	$(call gbuild, $<, isl-$(isl-version), static, , V=1)  \
+$(ibidir)/isl: $(ibidir)/gmp \
+               | $(tdir)/isl-$(isl-version).tar.bz2
+	$(call gbuild, isl-$(isl-version), static, , V=1)  \
 	&& echo "GNU Integer Set Library $(isl-version)" > $@
 
-$(ibidir)/mpc: $(tdir)/mpc-$(mpc-version).tar.gz \
-               $(ibidir)/mpfr
-	$(call gbuild, $<, mpc-$(mpc-version), static, , , make check)  \
+$(ibidir)/mpc: $(ibidir)/mpfr \
+               | $(tdir)/mpc-$(mpc-version).tar.gz
+	$(call gbuild, mpc-$(mpc-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Complex library" > $@
 
 # Binutils' assembler (`as') and linker (`ld') will conflict with other
@@ -1097,20 +1100,19 @@ endif
 # programs (http://savannah.nongnu.org/bugs/?56294). Therefore, we'll set
 # all other basic programs as Binutils prerequisite and GCC (the final
 # basic target) ultimately just depends on Binutils.
-$(ibidir)/binutils: $(binutils-tarball) \
-                    | $(gcc-prerequisites) \
-                      $(ibidir)/metastore \
-                      $(ibidir)/findutils \
-                      $(ibidir)/diffutils \
-                      $(ibidir)/coreutils \
-                      $(ibidir)/glibtool \
-                      $(ibidir)/which \
+$(ibidir)/binutils: | $(ibidir)/sed \
                       $(ibidir)/wget \
                       $(ibidir)/grep \
                       $(ibidir)/file \
                       $(ibidir)/gawk \
-                      $(ibidir)/sed
-
+                      $(ibidir)/which \
+                      $(ibidir)/glibtool \
+                      $(binutils-tarball) \
+                      $(ibidir)/metastore \
+                      $(ibidir)/findutils \
+                      $(ibidir)/diffutils \
+                      $(ibidir)/coreutils \
+                      $(gcc-prerequisites)
 	if [ x$(on_mac_os) = xyes ]; then \
 	  $(call makelink,as); \
 	  $(call makelink,ar); \
@@ -1120,7 +1122,7 @@ $(ibidir)/binutils: $(binutils-tarball) \
 	  $(call makelink,ranlib); \
           echo "" > $@; \
 	else \
-	  $(call gbuild, $<, binutils-$(binutils-version), static) \
+	  $(call gbuild, binutils-$(binutils-version), static) \
 	  && echo "GNU Binutils $(binutils-version)" > $@; \
 	fi
 
@@ -1142,8 +1144,8 @@ gcc-tarball =
 else
 gcc-tarball = $(tdir)/gcc-$(gcc-version).tar.xz
 endif
-$(ibidir)/gcc: $(gcc-tarball) \
-               $(ibidir)/binutils
+$(ibidir)/gcc: | $(ibidir)/binutils \
+                 $(gcc-tarball)
 
         # GCC builds is own libraries in '$(idir)/lib64'. But all other
         # libraries are in '$(idir)/lib'. Since this project is only for a
@@ -1167,7 +1169,7 @@ $(ibidir)/gcc: $(gcc-tarball) \
 	                                 \
 	  cd $(ddir); \
 	  rm -rf gcc-$(gcc-version); \
-	  tar xf $< \
+	  tar xf $(word 1,$(filter $(tdir)/%,$|)) \
 	  && cd gcc-$(gcc-version) \
 	  && mkdir build \
 	  && cd build \
