@@ -556,8 +556,9 @@ First custom commit
      clean all the extra template outputs with `make clean` as shown below.
 
      ```shell
-     $ ./project configure           # Configure project (except for GCC which can take long).
-     $ ./project make                # Do the (mainly symbolic) processing and build paper
+     $ ./project configure           # Build the project's software environment (can take an hour or so).
+     $ ./project prepare             # Pre-processing preparations (doing nothing in the raw template).
+     $ ./project make                # Do the processing and build paper (just a simple demo in the template).
 
      # Open 'paper.pdf' and see if everything is ok.
      ```
