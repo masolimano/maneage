@@ -71,6 +71,7 @@ zlib-version = 1.2.11
 # `reproduce/software/config/installation/TARGETS.mk' will be built as part
 # of a project. To specify a software there, just remove the `-version'
 # suffix from the list below.
+apachelog4cxx-version = 0.10.0
 apr-version = 1.7.0
 apr-util-version = 1.6.1
 astrometrynet-version = 0.77

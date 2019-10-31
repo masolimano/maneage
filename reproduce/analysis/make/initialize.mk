@@ -331,6 +331,7 @@ $(packagecontents): paper.pdf | $(texdir)
         # Clean temporary (currently those ending in `~') files.
 	cd $(texdir)
 	find $(packagebasename) -name \*~ -delete
+	find $(packagebasename) -name \*.swp -delete
 
         # PROJECT SPECIFIC
         # ----------------

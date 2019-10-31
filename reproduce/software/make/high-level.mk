@@ -132,7 +132,8 @@ include reproduce/software/make/python.mk
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, apr-$(apr-version).tar.gz \
+tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.gz \
+                        apr-$(apr-version).tar.gz \
                         apr-util-$(apr-util-version).tar.gz \
                         astrometry.net-$(astrometrynet-version).tar.gz \
                         atlas-$(atlas-version).tar.bz2 \
@@ -189,8 +190,12 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 
         # Set the top download link of the requested tarball.
 	mergenames=1
-	if [ $* = apr-util-$(apr-util-version).tar.gz ];
-	  then c=$(apr-util-checksum); w=https://www-us.apache.org/dist/apr
+	if   [ $$n = apachelog   ]; then
+	  mergenames=0;
+	  c=$(apachelog4cxx-checksum);
+	  w=https://www-eu.apache.org/dist/logging/log4cxx/$(apachelog4cxx-version)/apache-log4cxx-$(apachelog4cxx-version).tar.lz
+	elif [ $* = apr-util-$(apr-util-version).tar.gz ]; then
+	  c=$(apr-util-checksum); w=https://www-us.apache.org/dist/apr
 	elif [ $$n = apr         ]; then c=$(apr-checksum); w=https://www-us.apache.org/dist/apr
 	elif [ $$n = astrometry  ]; then c=$(astrometrynet-checksum); w=http://astrometry.net/downloads
 	elif [ $$n = atlas       ]; then
@@ -339,6 +344,28 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # libraries. Therefore, we can't use the easy `.a' suffix for static
 # libraries as targets and there are different conventions for shared
 # library names.
+
+# Until version 0.11.0 is released, we are using the version corresponding
+# to commit 014954db
+$(ibidir)/apachelog4cxx: | $(ibidir)/automake \
+                           $(tdir)/apachelog4cxx-$(apachelog4cxx-version).tar.gz
+
+        #########################
+        # STILL NOT COMPLETE: needs a patch.
+        #########################
+	pdir=apache-log4cxx-$(apachelog4cxx-version)
+	rm -rf $(ddir)/$$pdir
+	topdir=$(pwd); cd $(ddir);
+	tar xf $(word 1,$(filter $(tdir)/%,$|))
+	cd $$pdir \
+	&& ./configure SHELL=$(ibdir)/bash --prefix=$(idir) \
+	&& make -j$(numthreads) SHELL=$(ibdir)/bash \
+	&& make install \
+	&& cd .. \
+	&& rm -rf $$pdir \
+	&& cd $$topdir \
+	&& echo "Apache log4cxx $(apachelog4cxx-version)" > $@
+
 $(ibidir)/apr: | $(tdir)/apr-$(apr-version).tar.gz
 	$(call gbuild, apr-$(apr-version), ,--disable-static) \
 	&& echo "Apache Portable Runtime $(apr-version)" > $@
@@ -768,7 +795,8 @@ $(ibidir)/autoconf: | $(tdir)/autoconf-$(autoconf-version).tar.lz
 	$(call gbuild, autoconf-$(autoconf-version), static, ,V=1) \
 	&& echo "GNU Autoconf $(autoconf-version)" > $@
 
-$(ibidir)/automake: | $(tdir)/automake-$(automake-version).tar.gz
+$(ibidir)/automake: | $(ibidir)/autoconf \
+                      $(tdir)/automake-$(automake-version).tar.gz
 	$(call gbuild, automake-$(automake-version), static, ,V=1) \
 	&& echo "GNU Automake $(automake-version)" > $@
 

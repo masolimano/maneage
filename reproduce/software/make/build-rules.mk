@@ -72,7 +72,7 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(2)" = xstatic ]; then \
 	 fi; \
              \
 	 if   [ -f $(ibdir)/bash ]; then \
-	   if [ -f $$confscript ]; then \
+	   if [ -f "$$confscript" ]; then \
 	     sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
 	         -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
 	         $$confscript > $$confscript-tmp; \
@@ -84,7 +84,7 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(2)" = xstatic ]; then \
 	 else shellop="SHELL=/bin/sh"; \
 	 fi; \
              \
-	 if [ -f $$confscript ]; then \
+	 if [ -f "$$confscript" ]; then \
 	   if [ x"$(strip $(1))" = x"zlib-$(zlib-version)" ]; then \
 	     configop="--prefix=$(idir)"; \
 	   else configop="$$shellop --prefix=$(idir)"; \
