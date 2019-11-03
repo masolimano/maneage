@@ -132,7 +132,7 @@ include reproduce/software/make/python.mk
 # convention, but include the name/version in their tarball names with
 # another format, we'll do the modification before the download so the
 # downloaded file has our desired format.
-tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.gz \
+tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         apr-$(apr-version).tar.gz \
                         apr-util-$(apr-util-version).tar.gz \
                         astrometry.net-$(astrometrynet-version).tar.gz \
@@ -190,10 +190,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 
         # Set the top download link of the requested tarball.
 	mergenames=1
-	if   [ $$n = apachelog   ]; then
-	  mergenames=0;
-	  c=$(apachelog4cxx-checksum);
-	  w=https://www-eu.apache.org/dist/logging/log4cxx/$(apachelog4cxx-version)/apache-log4cxx-$(apachelog4cxx-version).tar.lz
+	if   [ $$n = apachelog   ]; then c=$(apachelog4cxx-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $* = apr-util-$(apr-util-version).tar.gz ]; then
 	  c=$(apr-util-checksum); w=https://www-us.apache.org/dist/apr
 	elif [ $$n = apr         ]; then c=$(apr-checksum); w=https://www-us.apache.org/dist/apr
@@ -346,18 +343,37 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # library names.
 
 # Until version 0.11.0 is released, we are using the version corresponding
-# to commit 014954db
+# to commit 014954db (603 commits after version 0.10.0, most recent when
+# first importing log4cxx into this project).
+#
+# Note that after cloning the project, the following changes are necessary
+# in `configure.ac'.
+#  - Update the final name of the tarball and its version (from `git
+#  - describe') by modifying the `AC_INIT' line:
+#        AC_INIT([apachelog4cxx], [0.10.0-603-014954db])
+#  - Because of the long file names in the project, some files will not be
+#    packaged by default, so pass the `tar-ustar' option to Automake (the
+#    `AM_INIT_AUTOMAKE' line of `configure.ac':
+#        AM_INIT_AUTOMAKE([foreign subdir-objects -Wall tar-ustar])
+#
+# You can then simply bootstrap the project and make the distribution
+# tarball like this:
+#        ./autogen.sh && ./configure && make -j8 && make dist-lzip
+#
+# Unfortunately we have to re-run the `autogen.sh' script on the tarball to
+# build it because it will complain about the version of libtool, so until
+# the version 0.11.0 of log4cxx, we'll have to run `autogen.sh' on the
+# unpacked source also.
 $(ibidir)/apachelog4cxx: | $(ibidir)/automake \
-                           $(tdir)/apachelog4cxx-$(apachelog4cxx-version).tar.gz
+                           $(tdir)/apachelog4cxx-$(apachelog4cxx-version).tar.lz
 
-        #########################
-        # STILL NOT COMPLETE: needs a patch.
-        #########################
-	pdir=apache-log4cxx-$(apachelog4cxx-version)
+	pdir=apachelog4cxx-$(apachelog4cxx-version)
 	rm -rf $(ddir)/$$pdir
-	topdir=$(pwd); cd $(ddir);
+	topdir=$(pwd)
+	cd $(ddir)
 	tar xf $(word 1,$(filter $(tdir)/%,$|))
-	cd $$pdir \
+	cd $$pdir
+	./autogen.sh \
 	&& ./configure SHELL=$(ibdir)/bash --prefix=$(idir) \
 	&& make -j$(numthreads) SHELL=$(ibdir)/bash \
 	&& make install \
