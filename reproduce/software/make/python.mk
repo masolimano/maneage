@@ -301,7 +301,6 @@ $(ibidir)/python: $(ibidir)/libffi \
                   | $(tdir)/python-$(python-version).tar.gz
         # On Mac systems, the build complains about `clang' specific
         # features, so we can't use our own GCC build here.
-	echo "HEREKJRE"; \
 	if [ x$(on_mac_os) = xyes ]; then \
 	  export CC=clang; \
 	  export CXX=clang++; \

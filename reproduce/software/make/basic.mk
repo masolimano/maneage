@@ -131,6 +131,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.lz \
                         ncurses-$(ncurses-version).tar.gz \
                         openssl-$(openssl-version).tar.gz \
                         patchelf-$(patchelf-version).tar.gz \
+                        perl-$(perl-version).tar.gz \
                         pkg-config-$(pkgconfig-version).tar.gz \
                         readline-$(readline-version).tar.gz \
                         sed-$(sed-version).tar.xz \
@@ -181,6 +182,10 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = ncurses   ]; then c=$(ncurses-checksum); w=http://ftp.gnu.org/gnu/ncurses; \
 	elif [ $$n = openssl   ]; then c=$(openssl-checksum); w=http://www.openssl.org/source; \
 	elif [ $$n = patchelf  ]; then c=$(patchelf-checksum); w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version); \
+	elif [ $$n = perl      ]; then \
+	  c=$(perl-checksum); \
+	  v=$$(echo $(perl-version) | sed -e's/\./ /g' | awk '{printf("%d.0", $$1)}'); \
+	  w=https://www.cpan.org/src/$$v; \
 	elif [ $$n = pkg       ]; then c=$(pkgconfig-checksum); w=http://pkg-config.freedesktop.org/releases; \
 	elif [ $$n = readline  ]; then c=$(readline-checksum); w=http://ftp.gnu.org/gnu/readline; \
 	elif [ $$n = sed       ]; then c=$(sed-checksum); w=http://ftp.gnu.org/gnu/sed; \
@@ -291,9 +296,6 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
 
         # GNU Gettext (translate messages)
 	$(call makelink,msgfmt)
-
-        # Needed by TeXLive specifically.
-	$(call makelink,perl)
 
         # Necessary libraries:
         #   Libdl (for dynamic loading libraries at runtime)
@@ -1016,6 +1018,50 @@ $(ibidir)/mpfr: $(ibidir)/gmp \
 	$(call gbuild, mpfr-$(mpfr-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
+$(ibidir)/perl: | $(ibidir)/coreutils \
+                  $(tdir)/perl-$(perl-version).tar.gz
+	major_version=$$(echo $(perl-version) \
+	                     | sed -e's/\./ /g' \
+	                     | awk '{printf("%d", $$1)}'); \
+	base_version=$$(echo $(perl-version) \
+	                     | sed -e's/\./ /g' \
+	                     | awk '{printf("%d.%d", $$1, $$2)}'); \
+	cd $(ddir) \
+	&& rm -rf perl-$(perl-version) \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
+	&& cd perl-$(perl-version) \
+	&& sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
+	       -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
+	       Configure > Configure-tmp \
+	&& mv -f Configure-tmp Configure \
+	&& chmod +x Configure \
+	&& ./Configure -des \
+	               -Dusethreads \
+	               -Duseshrplib \
+	               -Dprefix=$(idir) \
+	               -Dvendorprefix=$(idir) \
+	               -Dprivlib=$(idir)/share/perl$$major_version/core_perl \
+	               -Darchlib=$(idir)/lib/perl$$major_version/$$base_version/core_perl \
+	               -Dsitelib=$(idir)/share/perl$$major_version/site_perl \
+	               -Dsitearch=$(idir)/lib/perl$$major_version/$$basever/site_perl \
+	               -Dvendorlib=$(idir)/share/perl$$major_version/vendor_perl \
+	               -Dvendorarch=$(idir)/lib/perl$$major_version/$$base_version/vendor_perl \
+	               -Dscriptdir=$(idir)/bin/core_perl \
+	               -Dsitescript=$(idir)/bin/site_perl \
+	               -Dvendorscript=$(idir)/bin/vendor_perl \
+	               -Dinc_version_list=none \
+	               -Dman1ext=1perl \
+	               -Dman3ext=3perl \
+	               -Dcccdlflags='-fPIC' \
+	               -Dlddlflags="-shared $$LDFLAGS" \
+	               -Dldflags="$$LDFLAGS" \
+	&& make SHELL=$(ibdir)/bash -j$(numthreads) \
+	&& make SHELL=$(ibdir)/bash install \
+	&& echo "Perl $(perl-version)" > $@
+
+
 $(ibidir)/pkg-config: | $(ibidir)/coreutils \
                         $(tdir)/pkg-config-$(pkgconfig-version).tar.gz
         # An existing `libiconv' can cause a conflict with `pkg-config',
@@ -1043,7 +1089,7 @@ $(ibidir)/sed: | $(ibidir)/coreutils \
 	$(call gbuild, sed-$(sed-version), static) \
 	&& echo "GNU Sed $(sed-version)" > $@
 
-$(ibidir)/texinfo: | $(ibidir)/bash \
+$(ibidir)/texinfo: | $(ibidir)/perl \
                      $(tdir)/texinfo-$(texinfo-version).tar.xz
 	$(call gbuild, texinfo-$(texinfo-version), static) \
 	&& if [ "x$(needpatchelf)" != x ]; then \
