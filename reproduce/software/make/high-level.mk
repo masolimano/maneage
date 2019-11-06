@@ -149,6 +149,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         fftw-$(fftw-version).tar.gz \
                         flex-$(flex-version).tar.gz \
                         freetype-$(freetype-version).tar.gz \
+                        gdb-$(gdb-version).tar.gz \
                         ghostscript-$(ghostscript-version).tar.gz \
                         gnuastro-$(gnuastro-version).tar.lz \
                         gsl-$(gsl-version).tar.gz \
@@ -224,6 +225,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = fftw        ]; then c=$(fftw-checksum); w=ftp://ftp.fftw.org/pub/fftw
 	elif [ $$n = flex        ]; then c=$(flex-checksum); w=https://github.com/westes/flex/files/981163
 	elif [ $$n = freetype    ]; then c=$(freetype-checksum); w=https://download.savannah.gnu.org/releases/freetype
+	elif [ $$n = gdb         ]; then c=$(gdb-checksum); w=http://ftp.gnu.org/gnu/gdb
 	elif [ $$n = ghostscript ]; then
 	  c=$(ghostscript-checksum)
 	  v=$$(echo $(ghostscript-version) | sed -e's/\.//')
@@ -870,6 +872,11 @@ $(ibidir)/flex: $(ibidir)/bison \
                 | $(tdir)/flex-$(flex-version).tar.gz
 	$(call gbuild, flex-$(flex-version), static, ,V=1) \
 	&& echo "Flex $(swig-version)" > $@
+
+$(ibidir)/gdb: | $(ibidir)/python \
+                 $(tdir)/gdb-$(gdb-version).tar.gz
+	$(call gbuild, gdb-$(gdb-version),,,V=1) \
+	&& echo "GNU Project Debugger (GDB) $(gdb-version)" > $@
 
 $(ibidir)/ghostscript: $(ibidir)/libtiff \
                        | $(tdir)/ghostscript-$(ghostscript-version).tar.gz

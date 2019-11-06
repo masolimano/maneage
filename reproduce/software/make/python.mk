@@ -96,6 +96,7 @@ pytarballs = $(foreach t, asn1crypto-$(asn1crypto-version).tar.gz \
                         numpy-$(numpy-version).zip \
                         pkgconfig-$(pypkgconfig-version).tar.gz \
                         pip-$(pip-version).tar.gz \
+                        pexpect-$(pexpect-version).tar.gz \
                         pybind11-$(pybind11-version).tar.gz \
                         pycodestyle-$(pycodestyle-version).tar.gz \
                         pycparser-$(pycparser-version).tar.gz \
@@ -210,6 +211,7 @@ $(pytarballs): $(tdir)/%:
 	elif [ $$n = mpi            ]; then h=04/f5/a615603ce4ab7f40b65dba63759455e3da610d9a155d4d4cece1d8fd6706; c=$(mpi4py-checksum)
 	elif [ $$n = mpmath         ]; then h=ca/63/3384ebb3b51af9610086b23ea976e6d27d6d97bf140a76a365bd77a3eb32; c=$(mpmath-checksum)
 	elif [ $$n = numpy          ]; then h=ac/36/325b27ef698684c38b1fe2e546e2e7ef9cecd7037bcdb35c87efec4356af; c=$(numpy-checksum)
+	elif [ $$n = pexpect        ]; then h=1c/b1/362a0d4235496cb42c33d1d8732b5e2c607b0129ad5fdd76f5a583b9fcb3; c=$(pexpect-checksum)
 	elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af; c=$(pip-checksum)
 	elif [ $$n = pkgconfig      ]; then h=6e/a9/ff67ef67217dfdf2aca847685fe789f82b931a6957a3deac861297585db6; c=$(pypkgconfig-checksum)
 	elif [ $$n = pybind         ]; then h=aa/91/deb6743e79e22ab01502296570b39b8404f10cc507a6692d612a7fee8d51; c=$(pybind11-checksum)
@@ -582,6 +584,11 @@ $(ipydir)/numpy: $(ibidir)/unzip \
 	                Numpy $(numpy-version)) \
 	&& cp $(dtexdir)/numpy.tex $(ictdir)/ \
 	&& echo "Numpy $(numpy-version) \citep{numpy2011}" > $@
+
+$(ipydir)/pexpect: $(ipydir)/setuptools \
+                   | $(tdir)/pexpect-$(pexpect-version).tar.gz
+	$(call pybuild, tar xf, pexpect-$(pexpect-version), ,\
+	                Pexpect $(pexpect-version))
 
 $(ibidir)/pip3: $(ipydir)/setuptools \
                 | $(tdir)/pip-$(pip-version).tar.gz
