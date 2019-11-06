@@ -175,6 +175,13 @@ with (earlier versions of) this template. Note that this template is
 evolving, so some details may be different in them. The more recent ones
 can be used as a good working example besides the default template.
 
+ - Infante-Sainz et al. ([2019](https://arxiv.org/abs/1911.01430)),
+   accepted for publication in MNRAS. The version controlled project source
+   is available [on
+   GitLab](https://gitlab.com/infantesainz/sdss-extended-psfs-paper) and is
+   also archived on Zenodo with all the necessary software tarballs:
+   [zenodo.3524937](https://zenodo.org/record/3524937).
+
  - Akhlaghi ([2019](https://arxiv.org/abs/1909.11230), IAU Symposium
    355). The version controlled project source is available [on
    GitLab](https://gitlab.com/makhlaghi/iau-symposium-355) and is also
