@@ -35,7 +35,7 @@
 # have found several other Python-related environment variables on some
 # systems which might interfere. To be safe, we are removing all their
 # values.
-export PYTHONPATH             := $(installdir)/lib/python/site-packages
+export PYTHONPATH             := $(idir)/lib/python/site-packages
 export PYTHONPATH2            := $(PYTHONPATH)
 export PYTHONPATH3            := $(PYTHONPATH)
 export _LMFILES_              :=
@@ -306,7 +306,7 @@ $(ibidir)/python: $(ibidir)/libffi \
 	if [ x$(on_mac_os) = xyes ]; then \
 	  export CC=clang; \
 	  export CXX=clang++; \
-	fi; echo; echo "$@: HERE"; echo;\
+	fi; \
 	$(call gbuild, Python-$(python-version),, \
 	       --without-ensurepip \
 	       --with-system-ffi \

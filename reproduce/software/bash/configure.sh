@@ -676,10 +676,10 @@ gcc_works=0
 testprog=$tmpblddir/test-c
 testsource=$tmpblddir/test.c
 echo; echo; echo "Checking host C compiler...";
-echo "#include <stdio.h>"                                > $testsource
-echo "#include <stdlib.h>"                              >> $testsource
-echo "int main(void){printf(\"...C compiler works.\");" >> $testsource
-echo "               return EXIT_SUCCESS;}"             >> $testsource
+echo "#include <stdio.h>"                                  > $testsource
+echo "#include <stdlib.h>"                                >> $testsource
+echo "int main(void){printf(\"...C compiler works.\n\");" >> $testsource
+echo "               return EXIT_SUCCESS;}"               >> $testsource
 if gcc $testsource -o$testprog && $testprog; then
     rm $testsource $testprog
 else

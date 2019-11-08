@@ -57,8 +57,9 @@ export PATH := $(ibdir):$(PATH)
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
-export LD_LIBRARY_PATH := $(ildir):$(LD_LIBRARY_PATH)
 export LDFLAGS := $(rpath_command) -L$(ildir) $(LDFLAGS)
+export LD_LIBRARY_PATH := $(shell echo $(ildir):$(LD_LIBRARY_PATH) \
+                                  | sed -e's/::/:/g')
 
 # RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
 # ultimately redundant. But on some systems, even having a single value
@@ -900,7 +901,8 @@ $(ibidir)/git: $(ibidir)/curl \
 $(ibidir)/gmp: | $(ibidir)/m4 \
                  $(ibidir)/coreutils \
                  $(tdir)/gmp-$(gmp-version).tar.lz
-	$(call gbuild, gmp-$(gmp-version), static, , , make check)  \
+	$(call gbuild, gmp-$(gmp-version), static, \
+	               --enable-cxx --enable-fat, ,make check)  \
 	&& echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
@@ -1059,6 +1061,9 @@ $(ibidir)/perl: | $(ibidir)/coreutils \
 	               -Dldflags="$$LDFLAGS" \
 	&& make SHELL=$(ibdir)/bash -j$(numthreads) \
 	&& make SHELL=$(ibdir)/bash install \
+	&& cd .. \
+	&& rm -rf perl-$(perl-version) \
+	&& cd $$topdir \
 	&& echo "Perl $(perl-version)" > $@
 
 
