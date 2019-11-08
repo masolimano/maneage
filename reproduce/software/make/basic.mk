@@ -58,8 +58,8 @@ export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
 export LDFLAGS := $(rpath_command) -L$(ildir) $(LDFLAGS)
-export LD_LIBRARY_PATH := $(shell echo $(ildir):$(LD_LIBRARY_PATH) \
-                                  | sed -e's/::/:/g')
+export LD_LIBRARY_PATH := $(shell echo $(LD_LIBRARY_PATH) \
+                                  | sed -e's/::/:/g' -e's/^://' -e's/:$$//')
 
 # RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
 # ultimately redundant. But on some systems, even having a single value

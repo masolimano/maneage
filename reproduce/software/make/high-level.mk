@@ -871,7 +871,7 @@ $(ibidir)/cmake: $(ibidir)/curl \
 $(ibidir)/flex: $(ibidir)/bison \
                 | $(tdir)/flex-$(flex-version).tar.gz
 	$(call gbuild, flex-$(flex-version), static, ,V=1) \
-	&& echo "Flex $(swig-version)" > $@
+	&& echo "Flex $(flex-version)" > $@
 
 $(ibidir)/gdb: | $(ibidir)/python \
                  $(tdir)/gdb-$(gdb-version).tar.gz

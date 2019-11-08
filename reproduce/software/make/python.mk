@@ -554,6 +554,12 @@ $(ipydir)/matplotlib: $(ipydir)/numpy \
                       $(ibidir)/imagemagick \
                       $(ipydir)/python-dateutil \
                       | $(tdir)/matplotlib-$(matplotlib-version).tar.gz
+        # On Mac systems, the build complains about `clang' specific
+        # features, so we can't use our own GCC build here.
+	if [ x$(on_mac_os) = xyes ]; then \
+	  export CC=clang; \
+	  export CXX=clang++; \
+	fi; \
 	$(call pybuild, tar xf, matplotlib-$(matplotlib-version)) \
 	&& cp $(dtexdir)/matplotlib.tex $(ictdir)/ \
 	&& echo "Matplotlib $(matplotlib-version) \citep{matplotlib2007}" > $@
