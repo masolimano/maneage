@@ -60,9 +60,15 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	echo; echo; exit 1
 	fi
 
-        # Download (or make the link to) the input dataset.
+        # Download (or make the link to) the input dataset. If the file
+        # exists in `INDIR', it may be a symbolic link to some other place
+        # in the filesystem. To avoid too many links when using these files
+        # during processing, we'll use `readlink -f' so the link we make
+        # here points to the final file directly (note that `readlink' is
+        # part of GNU Coreutils). If its not a link, the `readlink' part
+        # has no effect.
 	if [ -f $(INDIR)/$$origname ]; then
-	  ln -s $(INDIR)/$$origname $@
+	  ln -fs $$(readlink -f $(INDIR)/$$origname) $$out
 	else
 	  touch $(lockdir)/download
 	  $(downloadwrapper) "wget --no-use-server-timestamps -O" \
