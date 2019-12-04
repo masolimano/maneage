@@ -878,8 +878,42 @@ $(ibidir)/gdb: | $(ibidir)/python \
 	$(call gbuild, gdb-$(gdb-version),,,V=1) \
 	&& echo "GNU Project Debugger (GDB) $(gdb-version)" > $@
 
-$(ibidir)/ghostscript: $(ibidir)/libtiff \
+$(ibidir)/ghostscript: $(ibidir)/libpng \
+                       $(ibidir)/libtiff \
                        | $(tdir)/ghostscript-$(ghostscript-version).tar.gz
+        # First we need to make sure some necessary X11 libraries that we
+        # don't yet install in this template are present on the host
+        # system, see https://savannah.nongnu.org/task/?15481 .
+	echo;
+	echo "Template: testing necessary X11 libraries for ghostscript"
+	echo "---------------------------------------------------------"
+	oprog=$(ddir)/libXext-test-for-ghostscript
+	cprog=$(ddir)/libXext-test-for-ghostscript.c
+	echo "#include <stdio.h>"          > $$cprog
+	echo "int main(void) {return 0;}" >> $$cprog
+	if $$CC $$cprog -o$$oprog -lXt -lSM -lICE -lXext; then
+	  echo "Necessary X11 libraries are present. Proceeding to the build."
+	  rm $$cprog $$oprog
+	else
+	  rm $$cprog
+	  echo ""
+	  echo "Problem in building Ghostscript"
+	  echo "-------------------------------"
+	  echo "Some necessary X11 libraries (that we don't yet install"
+	  echo "within the template) couldn't be found on your system, see"
+	  echo "the 'ld' error message above. Please install them manually"
+	  echo "so Ghostscript can be built."
+	  echo
+	  echo "For example if you use Debian-based OSs, run this command:"
+	  echo "  sudo apt install libxext-dev libxt-dev libsm-dev libice-dev ghostscript"
+	  echo ""
+	  echo "This notice will be removed once these packages are built"
+	  echo "within the project (Task #15481)."
+	  echo "-------------------------------"
+	  exit 1
+	fi
+
+        # If they were present, go onto building Ghostscript.
 	$(call gbuild, ghostscript-$(ghostscript-version)) \
 	&& echo "GPL Ghostscript $(ghostscript-version)" > $@
 
