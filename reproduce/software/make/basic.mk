@@ -1020,6 +1020,16 @@ $(ibidir)/mpfr: $(ibidir)/gmp \
 	$(call gbuild, mpfr-$(mpfr-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
+# The `-shared' flag will cause problems while building Perl on macOS, so
+# we'll only use this configuration option when we are GNU/Linux
+# systems. However, since the whole option must be used (which includes `='
+# and empty space), its easier to define the variable as a Make variable
+# outside the recipe, not as a shell variable inside it.
+ifeq ($(on_mac_os),yes)
+perl-conflddlflags =
+else
+perl-conflddlflags = -Dlddlflags="-shared $$LDFLAGS"
+endif
 $(ibidir)/perl: | $(ibidir)/coreutils \
                   $(tdir)/perl-$(perl-version).tar.gz
 	major_version=$$(echo $(perl-version) \
@@ -1057,7 +1067,7 @@ $(ibidir)/perl: | $(ibidir)/coreutils \
 	               -Dman1ext=1perl \
 	               -Dman3ext=3perl \
 	               -Dcccdlflags='-fPIC' \
-	               -Dlddlflags="-shared $$LDFLAGS" \
+	               $(perl-conflddlflags) \
 	               -Dldflags="$$LDFLAGS" \
 	&& make SHELL=$(ibdir)/bash -j$(numthreads) \
 	&& make SHELL=$(ibdir)/bash install \
