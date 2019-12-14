@@ -111,6 +111,7 @@ openmpi-version = 4.0.1
 openssh-version = 8.0p1
 pixman-version = 0.38.0
 python-version = 3.7.4
+R-version = 3.6.2
 rpcsvc-proto-version = 1.4
 scamp-version = 2.6.7
 scons-version = 3.0.5

@@ -171,6 +171,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         openmpi-$(openmpi-version).tar.gz \
                         openssh-$(openssh-version).tar.gz \
                         pixman-$(pixman-version).tar.gz \
+                        R-$(R-version).tar.gz \
                         scamp-$(scamp-version).tar.lz \
                         scons-$(scons-version).tar.gz \
                         sextractor-$(sextractor-version).tar.lz \
@@ -267,6 +268,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	elif [ $$n = openssh     ]; then c=$(openssh-checksum); w=https://artfiles.org/openbsd/OpenSSH/portable
 	elif [ $$n = pixman      ]; then c=$(pixman-checksum); w=https://www.cairographics.org/releases
+	elif [ $$n = R           ]; then c=$(R-checksum);
+	  majver=$$(echo $(R-version) | sed -e's/\./ /g' | awk '{print $$1}')
+	  w=https://cran.r-project.org/src/base/R-$$majver
 	elif [ $$n = rpcsvc      ]; then c=$(rpcsvc-proto-checksum); w=https://github.com/thkukuk/rpcsvc-proto/releases/download/v$(rpcsvc-proto-version)
 	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = scons       ]; then
@@ -1023,6 +1027,16 @@ $(ibidir)/netpbm: $(ibidir)/unzip \
 	&& cd .. \
 	&& rm -rf $$unpackdir \
 	&& echo "Netpbm $(netpbm-version)" > $@
+
+# R programming language
+$(ibidir)/R: $(ibidir)/libpng \
+             $(ibidir)/libjpeg \
+             $(ibidir)/libtiff \
+             | $(tdir)/R-$(R-version).tar.gz
+	export R_SHELL=$(SHELL); \
+	$(call gbuild, R-$(R-version), static, \
+                       --without-x --with-readline) \
+	&& echo "R $(R-version)" > $@
 
 # SCAMP documentation says ATLAS is a mandatory prerequisite for using
 # SCAMP. We have ATLAS into the project but there are some problems with the
