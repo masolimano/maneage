@@ -1035,7 +1035,8 @@ $(ibidir)/R: $(ibidir)/libpng \
              | $(tdir)/R-$(R-version).tar.gz
 	export R_SHELL=$(SHELL); \
 	$(call gbuild, R-$(R-version), static, \
-                       --without-x --with-readline) \
+                       --without-x --with-readline \
+	               --disable-openmp) \
 	&& echo "R $(R-version)" > $@
 
 # SCAMP documentation says ATLAS is a mandatory prerequisite for using
