@@ -512,7 +512,7 @@ $(ipydir)/idna: $(ipydir)/setuptools \
 	       idna $(idna-version))
 
 $(ipydir)/jeepney: $(ipydir)/setuptools \
-                   | $(tdir)/jeepney-$(jeepney-version).tar.gz \
+                   | $(tdir)/jeepney-$(jeepney-version).tar.gz
 	$(call pybuild, tar xf, jeepney-$(jeepney-version), ,\
 	                Jeepney $(jeepney-version))
 
