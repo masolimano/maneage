@@ -255,7 +255,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(libgit2-checksum)
 	  w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	elif [ $$n = libtirpc    ]; then c=$(libtirpc-checksum); w=https://downloads.sourceforge.net/libtirpc
-	elif [ $$n = libxml      ]; then c=$(libxml-checksum); w=ftp://xmlsoft.org/libxml2
+	elif [ $$n = libxml      ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2
 	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = openblas    ]; then
 	  mergenames=0
