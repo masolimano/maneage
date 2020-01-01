@@ -653,15 +653,20 @@ First custom commit
        $ ./project make
        ```
 
-     - Tell Git _not_ to merge changes in the dummy `delete-me` files (by
-       keeping their names in a `.gitattributes` file. Note that only the
-       first one is a `>` (to re-write the file), the rest are `>>` (to
-       append to it). After doing this step in your own branch, when future
-       commits of the template make a change in the dummy files, they will
-       not be imported into your project's branch (it can be annoying!).
+     - Tell Git _not_ to merge changes in the dummy `delete-me` files, and
+       `paper.tex` (its contents are just dummy place holders) from the
+       template (by keeping their names in a `.gitattributes` file). Note
+       that only the first `echo` command has a `>` (to re-write the file
+       with the given line), the rest are `>>` (to append to it). After
+       doing this step in your own branch, when future commits in the
+       template make any change in the given files, they will not be
+       imported into your project's branch (it can be annoying!). You can
+       follow a similar strategy if you want to avoid any other set of
+       files to be imported from the template into your project's branch.
 
        ```shell
-       $ echo "tex/src/delete-me.mk merge=ours" > .gitattributes
+       $ echo "paper.tex" > .gitattributes
+       $ echo "tex/src/delete-me.mk merge=ours" >> .gitattributes
        $ echo "tex/src/delete-me-demo.mk merge=ours" >> .gitattributes
        $ echo "reproduce/analysis/make/delete-me.mk merge=ours" >> .gitattributes
        $ echo "reproduce/analysis/config/delete-me-num.mk merge=ours" >> .gitattributes
