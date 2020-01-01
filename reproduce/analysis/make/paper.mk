@@ -28,17 +28,18 @@
 # `$(mtexdir)/project.tex' is actually just a combination of separate files
 # that keep the LaTeX macros related to each workhorse Makefile (in
 # `reproduce/src/make/*.mk'). Those individual macros are pre-requisites to
-# `$(mtexdir)/project.tex'. The only workhorse Makefile that doesn't need
-# to produce LaTeX macros is this Makefile (`reproduce/src/make/paper.mk').
+# `$(mtexdir)/verify.tex' which will check them before starting to build
+# the paper. The only workhorse Makefile that doesn't need to produce LaTeX
+# macros is this Makefile (`reproduce/src/make/paper.mk').
 #
-# This file is thus the interface between the processing scripts and the
-# final PDF: when we get to this point, all the processing has been
+# This file is thus the interface between the analysis/processing steps and
+# the final PDF: when we get to this point, all the processing has been
 # completed.
 #
 # Note that if you don't want the final PDF and just want the processing
 # and file outputs, you can remove the value of `pdf-build-final' in
 # `reproduce/analysis/config/pdf-build.mk'.
-$(mtexdir)/project.tex: $(foreach s, $(subst paper,,$(makesrc)), $(mtexdir)/$(s).tex)
+$(mtexdir)/project.tex: $(mtexdir)/verify.tex
 
         # If no PDF is requested, or if LaTeX isn't available, don't
         # continue to building the final PDF. Otherwise, merge all the TeX

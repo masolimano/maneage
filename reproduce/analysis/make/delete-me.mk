@@ -23,10 +23,10 @@
 # -------------
 #
 # We will use AWK to generate a table showing X and X^2 and draw its plot.
-dmdir = $(texdir)/delete-me
-dm    = $(dmdir)/data.txt
-$(dmdir): | $(texdir); mkdir $@
-$(dm): $(pconfdir)/delete-me-num.mk | $(dmdir)
+delete-numdir = $(texdir)/delete-me-num
+delete-num    = $(delete-numdir)/data.txt
+$(delete-numdir): | $(texdir); mkdir $@
+$(delete-num): $(pconfdir)/delete-me-num.mk | $(delete-numdir)
 
         # When the plotted values are re-made, it is necessary to also
         # delete the TiKZ externalized files so the plot is also re-made.
@@ -44,10 +44,10 @@ $(dm): $(pconfdir)/delete-me-num.mk | $(dmdir)
 #
 # For an example image, we'll make a PDF copy of the WFPC II image to
 # display in the paper.
-dddemodir = $(texdir)/delete-me-demo
-$(dddemodir): | $(texdir); mkdir $@
-demopdf = $(dddemodir)/wfpc2.pdf
-$(demopdf): $(dddemodir)/%.pdf: $(indir)/%.fits | $(dddemodir)
+delete-demodir = $(texdir)/delete-me-demo
+$(delete-demodir): | $(texdir); mkdir $@
+delete-pdf = $(delete-demodir)/wfpc2.pdf
+$(delete-pdf): $(delete-demodir)/%.pdf: $(indir)/%.fits | $(delete-demodir)
 
         # When the plotted values are re-made, it is necessary to also
         # delete the TiKZ externalized files so the plot is also re-made.
@@ -64,8 +64,9 @@ $(demopdf): $(dddemodir)/%.pdf: $(indir)/%.fits | $(dddemodir)
 # ------------------------
 #
 # For an example plot, we'll show the pixel value histogram also.
-histogram = $(dddemodir)/wfpc2-hist.txt
-$(histogram): $(dddemodir)/%-hist.txt: $(indir)/%.fits | $(dddemodir)
+delete-histogram = $(delete-demodir)/wfpc2-hist.txt
+$(delete-histogram): $(delete-demodir)/%-hist.txt: $(indir)/%.fits \
+                     | $(delete-demodir)
 
         # When the plotted values are re-made, it is necessary to also
         # delete the TiKZ externalized files so the plot is also re-made.
@@ -83,8 +84,9 @@ $(histogram): $(dddemodir)/%-hist.txt: $(indir)/%.fits | $(dddemodir)
 #
 # This is just as a demonstration on how to get analysic configuration
 # parameters from variables defined in `reproduce/analysis/config/'.
-stats = $(dddemodir)/wfpc2-stats.txt
-$(stats): $(dddemodir)/%-stats.txt: $(indir)/%.fits | $(dddemodir)
+delete-stats = $(delete-demodir)/wfpc2-stats.txt
+$(delete-stats): $(delete-demodir)/%-stats.txt: $(indir)/%.fits \
+                 | $(delete-demodir)
 	aststatistics $< -h0 --mean --median > $@
 
 
@@ -98,7 +100,8 @@ $(stats): $(dddemodir)/%-stats.txt: $(indir)/%.fits | $(dddemodir)
 #
 # NOTE: In LaTeX you cannot use any non-alphabetic character in a variable
 # name.
-$(mtexdir)/delete-me.tex: $(dm) $(demopdf) $(histogram) $(stats)
+$(mtexdir)/delete-me.tex: $(delete-num) $(delete-pdf) $(delete-histogram) \
+                          $(delete-stats)
 
         # Write the number of random values used.
 	echo "\newcommand{\deletemenum}{$(delete-me-num)}" > $@
@@ -112,15 +115,15 @@ $(mtexdir)/delete-me.tex: $(dm) $(demopdf) $(histogram) $(stats)
         # values, then using it again to read each separately to use in the
         # macro definition.
 	mm=$$(awk 'BEGIN{min=99999; max=-min}
-	           {if($$2>max) max=$$2; if($$2<min) min=$$2;}
-	           END{print min, max}' $(dm));
+	           !/^#/{if($$2>max) max=$$2; if($$2<min) min=$$2;}
+	           END{print min, max}' $(delete-num));
 	v=$$(echo "$$mm" | awk '{printf "%.3f", $$1}');
 	echo "\newcommand{\deletememin}{$$v}"             >> $@
 	v=$$(echo "$$mm" | awk '{printf "%.3f", $$2}');
 	echo "\newcommand{\deletememax}{$$v}"             >> $@
 
         # Write the statistics of the WFPC2 image as a macro.
-	mean=$$(awk     '{printf("%.2f", $$1)}' $(stats))
+	mean=$$(awk     '{printf("%.2f", $$1)}' $(delete-stats))
 	echo "\newcommand{\deletemewfpctwomean}{$$mean}"          >> $@
-	median=$$(awk   '{printf("%.2f", $$2)}' $(stats))
+	median=$$(awk   '{printf("%.2f", $$2)}' $(delete-stats))
 	echo "\newcommand{\deletemewfpctwomedian}{$$median}"      >> $@

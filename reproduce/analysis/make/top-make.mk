@@ -113,6 +113,7 @@ endif
 makesrc = initialize \
           download \
           delete-me \
+          verify \
           paper
 
 

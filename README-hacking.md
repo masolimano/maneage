@@ -419,13 +419,14 @@ possible.
 The `reproduce/analysis/make/paper.mk` Makefile must be the final Makefile
 that is included. This workhorse Makefile ends with the rule to build
 `paper.pdf` (final target of the whole project). If you look in it, you
-will notice that it starts with a rule to create `$(mtexdir)/project.tex`
-(`mtexdir` is just a shorthand name for `$(BDIR)/tex/macros` mentioned
-before).  `$(mtexdir)/project.tex` is the connection between the
+will notice that this Makefile starts with a rule to create
+`$(mtexdir)/project.tex` (`mtexdir` is just a shorthand name for
+`$(BDIR)/tex/macros` mentioned before). As you see, the only dependency of
+`$(mtexdir)/project.tex` is `$(mtexdir)/verify.tex` (which is the last
+analysis step: it verifies all the generated results).  Therefore,
+`$(mtexdir)/project.tex` is _the connection_ between the
 processing/analysis steps of the project, and the steps to build the final
-PDF. As you see, `$(mtexdir)/project.tex` only instructs LaTeX to import
-the LaTeX macros of each high-level processing step during the analysis
-(the separate work-horse Makefiles that you defined and included).
+PDF.
 
 During the research, it often happens that you want to test a step that is
 not a prerequisite of any higher-level operation. In such cases, you can
@@ -496,9 +497,10 @@ mind are listed below.
    the variable defined in it.
 
  - Through any number of intermediate prerequisites, all processing steps
-   should end in (be a prerequisite of) `$(mtexdir)/project.tex` (defined
-   in `reproduce/analysis/make/paper.mk`). `$(mtexdir)/project.tex` is the
-   bridge between the processing steps and PDF-building steps.
+   should end in (be a prerequisite of) `$(mtexdir)/verify.tex` (defined in
+   `reproduce/analysis/make/verify.mk`). `$(mtexdir)/verify.tex` is the sole
+   dependency of `$(mtexdir)/project.tex`, which is the bridge between the
+   processing steps and PDF-building steps of the project.
 
 
 
@@ -637,6 +639,12 @@ First custom commit
        in the `makesrc` definition. Just make sure there is no empty line
        between the `download \` and `paper` lines.
 
+     - `reproduce/analysis/make/verify.mk`: In the final recipe, under the
+       commented line `Verify TeX macros`, remove the full line that
+       contains `delete-me`, and set the value of `s` in the line for
+       `download` to `XXXXX` (any temporary string, you'll fix it in the
+       end of your project, when its complete).
+
      - Delete all `delete-me*` files in the following directories:
 
        ```shell
@@ -644,6 +652,14 @@ First custom commit
        $ rm reproduce/analysis/make/delete-me*
        $ rm reproduce/analysis/config/delete-me*
        ```
+
+     - Disable verification of outputs by removing the `yes` from
+       `reproduce/analysis/config/verify-outputs.mk`. Later, when you are
+       ready to submit your paper, or publish the dataset, activate
+       verification and make the proper corrections in this file (described
+       under the "Other basic customizations" section below). This is a
+       critical step and only takes a few minutes when your project is
+       finished. So DON'T FORGET to activate it in the end.
 
      - Re-make the project (after a cleaning) to see if you haven't
        introduced any errors.
@@ -778,6 +794,32 @@ Other basic customizations
      file. Therefore, make it as easy as possible for them to start
      with. Also check and update this file one last time when you are ready
      to publish your project's paper/source.
+
+ - **Verify outputs**: During the initial customization checklist, you
+     disabled verification. This is natural because during the project you
+     need to make changes all the time and its a waste of time to enable
+     verification every time. But at significant moments of the project
+     (for example before submission to a journal, or publication) it is
+     necessary. When you activate verification, before building the paper,
+     all the specified datasets will be compared with their respective
+     checksum and if any file's checksum is different from the one recorded
+     in the project, it will stop and print the problematic file and its
+     expected and calculated checksums. First set the value of
+     `verify-outputs` valiable in
+     `reproduce/analysis/config/verify-outputs.mk` to `yes`. Then go to
+     `reproduce/analysis/make/verify.mk`. The verification of all the files
+     is only done in one recipe. First the files that go into the
+     plots/figures are checked, then the LaTeX macros. The important thing
+     to consider is that a simple checksum can be problematic because some
+     file generators print their run-time date in the file (for example as
+     commented lines in a text table). When checking text files, this
+     Makefile already has this function:
+     `verify-txt-no-comments-leading-space`. As the name suggests, it will
+     remove comment lines and empty lines before calculating the MD5
+     checksum. For FITS formats (common in astronomy, fortunately there is
+     a `DATASUM` definition which will return the checksum independent of
+     the headers. You can use the provided function(s), or define one for
+     your special formats.
 
  - **Feedback**: As you use the template you will notice many things that
      if implemented from the start would have been very useful for your
