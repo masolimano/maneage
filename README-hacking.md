@@ -637,7 +637,7 @@ First custom commit
 
      - `reproduce/analysis/make/top-make.mk`: Delete the `delete-me` line
        in the `makesrc` definition. Just make sure there is no empty line
-       between the `download \` and `paper` lines.
+       between the `download \` and `verify \` lines.
 
      - `reproduce/analysis/make/verify.mk`: In the final recipe, under the
        commented line `Verify TeX macros`, remove the full line that
@@ -809,9 +809,12 @@ Other basic customizations
      `reproduce/analysis/config/verify-outputs.mk` to `yes`. Then go to
      `reproduce/analysis/make/verify.mk`. The verification of all the files
      is only done in one recipe. First the files that go into the
-     plots/figures are checked, then the LaTeX macros. The important thing
-     to consider is that a simple checksum can be problematic because some
-     file generators print their run-time date in the file (for example as
+     plots/figures are checked, then the LaTeX macros. Validation of the
+     former (inputs to plots/figures) should be done manually. You can see
+     two examples of the dummy steps (with `delete-me`). For the latter,
+     you just have to update the checksums. The important thing to consider
+     is that a simple checksum can be problematic because some file
+     generators print their run-time date in the file (for example as
      commented lines in a text table). When checking text files, this
      Makefile already has this function:
      `verify-txt-no-comments-leading-space`. As the name suggests, it will
