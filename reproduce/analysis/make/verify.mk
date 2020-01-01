@@ -23,6 +23,12 @@
 # ----------------------
 #
 # These functions are used by the final rule in this Makefil
+verify-print-error-start = \
+  echo; \
+  echo "VERIFICATION ERROR"; \
+  echo "------------------"; \
+  echo
+
 verify-print-tips = \
   echo "If you are still developing your project, you can disable"; \
   echo "verification by removing the value of the variable in the"; \
@@ -37,6 +43,12 @@ verify-print-tips = \
 verify-txt-no-comments-leading-space = \
   infile=$(strip $(1)); \
   inchecksum=$(strip $(2)); \
+  if ! [ -f "$$infile" ]; then \
+    $(call verify-print-error-start); \
+    echo "The following file (that should be verified) doesn't exist:"; \
+    echo "    $$infile"; \
+    echo; exit 1; \
+  fi; \
   checksum=$$(sed -e 's/^[[:space:]]*//g' \
                   -e 's/\#.*$$//' \
                   -e '/^$$/d' $$infile \
@@ -45,9 +57,7 @@ verify-txt-no-comments-leading-space = \
   if [ x"$$inchecksum" = x"$$checksum" ]; then \
     echo "Verified: $$infile"; \
   else \
-    echo; \
-    echo "VERIFICATION ERROR"; \
-    echo "------------------"; \
+    $(call verify-print-error-start); \
     $(call verify-print-tips); \
     echo; \
     echo "Checked file (without empty or commented lines):"; \

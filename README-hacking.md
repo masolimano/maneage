@@ -810,11 +810,13 @@ Other basic customizations
      `reproduce/analysis/make/verify.mk`. The verification of all the files
      is only done in one recipe. First the files that go into the
      plots/figures are checked, then the LaTeX macros. Validation of the
-     former (inputs to plots/figures) should be done manually. You can see
-     two examples of the dummy steps (with `delete-me`). For the latter,
-     you just have to update the checksums. The important thing to consider
-     is that a simple checksum can be problematic because some file
-     generators print their run-time date in the file (for example as
+     former (inputs to plots/figures) should be done manually. If its the
+     first time you are doing this, you can see two examples of the dummy
+     steps (with `delete-me`, you can use them if you like). These two
+     examples should be removed before you can run the project. For the
+     latter, you just have to update the checksums. The important thing to
+     consider is that a simple checksum can be problematic because some
+     file generators print their run-time date in the file (for example as
      commented lines in a text table). When checking text files, this
      Makefile already has this function:
      `verify-txt-no-comments-leading-space`. As the name suggests, it will
