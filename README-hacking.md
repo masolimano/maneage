@@ -1,7 +1,7 @@
 Reproducible paper template
 ===========================
 
-Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 See the end of the file for license conditions.
 
 This project contains a **fully working template** for doing reproducible
@@ -670,8 +670,8 @@ First custom commit
      `tex/src/preamble-header.tex`.
 
      ```
-     Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-     Copyright (C) 2019 YOUR NAME <YOUR@EMAIL.ADDRESS>
+     Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+     Copyright (C) 2020 YOUR NAME <YOUR@EMAIL.ADDRESS>
      ```
 
  - **Your first commit**: You have already made some small and basic
