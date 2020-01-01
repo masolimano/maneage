@@ -653,6 +653,21 @@ First custom commit
        $ ./project make
        ```
 
+     - Tell Git _not_ to merge changes in the dummy `delete-me` files (by
+       keeping their names in a `.gitattributes` file. Note that only the
+       first one is a `>` (to re-write the file), the rest are `>>` (to
+       append to it). After doing this step in your own branch, when future
+       commits of the template make a change in the dummy files, they will
+       not be imported into your project's branch (it can be annoying!).
+
+       ```shell
+       $ echo "tex/src/delete-me.mk merge=ours" > .gitattributes
+       $ echo "tex/src/delete-me-demo.mk merge=ours" >> .gitattributes
+       $ echo "reproduce/analysis/make/delete-me.mk merge=ours" >> .gitattributes
+       $ echo "reproduce/analysis/config/delete-me-num.mk merge=ours" >> .gitattributes
+       $ git add .gitattributes
+       ```
+
  - **Copyright and License notice**: To be usable/modifiable by others
      after publication, _all_ the "copyright-able" files in your project
      (those larger than 10 lines) must have a copyright notice and license
