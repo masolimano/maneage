@@ -2,12 +2,12 @@ Software building instructions
 ==============================
 
 This directory contains Makefiles that are called by the high-level
-`reproduce/software/bash/configure.sh' script. The main target for the
+`reproduce/software/bash/configure.sh` script. The main target for the
 installation of each software is a simple plain text file that contains the
 name of the software and its version (which is put in the paper in the
 end). Once built, these plain-text files are all put in the proper
-sub-directory under `$(BDIR)/software/installed/version-info' (where
-`$(BDIR)' is the top-level build-directory specified by the user).
+sub-directory under `$(BDIR)/software/installed/version-info` (where
+`$(BDIR)` is the top-level build-directory specified by the user).
 
 Besides being directly used in the paper, these simple plain text files
 also act as prerequisites for higher-level software that depend on
@@ -16,7 +16,7 @@ lower-level ones.
 Note on prerequisites
 ---------------------
 
-Tarballs are order-only prerequsites (after a `|') because we already
+Tarballs are order-only prerequsites (after a `|`) because we already
 check their contents with the checksums, so their date is irrelevant: a
 tarball with a different content must have a new/different name, thus it
 will not exist, so it will be created, even when its order-only.q
