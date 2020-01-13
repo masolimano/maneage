@@ -135,7 +135,7 @@ yaml-version = 0.2.2
 # URL in `reproduce/software/make/python.mk'.
 asn1crypto-version = 0.24.0
 asteval-version = 0.9.16
-astropy-version = 3.2.1
+astropy-version = 4.0
 astroquery-version = 0.3.9
 beautifulsoup4-version = 4.7.1
 certifi-version = 2018.11.29
