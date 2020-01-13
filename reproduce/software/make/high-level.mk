@@ -888,6 +888,8 @@ $(ibidir)/ghostscript: $(ibidir)/libpng \
         # First we need to make sure some necessary X11 libraries that we
         # don't yet install in this template are present on the host
         # system, see https://savannah.nongnu.org/task/?15481 .
+	# Adding `-L/opt/X11/lib' to LDFLAGS is necessary for macOS systems
+	# because X11 libraries used to be installed there.
 	echo;
 	echo "Template: testing necessary X11 libraries for ghostscript"
 	echo "---------------------------------------------------------"
@@ -895,7 +897,8 @@ $(ibidir)/ghostscript: $(ibidir)/libpng \
 	cprog=$(ddir)/libXext-test-for-ghostscript.c
 	echo "#include <stdio.h>"          > $$cprog
 	echo "int main(void) {return 0;}" >> $$cprog
-	if $$CC $$cprog -o$$oprog -lXt -lSM -lICE -lXext; then
+	export LDFLAGS="$$LDFLAGS -L/opt/X11/lib"
+	if $$CC $$LDFLAGS $$cprog -o$$oprog -lXt -lSM -lICE -lXext; then
 	  echo "Necessary X11 libraries are present. Proceeding to the build."
 	  rm $$cprog $$oprog
 	else
