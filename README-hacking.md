@@ -553,6 +553,24 @@ First custom commit
      $ git checkout -b master                     # Create and enter new "master" branch.
      ```
 
+ - **Prepare to build project**: The `./project configure` command of the
+     next step will build the different software packages within the
+     "build" directory (that you will specify), nothing else on your system
+     will be touched. But since it takes long, it is useful to see what it
+     is building at every instant (its almost impossible to tell from the
+     torrent of commands that are produced!). So open another terminal on
+     your desktop and navigate to the same directory you just clone
+     above. Then run the following command. Before running the `./project
+     configure` command, this command will just print the date, once every
+     second. But as soon as it starts building software, you'll see names
+     of software come while they are being built, and go once they are
+     installed in the project build directory. See the "Inspecting status"
+     section below for more.
+
+     ```shell
+     $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
+     ```
+
  - **Test the template**: Before making any changes, it is important to
      test it and see if everything works properly with the commands
      below. If there is any problem in the `./project configure` or
@@ -570,16 +588,6 @@ First custom commit
      $ ./project make                # Do the processing and build paper (just a simple demo in the template).
 
      # Open 'paper.pdf' and see if everything is ok.
-     ```
-
- - **Software building status**: While the `./project configure` command of
-     the step above is busy building all the different software, you can
-     check the status by running the following command in another terminal
-     (but same project source directory). See the "Inspecting status"
-     section below for more.
-
-     ```shell
-     $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
      ```
 
  - **Setup the remote**: You can use any [hosting
