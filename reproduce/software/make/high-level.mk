@@ -1220,13 +1220,32 @@ $(itidir)/texlive: reproduce/software/config/installation/texlive.mk \
 	  texlive=$$(pdflatex --version | awk 'NR==1' | sed 's/.*(\(.*\))/\1/' \
 	                      | awk '{print $$NF}');
 
-          # Package names and versions.
-	  rm -f $@
+          # Package names and versions. Note that all TeXLive packages
+          # don't have a version unfortunately! So we need to also read the
+          # `revision' and `cat-date' elements and print them incase
+          # version isn't available.
 	  tlmgr info $(texlive-packages) --only-installed | awk \
-	       '$$1=="package:" {version=0; \
-	                         if($$NF=="tex-gyre") name="texgyre"; \
-	                         else                 name=$$NF} \
+	       '$$1=="package:" { \
+	           if(name!=0) \
+	             {  \
+	               if(version=="") \
+	                 { \
+	                   if(revision=="") \
+	                     { \
+	                       if(date="") printf("%s (no version)\n", name); \
+	                       else printf("%s %s (date)\n", name, date); \
+	                     } \
+	                   else
+	                     printf("%s %s (revision)\n", name, revision); \
+	                 } \
+	               else \
+	                 printf("%s %s\n", name, version); \
+	             } \
+	           name=""; version=""; revision=""; date=""; \
+	           if($$NF=="tex-gyre") name="texgyre"; \
+	           else                 name=$$NF \
+	        } \
+	        $$1=="cat-date:"    {date=$$NF} \
 	        $$1=="cat-version:" {version=$$NF} \
-	        $$1=="cat-date:" {if(version==0) version=$$2; \
-	                          printf("%s %s\n", name, version)}' >> $@
+	        $$1=="revision:"    {revision=$$NF}' > $@
 	fi
