@@ -551,6 +551,7 @@ First custom commit
      $ git remote rename origin template-origin   # Rename current/only remote to "template-origin".
      $ git branch -m template                     # Rename current/only branch to "template".
      $ git checkout -b master                     # Create and enter new "master" branch.
+     $ pwd                                        # Just to confirm where you are.
      ```
 
  - **Prepare to build project**: The `./project configure` command of the
@@ -559,13 +560,13 @@ First custom commit
      will be touched. But since it takes long, it is useful to see what it
      is building at every instant (its almost impossible to tell from the
      torrent of commands that are produced!). So open another terminal on
-     your desktop and navigate to the same directory you just clone
-     above. Then run the following command. Before running the `./project
-     configure` command, this command will just print the date, once every
-     second. But as soon as it starts building software, you'll see names
-     of software come while they are being built, and go once they are
-     installed in the project build directory. See the "Inspecting status"
-     section below for more.
+     your desktop and navigate to the same project directory that you
+     cloned (output of last command above). Then run the following
+     command. It will just print the date, once every second. But as soon
+     as the next step starts building software, you'll see the names of
+     software come while they are being built, and go once they are
+     installed in the project build directory (again: don't worry, nothing
+     will be installed outside the build directory).
 
      ```shell
      $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
@@ -645,7 +646,8 @@ First custom commit
 
      - `reproduce/analysis/make/top-make.mk`: Delete the `delete-me` line
        in the `makesrc` definition. Just make sure there is no empty line
-       between the `download \` and `verify \` lines.
+       between the `download \` and `verify \` lines (they should be
+       directly under eachother).
 
      - `reproduce/analysis/make/verify.mk`: In the final recipe, under the
        commented line `Verify TeX macros`, remove the full line that
