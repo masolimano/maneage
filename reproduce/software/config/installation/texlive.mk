@@ -20,4 +20,5 @@ texlive-packages = tex fancyhdr ec newtx fontaxes xkeyval etoolbox xcolor \
                    setspace caption footmisc datetime fmtcount titlesec \
                    preprint ulem biblatex biber logreq pgf pgfplots fp \
                    courier tex-gyre txfonts times csquotes kastrup \
-                   trimspaces pdftexcmds pdfescape letltxmacro bitset
+                   trimspaces pdftexcmds pdfescape letltxmacro bitset \
+                   mweights
