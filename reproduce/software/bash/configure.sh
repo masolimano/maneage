@@ -1207,7 +1207,7 @@ else
 fi
 .local/bin/env -i HOME=$bdir \
     .local/bin/make -f reproduce/software/make/high-level.mk \
-                    sys_library_path=$sys_library_path
+                    sys_library_path=$sys_library_path \
                     rpath_command=$rpath_command \
                     static_build=$static_build \
                     numthreads=$numthreads \
