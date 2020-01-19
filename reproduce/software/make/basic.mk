@@ -176,7 +176,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  mergenames=0; \
 	  c=$(m4-checksum); \
 	  w=http://akhlaghi.org/reproduce-software/m4-1.4.18-patched.tar.gz; \
-	elif [ $$n = make      ]; then c=$(make-checksum); w=https://alpha.gnu.org/gnu/make; \
+	elif [ $$n = make      ]; then c=$(make-checksum); w=https://ftp.gnu.org/gnu/make; \
 	elif [ $$n = metastore ]; then c=$(metastore-checksum); w=http://akhlaghi.org/reproduce-software; \
 	elif [ $$n = mpc       ]; then c=$(mpc-checksum); w=http://ftp.gnu.org/gnu/mpc; \
 	elif [ $$n = mpfr      ]; then c=$(mpfr-checksum); w=http://www.mpfr.org/mpfr-current;\
