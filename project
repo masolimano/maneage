@@ -33,6 +33,7 @@ host_cc=0
 operation=
 build_dir=
 input_dir=
+check_config=
 make_targets=
 software_dir=
 clean_texdir=0
@@ -97,6 +98,7 @@ Configure options:
   -i, --input-dir=STR      Directory containing input datasets (optional).
   -m, --minmapsize=INT     [Gnuastro] Minimum number of bytes to use RAM.
   -s, --software-dir=STR   Directory containing necessary software tarballs.
+      --check-config       During configuration, show what is being built.
       --clean-texdir       Remove possibly existing build-time subdirectories
                            under the project's 'tex/' directory (can happen
                            when source is from arXiv for example).
@@ -170,6 +172,8 @@ do
   -s|--software-dir)     software_dir="$2";                          check_v "$1" "$software_dir"; shift;shift;;
   -s=*|--software-dir=*) software_dir="${1#*=}";                     check_v "$1" "$software_dir"; shift;;
   -s*)                   software_dir=$(echo "$1" | sed -e's/-s//'); check_v "$1" "$software_dir"; shift;;
+  --check-config)        check_config=1;                                                           shift;;
+  --check-config=*)      on_off_option_error --check-config;;
   --clean-texdir)        clean_texdir=1;                                                           shift;;
   --clean-texdir=*)      on_off_option_error --clean-texdir;;
 
@@ -197,6 +201,44 @@ do
   *) make_targets="$make_targets $1"; shift;;
  esac
 done
+
+
+
+
+
+# Check configuration status
+# --------------------------
+if ! [ x$check_config = x ]; then
+    # Find the color option to pass to `ls'. Note that `--color' (for GNU
+    # Coreutils `ls') should be checked first because it also has `-G', but
+    # for something else.
+    if   ls --color &> /dev/null; then coloropt="--color=auto"
+    elif ls -G      &> /dev/null; then coloropt="-G"
+    else                               coloropt=""
+    fi
+
+    # Print a notice to let the user know what is happening.
+    cat <<EOF
+
+This is an infinite loop that will print what software are being built at
+every moment. It is actually a listing ('ls' command) of the temporary
+directory where software source code are unpacked while they are being
+built. If the project isn't being configured, the output (every second)
+will either be empty (only a date) or a with an error about a non-existant
+directory. This feature is thus only useful when the project's software are
+being built.
+
+EOF
+
+    # Run the infinite loop.
+    while true; do
+        echo;
+        echo "$(date)    [[press CTRL-C to stop]]";
+        ls $coloropt .build/software/build-tmp || junk=1;
+        sleep 1;
+    done
+    exit 0
+fi
 
 
 

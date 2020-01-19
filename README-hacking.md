@@ -556,20 +556,22 @@ First custom commit
 
  - **Prepare to build project**: The `./project configure` command of the
      next step will build the different software packages within the
-     "build" directory (that you will specify), nothing else on your system
-     will be touched. But since it takes long, it is useful to see what it
-     is building at every instant (its almost impossible to tell from the
-     torrent of commands that are produced!). So open another terminal on
-     your desktop and navigate to the same project directory that you
-     cloned (output of last command above). Then run the following
-     command. It will just print the date, once every second. But as soon
-     as the next step starts building software, you'll see the names of
-     software come while they are being built, and go once they are
-     installed in the project build directory (again: don't worry, nothing
-     will be installed outside the build directory).
+     "build" directory (that you will specify). Nothing else on your system
+     will be touched. However, since it takes long, it is useful to see
+     what it is being built at every instant (its almost impossible to tell
+     from the torrent of commands that are produced!). So open another
+     terminal on your desktop and navigate to the same project directory
+     that you cloned (output of last command above). Then run the following
+     command. Once every second, this command will just print the date
+     (possibly followed by a non-existant directory notice). But as soon as
+     the next step starts building software, you'll see the names of
+     software get printed as they are being built. Once any software is
+     installed in the project build directory it will be removed. Again,
+     don't worry, nothing will be installed outside the build directory.
 
      ```shell
-     $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
+     # On another terminal (go to top project directory)
+     $ project --check-config
      ```
 
  - **Test the template**: Before making any changes, it is important to
@@ -1235,25 +1237,6 @@ for the benefit of others.
         ```shell
         $ git clone my-project-git.bundle
         ```
-
- - **Inspecting software building status**: When you run `./project
-     configure`, several programs and libraries start to get configured and
-     build (in many cases, simultaneously). To understand the building
-     process, or for debugging a strange situation, it is sometimes useful
-     to know which programs are being built at every moment. To do this,
-     you can look into the `.build/software/build-tmp` directory (from the
-     top project directory). This temporary directory is only present while
-     building the software. At every moment, it contains the unpacked
-     source tarball directories of the all the packages that are being
-     built. After a software is successfully installed in your project, it
-     is removed from this directory. To automatically get a listing of this
-     directory every second, you can run the command below (on another
-     terminal while the software are being built). Press `CTRL-C` to stop
-     it and return back to the command-line).
-
-     ```shell
-     $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
-     ```
 
 
 
