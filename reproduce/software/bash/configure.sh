@@ -819,42 +819,6 @@ static_build=no
 
 
 
-# inform the user that the build process is starting
-# -------------------------------------------------
-if [ $printnotice = yes ]; then
-    tsec=10
-    cat <<EOF
-
--------------------------
-Building dependencies ...
--------------------------
-
-Necessary dependency programs and libraries will be built in $tsec sec.
-
-NOTE: the built software will NOT BE INSTALLED on your system (no root
-access is required). They are only for local usage by this project. They
-will be installed in:
-
-  $sdir/installed
-
-**TIP**: you can see which software is being installed at every moment with
-the following command. See "Inspecting status" section of
-'README-hacking.md' for more. In short, run it while the project is being
-configured (in another terminal, but on this same directory: '`pwd`'):
-
-  $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
-
--------------------------
-
-
-EOF
-    sleep $tsec
-fi
-
-
-
-
-
 # If we are on a Mac OS system
 # ----------------------------
 #
@@ -869,6 +833,7 @@ if type otool > /dev/null 2>/dev/null; then
     host_cc=1
     on_mac_os=yes
 else
+    host_cc=0
     on_mac_os=no
 fi
 
@@ -876,74 +841,33 @@ fi
 
 
 
-# See if GCC can be built
-# -----------------------
+# Necessary C library element positions
+# -------------------------------------
 #
-# On some GNU/Linux distros, the C compiler is broken into `multilib' (for
-# 32-bit and 64-bit support, with their own headers). On these systems,
-# `/usr/include/sys/cdefs.h' and `/usr/lib/libc.a' are not available by
-# default. So GCC will crash with different ugly errors! The only solution
-# is that user manually installs the `multilib' part as root, before
-# running the configure script.
-#
-# Note that `sys/cdefs.h' may be available in other directories (for
-# example `/usr/include/x86_64-linux-gnu/') that are automatically included
-# in an installed GCC. HOWEVER during the build of GCC, all those other
-# directories are ignored. So even if they exist, they are useless.
-gccwarning=0
-if [ $host_cc = 0 ]; then
-    if ! [ -f /usr/include/sys/cdefs.h ]; then
-        host_cc=1
-        gccwarning=1
-        cat <<EOF
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-This system doesn't have '/usr/include/sys/cdefs.h'. Because of this, the
-project can't build its custom GCC to ensure better reproducibility. We
-strongly recommend installing the proper package (for your operating
-system) that installs this necessary file. For example on some Debian-based
-GNU/Linux distros, you need these two packages: 'gcc-multilib' and
-'g++-multilib'.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-    fi
-
-    if [ -f /usr/lib/libc.a ] || [ -f /usr/lib64/libc.a ]; then
-        # This is just a place holder
-        host_cc=$host_cc
-    else
-        host_cc=1
-        gccwarning=1
-        cat <<EOF
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-This system doesn't have '/usr/lib/libc.a' or '/usr/lib64/libc.a'. Because
-of this, the project can't build its custom GCC to ensure better
-reproducibility. We recommend installing the proper package (for your
-operating system) that installs this necessary file.
-
-Some possible solutions:
-  1. On some Debian-based GNU/Linux distros, these two packages may fix the
-     problem: 'gcc-multilib' and 'g++-multilib'.
-  2. (BE CAREFUL!) If you have '/usr/lib/x86_64-linux-gnu' but don't have
-     '/usr/lib64', then running the following command might fix this
-     particular problem by making a symbolic link.
-         $ sudo ln -s /usr/lib/x86_64-linux-gnu /usr/lib64
-     After the configure script is finished, delete the link with 'rm
-     /usr/lib64' (you won't need it any more as far as this project is
-     concerned).
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-    fi
+# On some systems (in particular Debian-based OSs), the static C library
+# and necessary headers in a non-standard place, and we can't build GCC. So
+# we need to find them first. The `sys/cdefs.h' header is also in a
+# similarly different location.
+if [ x"$$on_mac_os" = xyes ]; then
+    sys_libc_ldflags=;
+else
+    sys_libc_ldflags=$(find /lib* /usr/lib*/* -name "libc.a" \
+                           | sed -e's|/libc\.a||g' \
+                           | tr ' ' '\n' \
+                           | awk '{printf "-L%s ", $1}' );
+    sys_libc_cppflags=$(echo $sys_libc_ldflags \
+                            | tr ' ' '\n' \
+                            | sed -e's|-L|-I|' -e's|/lib/|/include/|' \
+                            | awk '!/\/lib/{printf "%s ", $1}' );
+    #echo "sys_libc_ldflags: $sys_libc_ldflags"
+    #echo "sys_libc_cppflags: $sys_libc_cppflags"
+    export LDFLAGS="$LDFLAGS $sys_libc_ldflags"
+    export CPPFLAGS="$CPPFLAGS $sys_libc_cppflags"
 fi
+
+
+
+
 
 # See if a link-able static C library exists
 # ------------------------------------------
@@ -957,18 +881,22 @@ fi
 # static C library, which is not always available on some GNU/Linux
 # systems. Therefore we need to check this here. If we can't build a static
 # PatchELF, we won't build any GCC either.
-if [ $host_cc = 0 ]; then
+if [ x"$host_cc" = x0 ]; then
     testprog=$tmpblddir/test-c
     testsource=$tmpblddir/test.c
     echo; echo; echo "Checking if static C library is available...";
     echo "#include <stdio.h>"                       > $testsource
     echo "#include <stdlib.h>"                     >> $testsource
-    echo "int main(void){printf(\"...yes\");"      >> $testsource
+    echo "#include <sys/cdefs.h>"                  >> $testsource
+    echo "int main(void){printf(\"...yes\n\");"    >> $testsource
     echo "               return EXIT_SUCCESS;}"    >> $testsource
-    if gcc $testsource -o$testprog -static -lc && $testprog; then
+    cc_call="gcc $testsource $CPPFLAGS $LDFLAGS -o$testprog -static -lc"
+    if $cc_call && $testprog; then
+        gccwarning=0
         good_static_libc=1
         rm $testsource $testprog
     else
+        echo; echo "Compilation command:"; echo "$cc_call"
         good_static_libc=0
         rm $testsource
         gccwarning=1
@@ -979,15 +907,18 @@ if [ $host_cc = 0 ]; then
 !!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-A usable static C library ('libc.a', in any directory) cannot be linked in
-the current settings of this system. Because of this we can't build a
-static PatchELF, hence we can't build GCC.
+A usable static C library ('libc.a', in any directory) cannot be linked,
+and 'sys/cdefs.h' cannot be included with the current settings of this
+system. Because of this we can't build a static PatchELF, hence we can't
+build GCC.
 
 If you have 'libc.a', but in a non-standard location (for example in
-'/PATH/TO/STATIC/LIBC/libc.a'), please run this command, then re-configure
-the project to fix this problem.
+'/PATH/TO/STATIC/LIBC/libc.a' and '/PATH/TO/SYS/CDEFS_H/sys/cdefs.h'),
+please run the commands below, then re-configure the project to fix this
+problem.
 
 export LDFLAGS="-L/PATH/TO/STATIC/LIBC \$LDFLAGS"
+export CPPFLAGS="-I/PATH/TO/SYS/CDEFS_H \$LDFLAGS"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -996,7 +927,7 @@ EOF
 fi
 
 # Print a warning if GCC is not meant to be built.
-if [ $gccwarning = 1 ]; then
+if [ x"$gccwarning" = x1 ]; then
         cat <<EOF
 
 PLEASE SEE THE WARNINGS ABOVE.
@@ -1084,6 +1015,42 @@ existing configuration:
 EOF
         exit 1
     fi
+fi
+
+
+
+
+
+# inform the user that the build process is starting
+# -------------------------------------------------
+if [ $printnotice = yes ]; then
+    tsec=10
+    cat <<EOF
+
+-------------------------
+Building dependencies ...
+-------------------------
+
+Necessary dependency programs and libraries will be built in $tsec sec.
+
+NOTE: the built software will NOT BE INSTALLED on your system (no root
+access is required). They are only for local usage by this project. They
+will be installed in:
+
+  $sdir/installed
+
+**TIP**: you can see which software is being installed at every moment with
+the following command. See "Inspecting status" section of
+'README-hacking.md' for more. In short, run it while the project is being
+configured (in another terminal, but on this same directory: '`pwd`'):
+
+  $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
+
+-------------------------
+
+
+EOF
+    sleep $tsec
 fi
 
 
