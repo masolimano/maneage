@@ -1174,6 +1174,7 @@ $(ibidir)/binutils: | $(ibidir)/sed \
                       $(ibidir)/diffutils \
                       $(ibidir)/coreutils \
                       $(gcc-prerequisites)
+
 	if [ x$(on_mac_os) = xyes ]; then \
 	  $(call makelink,as); \
 	  $(call makelink,ar); \
@@ -1183,7 +1184,9 @@ $(ibidir)/binutils: | $(ibidir)/sed \
 	  $(call makelink,ranlib); \
           echo "" > $@; \
 	else \
-	  $(call gbuild, binutils-$(binutils-version), static) \
+	  $(call gbuild, binutils-$(binutils-version), static, \
+	                 --with-lib-path=$(sys_library_path), \
+	                 -j$(numthreads) ) \
 	  && echo "GNU Binutils $(binutils-version)" > $@; \
 	fi
 
@@ -1257,15 +1260,19 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	  && make SHELL=$(ibdir)/bash -j$(numthreads) \
 	  && make SHELL=$(ibdir)/bash install \
 	  && cd ../.. \
-	  && rm -rf gcc-$(gcc-version) \
+	  && tempname=$(ddir)/gcc-$(gcc-version)/build/rpath-temp-copy \
 	  && if [ "x$(on_mac_os)" != xyes ]; then \
 	       patchelf --add-needed $(ildir)/libiconv.so $(ildir)/libstdc++.so; \
 	       for f in $$(find $(idir)/libexec/gcc) $(ildir)/libstdc++*; do \
-	         if ldd $$f &> /dev/null; then \
-	           patchelf --set-rpath $(ildir) $$f; \
+	         isdynamic=$$(file $$f | grep "dynamically linked"); \
+	         if [ x"$$isdynamic" != x ]; then \
+	           cp $$f $$tempname; \
+	           patchelf --set-rpath $(ildir) $$tempname; \
+	           mv $$tempname $$f; echo "corrected"; \
 	         fi; \
 	       done; \
 	     fi \
+	  && rm -rf gcc-$(gcc-version) \
 	  && ln -sf $(ibdir)/gcc $(ibdir)/cc \
 	  && echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@; \
 	fi

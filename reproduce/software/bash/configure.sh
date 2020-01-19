@@ -848,21 +848,26 @@ fi
 # and necessary headers in a non-standard place, and we can't build GCC. So
 # we need to find them first. The `sys/cdefs.h' header is also in a
 # similarly different location.
-if [ x"$$on_mac_os" = xyes ]; then
-    sys_libc_ldflags=;
-else
-    sys_libc_ldflags=$(find /lib* /usr/lib*/* -name "libc.a" \
-                           | sed -e's|/libc\.a||g' \
-                           | tr ' ' '\n' \
-                           | awk '{printf "-L%s ", $1}' );
-    sys_libc_cppflags=$(echo $sys_libc_ldflags \
-                            | tr ' ' '\n' \
-                            | sed -e's|-L|-I|' -e's|/lib/|/include/|' \
-                            | awk '!/\/lib/{printf "%s ", $1}' );
-    #echo "sys_libc_ldflags: $sys_libc_ldflags"
-    #echo "sys_libc_cppflags: $sys_libc_cppflags"
-    export LDFLAGS="$LDFLAGS $sys_libc_ldflags"
-    export CPPFLAGS="$CPPFLAGS $sys_libc_cppflags"
+sys_cppflags=""
+sys_library_path=""
+if [ x"$$on_mac_os" != xyes ]; then
+
+    # Get the GCC target name of the compiler, when its given, special
+    # C libraries and headers are in a sub-directory of the host.
+    gcctarget=$(gcc -v 2>&1 \
+                    | tr ' ' '\n' \
+                    | awk '/\-\-target/' \
+                    | sed -e's/\-\-target=//')
+    if [ x"$gcctarget" != x ]; then
+        if [ -f /usr/lib/$gcctarget/libc.a ]; then
+            export sys_library_path=/usr/lib/$gcctarget
+            export sys_cppflags=-I/usr/include/$gcctarget
+        fi
+    fi
+
+    # For a check:
+    #echo "sys_library_path: $sys_library_path"
+    #echo "sys_cppflags: $sys_cppflags"
 fi
 
 
@@ -1149,6 +1154,24 @@ fi
 
 
 
+# library_path (ONLY FOR BASIC)
+# -----------------------------
+#
+# During the basic build, we need to include possibly existing special C
+# compiler targets (if they exist).
+export CPPFLAGS="$CPPFLAGS $sys_cppflags"
+if [ x"$sys_library_path" != x ]; then
+    if [ x"$LIBRARY_PATH" = x ]; then
+        export LIBRARY_PATH="$sys_library_path"
+    else
+        export LIBRARY_PATH="$LIBRARY_PATH:$sys_library_path"
+    fi
+fi
+
+
+
+
+
 # Build basic software
 # --------------------
 #
@@ -1160,9 +1183,9 @@ make -f reproduce/software/make/basic.mk \
      good_static_libc=$good_static_libc \
      rpath_command=$rpath_command \
      static_build=$static_build \
+     numthreads=$numthreads \
      needs_ldl=$needs_ldl \
      on_mac_os=$on_mac_os \
-     numthreads=$numthreads \
      host_cc=$host_cc \
      -j$numthreads
 
@@ -1184,6 +1207,7 @@ else
 fi
 .local/bin/env -i HOME=$bdir \
     .local/bin/make -f reproduce/software/make/high-level.mk \
+                    sys_library_path=$sys_library_path
                     rpath_command=$rpath_command \
                     static_build=$static_build \
                     numthreads=$numthreads \

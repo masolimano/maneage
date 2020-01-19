@@ -84,6 +84,13 @@ export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 # causes crashs (see bug #56682). So we'll just give it no value at all.
 export DYLD_LIBRARY_PATH :=
 
+# On Debian-based OSs, the basic C libraries are in a target-specific
+# location, not in standard places. Until we merge the building of the C
+# library, it is thus necessary to include this location here. On systems
+# that don't need it, `sys_library_path' is just empty. This is necessary
+# for `ld'.
+export LIBRARY_PATH := $(sys_library_path)
+
 # Recipe startup script, see `reproduce/software/bash/bashrc.sh'.
 export PROJECT_STATUS := configure_highlevel
 export BASH_ENV := $(shell pwd)/reproduce/software/bash/bashrc.sh
