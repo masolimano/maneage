@@ -328,17 +328,17 @@ variables/configurations) and _workhorse-Makefiles_ (Makefiles that
 actually contain analysis/processing rules).
 
 The configuration-Makefiles are those that satisfy these two wildcards:
-`reproduce/software/config/installation/*.mk` (for building the necessary
+`reproduce/software/config/installation/*.conf` (for building the necessary
 software when you run `./project configure`) and
-`reproduce/analysis/config/*.mk` (for the high-level analysis, when you run
-`./project make`). These Makefiles don't actually have any rules, they just
-have values for various free parameters throughout the configuration or
-analysis. Open a few of them to see for yourself. These Makefiles must only
-contain raw Make variables (project configurations). By "raw" we mean that
-the Make variables in these files must not depend on variables in any other
-configuration-Makefile. This is because we don't want to assume any order
-in reading them. It is also very important to *not* define any rule, or
-other Make construct, in these configuration-Makefiles.
+`reproduce/analysis/config/*.conf` (for the high-level analysis, when you
+run `./project make`). These Makefiles don't actually have any rules, they
+just have values for various free parameters throughout the configuration
+or analysis. Open a few of them to see for yourself. These Makefiles must
+only contain raw Make variables (project configurations). By "raw" we mean
+that the Make variables in these files must not depend on variables in any
+other configuration-Makefile. This is because we don't want to assume any
+order in reading them. It is also very important to *not* define any rule,
+or other Make construct, in these configuration-Makefiles.
 
 Following this rule-of-thumb enables you to set these configure-Makefiles
 as a prerequisite to any target that depends on their variable
@@ -379,8 +379,8 @@ Let's see how this design is implemented. Please open and inspect
 `top-make.mk` it as we go along here. The first step (un-commented line) is
 to import the local configuration (your answers to the questions of
 `./project configure`). They are defined in the configuration-Makefile
-`reproduce/software/config/installation/LOCAL.mk` which was also built by
-`./project configure` (based on the `LOCAL.mk.in` template of the same
+`reproduce/software/config/installation/LOCAL.conf` which was also built by
+`./project configure` (based on the `LOCAL.conf.in` template of the same
 directory).
 
 The next non-commented set of the top `Makefile` defines the ultimate
@@ -492,7 +492,7 @@ mind are listed below.
  - Do not use any constant numbers (or important names like filter names)
    in the workhorse-Makefiles or paper's LaTeX source. Define such
    constants as logically-grouped, separate configuration-Makefiles in
-   `reproduce/analysis/config/XXXXX.mk`. Then set this
+   `reproduce/analysis/config/XXXXX.conf`. Then set this
    configuration-Makefiles file as a pre-requisite to any rule that uses
    the variable defined in it.
 
@@ -666,7 +666,7 @@ First custom commit
        ```
 
      - Disable verification of outputs by removing the `yes` from
-       `reproduce/analysis/config/verify-outputs.mk`. Later, when you are
+       `reproduce/analysis/config/verify-outputs.conf`. Later, when you are
        ready to submit your paper, or publish the dataset, activate
        verification and make the proper corrections in this file (described
        under the "Other basic customizations" section below). This is a
@@ -697,7 +697,7 @@ First custom commit
        $ echo "tex/src/delete-me.mk merge=ours" >> .gitattributes
        $ echo "tex/src/delete-me-demo.mk merge=ours" >> .gitattributes
        $ echo "reproduce/analysis/make/delete-me.mk merge=ours" >> .gitattributes
-       $ echo "reproduce/analysis/config/delete-me-num.mk merge=ours" >> .gitattributes
+       $ echo "reproduce/analysis/config/delete-me-num.conf merge=ours" >> .gitattributes
        $ git add .gitattributes
        ```
 
@@ -762,29 +762,29 @@ Other basic customizations
 
  - **High-level software**: The template installs all the software that
      your project needs. You can specify which software your project needs
-     in `reproduce/software/config/installation/TARGETS.mk`. The necessary
-     software are classified into two classes: 1) programs or libraries
-     (usually written in C/C++) which are run directly by the operating
-     system. 2) Python modules/libraries that are run within Python. By
-     default `TARGETS.mk` only has GNU Astronomy Utilities (Gnuastro) as
-     one scientific program and Astropy as one scientific Python
-     module. Both have many dependencies which will be installed into your
-     project during the configuration step. To see a list of software that
-     are currently ready to be built in the template, see
-     `reproduce/software/config/installation/versions.mk` (which has their
-     versions also), the comments in `TARGETS.mk` describe how to use the
-     software name from `versions.mk`. Currently the raw pipeline just uses
-     Gnuastro to make the demonstration plots. Therefore if you don't need
-     Gnuastro, go through the analysis steps in `reproduce/analysis` and
-     remove all its use cases (clearly marked).
+     in `reproduce/software/config/installation/TARGETS.conf`. The
+     necessary software are classified into two classes: 1) programs or
+     libraries (usually written in C/C++) which are run directly by the
+     operating system. 2) Python modules/libraries that are run within
+     Python. By default `TARGETS.conf` only has GNU Astronomy Utilities
+     (Gnuastro) as one scientific program and Astropy as one scientific
+     Python module. Both have many dependencies which will be installed
+     into your project during the configuration step. To see a list of
+     software that are currently ready to be built in the template, see
+     `reproduce/software/config/installation/versions.conf` (which has
+     their versions also), the comments in `TARGETS.conf` describe how to use
+     the software name from `versions.conf`. Currently the raw pipeline just
+     uses Gnuastro to make the demonstration plots. Therefore if you don't
+     need Gnuastro, go through the analysis steps in `reproduce/analysis`
+     and remove all its use cases (clearly marked).
 
  - **Input dataset**: The input datasets are managed through the
-     `reproduce/analysis/config/INPUTS.mk` file. It is best to gather all
+     `reproduce/analysis/config/INPUTS.conf` file. It is best to gather all
      the information regarding all the input datasets into this one central
      file. To ensure that the proper dataset is being downloaded and used
      by the project, it is also recommended get an [MD5
      checksum](https://en.wikipedia.org/wiki/MD5) of the file and include
-     that in `INPUTS.mk` so the project can check it automatically. The
+     that in `INPUTS.conf` so the project can check it automatically. The
      preparation/downloading of the input datasets is done in
      `reproduce/analysis/make/download.mk`. Have a look there to see how
      these values are to be used. This information about the input datasets
@@ -818,7 +818,7 @@ Other basic customizations
      in the project, it will stop and print the problematic file and its
      expected and calculated checksums. First set the value of
      `verify-outputs` valiable in
-     `reproduce/analysis/config/verify-outputs.mk` to `yes`. Then go to
+     `reproduce/analysis/config/verify-outputs.conf` to `yes`. Then go to
      `reproduce/analysis/make/verify.mk`. The verification of all the files
      is only done in one recipe. First the files that go into the
      plots/figures are checked, then the LaTeX macros. Validation of the

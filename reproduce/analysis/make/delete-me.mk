@@ -26,7 +26,7 @@
 delete-numdir = $(texdir)/delete-me-num
 delete-num    = $(delete-numdir)/data.txt
 $(delete-numdir): | $(texdir); mkdir $@
-$(delete-num): $(pconfdir)/delete-me-num.mk | $(delete-numdir)
+$(delete-num): $(pconfdir)/delete-me-num.conf | $(delete-numdir)
 
         # When the plotted values are re-made, it is necessary to also
         # delete the TiKZ externalized files so the plot is also re-made.

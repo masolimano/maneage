@@ -38,7 +38,7 @@
 #
 # Note that if you don't want the final PDF and just want the processing
 # and file outputs, you can remove the value of `pdf-build-final' in
-# `reproduce/analysis/config/pdf-build.mk'.
+# `reproduce/analysis/config/pdf-build.conf'.
 $(mtexdir)/project.tex: $(mtexdir)/verify.tex
 
         # If no PDF is requested, or if LaTeX isn't available, don't
@@ -62,7 +62,7 @@ $(mtexdir)/project.tex: $(mtexdir)/verify.tex
 	    echo "can check by running './.local/bin/latex --version'), _AND_"
 	    echo "make sure that the 'pdf-build-final' variable has a value."
 	    echo "'pdf-build-final' is defined in: "
-	    echo     "'reproduce/analysis/config/pdf-build.mk'."
+	    echo     "'reproduce/analysis/config/pdf-build.conf'."
 	    echo
 	    echo "If you don't have LaTeX within the project, please re-run"
 	    echo "'./project configure -e' when you have internet access."

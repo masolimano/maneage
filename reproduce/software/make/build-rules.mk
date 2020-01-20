@@ -1,7 +1,7 @@
 # Generic configurable recipes to build packages with GNU Build system or
 # CMake. This is Makefile is not intended to be run directly, it will be
-# imported into `dependencies-basic.mk' and `dependencies.mk'. They should
-# be activated with Make's `Call' function.
+# imported into `basic.mk' and `high-level.mk'. They should be activated
+# with Make's `Call' function.
 #
 # Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #

@@ -33,7 +33,7 @@ verify-print-tips = \
   echo "If you are still developing your project, you can disable"; \
   echo "verification by removing the value of the variable in the"; \
   echo "following file (from the top project source directory):"; \
-  echo "    reproduce/analysis/config/verify-outputs.mk"; \
+  echo "    reproduce/analysis/config/verify-outputs.conf"; \
   echo; \
   echo "If this is the final version of the file, you can just copy"; \
   echo "and paste the calculated checksum (above) for the file in"; \

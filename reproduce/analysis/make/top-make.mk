@@ -21,7 +21,7 @@
 
 # Load the local configuration (created after running
 # `./project configure').
-include reproduce/software/config/installation/LOCAL.mk
+include reproduce/software/config/installation/LOCAL.conf
 
 
 
@@ -50,7 +50,7 @@ include reproduce/software/config/installation/LOCAL.mk
 #
 # Controlling this requires two variables that are available at this stage:
 #
-#   - `GROUP-NAME': from `LOCAL.mk' (which was built by `./project configure').
+#   - `GROUP-NAME': from `LOCAL.conf' (which was built by `./project configure').
 #   - `reproducible_paper_group_name': value to the `--group' option.
 #
 # The analysis is only done when both have the same group name. Note that
@@ -63,7 +63,7 @@ include reproduce/software/config/installation/LOCAL.mk
 #
 # If you are just interested in the processing and don't want to build the
 # PDF, you can skip the creatation of the final PDF by removing the value
-# of `pdf-build-final' in `reproduce/analysis/config/pdf-build.mk'.
+# of `pdf-build-final' in `reproduce/analysis/config/pdf-build.conf'.
 ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
 all: paper.pdf
 else
@@ -132,5 +132,5 @@ makesrc = initialize \
 # But before that, we need to identify the phase for the Makefiles that are
 # run both in `./project prepare' and `./project make'.
 project-phase = make
-include reproduce/analysis/config/*.mk
+include reproduce/analysis/config/*.conf
 include $(foreach s,$(makesrc), reproduce/analysis/make/$(s).mk)

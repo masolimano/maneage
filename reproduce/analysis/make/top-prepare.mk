@@ -25,7 +25,7 @@
 
 # Load the local configuration (created after running
 # `./project configure').
-include reproduce/software/config/installation/LOCAL.mk
+include reproduce/software/config/installation/LOCAL.conf
 
 
 
@@ -87,5 +87,5 @@ makesrc = initialize \
 #
 # See `top-make.mk' for complete explanation.
 project-phase = prepare
-include reproduce/analysis/config/*.mk
+include reproduce/analysis/config/*.conf
 include $(foreach s,$(makesrc), reproduce/analysis/make/$(s).mk)

@@ -28,11 +28,11 @@
 
 # Top level environment
 include reproduce/software/make/build-rules.mk
-include reproduce/software/config/installation/LOCAL.mk
-include reproduce/software/config/installation/TARGETS.mk
-include reproduce/software/config/installation/texlive.mk
-include reproduce/software/config/installation/versions.mk
-include reproduce/software/config/installation/checksums.mk
+include reproduce/software/config/installation/LOCAL.conf
+include reproduce/software/config/installation/TARGETS.conf
+include reproduce/software/config/installation/versions.conf
+include reproduce/software/config/installation/checksums.conf
+include reproduce/software/config/installation/texlive-packages.conf
 
 lockdir = $(BDIR)/locks
 tdir    = $(BDIR)/software/tarballs
@@ -588,7 +588,7 @@ $(ibidir)/hdf5: $(ibidir)/openmpi \
 # HEALPix includes the source of its C, C++, Python (and several other
 # languages) libraries within one tarball. We will include the Python
 # installation only when any other Python module is requested (in
-# `TARGETS.mk').
+# `TARGETS.conf').
 #
 # Note that the default `./configure' script is an interactive script which
 # is hard to automate. So we need to go into the `autotools' directory of
@@ -1191,7 +1191,7 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/installation/texlive.co
 #else
 #forbiber = $(ibidir)/libnsl
 #endif
-$(itidir)/texlive: reproduce/software/config/installation/texlive.mk \
+$(itidir)/texlive: reproduce/software/config/installation/texlive-packages.conf \
                    $(itidir)/texlive-ready-tlmgr \
                    $(forbiber)
 

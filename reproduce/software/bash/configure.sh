@@ -38,11 +38,11 @@ cdir=reproduce/software/config
 
 sbdir=$cdir/installation
 
-pconf=$sbdir/LOCAL.mk
-ptconf=$sbdir/LOCAL_tmp.mk
-poconf=$sbdir/LOCAL_old.mk
-depverfile=$cdir/installation/versions.mk
-depshafile=$cdir/installation/checksums.mk
+pconf=$sbdir/LOCAL.conf
+ptconf=$sbdir/LOCAL_tmp.conf
+poconf=$sbdir/LOCAL_old.conf
+depverfile=$cdir/installation/versions.conf
+depshafile=$cdir/installation/checksums.conf
 # --------- Delete for no Gnuastro ---------
 glconf=$cdir/gnuastro/gnuastro-local.conf
 # ------------------------------------------
@@ -117,7 +117,7 @@ EOF
 # What to do with possibly existing configuration file
 # ----------------------------------------------------
 #
-# `LOCAL.mk' is the top-most local configuration for the project. If it
+# `LOCAL.conf' is the top-most local configuration for the project. If it
 # already exists when this script is run, we'll make a copy of it as backup
 # (for example the user might have ran `./project configure' by mistake).
 printnotice=yes
@@ -299,10 +299,10 @@ if [ x"$input_dir" = x ]; then
 else
     indir=$input_dir
 fi
-wfpc2name=$(awk '!/^#/ && $1=="WFPC2IMAGE" {print $3}' $adir/INPUTS.mk)
-wfpc2md5=$(awk  '!/^#/ && $1=="WFPC2MD5"   {print $3}' $adir/INPUTS.mk)
-wfpc2size=$(awk '!/^#/ && $1=="WFPC2SIZE"  {print $3}' $adir/INPUTS.mk)
-wfpc2url=$(awk  '!/^#/ && $1=="WFPC2URL"   {print $3}' $adir/INPUTS.mk)
+wfpc2name=$(awk '!/^#/ && $1=="WFPC2IMAGE" {print $3}' $adir/INPUTS.conf)
+wfpc2md5=$(awk  '!/^#/ && $1=="WFPC2MD5"   {print $3}' $adir/INPUTS.conf)
+wfpc2size=$(awk '!/^#/ && $1=="WFPC2SIZE"  {print $3}' $adir/INPUTS.conf)
+wfpc2url=$(awk  '!/^#/ && $1=="WFPC2URL"   {print $3}' $adir/INPUTS.conf)
 if [ $rewritepconfig = yes ] && [ x"$input_dir" = x ]; then
     cat <<EOF
 

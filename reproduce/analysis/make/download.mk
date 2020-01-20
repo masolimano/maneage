@@ -24,9 +24,10 @@
 # Download input data
 # --------------------
 #
-# The input dataset properties are defined in `$(pconfdir)/INPUTS.mk'. For
-# this template we only have one dataset to enable easy processing, so all
-# the extra checks in this rule may seem redundant.
+# The input dataset properties are defined in
+# `$(pconfdir)/INPUTS.conf'. For this template we only have one dataset to
+# enable easy processing, so all the extra checks in this rule may seem
+# redundant.
 #
 # In a real project, you will need more than one dataset. In that case,
 # just add them to the target list and add an `elif' statement to define it
@@ -93,5 +94,5 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 #
 # It is very important to mention the address where the data were
 # downloaded in the final report.
-$(mtexdir)/download.tex: $(pconfdir)/INPUTS.mk | $(mtexdir)
+$(mtexdir)/download.tex: $(pconfdir)/INPUTS.conf | $(mtexdir)
 	echo "\\newcommand{\\wfpctwourl}{$(WFPC2URL)}" > $@

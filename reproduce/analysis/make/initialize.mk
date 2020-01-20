@@ -241,7 +241,7 @@ distclean: clean
         # `rm', not our own.
 	$$sys_rm -rf $(BDIR)
 	$$sys_rm -f Makefile .gnuastro .local .build
-	$$sys_rm -f $(pconfdir)/LOCAL.mk $(gconfdir)/gnuastro-local.conf
+	$$sys_rm -f $(pconfdir)/LOCAL.conf $(gconfdir)/gnuastro-local.conf
 
 
 
@@ -298,10 +298,11 @@ $(packagecontents): paper.pdf | $(texdir)
         # directories (when building in a group structure, there will be
         # `build-user1', `build-user2' and etc), are just temporary LaTeX
         # build files and don't have any relevant/hand-written files in
-        # them. 2) The `LOCAL.mk' and `gnuastro-local.conf' files just have
-        # this machine's local settings and are irrelevant for anyone else.
+        # them. 2) The `LOCAL.conf' and `gnuastro-local.conf' files just
+        # have this machine's local settings and are irrelevant for anyone
+        # else.
 	rm -rf $$dir/tex/build/build*
-	rm $$dir/reproduce/software/config/installation/LOCAL.mk
+	rm $$dir/reproduce/software/config/installation/LOCAL.conf
 	rm $$dir/reproduce/software/config/gnuastro/gnuastro-local.conf
 
         # When submitting to places like arXiv, they will just run LaTeX

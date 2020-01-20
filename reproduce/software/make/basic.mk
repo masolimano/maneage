@@ -34,9 +34,9 @@
 
 # Top level environment
 include reproduce/software/make/build-rules.mk
-include reproduce/software/config/installation/LOCAL.mk
-include reproduce/software/config/installation/versions.mk
-include reproduce/software/config/installation/checksums.mk
+include reproduce/software/config/installation/LOCAL.conf
+include reproduce/software/config/installation/versions.conf
+include reproduce/software/config/installation/checksums.conf
 
 lockdir = $(BDIR)/locks
 tdir    = $(BDIR)/software/tarballs
