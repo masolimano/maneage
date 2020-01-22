@@ -1,7 +1,8 @@
 Reproducible paper template
 ===========================
 
-Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
+Copyright (C) 2020 Raul Infante-Sainz <infantesainz@gmail.com>\
 See the end of the file for license conditions.
 
 This project contains a **fully working template** for doing reproducible
