@@ -912,18 +912,28 @@ if [ x"$host_cc" = x0 ]; then
 !!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-A usable static C library ('libc.a', in any directory) cannot be linked,
-and 'sys/cdefs.h' cannot be included with the current settings of this
-system. Because of this we can't build a static PatchELF, hence we can't
-build GCC.
+The 'sys/cdefs.h' headaer cannot be included, or a usable static C library
+('libc.a', in any directory) cannot be used with the current settings of
+this system. SEE THE ERROR MESSAGE ABOVE.
 
-If you have 'libc.a', but in a non-standard location (for example in
-'/PATH/TO/STATIC/LIBC/libc.a' and '/PATH/TO/SYS/CDEFS_H/sys/cdefs.h'),
-please run the commands below, then re-configure the project to fix this
-problem.
+Because of this, we can't build GCC. You either 1) don't have them, or 2)
+the default system environment aren't enough to find them.
 
-export LDFLAGS="-L/PATH/TO/STATIC/LIBC \$LDFLAGS"
-export CPPFLAGS="-I/PATH/TO/SYS/CDEFS_H \$LDFLAGS"
+1) If you don't have them, your operating system provides them as separate
+packages that you must manually install. Please look into your operating
+system documentation or contact someone familiar with it. For example on
+some Redhat-based GNU/Linux distributions, the static C library package can
+be installed with this command:
+
+    $ sudo yum install glibc-static
+
+2) If you have 'libc.a' and `sys/cdefs.h', but in a non-standard location (for
+example in '/PATH/TO/STATIC/LIBC/libc.a' and
+'/PATH/TO/SYS/CDEFS_H/sys/cdefs.h'), please run the commands below, then
+re-configure the project to fix this problem.
+
+    $ export LDFLAGS="-L/PATH/TO/STATIC/LIBC \$LDFLAGS"
+    $ export CPPFLAGS="-I/PATH/TO/SYS/CDEFS_H \$LDFLAGS"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
