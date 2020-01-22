@@ -58,7 +58,15 @@ export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
 export LDFLAGS := $(rpath_command) -L$(ildir) $(LDFLAGS)
-export LD_LIBRARY_PATH := $(shell echo $(LD_LIBRARY_PATH) \
+
+# This is the "basic" tools where we are relying on the host operating
+# system, but are slowly populating our basic software envirnoment. To run
+# (system or template) programs, `LD_LIBRARY_PATH' is necessary, so here,
+# we'll first tell the programs to look into any possible pre-defined
+# `LD_LIBRARY_PATH', then we'll add our own newly installed libraries.  We
+# will also make sure that there is no "current directory" in it (by
+# removing a starting or trailing `:' and any occurance of `::'.
+export LD_LIBRARY_PATH := $(shell echo $(LD_LIBRARY_PATH):$(ildir) \
                                   | sed -e's/::/:/g' -e's/^://' -e's/:$$//')
 
 # RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
@@ -658,6 +666,66 @@ $(ibidir)/bash: $(ibidir)/readline \
 
 
 
+# The `-shared' flag will cause problems while building Perl on macOS, so
+# we'll only use this configuration option when we are GNU/Linux
+# systems. However, since the whole option must be used (which includes `='
+# and empty space), its easier to define the variable as a Make variable
+# outside the recipe, not as a shell variable inside it.
+ifeq ($(on_mac_os),yes)
+perl-conflddlflags =
+else
+perl-conflddlflags = -Dlddlflags="-shared $$LDFLAGS"
+endif
+$(ibidir)/perl: | $(ibidir)/bash \
+                  $(tdir)/perl-$(perl-version).tar.gz
+	major_version=$$(echo $(perl-version) \
+	                     | sed -e's/\./ /g' \
+	                     | awk '{printf("%d", $$1)}'); \
+	base_version=$$(echo $(perl-version) \
+	                     | sed -e's/\./ /g' \
+	                     | awk '{printf("%d.%d", $$1, $$2)}'); \
+	cd $(ddir) \
+	&& rm -rf perl-$(perl-version) \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
+	&& cd perl-$(perl-version) \
+	&& sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
+	       -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
+	       Configure > Configure-tmp \
+	&& mv -f Configure-tmp Configure \
+	&& chmod +x Configure \
+	&& ./Configure -des \
+	               -Dusethreads \
+	               -Duseshrplib \
+	               -Dprefix=$(idir) \
+	               -Dvendorprefix=$(idir) \
+	               -Dprivlib=$(idir)/share/perl$$major_version/core_perl \
+	               -Darchlib=$(idir)/lib/perl$$major_version/$$base_version/core_perl \
+	               -Dsitelib=$(idir)/share/perl$$major_version/site_perl \
+	               -Dsitearch=$(idir)/lib/perl$$major_version/$$basever/site_perl \
+	               -Dvendorlib=$(idir)/share/perl$$major_version/vendor_perl \
+	               -Dvendorarch=$(idir)/lib/perl$$major_version/$$base_version/vendor_perl \
+	               -Dscriptdir=$(idir)/bin/core_perl \
+	               -Dsitescript=$(idir)/bin/site_perl \
+	               -Dvendorscript=$(idir)/bin/vendor_perl \
+	               -Dinc_version_list=none \
+	               -Dman1ext=1perl \
+	               -Dman3ext=3perl \
+	               -Dcccdlflags='-fPIC' \
+	               $(perl-conflddlflags) \
+	               -Dldflags="$$LDFLAGS" \
+	&& make SHELL=$(ibdir)/bash -j$(numthreads) \
+	&& make SHELL=$(ibdir)/bash install \
+	&& cd .. \
+	&& rm -rf perl-$(perl-version) \
+	&& cd $$topdir \
+	&& echo "Perl $(perl-version)" > $@
+
+
+
+
+
 # Coreutils
 # ---------
 #
@@ -677,8 +745,10 @@ $(ibidir)/bash: $(ibidir)/readline \
 # The echo after the PatchELF loop is to avoid a crash if the last
 # file that PatchELF encounters is not usable (and it returns with
 # an error).
+#
+# Coreutils uses Perl to create man pages!
 $(ibidir)/coreutils: $(ibidir)/openssl \
-	             | $(ibidir)/bash \
+	             | $(ibidir)/perl \
                        $(tdir)/coreutils-$(coreutils-version).tar.xz
 	cd $(ddir) \
 	&& rm -rf coreutils-$(coreutils-version) \
@@ -847,17 +917,17 @@ $(ibidir)/wget: $(ibidir)/libiconv \
 # there is no access to the system's PATH.
 $(ibidir)/diffutils: | $(ibidir)/coreutils \
                        $(tdir)/diffutils-$(diffutils-version).tar.xz
-	$(call gbuild, diffutils-$(diffutils-version), static, , V=1) \
+	$(call gbuild, diffutils-$(diffutils-version), static,,V=1) \
 	&& echo "GNU Diffutils $(diffutils-version)" > $@
 
 $(ibidir)/file: | $(ibidir)/coreutils \
                   $(tdir)/file-$(file-version).tar.gz
-	$(call gbuild, file-$(file-version), static) \
+	$(call gbuild, file-$(file-version), static,,V=1) \
 	&& echo "File $(file-version)" > $@
 
 $(ibidir)/findutils: | $(ibidir)/coreutils \
                        $(tdir)/findutils-$(findutils-version).tar.xz
-	$(call gbuild, findutils-$(findutils-version), static, , V=1) \
+	$(call gbuild, findutils-$(findutils-version), static,,V=1) \
 	&& echo "GNU Findutils $(findutils-version)" > $@
 
 $(ibidir)/gawk: $(ibidir)/gmp \
@@ -910,13 +980,13 @@ $(ibidir)/gmp: | $(ibidir)/m4 \
 $(ibidir)/glibtool: | $(ibidir)/m4 \
                       $(tdir)/libtool-$(libtool-version).tar.xz
 	$(call gbuild, libtool-$(libtool-version), static, \
-                       --program-prefix=g) \
+                       --program-prefix=g, V=1) \
 	&& ln -s $(ibdir)/glibtoolize $(ibdir)/libtoolize \
 	&& echo "GNU Libtool $(libtool-version)" > $@
 
 $(ibidir)/grep: | $(ibidir)/coreutils \
                   $(tdir)/grep-$(grep-version).tar.xz
-	$(call gbuild, grep-$(grep-version), static) \
+	$(call gbuild, grep-$(grep-version), static,,V=1) \
 	&& echo "GNU Grep $(grep-version)" > $@
 
 $(ibidir)/libbsd: | $(ibidir)/coreutils \
@@ -927,7 +997,7 @@ $(ibidir)/libbsd: | $(ibidir)/coreutils \
 $(ibidir)/m4: | $(ibidir)/coreutils \
                 $(ibidir)/texinfo \
                 $(tdir)/m4-$(m4-version).tar.gz
-	$(call gbuild, m4-$(m4-version), static) \
+	$(call gbuild, m4-$(m4-version), static,,V=1) \
 	&& echo "GNU M4 $(m4-version)" > $@
 
 # Metastore is used (through a Git hook) to restore the source modification
@@ -1020,63 +1090,6 @@ $(ibidir)/mpfr: $(ibidir)/gmp \
 	$(call gbuild, mpfr-$(mpfr-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
-# The `-shared' flag will cause problems while building Perl on macOS, so
-# we'll only use this configuration option when we are GNU/Linux
-# systems. However, since the whole option must be used (which includes `='
-# and empty space), its easier to define the variable as a Make variable
-# outside the recipe, not as a shell variable inside it.
-ifeq ($(on_mac_os),yes)
-perl-conflddlflags =
-else
-perl-conflddlflags = -Dlddlflags="-shared $$LDFLAGS"
-endif
-$(ibidir)/perl: | $(ibidir)/coreutils \
-                  $(tdir)/perl-$(perl-version).tar.gz
-	major_version=$$(echo $(perl-version) \
-	                     | sed -e's/\./ /g' \
-	                     | awk '{printf("%d", $$1)}'); \
-	base_version=$$(echo $(perl-version) \
-	                     | sed -e's/\./ /g' \
-	                     | awk '{printf("%d.%d", $$1, $$2)}'); \
-	cd $(ddir) \
-	&& rm -rf perl-$(perl-version) \
-	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
-	      echo; echo "Tar error"; exit 1; \
-	   fi \
-	&& cd perl-$(perl-version) \
-	&& sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
-	       -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
-	       Configure > Configure-tmp \
-	&& mv -f Configure-tmp Configure \
-	&& chmod +x Configure \
-	&& ./Configure -des \
-	               -Dusethreads \
-	               -Duseshrplib \
-	               -Dprefix=$(idir) \
-	               -Dvendorprefix=$(idir) \
-	               -Dprivlib=$(idir)/share/perl$$major_version/core_perl \
-	               -Darchlib=$(idir)/lib/perl$$major_version/$$base_version/core_perl \
-	               -Dsitelib=$(idir)/share/perl$$major_version/site_perl \
-	               -Dsitearch=$(idir)/lib/perl$$major_version/$$basever/site_perl \
-	               -Dvendorlib=$(idir)/share/perl$$major_version/vendor_perl \
-	               -Dvendorarch=$(idir)/lib/perl$$major_version/$$base_version/vendor_perl \
-	               -Dscriptdir=$(idir)/bin/core_perl \
-	               -Dsitescript=$(idir)/bin/site_perl \
-	               -Dvendorscript=$(idir)/bin/vendor_perl \
-	               -Dinc_version_list=none \
-	               -Dman1ext=1perl \
-	               -Dman3ext=3perl \
-	               -Dcccdlflags='-fPIC' \
-	               $(perl-conflddlflags) \
-	               -Dldflags="$$LDFLAGS" \
-	&& make SHELL=$(ibdir)/bash -j$(numthreads) \
-	&& make SHELL=$(ibdir)/bash install \
-	&& cd .. \
-	&& rm -rf perl-$(perl-version) \
-	&& cd $$topdir \
-	&& echo "Perl $(perl-version)" > $@
-
-
 $(ibidir)/pkg-config: | $(ibidir)/coreutils \
                         $(tdir)/pkg-config-$(pkgconfig-version).tar.gz
         # An existing `libiconv' can cause a conflict with `pkg-config',
@@ -1101,7 +1114,7 @@ $(ibidir)/pkg-config: | $(ibidir)/coreutils \
 
 $(ibidir)/sed: | $(ibidir)/coreutils \
                  $(tdir)/sed-$(sed-version).tar.xz
-	$(call gbuild, sed-$(sed-version), static) \
+	$(call gbuild, sed-$(sed-version), static,,V=1) \
 	&& echo "GNU Sed $(sed-version)" > $@
 
 $(ibidir)/texinfo: | $(ibidir)/perl \

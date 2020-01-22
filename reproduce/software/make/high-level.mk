@@ -634,7 +634,7 @@ $(ibidir)/healpix: $(ibidir)/cfitsio \
 	&& echo "HEALPix $(healpix-version) \citep{healpix}" > $@
 
 $(ibidir)/libjpeg: | $(tdir)/jpegsrc.$(libjpeg-version).tar.gz
-	$(call gbuild, jpeg-9b, static) \
+	$(call gbuild, jpeg-9b, static,,V=1) \
 	&& echo "Libjpeg $(libjpeg-version)" > $@
 
 $(ibidir)/libnsl: $(ibidir)/libtirpc \
