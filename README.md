@@ -21,7 +21,6 @@ received this source from arXiv, please see the respective section below.
 $ git clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 $ cd XXXXXXXXXXXXXXXXXX
 $ ./project configure
-$ ./project prepare
 $ ./project make
 ```
 
@@ -77,20 +76,7 @@ requiring root/administrator permissions.
      $ ./project configure
      ```
 
-3. In some cases, the project's analysis may need some preparations to
-   optimize its processing. This is usually mainly related to input data,
-   and some very basic calculations that can help the management of the
-   overall lproject in the main/next step. To do the basic preparations,
-   please run this command to do the preparation on `8` threads. If your
-   CPU has a different number of threads, change the number (you can see
-   the number of threads available to your operating system by running
-   `./.local/bin/nproc`)
-
-     ```shell
-     $ ./project prepare -j8
-     ```
-
-4. Run the following command to reproduce all the analysis and build the
+3. Run the following command to reproduce all the analysis and build the
    final `paper.pdf` on `8` threads. If your CPU has a different number of
    threads, change the number (you can see the number of threads available
    to your operating system by running `./.local/bin/nproc`)

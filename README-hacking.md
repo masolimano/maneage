@@ -279,28 +279,20 @@ example if you run `.local/bin/ls` you will be using the `ls` of the
 template, which is problably different from your system's `ls` (run them
 both with `--version` to check).
 
-Once the project is configured for your system, `./project prepare` and
-`./project make` will do the basic preparations and run the project's
-analysis with the custom version of software. The `project` script is just
-a wrapper, and with the commands above, it will call `top-prepare.mk` and
-`top-make.mk` (both are in the `reproduce/analysis/make` directory).
-
-In the template, no particular preparation is necessary, so it will
-immediately finish and instruct you to run `./project make`. But in some
-projects, it can be very useful to do some very basic preparatory steps on
-the input data that can greatly optimize running of `./project make`. For
-example, you may need to query a server, to find how many input files there
-are. Once that number is known in the preparation phase, `./project make`
-can parallelize the analysis much more effectively.
+Once the project is configured for your system, `./project make` will do
+the basic preparations and run the project's analysis with the custom
+version of software. The `project` script is just a wrapper, and with the
+`make` argument, it will first call `top-prepare.mk` and `top-make.mk`
+(both are in the `reproduce/analysis/make` directory).
 
 In terms of organization, `top-prepare.mk` and `top-make.mk` have an
-identical design, only a minor difference. So, let's continue the
-template's architecture with `top-make.mk`. Once you understand that,
-you'll clearly understand `top-prepare.mk` also. These very high-level
-files are relatively short and heavily commented so hopefully the
-descriptions in each comment will be enough to understand the general
-details. As you read this section, please also look at the contents of the
-mentioned files and directories to fully understand what is going on.
+identical design, only minor differences. So, let's continue the template's
+architecture with `top-make.mk`. Once you understand that, you'll clearly
+understand `top-prepare.mk` also. These very high-level files are
+relatively short and heavily commented so hopefully the descriptions in
+each comment will be enough to understand the general details. As you read
+this section, please also look at the contents of the mentioned files and
+directories to fully understand what is going on.
 
 Before starting to look into the top `top-make.mk`, it is important to
 recall that Make defines dependencies by files. Therefore, the
@@ -587,7 +579,6 @@ First custom commit
 
      ```shell
      $ ./project configure           # Build the project's software environment (can take an hour or so).
-     $ ./project prepare             # Pre-processing preparations (doing nothing in the raw template).
      $ ./project make                # Do the processing and build paper (just a simple demo in the template).
 
      # Open 'paper.pdf' and see if everything is ok.

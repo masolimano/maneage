@@ -66,14 +66,12 @@ print_help() {
     # Print the output.
     cat <<EOF
 Usage: $scriptname configure [OPTIONS]
-       $scriptname prepare   [OPTIONS]
        $scriptname make      [OPTIONS]
 
 Top-level script to manage the reproducible project. The high-level
 operation is defined by the (mandatory) second argument:
 
   configure    - Configure project for this machine (e.g., build software).
-  prepare      - Low-level preparations to optimize building with 'make'.
   make         - Run the project (do analysis and build outputs).
 
 RECOMMENDATION: If this is the first time you are configuring this
@@ -151,7 +149,6 @@ do
  case $1 in
   # Main operation.
   configure)    func_operation_set $1; shift;;
-  prepare)      func_operation_set $1; shift;;
   make)         func_operation_set $1; shift;;
 
 
@@ -294,44 +291,6 @@ controlled_env() {
 
 
 
-# Error messages
-# --------------
-#
-# Having the error messages here helps the over-all process be more
-# readable.
-print_error_abort() {
-    case $1 in
-        prepare)
-            cat <<EOF
-
-The project isn't configured for this system, or the configuration wasn't
-successful. To configure the project, please use this command:
-
-      $ ./project configure
-
-(TIP: if you have already ran this command once, run it with '-e' to use
-the previous configuration, run with '--help' for more info)
-
-EOF
-            exit 1;
-        ;;
-        make)
-            cat <<EOF
-
-The project preparation hasn't been completed, or it wasn't successful. To
-prepare the project prior to building it, please use this command:
-
-      $ ./project prepare
-
-EOF
-            exit 1;
-        ;;
-    esac
-}
-
-
-
-
 # Do requested operation
 # ----------------------
 perms="u+r,u+w,g+r,g+w,o-r,o-w,o-x"
@@ -398,31 +357,29 @@ case $operation in
 
 
 
-    # Run the input management.
-    prepare)
-
-        # Make sure the configure script has been completed properly
-        # (`configuration-done.txt' exists).
-        if ! [ -f .build/software/configuration-done.txt ]; then
-            print_error_abort $operation
-        fi
-
-        # Run input-preparations in control environment
-        controlled_env reproduce/analysis/make/top-prepare.mk
-        ;;
-
-
-
-
-
-    # Run the project
+    # Run the project.
     make)
 
         # Make sure the configure script has been completed properly
         # (`configuration-done.txt' exists).
-        if ! [ -f .build/software/preparation-done.mk ]; then
-            print_error_abort $operation
+        if ! [ -f .build/software/configuration-done.txt ]; then
+            cat <<EOF
+
+The project isn't configured for this system, or the configuration wasn't
+successful. To configure the project, please use this command:
+
+      $ ./project configure
+
+[[ TIP: If you have already configured it once, run it with '-e' to use the
+previous configuration. Run with '--help' for more info ]]
+
+EOF
+            exit 1
         fi
+
+        # Run input-preparations (optionally build Makefiles with special
+        # values for optimizing the main `top-make.mk').
+        controlled_env reproduce/analysis/make/top-prepare.mk
 
         # Run the actual project.
         controlled_env reproduce/analysis/make/top-make.mk
@@ -434,9 +391,14 @@ case $operation in
 
     # Operation not specified.
     *)
-        echo "No operation defined."
-        echo "Please run with '--help' for more information."
-        echo "Available operations are: 'configure', 'prepare', or 'make')."
+        cat <<EOF
+
+No operation defined!
+
+Please run with '--help' for more information.
+(TIP: available operations are: 'configure' or 'make').
+
+EOF
         exit 1
     ;;
 esac

@@ -1387,9 +1387,9 @@ echo `.local/bin/date` > $finaltarget
 # The configuration is now complete, we can inform the user on the next
 # step(s) to take.
 if [ x$reproducible_paper_group_name = x ]; then
-    buildcommand="./project prepare -j8"
+    buildcommand="./project make -j8"
 else
-    buildcommand="./project prepare --group=$reproducible_paper_group_name -j8"
+    buildcommand="./project make --group=$reproducible_paper_group_name -j8"
 fi
 cat <<EOF
 
