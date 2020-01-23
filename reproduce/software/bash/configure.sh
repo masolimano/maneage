@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 #
 # Necessary preparations/configurations for the reproducible project.
 #

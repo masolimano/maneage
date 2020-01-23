@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # High-level script to manage the project.
 # Run `./project --help' for a description of how to use it.
