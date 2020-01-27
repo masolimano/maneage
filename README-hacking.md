@@ -533,19 +533,6 @@ get more advanced in later stages of your work.
 First custom commit
 -------------------
 
- - **Configure Git for fist time**: If you have never used Git, then you
-     have to configure it with some basic information in order to have
-     essential information in the commit messages (ignore this step if you
-     have already done it). Git will include your name and e-mail address
-     information in each commit. You can also specify your favorite text
-     editor for making the commit (`emacs`, `vim`, etc.).
-
-     ```shell
-     $ git config --global user.name "YourName YourSurname"
-     $ git config --global user.email your-email@example.com
-     $ git config --global core.editor vim
-     ```
-
  - **Get this repository and its history** (if you don't already have it):
      Arguably the easiest way to start is to clone this repository as shown
      below. As you see, after the cloning some further corrections to your
@@ -734,6 +721,19 @@ First custom commit
      ```
      Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
      Copyright (C) 2020 YOUR NAME <YOUR@EMAIL.ADDRESS>
+     ```
+
+ - **Configure Git for fist time**: If you have never used Git, then you
+     have to configure it with some basic information in order to have
+     essential information in the commit messages (ignore this step if you
+     have already done it). Git will include your name and e-mail address
+     information in each commit. You can also specify your favorite text
+     editor for making the commit (`emacs`, `vim`, etc.).
+
+     ```shell
+     $ git config --global user.name "YourName YourSurname"
+     $ git config --global user.email your-email@example.com
+     $ git config --global core.editor vim
      ```
 
  - **Your first commit**: You have already made some small and basic
