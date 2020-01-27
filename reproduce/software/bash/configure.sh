@@ -57,7 +57,8 @@ glconf=$cdir/gnuastro/gnuastro-local.conf
 # In case someone opens the files output from the configuration scripts in
 # a text editor and wants to edit them, it is important to let them know
 # that their changes are not going to be permenant.
-function create_file_with_notice() {
+create_file_with_notice ()
+{
     if echo "# IMPORTANT: file can be RE-WRITTEN after './project configure'" > "$1"
     then
         echo "#"                                                      >> "$1"
@@ -81,7 +82,8 @@ function create_file_with_notice() {
 #
 # Since the build directory will go into a symbolic link, we want it to be
 # an absolute address. With this function we can make sure of that.
-function absolute_dir() {
+absolute_dir ()
+{
     if stat "$1" 1> /dev/null; then
         echo "$(cd "$(dirname "$1")" && pwd )/$(basename "$1")"
     else
@@ -239,7 +241,7 @@ EOF
     bdir=
     currentdir=$(pwd)
     junkname=pure-junk-974adfkj38
-    while [ x$bdir == x ]
+    while [ x$bdir = x ]
     do
         # Ask the user (if not already set on the command-line).
         if [ x"$build_dir" = x ]; then
@@ -264,10 +266,12 @@ EOF
             fi
         fi
 
-        # Make sure the given directory is not a subdirectory of the
-        # source directory.
+        # If its given, make sure it isn't a subdirectory of the source
+        # directory.
         if ! [ x"$bdir" = x ]; then
-            if [[ $bdir == $currentdir* ]]; then
+            echo "Given build directory: $bdir"
+            if echo "$bdir/" \
+                    | grep '^'$currentdir 2> /dev/null > /dev/null; then
 
                 # If it was newly created, it will be empty, so delete it.
                 if ! [ "$(ls -A $bdir)" ]; then rm --dir $bdir; fi
@@ -638,13 +642,13 @@ fi
 # particular) to be present.
 hascc=0;
 if type cc > /dev/null 2>/dev/null; then
-    if type c++ > /dev/null 2>/dev/null; then hascc=1; fi
+    if type c++ > /dev/null 2>/dev/null; then export CC=cc; hascc=1; fi
 else
     if type gcc > /dev/null 2>/dev/null; then
-        if type g++ > /dev/null 2>/dev/null; then hascc=1; fi
+        if type g++ > /dev/null 2>/dev/null; then export CC=gcc; hascc=1; fi
     else
         if type clang > /dev/null 2>/dev/null; then
-            if type clang++ > /dev/null 2>/dev/null; then hascc=1; fi
+            if type clang++ > /dev/null 2>/dev/null; then export CC=clang; hascc=1; fi
         fi
     fi
 fi
@@ -676,14 +680,15 @@ gcc_works=0
 testprog=$tmpblddir/test-c
 testsource=$tmpblddir/test.c
 echo; echo; echo "Checking host C compiler...";
-echo "#include <stdio.h>"                                  > $testsource
-echo "#include <stdlib.h>"                                >> $testsource
-echo "int main(void){printf(\"...C compiler works.\n\");" >> $testsource
-echo "               return EXIT_SUCCESS;}"               >> $testsource
-if gcc $testsource -o$testprog && $testprog; then
+cat > $testsource <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+int main(void){printf("...C compiler works.\n");
+               return EXIT_SUCCESS;}
+EOF
+if $CC $testsource -o$testprog && $testprog; then
     rm $testsource $testprog
 else
-    rm $testsource
     cat <<EOF
 
 ______________________________________________________
@@ -723,10 +728,12 @@ fi
 # LLVM's linker don't accept it an can cause problems.
 oprog=$sdir/rpath-test
 cprog=$sdir/rpath-test.c
-echo "#include <stdio.h>"          > $cprog
-echo "int main(void) {return 0;}" >> $cprog
-if [ x$CC = x ]; then CC=gcc; fi;
-if $CC $cprog -o$oprog -Wl,-rpath-link &> /dev/null; then
+cat > $cprog <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+int main(void) {return EXIT_SUCCESS;}
+EOF
+if $CC $cprog -o$oprog -Wl,-rpath-link 2>/dev/null > /dev/null; then
     export rpath_command="-Wl,-rpath-link=$instdir/lib"
 else
     export rpath_command=""
@@ -755,7 +762,11 @@ main(void) {
     return 0;
 }
 EOF
-if gcc $cprog -o$oprog &> /dev/null; then needs_ldl=no; else needs_ldl=yes; fi
+if $CC $cprog -o$oprog 2>/dev/null > /dev/null; then
+    needs_ldl=no;
+else
+    needs_ldl=yes;
+fi
 rm -f $oprog $cprog
 
 
@@ -782,7 +793,7 @@ static_build=no
 #echo "#include <stdio.h>"          > $cprog
 #echo "int main(void) {return 0;}" >> $cprog
 #if [ x$CC = x ]; then CC=gcc; fi;
-#if $CC $cprog -o$oprog -static &> /dev/null; then
+#if $CC $cprog -o$oprog -static > /dev/null; then
 #    export static_build="yes"
 #else
 #    export static_build="no"
@@ -890,12 +901,14 @@ if [ x"$host_cc" = x0 ]; then
     testprog=$tmpblddir/test-c
     testsource=$tmpblddir/test.c
     echo; echo; echo "Checking if static C library is available...";
-    echo "#include <stdio.h>"                       > $testsource
-    echo "#include <stdlib.h>"                     >> $testsource
-    echo "#include <sys/cdefs.h>"                  >> $testsource
-    echo "int main(void){printf(\"...yes\n\");"    >> $testsource
-    echo "               return EXIT_SUCCESS;}"    >> $testsource
-    cc_call="gcc $testsource $CPPFLAGS $LDFLAGS -o$testprog -static -lc"
+    cat > $testsource <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/cdefs.h>
+int main(void){printf("...yes\n");
+               return EXIT_SUCCESS;}
+EOF
+    cc_call="$CC $testsource $CPPFLAGS $LDFLAGS -o$testprog -static -lc"
     if $cc_call && $testprog; then
         gccwarning=0
         good_static_libc=1
@@ -912,7 +925,7 @@ if [ x"$host_cc" = x0 ]; then
 !!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-The 'sys/cdefs.h' headaer cannot be included, or a usable static C library
+The 'sys/cdefs.h' header cannot be included, or a usable static C library
 ('libc.a', in any directory) cannot be used with the current settings of
 this system. SEE THE ERROR MESSAGE ABOVE.
 
@@ -927,7 +940,7 @@ be installed with this command:
 
     $ sudo yum install glibc-static
 
-2) If you have 'libc.a' and `sys/cdefs.h', but in a non-standard location (for
+2) If you have 'libc.a' and 'sys/cdefs.h', but in a non-standard location (for
 example in '/PATH/TO/STATIC/LIBC/libc.a' and
 '/PATH/TO/SYS/CDEFS_H/sys/cdefs.h'), please run the commands below, then
 re-configure the project to fix this problem.
@@ -1057,12 +1070,11 @@ will be installed in:
 **TIP**: you can see which software is being installed at every moment with
 the following command. See "Inspecting status" section of
 'README-hacking.md' for more. In short, run it while the project is being
-configured (in another terminal, but on this same directory: '`pwd`'):
+configured (in another terminal, but on this same directory: 'pwd'):
 
-  $ while true; do echo; date; ls .build/software/build-tmp; sleep 1; done
+  $ ./project --check-config
 
 -------------------------
-
 
 EOF
     sleep $tsec
@@ -1281,8 +1293,8 @@ fi
 # After everything is installed, we'll put all the names and versions in a
 # human-readable paragraph and also prepare the BibTeX citation for the
 # software.
-function prepare_name_version() {
-
+prepare_name_version ()
+{
     # First see if the (possible) `*' in the input arguments corresponds to
     # anything. Note that some of the given directories may be empty (no
     # software installed).

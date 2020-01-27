@@ -48,7 +48,7 @@ ibidir  = $(BDIR)/software/installed/version-info/proglib
 
 # We'll need the system's PATH for making links to low-level programs we
 # won't be building ourselves.
-syspath         := $(PATH)
+syspath := $(PATH)
 
 # As we build more programs, we want to use this project's built programs
 # and libraries, not the host's.

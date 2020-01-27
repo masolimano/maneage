@@ -144,7 +144,7 @@ func_operation_set() {
     fi
 }
 
-while [[ $# -gt 0 ]]
+while [ $# -gt 0 ]
 do
  case $1 in
   # Main operation.
@@ -160,8 +160,8 @@ do
   -e*|--existing-conf=*) on_off_option_error --existing-conf -e;;
   --host-cc)             host_cc=1;                                                                shift;;
   --host-cc=*)           on_off_option_error --host-cc;;
-  -i|--inputdir)         input_dir="$2";                             check_v "$1" "$input_dir";    shift;shift;;
-  -i=*|--inputdir=*)     input_dir="${1#*=}";                        check_v "$1" "$input_dir";    shift;;
+  -i|--input-dir)        input_dir="$2";                             check_v "$1" "$input_dir";    shift;shift;;
+  -i=*|--input-dir=*)    input_dir="${1#*=}";                        check_v "$1" "$input_dir";    shift;;
   -i*)                   input_dir=$(echo    "$1" | sed -e's/-i//'); check_v "$1" "$input_dir";    shift;;
   -m|--minmapsize)       minmapsize="$2";                            check_v "$1" "$minmapsize";   shift;shift;;
   -m=*|--minmapsize=*)   minmapsize="${1#*=}";                       check_v "$1" "$minmapsize";   shift;;
@@ -209,8 +209,8 @@ if ! [ x$check_config = x ]; then
     # Find the color option to pass to `ls'. Note that `--color' (for GNU
     # Coreutils `ls') should be checked first because it also has `-G', but
     # for something else.
-    if   ls --color &> /dev/null; then coloropt="--color=auto"
-    elif ls -G      &> /dev/null; then coloropt="-G"
+    if   ls --color 2> /dev/null > /dev/null; then coloropt="--color=auto"
+    elif ls -G      2> /dev/null > /dev/null; then coloropt="-G"
     else                               coloropt=""
     fi
 
