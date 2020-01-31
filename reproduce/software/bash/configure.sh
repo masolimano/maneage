@@ -872,13 +872,13 @@ if [ x"$$on_mac_os" != xyes ]; then
     if [ x"$gcctarget" != x ]; then
         if [ -f /usr/lib/$gcctarget/libc.a ]; then
             export sys_library_path=/usr/lib/$gcctarget
-            export sys_cppflags=-I/usr/include/$gcctarget
+            export sys_cpath=/usr/include/$gcctarget
         fi
     fi
 
     # For a check:
     #echo "sys_library_path: $sys_library_path"
-    #echo "sys_cppflags: $sys_cppflags"
+    #echo "sys_cpath: $sys_cpath"
 fi
 
 
@@ -1176,17 +1176,26 @@ fi
 
 
 
-# library_path (ONLY FOR BASIC)
-# -----------------------------
+# Paths needed by the host compiler (only for `basic.mk')
+# -------------------------------------------------------
 #
-# During the basic build, we need to include possibly existing special C
-# compiler targets (if they exist).
+# At the end of the basic build, we need to build GCC. But GCC will build
+# in multiple phases, making its own simple compiler in order to build
+# itself completely. The intermediate/simple compiler doesn't recognize
+# some system specific locations like `/usr/lib/ARCHITECTURE' that some
+# operating systems use. We thus need to tell the intermediate compiler
+# where its necessary libraries and headers are.
 export CPPFLAGS="$CPPFLAGS $sys_cppflags"
 if [ x"$sys_library_path" != x ]; then
     if [ x"$LIBRARY_PATH" = x ]; then
         export LIBRARY_PATH="$sys_library_path"
     else
         export LIBRARY_PATH="$LIBRARY_PATH:$sys_library_path"
+    fi
+    if [ x"$CPATH" = x ]; then
+        export LIBRARY_PATH="$sys_cpath"
+    else
+        export LIBRARY_PATH="$CPATH:$sys_cpath"
     fi
 fi
 
