@@ -12,5 +12,6 @@
 BDIR             = @bdir@
 INDIR            = @indir@
 DEPENDENCIES-DIR = @ddir@
+SYS_CPATH        = @sys_cpath@
 DOWNLOADER       = @downloader@
 GROUP-NAME       = @groupname@

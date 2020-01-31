@@ -140,6 +140,12 @@ export SHELL := $(installdir)/bin/bash
 export CPPFLAGS := -I$(installdir)/include
 export LD_LIBRARY_PATH := $(installdir)/lib
 
+# Until we build our own C library, without this, the project's GCC won't
+# be able to compile anything if the host C library isn't in a standard
+# place: in particular Debian-based operatings sytems. On other systems, it
+# will be empty.
+export CPATH := $(SYS_CPATH)
+
 # RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
 # ultimately redundant. But on some systems, even having a single value
 # causes crashs (see bug #56682). So we'll just give it no value at all.

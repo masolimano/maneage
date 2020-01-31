@@ -70,14 +70,19 @@ all: $(foreach p, $(top-level-programs),  $(ibidir)/$(p)) \
 .SHELLFLAGS := --noprofile --norc -ec
 export CCACHE_DISABLE := 1
 export PATH := $(ibdir)
-export CXX := $(ibdir)/g++
 export CC := $(ibdir)/gcc
+export CXX := $(ibdir)/g++
 export SHELL := $(ibdir)/bash
 export F77 := $(ibdir)/gfortran
 export LD_RUN_PATH := $(ildir):$(il64dir)
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export LD_LIBRARY_PATH := $(ildir):$(il64dir)
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
+
+# Until we build our own C library, without this, our GCC won't be able to
+# compile anything! Note that on most systems (in particular
+# non-Debian-based), `sys_cpath' will be empty.
+export CPATH := $(sys_cpath)
 
 # RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
 # ultimately redundant. But on some systems, even having a single value

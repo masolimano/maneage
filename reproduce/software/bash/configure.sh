@@ -95,6 +95,398 @@ absolute_dir ()
 
 
 
+# Check for C/C++ compilers
+# -------------------------
+#
+# To build the software, we'll need some basic tools (the compilers in
+# particular) to be present.
+hascc=0;
+if type cc > /dev/null 2>/dev/null; then
+    if type c++ > /dev/null 2>/dev/null; then export CC=cc; hascc=1; fi
+else
+    if type gcc > /dev/null 2>/dev/null; then
+        if type g++ > /dev/null 2>/dev/null; then export CC=gcc; hascc=1; fi
+    else
+        if type clang > /dev/null 2>/dev/null; then
+            if type clang++ > /dev/null 2>/dev/null; then export CC=clang; hascc=1; fi
+        fi
+    fi
+fi
+if [ $hascc = 0 ]; then
+    cat <<EOF
+______________________________________________________
+!!!!!!!       C/C++ Compiler NOT FOUND         !!!!!!!
+
+To build the project's software, the host system needs to have basic C and
+C++ compilers. The executables that were checked are 'cc', 'gcc' and
+'clang' for a C compiler, and 'c++', 'g++' and 'clang++' for a C++
+compiler. If you have a relevant compiler that is not checked, please get
+in touch with us (with the form below) so we add it:
+
+  https://savannah.nongnu.org/support/?func=additem&group=reproduce
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    exit 1
+fi
+
+
+
+
+
+# Special directory for compiler testing
+# --------------------------------------
+#
+# This directory will be deleted when the compiler testing is finished.
+compilertestdir=.compiler_test_dir_please_delete
+if ! [ -d $compilertestdir ]; then mkdir $compilertestdir; fi
+
+
+
+
+
+# Check C compiler
+# ----------------
+gcc_works=0
+testprog=$compilertestdir/test
+testsource=$compilertestdir/test.c
+echo; echo; echo "Checking host C compiler...";
+cat > $testsource <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+int main(void){printf("...C compiler works.\n");
+               return EXIT_SUCCESS;}
+EOF
+if $CC $testsource -o$testprog && $testprog; then
+    rm $testsource $testprog
+else
+    rm $testsource
+    cat <<EOF
+
+______________________________________________________
+!!!!!!!        C compiler doesn't work         !!!!!!!
+
+Host C compiler ('gcc') can't build a simple program.
+
+A working C compiler is necessary for building the project's software.
+Please use the error message above to find a good solution and re-run the
+project configuration.
+
+If you can't find a solution, please send the error message above to the
+link below and we'll try to help
+
+https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+TIP: Once you find the solution, you can use the '-e' option to use
+existing configuration:
+
+   $ ./project configure -e
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    exit 1
+fi
+
+
+
+
+
+# See if the linker accepts -Wl,-rpath-link
+# -----------------------------------------
+#
+# `-rpath-link' is used to write the information of the linked shared
+# library into the shared object (library or program). But some versions of
+# LLVM's linker don't accept it an can cause problems.
+cat > $testsource <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+int main(void) {return EXIT_SUCCESS;}
+EOF
+if $CC $testsource -o$testprog -Wl,-rpath-link 2>/dev/null > /dev/null; then
+    export rpath_command="-Wl,-rpath-link=$instdir/lib"
+else
+    export rpath_command=""
+fi
+rm -f $testprog $testsource
+
+
+
+
+
+# See if we need the dynamic-linker (-ldl)
+# ----------------------------------------
+#
+# Some programs (like Wget) need dynamic loading (using `libdl'). On
+# GNU/Linux systems, we'll need the `-ldl' flag to link such programs.  But
+# Mac OS doesn't need any explicit linking. So we'll check here to see if
+# it is present (thus necessary) or not.
+cat > $testsource <<EOF
+#include <stdio.h>
+#include <dlfcn.h>
+int
+main(void) {
+    void *handle=dlopen ("/lib/CEDD_LIB.so.6", RTLD_LAZY);
+    return 0;
+}
+EOF
+if $CC $testsource -o$testprog 2>/dev/null > /dev/null; then
+    needs_ldl=no;
+else
+    needs_ldl=yes;
+fi
+rm -f $testprog $testsource
+
+
+
+
+
+# See if the C compiler can build static libraries
+# ------------------------------------------------
+
+# We are manually only working with shared libraries: because some
+# high-level programs like Wget and cURL need dynamic linking and if we
+# build the libraries statically, our own builds will be ignored and these
+# programs will go and find their necessary libraries on the host system.
+#
+# Another good advantage of shared libraries is that we can actually use
+# the shared library tool of the system (`ldd' with GNU C Library) and see
+# exactly where each linked library comes from. But in static building,
+# unless you follow the build closely, its not easy to see if the source of
+# the library came from the system or our build.
+static_build=no
+
+
+
+
+
+# If we are on a Mac OS system
+# ----------------------------
+#
+# For the time being, we'll use the existance of `otool' to see if we are
+# on a Mac OS system or not. Some tools (for example OpenSSL) need to know
+# this.
+#
+# On Mac OS, the building of GCC crashes sometimes while building libiberty
+# with CLang's `g++'. Until we find a solution, we'll just use the host's C
+# compiler.
+if type otool > /dev/null 2>/dev/null; then
+    host_cc=1
+    on_mac_os=yes
+else
+    host_cc=0
+    on_mac_os=no
+fi
+
+
+
+
+
+# Necessary C library element positions
+# -------------------------------------
+#
+# On some systems (in particular Debian-based OSs), the static C library
+# and necessary headers in a non-standard place, and we can't build GCC. So
+# we need to find them first. The `sys/cdefs.h' header is also in a
+# similarly different location.
+sys_cpath=""
+sys_library_path=""
+if [ x"$$on_mac_os" != xyes ]; then
+
+    # Get the GCC target name of the compiler, when its given, special
+    # C libraries and headers are in a sub-directory of the host.
+    gcctarget=$(gcc -v 2>&1 \
+                    | tr ' ' '\n' \
+                    | awk '/\-\-target/' \
+                    | sed -e's/\-\-target=//')
+    if [ x"$gcctarget" != x ]; then
+        if [ -f /usr/lib/$gcctarget/libc.a ]; then
+            export sys_library_path=/usr/lib/$gcctarget
+            export sys_cpath=/usr/include/$gcctarget
+        fi
+    fi
+
+    # For a check:
+    #echo "sys_library_path: $sys_library_path"
+    #echo "sys_cpath: $sys_cpath"
+fi
+
+
+
+
+
+# See if a link-able static C library exists
+# ------------------------------------------
+#
+# After building GCC, we must use PatchELF to correct its RPATHs. However,
+# PatchELF links internally with `libstdc++'. So a dynamicly linked
+# PatchELF cannot be used to correct the links to `libstdc++' in general
+# (on some systems this causes no problem, but on others it doesn't!).
+#
+# However, to build a Static PatchELF, we need to be able to link with the
+# static C library, which is not always available on some GNU/Linux
+# systems. Therefore we need to check this here. If we can't build a static
+# PatchELF, we won't build any GCC either.
+if [ x"$host_cc" = x0 ]; then
+    echo; echo; echo "Checking if static C library is available...";
+    cat > $testsource <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/cdefs.h>
+int main(void){printf("...yes\n");
+               return EXIT_SUCCESS;}
+EOF
+    cc_call="$CC $testsource $CPPFLAGS $LDFLAGS -o$testprog -static -lc"
+    if $cc_call && $testprog; then
+        gccwarning=0
+        good_static_libc=1
+        rm $testsource $testprog
+    else
+        echo; echo "Compilation command:"; echo "$cc_call"
+        good_static_libc=0
+        rm $testsource
+        gccwarning=1
+        host_cc=1
+        cat <<EOF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+The 'sys/cdefs.h' header cannot be included, or a usable static C library
+('libc.a', in any directory) cannot be used with the current settings of
+this system. SEE THE ERROR MESSAGE ABOVE.
+
+Because of this, we can't build GCC. You either 1) don't have them, or 2)
+the default system environment aren't enough to find them.
+
+1) If you don't have them, your operating system provides them as separate
+packages that you must manually install. Please look into your operating
+system documentation or contact someone familiar with it. For example on
+some Redhat-based GNU/Linux distributions, the static C library package can
+be installed with this command:
+
+    $ sudo yum install glibc-static
+
+2) If you have 'libc.a' and 'sys/cdefs.h', but in a non-standard location (for
+example in '/PATH/TO/STATIC/LIBC/libc.a' and
+'/PATH/TO/SYS/CDEFS_H/sys/cdefs.h'), please run the commands below, then
+re-configure the project to fix this problem.
+
+    $ export LDFLAGS="-L/PATH/TO/STATIC/LIBC \$LDFLAGS"
+    $ export CPPFLAGS="-I/PATH/TO/SYS/CDEFS_H \$LDFLAGS"
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    fi
+fi
+
+# Print a warning if GCC is not meant to be built.
+if [ x"$gccwarning" = x1 ]; then
+        cat <<EOF
+
+PLEASE SEE THE WARNINGS ABOVE.
+
+Since GCC is pretty low-level, this configuration script will continue in 5
+seconds and use your system's C compiler (it won't build a custom GCC). But
+please consider installing the necessary package(s) to complete your C
+compiler, then re-run './project configure'.
+
+EOF
+        sleep 5
+fi
+
+
+
+
+
+# Fortran compiler
+# ----------------
+#
+# If GCC is ultimately build within the project, the user won't need to
+# have a fortran compiler, we'll build it internally for high-level
+# programs. However, when the host C compiler is to be used, the user needs
+# to have a Fortran compiler available.
+if [ $host_cc = 1 ]; then
+
+    # See if a Fortran compiler exists.
+    hasfc=0;
+    if type gfortran > /dev/null 2>/dev/null; then hasfc=1; fi
+    if [ $hasfc = 0 ]; then
+        cat <<EOF
+______________________________________________________
+!!!!!!!      Fortran Compiler NOT FOUND        !!!!!!!
+
+Because the project won't be building its own GCC (which includes a Fortran
+compiler), you need to have a Fortran compiler available. Fortran is
+commonly necessary for many lower-level scientific programs. Currently we
+search for 'gfortran'. If you have a Fortran compiler that is not checked,
+please get in touch with us (with the form below) so we add it:
+
+  https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+Note: GCC will not be built because you are either using the '--host-cc'
+option, or you are using an operating system that currently has bugs when
+building GCC.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+        exit 1
+    fi
+
+    # See if the Fortran compiler works
+    testsource=$compilertestdir/test.f
+    echo; echo; echo "Checking host Fortran compiler...";
+    echo "      PRINT *, \"... Fortran Compiler works.\""  > $testsource
+    echo "      END"                                      >> $testsource
+    if gfortran $testsource -o$testprog && $testprog; then
+        rm $testsource $testprog
+    else
+        rm $testsource
+        cat <<EOF
+
+______________________________________________________
+!!!!!!!     Fortran compiler doesn't work      !!!!!!!
+
+Host Fortran compiler ('gfortran') can't build a simple program.
+
+A working Fortran compiler is necessary for building some of the project's
+software.  Please use the error message above to find a good solution and
+re-run the project configuration.
+
+If you can't find a solution, please send the error message above to the
+link below and we'll try to help
+
+https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+TIP: Once you find the solution, you can use the '-e' option to use
+existing configuration:
+
+   $ ./project configure -e
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+        exit 1
+    fi
+fi
+
+
+
+
+
+# Delete the compiler testing directory
+# -------------------------------------
+#
+# This directory was made above to make sure the necessary compilers can be
+# run.
+rm -rf $compilertestdir
+
+
+
+
+
 # Inform the user
 # ---------------
 #
@@ -392,6 +784,7 @@ if [ $rewritepconfig = yes ]; then
     sed -e's|@bdir[@]|'"$bdir"'|' \
         -e's|@indir[@]|'"$indir"'|' \
         -e's|@ddir[@]|'"$ddir"'|' \
+        -e's|@sys_cpath[@]|'"$sys_cpath"'|' \
         -e's|@downloader[@]|'"$downloader"'|' \
         -e's|@groupname[@]|'"$reproducible_paper_group_name"'|' \
         $pconf.in >> $pconf
@@ -635,420 +1028,6 @@ fi
 
 
 
-# Check for C/C++ compilers
-# -------------------------
-#
-# To build the software, we'll need some basic tools (the compilers in
-# particular) to be present.
-hascc=0;
-if type cc > /dev/null 2>/dev/null; then
-    if type c++ > /dev/null 2>/dev/null; then export CC=cc; hascc=1; fi
-else
-    if type gcc > /dev/null 2>/dev/null; then
-        if type g++ > /dev/null 2>/dev/null; then export CC=gcc; hascc=1; fi
-    else
-        if type clang > /dev/null 2>/dev/null; then
-            if type clang++ > /dev/null 2>/dev/null; then export CC=clang; hascc=1; fi
-        fi
-    fi
-fi
-if [ $hascc = 0 ]; then
-    cat <<EOF
-______________________________________________________
-!!!!!!!       C/C++ Compiler NOT FOUND         !!!!!!!
-
-To build the project's software, the host system needs to have basic C and
-C++ compilers. The executables that were checked are 'cc', 'gcc' and
-'clang' for a C compiler, and 'c++', 'g++' and 'clang++' for a C++
-compiler. If you have a relevant compiler that is not checked, please get
-in touch with us (with the form below) so we add it:
-
-  https://savannah.nongnu.org/support/?func=additem&group=reproduce
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-    exit 1
-fi
-
-
-
-
-
-# Check C compiler
-# ----------------
-gcc_works=0
-testprog=$tmpblddir/test-c
-testsource=$tmpblddir/test.c
-echo; echo; echo "Checking host C compiler...";
-cat > $testsource <<EOF
-#include <stdio.h>
-#include <stdlib.h>
-int main(void){printf("...C compiler works.\n");
-               return EXIT_SUCCESS;}
-EOF
-if $CC $testsource -o$testprog && $testprog; then
-    rm $testsource $testprog
-else
-    cat <<EOF
-
-______________________________________________________
-!!!!!!!        C compiler doesn't work         !!!!!!!
-
-Host C compiler ('gcc') can't build a simple program.
-
-A working C compiler is necessary for building the project's software.
-Please use the error message above to find a good solution and re-run the
-project configuration.
-
-If you can't find a solution, please send the error message above to the
-link below and we'll try to help
-
-https://savannah.nongnu.org/support/?func=additem&group=reproduce
-
-TIP: Once you find the solution, you can use the '-e' option to use
-existing configuration:
-
-   $ ./project configure -e
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-    exit 1
-fi
-
-
-
-
-
-# See if the linker accepts -Wl,-rpath-link
-# -----------------------------------------
-#
-# `-rpath-link' is used to write the information of the linked shared
-# library into the shared object (library or program). But some versions of
-# LLVM's linker don't accept it an can cause problems.
-oprog=$sdir/rpath-test
-cprog=$sdir/rpath-test.c
-cat > $cprog <<EOF
-#include <stdio.h>
-#include <stdlib.h>
-int main(void) {return EXIT_SUCCESS;}
-EOF
-if $CC $cprog -o$oprog -Wl,-rpath-link 2>/dev/null > /dev/null; then
-    export rpath_command="-Wl,-rpath-link=$instdir/lib"
-else
-    export rpath_command=""
-fi
-rm -f $oprog $cprog
-
-
-
-
-
-# See if we need the dynamic-linker (-ldl)
-# ----------------------------------------
-#
-# Some programs (like Wget) need dynamic loading (using `libdl'). On
-# GNU/Linux systems, we'll need the `-ldl' flag to link such programs.  But
-# Mac OS doesn't need any explicit linking. So we'll check here to see if
-# it is present (thus necessary) or not.
-oprog=$sdir/ldl-test
-cprog=$sdir/ldl-test.c
-cat > $cprog <<EOF
-#include <stdio.h>
-#include <dlfcn.h>
-int
-main(void) {
-    void *handle=dlopen ("/lib/CEDD_LIB.so.6", RTLD_LAZY);
-    return 0;
-}
-EOF
-if $CC $cprog -o$oprog 2>/dev/null > /dev/null; then
-    needs_ldl=no;
-else
-    needs_ldl=yes;
-fi
-rm -f $oprog $cprog
-
-
-
-
-
-# See if the C compiler can build static libraries
-# ------------------------------------------------
-
-# We are manually only working with shared libraries: because some
-# high-level programs like Wget and cURL need dynamic linking and if we
-# build the libraries statically, our own builds will be ignored and these
-# programs will go and find their necessary libraries on the host system.
-#
-# Another good advantage of shared libraries is that we can actually use
-# the shared library tool of the system (`ldd' with GNU C Library) and see
-# exactly where each linked library comes from. But in static building,
-# unless you follow the build closely, its not easy to see if the source of
-# the library came from the system or our build.
-static_build=no
-
-#oprog=$sdir/static-test
-#cprog=$sdir/static-test.c
-#echo "#include <stdio.h>"          > $cprog
-#echo "int main(void) {return 0;}" >> $cprog
-#if [ x$CC = x ]; then CC=gcc; fi;
-#if $CC $cprog -o$oprog -static > /dev/null; then
-#    export static_build="yes"
-#else
-#    export static_build="no"
-#fi
-#rm -f $oprog $cprog
-#if [ $printnotice = yes ] && [ $static_build = "no" ]; then
-#    cat <<EOF
-#_________________________________________________________________________
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!      WARNING      !!!!!!!!!!!!!!!!!!!!!!!!!!
-#
-#Your system's C compiler ('$CC') doesn't support building static
-#libraries. Therefore the dependencies will be built dynamically. This means
-#that they will depend more strongly on changes/updates in the host
-#system. For high-level applications (like most research projects in natural
-#sciences), this shouldn't be a significant problem.
-#
-#But generally, for reproducibility, its better to build static libraries
-#and programs. For more on their difference (and generally an introduction
-#on linking), please see the link below:
-#
-#https://www.gnu.org/software/gnuastro/manual/html_node/Linking.html
-#
-#If you have other compilers on your system, you can select a different
-#compiler by setting the 'CC' environment variable before running
-#'./project configure'.
-#
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#
-#EOF
-#    sleep 5
-#fi
-
-
-
-
-
-# If we are on a Mac OS system
-# ----------------------------
-#
-# For the time being, we'll use the existance of `otool' to see if we are
-# on a Mac OS system or not. Some tools (for example OpenSSL) need to know
-# this.
-#
-# On Mac OS, the building of GCC crashes sometimes while building libiberty
-# with CLang's `g++'. Until we find a solution, we'll just use the host's C
-# compiler.
-if type otool > /dev/null 2>/dev/null; then
-    host_cc=1
-    on_mac_os=yes
-else
-    host_cc=0
-    on_mac_os=no
-fi
-
-
-
-
-
-# Necessary C library element positions
-# -------------------------------------
-#
-# On some systems (in particular Debian-based OSs), the static C library
-# and necessary headers in a non-standard place, and we can't build GCC. So
-# we need to find them first. The `sys/cdefs.h' header is also in a
-# similarly different location.
-sys_cppflags=""
-sys_library_path=""
-if [ x"$$on_mac_os" != xyes ]; then
-
-    # Get the GCC target name of the compiler, when its given, special
-    # C libraries and headers are in a sub-directory of the host.
-    gcctarget=$(gcc -v 2>&1 \
-                    | tr ' ' '\n' \
-                    | awk '/\-\-target/' \
-                    | sed -e's/\-\-target=//')
-    if [ x"$gcctarget" != x ]; then
-        if [ -f /usr/lib/$gcctarget/libc.a ]; then
-            export sys_library_path=/usr/lib/$gcctarget
-            export sys_cpath=/usr/include/$gcctarget
-        fi
-    fi
-
-    # For a check:
-    #echo "sys_library_path: $sys_library_path"
-    #echo "sys_cpath: $sys_cpath"
-fi
-
-
-
-
-
-# See if a link-able static C library exists
-# ------------------------------------------
-#
-# After building GCC, we must use PatchELF to correct its RPATHs. However,
-# PatchELF links internally with `libstdc++'. So a dynamicly linked
-# PatchELF cannot be used to correct the links to `libstdc++' in general
-# (on some systems this causes no problem, but on others it doesn't!).
-#
-# However, to build a Static PatchELF, we need to be able to link with the
-# static C library, which is not always available on some GNU/Linux
-# systems. Therefore we need to check this here. If we can't build a static
-# PatchELF, we won't build any GCC either.
-if [ x"$host_cc" = x0 ]; then
-    testprog=$tmpblddir/test-c
-    testsource=$tmpblddir/test.c
-    echo; echo; echo "Checking if static C library is available...";
-    cat > $testsource <<EOF
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/cdefs.h>
-int main(void){printf("...yes\n");
-               return EXIT_SUCCESS;}
-EOF
-    cc_call="$CC $testsource $CPPFLAGS $LDFLAGS -o$testprog -static -lc"
-    if $cc_call && $testprog; then
-        gccwarning=0
-        good_static_libc=1
-        rm $testsource $testprog
-    else
-        echo; echo "Compilation command:"; echo "$cc_call"
-        good_static_libc=0
-        rm $testsource
-        gccwarning=1
-        host_cc=1
-        cat <<EOF
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-The 'sys/cdefs.h' header cannot be included, or a usable static C library
-('libc.a', in any directory) cannot be used with the current settings of
-this system. SEE THE ERROR MESSAGE ABOVE.
-
-Because of this, we can't build GCC. You either 1) don't have them, or 2)
-the default system environment aren't enough to find them.
-
-1) If you don't have them, your operating system provides them as separate
-packages that you must manually install. Please look into your operating
-system documentation or contact someone familiar with it. For example on
-some Redhat-based GNU/Linux distributions, the static C library package can
-be installed with this command:
-
-    $ sudo yum install glibc-static
-
-2) If you have 'libc.a' and 'sys/cdefs.h', but in a non-standard location (for
-example in '/PATH/TO/STATIC/LIBC/libc.a' and
-'/PATH/TO/SYS/CDEFS_H/sys/cdefs.h'), please run the commands below, then
-re-configure the project to fix this problem.
-
-    $ export LDFLAGS="-L/PATH/TO/STATIC/LIBC \$LDFLAGS"
-    $ export CPPFLAGS="-I/PATH/TO/SYS/CDEFS_H \$LDFLAGS"
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-    fi
-fi
-
-# Print a warning if GCC is not meant to be built.
-if [ x"$gccwarning" = x1 ]; then
-        cat <<EOF
-
-PLEASE SEE THE WARNINGS ABOVE.
-
-Since GCC is pretty low-level, this configuration script will continue in 5
-seconds and use your system's C compiler (it won't build a custom GCC). But
-please consider installing the necessary package(s) to complete your C
-compiler, then re-run './project configure'.
-
-EOF
-        sleep 5
-fi
-
-
-
-
-
-# Fortran compiler
-# ----------------
-#
-# If GCC is ultimately build within the project, the user won't need to
-# have a fortran compiler, we'll build it internally for high-level
-# programs. However, when the host C compiler is to be used, the user needs
-# to have a Fortran compiler available.
-if [ $host_cc = 1 ]; then
-
-    # See if a Fortran compiler exists.
-    hasfc=0;
-    if type gfortran > /dev/null 2>/dev/null; then hasfc=1; fi
-    if [ $hasfc = 0 ]; then
-        cat <<EOF
-______________________________________________________
-!!!!!!!      Fortran Compiler NOT FOUND        !!!!!!!
-
-Because the project won't be building its own GCC (which includes a Fortran
-compiler), you need to have a Fortran compiler available. Fortran is
-commonly necessary for many lower-level scientific programs. Currently we
-search for 'gfortran'. If you have a Fortran compiler that is not checked,
-please get in touch with us (with the form below) so we add it:
-
-  https://savannah.nongnu.org/support/?func=additem&group=reproduce
-
-Note: GCC will not be built because you are either using the '--host-cc'
-option, or you are using an operating system that currently has bugs when
-building GCC.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-        exit 1
-    fi
-
-    # See if the Fortran compiler works
-    testprog=$tmpblddir/test-f
-    testsource=$tmpblddir/test.f
-    echo; echo; echo "Checking host Fortran compiler...";
-    echo "      PRINT *, \"... Fortran Compiler works.\"" > $testsource
-    echo "      END"                                      >> $testsource
-    if gfortran $testsource -o$testprog && $testprog; then
-        rm $testsource $testprog
-    else
-        rm $testsource
-        cat <<EOF
-
-______________________________________________________
-!!!!!!!     Fortran compiler doesn't work      !!!!!!!
-
-Host Fortran compiler ('gfortran') can't build a simple program.
-
-A working Fortran compiler is necessary for building some of the project's
-software.  Please use the error message above to find a good solution and
-re-run the project configuration.
-
-If you can't find a solution, please send the error message above to the
-link below and we'll try to help
-
-https://savannah.nongnu.org/support/?func=additem&group=reproduce
-
-TIP: Once you find the solution, you can use the '-e' option to use
-existing configuration:
-
-   $ ./project configure -e
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-        exit 1
-    fi
-fi
-
-
-
-
-
 # inform the user that the build process is starting
 # -------------------------------------------------
 if [ $printnotice = yes ]; then
@@ -1185,7 +1164,6 @@ fi
 # some system specific locations like `/usr/lib/ARCHITECTURE' that some
 # operating systems use. We thus need to tell the intermediate compiler
 # where its necessary libraries and headers are.
-export CPPFLAGS="$CPPFLAGS $sys_cppflags"
 if [ x"$sys_library_path" != x ]; then
     if [ x"$LIBRARY_PATH" = x ]; then
         export LIBRARY_PATH="$sys_library_path"
@@ -1193,9 +1171,9 @@ if [ x"$sys_library_path" != x ]; then
         export LIBRARY_PATH="$LIBRARY_PATH:$sys_library_path"
     fi
     if [ x"$CPATH" = x ]; then
-        export LIBRARY_PATH="$sys_cpath"
+        export CPATH="$sys_cpath"
     else
-        export LIBRARY_PATH="$CPATH:$sys_cpath"
+        export CPATH="$CPATH:$sys_cpath"
     fi
 fi
 
@@ -1243,6 +1221,7 @@ fi
                     static_build=$static_build \
                     numthreads=$numthreads \
                     on_mac_os=$on_mac_os \
+                    sys_cpath=$sys_cpath \
                     host_cc=$host_cc \
                     -j$numthreads
 

@@ -9,7 +9,7 @@
 # To help readability, please add new files based on the length of the
 # line you wish to add.
 #
-# Copyright (C) 2018-2019 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -43,3 +43,4 @@ tex/pipeline
 LOCAL_tmp.mk
 LOCAL_old.mk
 gnuastro-local.conf
+.compiler_test_dir_please_delete
