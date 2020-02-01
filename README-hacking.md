@@ -959,8 +959,8 @@ for the benefit of others.
 
    - *Environment of each recipe*: If you need to define a special
       environment (or alises, or scripts to run) for all the recipes in
-      your Makefiles, you can use the Bash startup file
-      `reproduce/software/bash/bashrc.sh`. This file is loaded before every
+      your Makefiles, you can use a Bash startup file
+      `reproduce/software/shell/bashrc.sh`. This file is loaded before every
       Make recipe is run, just like the `.bashrc` in your home directory is
       loaded everytime you start a new interactive, non-login terminal. See
       the comments in that file for more.

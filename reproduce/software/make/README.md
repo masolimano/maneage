@@ -2,7 +2,7 @@ Software building instructions
 ==============================
 
 This directory contains Makefiles that are called by the high-level
-`reproduce/software/bash/configure.sh` script. The main target for the
+`reproduce/software/shell/configure.sh` script. The main target for the
 installation of each software is a simple plain text file that contains the
 name of the software and its version (which is put in the paper in the
 end). Once built, these plain-text files are all put in the proper

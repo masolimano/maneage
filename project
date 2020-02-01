@@ -294,7 +294,7 @@ controlled_env() {
 # Do requested operation
 # ----------------------
 perms="u+r,u+w,g+r,g+w,o-r,o-w,o-x"
-configscript=./reproduce/software/bash/configure.sh
+configscript=./reproduce/software/shell/configure.sh
 case $operation in
 
     # Build the project's software.
@@ -314,7 +314,7 @@ case $operation in
         # `reproduce/*/bash' should need executable flags, so we are giving
         # them executable flags by default. If any other file in your project
         # needs such flags, add them here.
-        chmod +x reproduce/software/bash/* reproduce/analysis/bash/*
+        chmod +x reproduce/software/shell/* reproduce/analysis/bash/*
 
         # If the user requested, clean the TeX directory from the extra
         # (to-be-built) directories that may already be there (and will not

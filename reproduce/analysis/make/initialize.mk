@@ -156,9 +156,9 @@ export DYLD_LIBRARY_PATH :=
 # remote-shell accesss through this environment variable.
 export OMPI_MCA_plm_rsh_agent=/bin/false
 
-# Recipe startup script, see `reproduce/software/bash/bashrc.sh'.
+# Recipe startup script.
 export PROJECT_STATUS := make
-export BASH_ENV := $(shell pwd)/reproduce/software/bash/bashrc.sh
+export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 
 
 

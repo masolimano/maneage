@@ -96,9 +96,9 @@ export DYLD_LIBRARY_PATH :=
 # for `ld'.
 export LIBRARY_PATH := $(sys_library_path)
 
-# Recipe startup script, see `reproduce/software/bash/bashrc.sh'.
+# Recipe startup script, see `reproduce/software/shell/bashrc.sh'.
 export PROJECT_STATUS := configure_highlevel
-export BASH_ENV := $(shell pwd)/reproduce/software/bash/bashrc.sh
+export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 
 # Building flags:
 #

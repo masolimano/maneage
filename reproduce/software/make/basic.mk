@@ -74,9 +74,9 @@ export LD_LIBRARY_PATH := $(shell echo $(LD_LIBRARY_PATH):$(ildir) \
 # causes crashs (see bug #56682). So we'll just give it no value at all.
 export DYLD_LIBRARY_PATH :=
 
-# Recipe startup script, see `reproduce/software/bash/bashrc.sh'.
+# Recipe startup script.
 export PROJECT_STATUS := configure_basic
-export BASH_ENV := $(shell pwd)/reproduce/software/bash/bashrc.sh
+export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 
 # Define the top-level basic programs (that don't depend on any other).
 top-level-programs = low-level-links gcc
@@ -1067,7 +1067,7 @@ $(ibidir)/metastore: $(needlibbsd) \
 	           -e's|@GROUP[@]|'$$group'|g' \
 	           -e's|@BINDIR[@]|$(ibdir)|g' \
 	           -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g' \
-	           reproduce/software/bash/git-$$f > .git/hooks/$$f \
+	           reproduce/software/shell/git-$$f > .git/hooks/$$f \
 	       && chmod +x .git/hooks/$$f; \
 	    done; \
 	  fi \
