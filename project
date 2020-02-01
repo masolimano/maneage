@@ -365,13 +365,22 @@ case $operation in
         if ! [ -f .build/software/configuration-done.txt ]; then
             cat <<EOF
 
-The project isn't configured for this system, or the configuration wasn't
-successful. To configure the project, please use this command:
+The project is either (1) not configured on this system, or (2) the
+configuration wasn't successful.
+
+(1) If it hasn't been configured at all, use the command below to configure
+it (set a build directory and let it build its necessary software in it).
 
       $ ./project configure
 
-[[ TIP: If you have already configured it once, run it with '-e' to use the
-previous configuration. Run with '--help' for more info ]]
+(2) If it has been configured, but the configuration failed in a step, you
+can re-configure it using your previous settings with the command
+below. All successful steps will be skipped, allowing a fast completion.
+
+      $ ./project configure -e
+
+If there was a problem, please let us know by filling this online form:
+      http://savannah.nongnu.org/support/?func=additem&group=reproduce
 
 EOF
             exit 1
