@@ -1188,7 +1188,7 @@ fi
 # Bash, Make, or AWK. In this step, we'll install such low-level basic
 # tools, but we have to be very portable (and use minimal features in all).
 echo; echo "Building necessary software (if necessary)..."
-make -f reproduce/software/make/basic.mk \
+make -k -f reproduce/software/make/basic.mk \
      good_static_libc=$good_static_libc \
      rpath_command=$rpath_command \
      static_build=$static_build \
@@ -1215,7 +1215,7 @@ else
     numthreads=$jobs
 fi
 .local/bin/env -i HOME=$bdir \
-    .local/bin/make -f reproduce/software/make/high-level.mk \
+    .local/bin/make -k -f reproduce/software/make/high-level.mk \
                     sys_library_path=$sys_library_path \
                     rpath_command=$rpath_command \
                     static_build=$static_build \
