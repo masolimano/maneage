@@ -1,7 +1,8 @@
 Reproducible paper template
 ===========================
 
-Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
+Copyright (C) 2020 Raul Infante-Sainz <infantesainz@gmail.com>\
 See the end of the file for license conditions.
 
 This project contains a **fully working template** for doing reproducible
@@ -436,7 +437,7 @@ project is designed to grow in this framework.
 File modification dates (meta data)
 -----------------------------------
 
-While git does an excellent job at keeping a history of the contents of
+While Git does an excellent job at keeping a history of the contents of
 files, it makes no effort in keeping the file meta data, and in particular
 the dates of files. Therefore when you checkout to a different branch,
 files that are re-written by Git will have a newer date than the other
@@ -711,6 +712,19 @@ First custom commit
      ```
      Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
      Copyright (C) 2020 YOUR NAME <YOUR@EMAIL.ADDRESS>
+     ```
+
+ - **Configure Git for fist time**: If you have never used Git, then you
+     have to configure it with some basic information in order to have
+     essential information in the commit messages (ignore this step if you
+     have already done it). Git will include your name and e-mail address
+     information in each commit. You can also specify your favorite text
+     editor for making the commit (`emacs`, `vim`, etc.).
+
+     ```shell
+     $ git config --global user.name "YourName YourSurname"
+     $ git config --global user.email your-email@example.com
+     $ git config --global core.editor vim
      ```
 
  - **Your first commit**: You have already made some small and basic
