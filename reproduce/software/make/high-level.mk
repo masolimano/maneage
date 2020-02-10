@@ -100,6 +100,11 @@ export LIBRARY_PATH := $(sys_library_path)
 export PROJECT_STATUS := configure_highlevel
 export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 
+# Servers to use as backup, later this should go in a file that is not
+# under version control (the actual server that the tarbal comes from is
+# irrelevant).
+backupservers = http://akhlaghi.org/reproduce-software
+
 # Building flags:
 #
 # C++ flags: when we build GCC, the C++ standard library needs to link with
@@ -321,7 +326,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  touch $(lockdir)/download
 	  downloader="wget --no-use-server-timestamps -O"
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
-	                     $$tarballurl "$@.unchecked"
+	                     $$tarballurl "$@.unchecked" "$(backupservers)"
 	fi
 
         # Make sure this is the expected tarball. Note that we now have a

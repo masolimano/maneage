@@ -82,6 +82,10 @@ export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 top-level-programs = low-level-links gcc
 all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 
+# Servers to use as backup, later this should go in a file that is not
+# under version control (the actual server that the tarbal comes from is
+# irrelevant).
+backupservers = http://akhlaghi.org/reproduce-software
 
 
 
@@ -236,15 +240,19 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	      \
 	  touch $(lockdir)/download; \
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
-	                     $$tarballurl "$@.unchecked"; \
+	                     $$tarballurl "$@.unchecked" "$(backupservers)"; \
 	fi; \
 	                                                \
 	                                                \
 	if type sha512sum > /dev/null 2>/dev/null; then \
 	  checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}'); \
-	  echo "$*: should be '$$c', is '$$checksum'"; \
-	  if [ x$$checksum = x$$c ]; then mv "$@.unchecked" "$@"; \
-	  else echo "ERROR: Non-matching checksum for '$*'."; exit 1; \
+	  if [ x"$$checksum" = x"$$c" ]; then \
+	    mv "$@.unchecked" "$@"; \
+	  else \
+	    echo "ERROR: Non-matching checksum for '$*'."; \
+	    echo "Checksum should be: $$c"; \
+	    echo "Checksum is:        $$checksum"; \
+	    exit 1; \
 	  fi; \
 	else mv "$@.unchecked" "$@"; \
 	fi;

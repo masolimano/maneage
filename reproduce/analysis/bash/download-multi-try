@@ -51,11 +51,13 @@ set -e
 
 
 
-# Input arguments and necessary sanity checks.
+# Input arguments and necessary sanity checks. Note that the 5th argument
+# (backup servers) isn't mandatory.
 inurl="$3"
 outname="$4"
 lockfile="$2"
 downloader="$1"
+backupservers="$5"
 if [ "x$downloader" = x ]; then
     echo "$0: downloader (first argument) not given."; exit 1;
 fi
@@ -68,6 +70,13 @@ fi
 if [ "x$outname" = x ]; then
     echo "$0: output name (fourth argument) not given."; exit 1;
 fi
+
+
+
+
+
+# Separate the actual filename, to possibly use backup server.
+urlfile=$(echo "$inurl" | awk -F "/" '{print $NF}')
 
 
 
@@ -107,8 +116,19 @@ while [ ! -f "$outname" ]; do
     if [ x"$lockfile" = xnolock ]; then
         if ! $downloader $outname $inurl; then rm -f $outname; fi
     else
+        # Try downloading from the requested URL.
         flock "$lockfile" bash -c \
               "if ! $downloader $outname $inurl; then rm -f $outname; fi"
+
+        # If it failed, try the backup server(s).
+        if [ ! -f "$outname" ]; then
+            if [ x"$backupservers" != x ]; then
+                for bs in "$backupservers"; do
+                    flock "$lockfile" bash -c \
+                          "if ! $downloader $outname $bs/$urlfile; then rm -f $outname; fi"
+                done
+            fi
+        fi
     fi
 
 done

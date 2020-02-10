@@ -259,7 +259,7 @@ $(pytarballs): $(tdir)/%:
 	  touch $(lockdir)/download
 	  downloader="wget --no-use-server-timestamps -O"
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
-	                     $$tarballurl "$@.unchecked"
+	                     $$tarballurl "$@.unchecked" "$(backupservers)"
 	fi
 
         # Make sure this is the expected tarball. Note that we now have a
