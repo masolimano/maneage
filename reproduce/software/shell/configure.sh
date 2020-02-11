@@ -273,6 +273,21 @@ static_build=no
 if type otool > /dev/null 2>/dev/null; then
     host_cc=1
     on_mac_os=yes
+    cat <<EOF
+
+______________________________________________________
+!!!!!!!!!!!!!!!        Warning        !!!!!!!!!!!!!!!!
+
+The GNU Compiler Collection (GCC, including compilers for C, C++, Fortran
+and etc) is currently not built on macOS systems for this project. To build
+the project's necessary software on this system, we need to use your
+system's C compiler.
+
+Project's configuration will continue in 5 seconds.
+______________________________________________________
+
+EOF
+    sleep 5
 else
     host_cc=0
     on_mac_os=no
@@ -349,9 +364,8 @@ EOF
         host_cc=1
         cat <<EOF
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!         Warning        !!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+_______________________________________________________
+!!!!!!!!!!!!            Warning            !!!!!!!!!!!!
 
 The 'sys/cdefs.h' header cannot be included, or a usable static C library
 ('libc.a', in any directory) cannot be used with the current settings of
@@ -376,7 +390,7 @@ re-configure the project to fix this problem.
     $ export LDFLAGS="-L/PATH/TO/STATIC/LIBC \$LDFLAGS"
     $ export CPPFLAGS="-I/PATH/TO/SYS/CDEFS_H \$LDFLAGS"
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+_______________________________________________________
 
 EOF
     fi
@@ -392,6 +406,8 @@ Since GCC is pretty low-level, this configuration script will continue in 5
 seconds and use your system's C compiler (it won't build a custom GCC). But
 please consider installing the necessary package(s) to complete your C
 compiler, then re-run './project configure'.
+
+Project's configuration will continue in 5 seconds.
 
 EOF
         sleep 5
@@ -418,33 +434,32 @@ if [ $host_cc = 1 ]; then
 ______________________________________________________
 !!!!!!!      Fortran Compiler NOT FOUND        !!!!!!!
 
-Because the project won't be building its own GCC (which includes a Fortran
-compiler), you need to have a Fortran compiler available. Fortran is
-commonly necessary for many lower-level scientific programs. Currently we
-search for 'gfortran'. If you have a Fortran compiler that is not checked,
-please get in touch with us (with the form below) so we add it:
+The project won't be building its own GCC (which includes a Fortran
+compiler) on this system. If you need software that need a Fortran
+compiler, it will crash with an error. Fortran is necessary for many
+lower-level scientific programs, hence this warning. Currently we search
+for 'gfortran'. If you have a Fortran compiler that is not checked, please
+get in touch with us (with the form below) so we add it:
 
   https://savannah.nongnu.org/support/?func=additem&group=reproduce
 
-Note: GCC will not be built because you are either using the '--host-cc'
-option, or you are using an operating system that currently has bugs when
-building GCC.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Project's configuration will continue in 5 seconds.
+______________________________________________________
 
 EOF
-        exit 1
-    fi
-
-    # See if the Fortran compiler works
-    testsource=$compilertestdir/test.f
-    echo; echo; echo "Checking host Fortran compiler...";
-    echo "      PRINT *, \"... Fortran Compiler works.\""  > $testsource
-    echo "      END"                                      >> $testsource
-    if gfortran $testsource -o$testprog && $testprog; then
-        rm $testsource $testprog
+        sleep 5
     else
-        rm $testsource
-        cat <<EOF
+
+        # See if the Fortran compiler works
+        testsource=$compilertestdir/test.f
+        echo; echo; echo "Checking host Fortran compiler...";
+        echo "      PRINT *, \"... Fortran Compiler works.\""  > $testsource
+        echo "      END"                                      >> $testsource
+        if gfortran $testsource -o$testprog && $testprog; then
+            rm $testsource $testprog
+        else
+            rm $testsource
+            cat <<EOF
 
 ______________________________________________________
 !!!!!!!     Fortran compiler doesn't work      !!!!!!!
@@ -465,10 +480,12 @@ existing configuration:
 
    $ ./project configure -e
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Project's configuration will continue in 5 seconds.
+______________________________________________________
 
 EOF
-        exit 1
+            sleep 5
+        fi
     fi
 fi
 
@@ -1052,6 +1069,8 @@ the following command. See "Inspecting status" section of
 configured (in another terminal, but on this same directory: 'pwd'):
 
   $ ./project --check-config
+
+Project's configuration will continue in $tsec seconds.
 
 -------------------------
 
