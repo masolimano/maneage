@@ -1182,6 +1182,15 @@ endif
 # programs (http://savannah.nongnu.org/bugs/?56294). Therefore, we'll set
 # all other basic programs as Binutils prerequisite and GCC (the final
 # basic target) ultimately just depends on Binutils.
+#
+# The `ld' linker of Binutils needs several `*crt*.o' file to run. On some
+# systems these object files aren't installed in standard places. We
+# defined `LIBRARY_PATH' and that fixed the problem for many
+# systems. However, some software (for example ImageMagick) over-write
+# `LIBRARY_PATH', therefore there is no other way than to put a link to
+# these necessary files in our local build directory. IMPORTANT NOTE:
+# later, when we build the GNU C Library in the project, we should remove
+# this step.
 $(ibidir)/binutils: | $(ibidir)/sed \
                       $(ibidir)/wget \
                       $(ibidir)/grep \
@@ -1203,11 +1212,17 @@ $(ibidir)/binutils: | $(ibidir)/sed \
 	  $(call makelink,nm); \
 	  $(call makelink,ps); \
 	  $(call makelink,ranlib); \
-          echo "" > $@; \
+	  echo "" > $@; \
 	else \
 	  $(call gbuild, binutils-$(binutils-version), static, \
 	                 --with-lib-path=$(sys_library_path), \
 	                 -j$(numthreads) ) \
+	  && if ! [ x"$(sys_library_path)" = x ]; then \
+	       for f in $(sys_library_path)/*crt*.o; do \
+	         b=$$($(ibdir)/basename $$f); \
+	         ln -s $$f $(ildir)/$$b; \
+	       done; \
+	     fi \
 	  && echo "GNU Binutils $(binutils-version)" > $@; \
 	fi
 

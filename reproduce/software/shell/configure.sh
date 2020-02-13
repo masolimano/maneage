@@ -1208,6 +1208,7 @@ fi
 # tools, but we have to be very portable (and use minimal features in all).
 echo; echo "Building necessary software (if necessary)..."
 make -k -f reproduce/software/make/basic.mk \
+     sys_library_path=$sys_library_path \
      good_static_libc=$good_static_libc \
      rpath_command=$rpath_command \
      static_build=$static_build \
