@@ -1132,7 +1132,7 @@ $(ibidir)/texinfo: | $(ibidir)/perl \
 	     $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/info; \
 	     $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/install-info; \
 	   fi \
-	&& echo "GNU Texinfo $(sed-version)" > $@
+	&& echo "GNU Texinfo $(texinfo-version)" > $@
 
 $(ibidir)/which: | $(ibidir)/coreutils \
                    $(tdir)/which-$(which-version).tar.gz
