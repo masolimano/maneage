@@ -163,6 +163,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         cfitsio-$(cfitsio-version).tar.gz \
                         cmake-$(cmake-version).tar.gz \
                         eigen-$(eigen-version).tar.gz \
+                        expat-$(expat-version).tar.lz \
                         fftw-$(fftw-version).tar.gz \
                         flex-$(flex-version).tar.gz \
                         freetype-$(freetype-version).tar.gz \
@@ -183,6 +184,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         libpng-$(libpng-version).tar.xz \
                         libtirpc-$(libtirpc-version).tar.bz2 \
                         libxml2-$(libxml2-version).tar.gz \
+                        minizip-$(minizip-version).tar.gz \
                         netpbm-$(netpbm-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
                         openmpi-$(openmpi-version).tar.gz \
@@ -198,6 +200,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         tides-$(tides-version).tar.gz \
                         tiff-$(libtiff-version).tar.gz \
                         wcslib-$(wcslib-version).tar.bz2 \
+                        xlsxio-$(xlsxio-version).tar.gz \
                         yaml-$(yaml-version).tar.gz \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
@@ -240,6 +243,11 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  mergenames=0
 	  c=$(eigen-checksum);
 	  w=http://bitbucket.org/eigen/eigen/get/$(eigen-version).tar.gz
+	elif [ $$n = expat    ]; then
+	  mergenames=0
+	  c=$(expat-checksum)
+	  vstr=$$(echo $(expat-version) | sed -e's/\./_/g')
+	  w=https://github.com/libexpat/libexpat/releases/download/R_$$vstr/expat-$(expat-version).tar.lz
 	elif [ $$n = fftw        ]; then c=$(fftw-checksum); w=ftp://ftp.fftw.org/pub/fftw
 	elif [ $$n = flex        ]; then c=$(flex-checksum); w=https://github.com/westes/flex/files/981163
 	elif [ $$n = freetype    ]; then c=$(freetype-checksum); w=https://download.savannah.gnu.org/releases/freetype
@@ -273,6 +281,10 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	elif [ $$n = libtirpc    ]; then c=$(libtirpc-checksum); w=https://downloads.sourceforge.net/libtirpc
 	elif [ $$n = libxml      ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2
+	elif [ $$n = minizip     ]; then
+	  mergenames=0
+	  c=$(minizip-checksum);
+	  w=https://github.com/nmoinvaz/minizip/archive/$(minizip-version).tar.gz
 	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = openblas    ]; then
 	  mergenames=0
@@ -300,6 +312,10 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = tides       ]; then c=$(tides-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = tiff        ]; then c=$(libtiff-checksum); w=https://download.osgeo.org/libtiff
 	elif [ $$n = wcslib      ]; then c=$(wcslib-checksum); w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
+	elif [ $$n = xlsxio      ]; then
+	  mergenames=0
+	  c=$(xlsxio-checksum);
+	  w=https://github.com/brechtsanders/xlsxio/archive/$(xlsxio-version).tar.gz
 	elif [ $$n = yaml        ]; then c=$(yaml-checksum); w=pyyaml.org/download/libyaml
 	else
 	  echo; echo; echo;
@@ -562,6 +578,10 @@ $(ibidir)/eigen: | $(tdir)/eigen-$(eigen-version).tar.gz
 	&& cd $$topdir \
 	&& rm -rf $(ddir)/eigen-eigen-* \
 	&& echo "Eigen $(eigen-version)" > $@
+
+$(ibidir)/expat: | $(tdir)/expat-$(expat-version).tar.lz
+	$(call gbuild, expat-$(expat-version), static) \
+	&& echo "Expat $(expat-version)" > $@
 
 $(ibidir)/fftw: | $(tdir)/fftw-$(fftw-version).tar.gz
         # FFTW's single and double precission libraries must be built
@@ -1014,6 +1034,11 @@ $(ibidir)/imfit: $(ibidir)/gsl \
 	   fi \
 	&& echo "Imfit $(imfit-version) \citep{imfit2015}" > $@
 
+$(ibidir)/minizip: $(ibidir)/cmake \
+                   | $(tdir)/minizip-$(minizip-version).tar.gz
+	$(call cbuild, minizip-$(minizip-version), static) \
+	&& echo "minizip $(minizip-version)" > $@
+
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
 # This program has a crazy dialogue installation which is override using the
 # printf statment. Each `\n' is a new question that the installation process
@@ -1119,6 +1144,13 @@ $(ibidir)/swig: | $(tdir)/swig-$(swig-version).tar.gz
         # pcr is a dependency of swig
 	$(call gbuild, swig-$(swig-version), static, --without-pcre) \
 	&& echo "Swig $(swig-version)" > $@
+
+$(ibidir)/xlsxio: $(ibidir)/expat \
+                  $(ibidir)/minizip \
+                  | $(tdir)/xlsxio-$(xlsxio-version).tar.gz
+	export LDFLAGS="-lbz2 -lbsd"; \
+	$(call cbuild, xlsxio-$(xlsxio-version), static) \
+	&& echo "XLSX I/O $(xlsxio-version)" > $@
 
 
 
