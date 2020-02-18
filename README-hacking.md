@@ -564,7 +564,7 @@ First custom commit
 
      ```shell
      # On another terminal (go to top project directory)
-     $ project --check-config
+     $ ./project --check-config
      ```
 
  - **Test the template**: Before making any changes, it is important to
