@@ -1261,15 +1261,27 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	  ccinfo=$$(gcc --version | awk 'NR==1'); \
 	  echo "C compiler (""$$ccinfo"")" > $@; \
 	else \
+	  current_dir=$$(pwd); \
 	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*;\
 	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*; \
 	  rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*;\
 	                                 \
 	  ln -fs $(ildir) $(idir)/lib64; \
-	                                 \
-	  cd $(ddir); \
+	                       \
+	  in_ram=$$(df $(ddir) \
+	               | awk 'NR==2{print ($$4>10000000) ? "yes" : "no"}'); \
+	  if [ $$in_ram = "yes" ]; then odir=$(ddir); \
+	  else \
+	    odir=$(BDIR)/software/build-tmp-gcc; \
+	    if [ -d $$odir ]; then rm -rf $$odir; fi; \
+	    mkdir $$odir; \
+	  fi; \
+	  cd $$odir; \
 	  rm -rf gcc-$(gcc-version); \
-	  tar xf $(word 1,$(filter $(tdir)/%,$|)) \
+	  tar xf $(word 1,$(filter $(tdir)/%,$|)); \
+	  if [ $$odir != $(ddir) ]; then \
+	    ln -s $$odir/gcc-$(gcc-version) $(ddir)/gcc-$(gcc-version); \
+	  fi \
 	  && cd gcc-$(gcc-version) \
 	  && mkdir build \
 	  && cd build \
@@ -1296,7 +1308,7 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	  && make SHELL=$(ibdir)/bash -j$(numthreads) \
 	  && make SHELL=$(ibdir)/bash install \
 	  && cd ../.. \
-	  && tempname=$(ddir)/gcc-$(gcc-version)/build/rpath-temp-copy \
+	  && tempname=$$odir/gcc-$(gcc-version)/build/rpath-temp-copy \
 	  && if [ "x$(on_mac_os)" != xyes ]; then \
 	       patchelf --add-needed $(ildir)/libiconv.so $(ildir)/libstdc++.so; \
 	       for f in $$(find $(idir)/libexec/gcc) $(ildir)/libstdc++*; do \
@@ -1309,6 +1321,11 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	       done; \
 	     fi \
 	  && rm -rf gcc-$(gcc-version) \
+	  && cd $$current_dir \
+	  && if [ "$$odir" != "$(ddir)" ]; then \
+	       rm -rf $$odir; \
+	       rm $(ddir)/gcc-$(gcc-version); \
+	     fi \
 	  && ln -sf $(ibdir)/gcc $(ibdir)/cc \
 	  && echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@; \
 	fi
