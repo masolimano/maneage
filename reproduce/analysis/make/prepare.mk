@@ -19,7 +19,9 @@
 # Final-target
 #
 # Without this file, `./project make' won't work.
-$(BDIR)/software/preparation-done.mk:
+prepare-dep = $(subst prepare, ,$(makesrc))
+$(BDIR)/software/preparation-done.mk: \
+                $(foreach s, $(prepare-dep), $(mtexdir)/$(s).tex)
 
         # If you need to add preparations define targets above to do the
         # preparations, then set the value below to `yes'. Recall that just
