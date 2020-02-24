@@ -185,6 +185,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         libtirpc-$(libtirpc-version).tar.bz2 \
                         libxml2-$(libxml2-version).tar.gz \
                         minizip-$(minizip-version).tar.gz \
+												missfits-$(missfits-version).tar.gz \
                         netpbm-$(netpbm-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
                         openmpi-$(openmpi-version).tar.gz \
@@ -285,6 +286,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  mergenames=0
 	  c=$(minizip-checksum);
 	  w=https://github.com/nmoinvaz/minizip/archive/$(minizip-version).tar.gz
+	elif [ $$n = missfits    ]; then c=$(missfits-checksum); w=https://www.astromatic.net/download/missfits
 	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = openblas    ]; then
 	  mergenames=0
@@ -1038,6 +1040,11 @@ $(ibidir)/minizip: $(ibidir)/cmake \
                    | $(tdir)/minizip-$(minizip-version).tar.gz
 	$(call cbuild, minizip-$(minizip-version), static) \
 	&& echo "minizip $(minizip-version)" > $@
+
+$(ibidir)/missfits: | $(tdir)/missfits-$(missfits-version).tar.gz
+	$(call gbuild, missfits-$(missfits-version), static) \
+	&& cp $(dtexdir)/missfits.tex $(ictdir)/ \
+	&& echo "MissFITS $(missfits-version) \citep{missfits}" > $@
 
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
 # This program has a crazy dialogue installation which is override using the

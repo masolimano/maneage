@@ -1045,7 +1045,7 @@ fi
 
 
 
-# inform the user that the build process is starting
+# Inform the user that the build process is starting
 # -------------------------------------------------
 if [ $printnotice = yes ]; then
     tsec=10
