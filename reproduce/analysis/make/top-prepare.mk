@@ -37,19 +37,7 @@ include reproduce/software/config/installation/LOCAL.conf
 # See `top-make.mk' for complete explanation.
 ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
 all: $(BDIR)/software/preparation-done.mk
-	@echo "";
-	echo "----------------"
-	echo "Project preparation has been completed without any errors."
-	echo ""
-	echo "Please run the following command to start building the project."
-	echo "(Replace '8' with the number of CPU threads on your system)"
-	echo ""
-	if [ "x$(GROUP-NAME)" = x ]; then \
-	  echo "   $$ ./project make"; \
-	else \
-	  echo "   $$ ./project make --group=$(GROUP-NAME) -j8"; \
-	fi
-	echo ""
+	@echo "Project preparation is complete.";
 else
 all:
 	@if [ "x$(GROUP-NAME)" = x ]; then \
@@ -59,6 +47,7 @@ all:
 	  echo "Project is configured for groups, please run"; \
 	  echo "   $$ ./project prepare --group=$(GROUP-NAME) -j8"; \
 	fi
+	exit 1
 endif
 
 

@@ -37,6 +37,7 @@ check_config=
 make_targets=
 software_dir=
 clean_texdir=0
+prepare_redo=0
 existing_conf=0
 scriptname="./project"
 minmapsize=10000000000
@@ -108,6 +109,7 @@ Configure and Make options:
 
 Make options:
   -d, --debug=FLAGS        Print various types of debugging information.
+  -p, --prepare-redo       Re-do preparation (only done automatically once).
 
 Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
@@ -184,12 +186,17 @@ do
   -'?'|--help)            print_help; exit 0;;
   -'?'*|--help=*)         on_off_option_error --help -?;;
 
-  # Make options (note that Make's `debug' can take values, but when called
-  # without any value, it is like giving it a value of `a'):
+  # Make options
+  # ------------
+  #
+  # Note that Make's `debug' can take values, but when called without any
+  # value, it is like giving it a value of `a'):
   -d|--debug)             if [ x"$2" = x ]; then debug=a;          shift;
                           else debug="$2"; check_v debug "$debug"; shift;shift; fi;;
   -d=*|--debug=*)         debug="${1#*=}";                       check_v debug "$debug";   shift;;
   -d*)                    debug=$(echo "$1" | sed -e's/-d//');   check_v debug "$debug";   shift;;
+  -p|--prepare-redo)      prepare_redo=1;                                                  shift;;
+  -p=*|--prepare-redo=*)  on_off_option_error --prepare-redo;                              shift;;
 
   # Unrecognized option:
   -*) echo "$scriptname: unknown option '$1'"; exit 1;;
@@ -386,9 +393,16 @@ EOF
             exit 1
         fi
 
-        # Run input-preparations (optionally build Makefiles with special
-        # values for optimizing the main `top-make.mk').
-        controlled_env reproduce/analysis/make/top-prepare.mk
+        # Run data preparation phase (optionally build Makefiles with
+        # special values for optimizing the main `top-make.mk'). But note
+        # that data preparation is only done automatically the first time
+        # the project is built (when `.build/software/preparation-done.mk'
+        # doesn't yet exist). After that, if the user wants to re-do the
+        # preparation they have to use the `--prepare-redo' option.
+        if ! [ -f .build/software/preparation-done.mk ] \
+                || [ x"$prepare_redo" = x1 ]; then
+            controlled_env reproduce/analysis/make/top-prepare.mk
+        fi
 
         # Run the actual project.
         controlled_env reproduce/analysis/make/top-make.mk
