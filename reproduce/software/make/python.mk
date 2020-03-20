@@ -373,12 +373,9 @@ $(ipydir)/asteval: $(ipydir)/numpy \
 	$(call pybuild, tar xf, asteval-$(asteval-version), , \
 	                ASTEVAL $(asteval-version))
 
-$(ipydir)/astroquery: $(ipydir)/numpy \
-                      $(ipydir)/astropy \
+$(ipydir)/astroquery: $(ipydir)/astropy \
                       $(ipydir)/keyring \
-                      $(ipydir)/html5lib \
                       $(ipydir)/requests \
-                      $(ipydir)/beautifulsoup4 \
                       | $(tdir)/astroquery-$(astroquery-version).tar.gz
 	$(call pybuild, tar xf, astroquery-$(astroquery-version), ,\
 	                Astroquery $(astroquery-version))
@@ -386,6 +383,9 @@ $(ipydir)/astroquery: $(ipydir)/numpy \
 $(ipydir)/astropy: $(ipydir)/h5py \
                    $(ipydir)/scipy \
                    $(ipydir)/numpy \
+                   $(ipydir)/pyyaml \
+                   $(ipydir)/html5lib \
+                   $(ipydir)/beautifulsoup4 \
                    | $(tdir)/astropy-$(astropy-version).tar.gz
 	$(call pybuild, tar xf, astropy-$(astropy-version)) \
 	&& cp $(dtexdir)/astropy.tex $(ictdir)/ \
