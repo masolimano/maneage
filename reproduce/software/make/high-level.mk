@@ -184,7 +184,6 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         libpng-$(libpng-version).tar.xz \
                         libtirpc-$(libtirpc-version).tar.bz2 \
                         libxml2-$(libxml2-version).tar.gz \
-                        minizip-$(minizip-version).tar.gz \
                         missfits-$(missfits-version).tar.gz \
                         netpbm-$(netpbm-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
@@ -203,6 +202,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         wcslib-$(wcslib-version).tar.bz2 \
                         xlsxio-$(xlsxio-version).tar.gz \
                         yaml-$(yaml-version).tar.gz \
+                        zlib-$(zlib-version).tar.gz \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
 
@@ -282,10 +282,6 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	elif [ $$n = libtirpc    ]; then c=$(libtirpc-checksum); w=https://downloads.sourceforge.net/libtirpc
 	elif [ $$n = libxml      ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2
-	elif [ $$n = minizip     ]; then
-	  mergenames=0
-	  c=$(minizip-checksum);
-	  w=https://github.com/nmoinvaz/minizip/archive/$(minizip-version).tar.gz
 	elif [ $$n = missfits    ]; then c=$(missfits-checksum); w=https://www.astromatic.net/download/missfits
 	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/reproduce-software
 	elif [ $$n = openblas    ]; then
@@ -319,6 +315,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(xlsxio-checksum);
 	  w=https://github.com/brechtsanders/xlsxio/archive/$(xlsxio-version).tar.gz
 	elif [ $$n = yaml        ]; then c=$(yaml-checksum); w=pyyaml.org/download/libyaml
+	elif [ $$n = zlib        ]; then c=$(zlib-checksum); w=https://zlib.net
 	else
 	  echo; echo; echo;
 	  echo "'$$n' not recognized as a software tarball name to download."
@@ -927,8 +924,8 @@ $(ibidir)/ghostscript: $(ibidir)/libpng \
         # First we need to make sure some necessary X11 libraries that we
         # don't yet install in this template are present on the host
         # system, see https://savannah.nongnu.org/task/?15481 .
-	# Adding `-L/opt/X11/lib' to LDFLAGS is necessary for macOS systems
-	# because X11 libraries used to be installed there.
+        # Adding `-L/opt/X11/lib' to LDFLAGS is necessary for macOS systems
+        # because X11 libraries used to be installed there.
 	echo;
 	echo "Template: testing necessary X11 libraries for ghostscript"
 	echo "---------------------------------------------------------"
@@ -1036,10 +1033,43 @@ $(ibidir)/imfit: $(ibidir)/gsl \
 	   fi \
 	&& echo "Imfit $(imfit-version) \citep{imfit2015}" > $@
 
-$(ibidir)/minizip: $(ibidir)/cmake \
-                   | $(tdir)/minizip-$(minizip-version).tar.gz
-	$(call cbuild, minizip-$(minizip-version), static) \
-	&& echo "minizip $(minizip-version)" > $@
+# Minizip 1.x is actually distributed within zlib. It doesn't have its own
+# independent tarball. So we need a custom build, which include the GNU
+# Autotools (Autoconf and Automake). Note that Minizip 2.x isn't like this
+# any more and has its own independent tarball, but currently the programs
+# that depend on Minizip need Minizip 1.x. The instructions to build
+# minizip were taken from ArchLinux.
+#
+# About deleting the final crypt.h file after installation, see
+# https://bugzilla.redhat.com/show_bug.cgi?id=1424609
+$(ibidir)/minizip: $(ibidir)/automake \
+                   | $(tdir)/zlib-$(zlib-version).tar.gz
+	cd $(ddir) \
+	&& unpackdir=minizip-$(minizip-version) \
+	&& rm -rf $$unpackdir \
+	&& mkdir $$unpackdir \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)) \
+	            -C$$unpackdir --strip-components=1; then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
+	&& cd $$unpackdir\
+	&& ./configure --prefix=$(idir) \
+	&& make \
+	&& cd contrib/minizip \
+	&& cp Makefile Makefile.orig \
+	&& cp ../README.contrib readme.txt \
+	&& autoreconf --install \
+	&& ./configure --prefix=$(idir) \
+	&& make \
+	&& cd ../../ \
+	&& make test \
+	&& cd contrib/minizip \
+	&& make -f Makefile.orig test \
+	&& make install \
+	&& rm $(iidir)/minizip/crypt.h \
+	&& cd ../../.. \
+	&& rm -rf $$unpackdir \
+	&& echo "Minizip $(minizip)" > $@
 
 $(ibidir)/missfits: | $(tdir)/missfits-$(missfits-version).tar.gz
 	$(call gbuild, missfits-$(missfits-version), static) \
@@ -1152,13 +1182,30 @@ $(ibidir)/swig: | $(tdir)/swig-$(swig-version).tar.gz
 	$(call gbuild, swig-$(swig-version), static, --without-pcre) \
 	&& echo "Swig $(swig-version)" > $@
 
-$(ibidir)/xlsxio: $(ibidir)/expat \
+$(ibidir)/xlsxio: $(ibidir)/cmake \
+                  $(ibidir)/expat \
                   $(ibidir)/minizip \
                   | $(tdir)/xlsxio-$(xlsxio-version).tar.gz
-	export LDFLAGS="-lbz2 -lbsd"; \
-	$(call cbuild, xlsxio-$(xlsxio-version), static) \
+	if [ x$(on_mac_os) = xyes ]; then \
+	  export CC=clang; \
+	  export CXX=clang++; \
+	  export LDFLAGS="-lbz2"; \
+	else \
+	  export LDFLAGS="-lbz2 -lbsd"; \
+	fi; \
+	$(call cbuild, xlsxio-$(xlsxio-version), static, \
+	       -DMINIZIP_DIR:PATH=$(idir) \
+	       -DMINIZIP_LIBRARIES=$(idir) \
+	       -DMINIZIP_INCLUDE_DIRS=$(iidir)) \
+	&& if [ "x$(on_mac_os)" != xyes ]; then \
+	     echo "Adding RPATH to the XLSX I/O executables..."; \
+	     for f in $(ibdir)/xlsxio_* $(ildir)/libxlsxio_*.so; do \
+	         patchelf --set-rpath $(ildir) $$f; \
+	     done; \
+	   fi \
+	&& echo "Deleting XLSX I/O example files..." \
+	&& rm $(ibdir)/example_xlsxio_* \
 	&& echo "XLSX I/O $(xlsxio-version)" > $@
-
 
 
 
