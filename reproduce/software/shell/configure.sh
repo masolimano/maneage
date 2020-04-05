@@ -1320,9 +1320,11 @@ prepare_name_version ()
                   | .local/bin/sed '/^\s*$/d' \
                   | .local/bin/wc -l)
 
-        # Put them all in one paragraph.
+        # Put them all in one paragraph, while sorting them, commenting any
+        # possible underscores and removing blank lines.
         .local/bin/cat $@ \
             | .local/bin/sort \
+            | .local/bin/sed -e's|_|\\_|' \
             | .local/bin/awk 'NF>0 { \
                   c++; \
                   if(c==1) \
