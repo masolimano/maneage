@@ -1069,7 +1069,7 @@ $(ibidir)/minizip: $(ibidir)/automake \
 	&& rm $(iidir)/minizip/crypt.h \
 	&& cd ../../.. \
 	&& rm -rf $$unpackdir \
-	&& echo "Minizip $(minizip)" > $@
+	&& echo "Minizip $(minizip-version)" > $@
 
 $(ibidir)/missfits: | $(tdir)/missfits-$(missfits-version).tar.gz
 	$(call gbuild, missfits-$(missfits-version), static) \
