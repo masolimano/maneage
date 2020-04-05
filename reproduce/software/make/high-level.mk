@@ -1069,7 +1069,7 @@ $(ibidir)/minizip: $(ibidir)/automake \
 	&& rm $(iidir)/minizip/crypt.h \
 	&& cd ../../.. \
 	&& rm -rf $$unpackdir \
-	&& echo "Minizip $(minizip-version)" > $@
+	&& echo "Minizip $(minizip)" > $@
 
 $(ibidir)/missfits: | $(tdir)/missfits-$(missfits-version).tar.gz
 	$(call gbuild, missfits-$(missfits-version), static) \
@@ -1197,10 +1197,17 @@ $(ibidir)/xlsxio: $(ibidir)/cmake \
 	       -DMINIZIP_DIR:PATH=$(idir) \
 	       -DMINIZIP_LIBRARIES=$(idir) \
 	       -DMINIZIP_INCLUDE_DIRS=$(iidir)) \
-	&& if [ "x$(on_mac_os)" != xyes ]; then \
-	     echo "Adding RPATH to the XLSX I/O executables..."; \
+	&& echo "Correcting internal linking of XLSX I/O executables..." \
+	&& if [ "x$(on_mac_os)" = xyes ]; then \
+	     for f in $(ibdir)/xlsxio_* $(ildir)/libxlsxio_*.dylib; do \
+	       install_name_tool -change  libxlsxio_read.dylib \
+	                         $(ildir)/libxlsxio_read.dylib $$f; \
+	       install_name_tool -change  libxlsxio_write.dylib \
+	                         $(ildir)/libxlsxio_write.dylib $$f; \
+	     done; \
+	   else \
 	     for f in $(ibdir)/xlsxio_* $(ildir)/libxlsxio_*.so; do \
-	         patchelf --set-rpath $(ildir) $$f; \
+	       patchelf --set-rpath $(ildir) $$f; \
 	     done; \
 	   fi \
 	&& echo "Deleting XLSX I/O example files..." \

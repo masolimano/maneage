@@ -1002,10 +1002,34 @@ $(ibidir)/libbsd: | $(ibidir)/coreutils \
 	$(call gbuild, libbsd-$(libbsd-version), static,,V=1) \
 	&& echo "Libbsd $(libbsd-version)" > $@
 
-$(ibidir)/m4: | $(ibidir)/coreutils \
+# We need to apply a patch to the M4 source to be used properly on macOS.
+# The patch [1] was inspired by Homebrew's build instructions [1].
+#
+# [1] https://raw.githubusercontent.com/macports/macports-ports/edf0ee1e2cf/devel/m4/files/secure_snprintf.patch
+# [2] https://github.com/Homebrew/homebrew-core/blob/master/Formula/m4.rb
+$(ibidir)/m4: | $(ibidir)/sed \
                 $(ibidir)/texinfo \
+                $(ibidir)/coreutils \
                 $(tdir)/m4-$(m4-version).tar.gz
-	$(call gbuild, m4-$(m4-version), static,,V=1) \
+	cd $(ddir); \
+	unpackdir=m4-$(m4-version); \
+	rm -rf $$unpackdir \
+	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$|)); then \
+	      echo; echo "Tar error"; exit 1; \
+	   fi \
+	&& cd $$unpackdir \
+	&& if [ x$(on_mac_os) = xyes ]; then \
+	     sed -i -e's|if !(((__GLIBC__ > 2|if !defined(__APPLE__) \&\& !(((__GLIBC__ > 2|' lib/vasnprintf.c;  \
+	   fi \
+	&& sed -i -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
+	          -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
+	       configure \
+	&& ./configure --prefix=$(idir) SHELL=$(ibdir)/bash  \
+	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)" \
+	&& make SHELL=$(ibdir)/bash V=1 -j$(numthreads) \
+	&& make SHELL=$(ibdir)/bash V=1 install \
+	&& cd .. \
+	&& rm -rf $$unpackdir \
 	&& echo "GNU M4 $(m4-version)" > $@
 
 # Metastore is used (through a Git hook) to restore the source modification
