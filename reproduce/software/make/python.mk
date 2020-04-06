@@ -335,7 +335,10 @@ $(ibidir)/python: $(ibidir)/libffi \
 #   2) Unpacked directory name after unpacking the tarball
 #   3) site.cfg file (optional).
 #   4) Official software name (for paper).
-#   5) Manual step after installation.
+#
+# Hooks:
+#   pyhook_before: optional steps before running `python setup.py build'
+#   pyhook_after: optional steps after running `python setup.py install'
 pybuild = cd $(ddir); rm -rf $(2); \
 	 if ! $(1) $(word 1,$(filter $(tdir)/%,$|)); then \
 	   echo; echo "Tar error"; exit 1; \
@@ -346,11 +349,10 @@ pybuild = cd $(ddir); rm -rf $(2); \
 	       -e 's|@INCDIR[@]|'"$(idir)/include"'|' \
 	       $(3) > site.cfg; \
 	 fi; \
-	 if [ x"$(5)" = x ]; then after="echo no after"; \
-	 else after="$(5)"; fi \
+	 if type pyhook_before &>/dev/null; then pyhook_before; fi \
 	 && python setup.py build \
 	 && python setup.py install \
-	 && $$after \
+	 && if type pyhook_after &>/dev/null; then pyhook_after; fi \
 	 && cd .. \
 	 && rm -rf $(2) \
 	 && echo "$(4)" > $@
@@ -381,12 +383,24 @@ $(ipydir)/astroquery: $(ipydir)/astropy \
 	                Astroquery $(astroquery-version))
 
 $(ipydir)/astropy: $(ipydir)/h5py \
+                   $(ibidir)/expat \
                    $(ipydir)/scipy \
                    $(ipydir)/numpy \
                    $(ipydir)/pyyaml \
                    $(ipydir)/html5lib \
                    $(ipydir)/beautifulsoup4 \
                    | $(tdir)/astropy-$(astropy-version).tar.gz
+        # Currently, when the Expat library is already built in a project
+        # (for example as a dependency of another program), Astropy's
+        # internal building of Expat will conflict with the project's. So
+        # we have added Expat as a dependency of Astropy (so it is always
+        # built before it, and we tell Astropy to use the project's
+        # libexpat.
+	pyhook_before () {
+	  echo ""                   >> setup.cfg
+	  echo "[build]"            >> setup.cfg
+	  echo "use_system_expat=1" >> setup.cfg
+	}
 	$(call pybuild, tar xf, astropy-$(astropy-version)) \
 	&& cp $(dtexdir)/astropy.tex $(ictdir)/ \
 	&& echo "Astropy $(astropy-version) \citep{astropy2013,astropy2018}" > $@
@@ -474,7 +488,7 @@ $(ipydir)/galsim: $(ipydir)/future \
                   $(ipydir)/pybind11 \
                   $(ipydir)/lsstdesccoord \
                   | $(tdir)/galsim-$(galsim-version).tar.gz
-	$(call pybuild, tar xf, GalSim-$(galsim-version), ,) \
+	$(call pybuild, tar xf, GalSim-$(galsim-version)) \
 	&& cp $(dtexdir)/galsim.tex $(ictdir)/ \
 	&& echo "Galsim $(galsim-version) \citep{galsim}" > $@
 
@@ -610,9 +624,11 @@ $(ipydir)/pybind11: $(ibidir)/eigen \
                     $(ibidir)/boost \
                     $(ipydir)/setuptools \
                     | $(tdir)/pybind11-$(pybind11-version).tar.gz
+	pyhook_after() {
+	  cp -r include/pybind11 $(iidir)/python$(python-major-version)m/
+	}
 	$(call pybuild, tar xf, pybind11-$(pybind11-version), ,\
-	                pybind11 $(pybind11-version),
-	                cp -r include/pybind11 $(iidir)/python$(python-major-version)m/)
+	                pybind11 $(pybind11-version))
 
 $(ipydir)/pycparser: $(ipydir)/setuptools \
                      | $(tdir)/pycparser-$(pycparser-version).tar.gz

@@ -520,8 +520,8 @@ $(ibidir)/boost: $(ibidir)/openmpi \
 	vstr=$$(echo $(boost-version) | sed -e's/\./_/g')
 	rm -rf $(ddir)/boost_$$vstr
 	topdir=$(pwd); cd $(ddir);
-	tar xf $(word 1,$(filter $(tdir)/%,$|))
-	&& cd boost_$$vstr
+	tar xf $(word 1,$(filter $(tdir)/%,$|)) \
+	&& cd boost_$$vstr \
 	&& ./bootstrap.sh --prefix=$(idir) --with-libraries=all \
 	                  --with-python=python3 \
 	&& echo "using mpi ;" > project-config.jam \
@@ -1069,7 +1069,7 @@ $(ibidir)/minizip: $(ibidir)/automake \
 	&& rm $(iidir)/minizip/crypt.h \
 	&& cd ../../.. \
 	&& rm -rf $$unpackdir \
-	&& echo "Minizip $(minizip)" > $@
+	&& echo "Minizip $(minizip-version)" > $@
 
 $(ibidir)/missfits: | $(tdir)/missfits-$(missfits-version).tar.gz
 	$(call gbuild, missfits-$(missfits-version), static) \
