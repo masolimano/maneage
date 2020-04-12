@@ -599,6 +599,7 @@ $(ipydir)/numpy: $(ibidir)/unzip \
 	else \
 	  export LDFLAGS="$(LDFLAGS) -shared"; \
 	fi; \
+	export CFLAGS="--std=c99 $$CFLAGS"; \
 	conf="$$(pwd)/reproduce/software/config/installation/numpy-scipy.cfg"; \
 	$(call pybuild, unzip, numpy-$(numpy-version),$$conf, \
 	                Numpy $(numpy-version)) \
