@@ -323,7 +323,7 @@ $(packagecontents): paper.pdf | $(texdir)
         # file. TIP: you can use the same strategy for other LaTeX packages
         # that may cause problems on the arXiv server.
 	cp tex/build/build/paper.bbl $$dir/
-	tltopdir=.local/texlive/2019/texmf-dist/tex/latex
+	tltopdir=.local/texlive/maneage/texmf-dist/tex/latex
 	find $$tltopdir/biblatex/ -maxdepth 1 -type f -print0 \
 	     | xargs -0 cp -t $$dir
 

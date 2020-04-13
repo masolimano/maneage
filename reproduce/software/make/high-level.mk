@@ -1259,12 +1259,10 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/installation/texlive.co
         # don't want the configure script to fail if it can't run.
 	if ./install-tl --profile=texlive.conf -repository $(tlmirror); then
 
-          # Put a symbolic link of the TeX Live executables in `ibdir'. The
-          # main problem is that the year and build system (for example
-          # `x86_64-linux') are also in the directory names, making it hard
-          # to be generic. We are using wildcards here, but only in this
-          # Makefile, not in any other.
-	  ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
+          # Put a symbolic link of the TeX Live executables in `ibdir' to
+          # avoid all the complexities of its sub-directories and additions
+          # to PATH.
+	  ln -fs $(idir)/texlive/maneage/bin/*/* $(ibdir)/
 
           # Register that the build was successful.
 	  echo "TeX Live is ready." > $@
