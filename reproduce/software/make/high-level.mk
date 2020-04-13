@@ -1322,7 +1322,7 @@ $(itidir)/texlive: reproduce/software/config/installation/texlive-packages.conf 
 
           # Make a symbolic link of all the TeX Live executables in the bin
           # directory so we don't have to modify `PATH'.
-	  ln -fs $(idir)/texlive/20*/bin/*/* $(ibdir)/
+	  ln -fs $(idir)/texlive/maneage/bin/*/* $(ibdir)/
 
           # Get all the necessary versions.
 	  texlive=$$(pdflatex --version | awk 'NR==1' | sed 's/.*(\(.*\))/\1/' \
