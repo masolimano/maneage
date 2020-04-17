@@ -25,7 +25,7 @@
 
 # Load the local configuration (created after running
 # `./project configure').
-include reproduce/software/config/installation/LOCAL.conf
+include reproduce/software/config/LOCAL.conf
 
 
 

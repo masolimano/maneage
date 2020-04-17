@@ -600,7 +600,7 @@ $(ipydir)/numpy: $(ibidir)/unzip \
 	  export LDFLAGS="$(LDFLAGS) -shared"; \
 	fi; \
 	export CFLAGS="--std=c99 $$CFLAGS"; \
-	conf="$$(pwd)/reproduce/software/config/installation/numpy-scipy.cfg"; \
+	conf="$$(pwd)/reproduce/software/config/numpy-scipy.cfg"; \
 	$(call pybuild, unzip, numpy-$(numpy-version),$$conf, \
 	                Numpy $(numpy-version)) \
 	&& cp $(dtexdir)/numpy.tex $(ictdir)/ \
@@ -679,7 +679,7 @@ $(ipydir)/scipy: $(ipydir)/numpy \
 	else \
 	  export LDFLAGS="$(LDFLAGS) -shared"; \
 	fi; \
-	conf="$$(pwd)/reproduce/software/config/installation/numpy-scipy.cfg"; \
+	conf="$$(pwd)/reproduce/software/config/numpy-scipy.cfg"; \
 	$(call pybuild, tar xf, scipy-$(scipy-version),$$conf) \
 	&& cp $(dtexdir)/scipy.tex $(ictdir)/ \
 	&& echo "Scipy $(scipy-version) \citep{scipy2007,scipy2011}" > $@

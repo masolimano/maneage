@@ -33,10 +33,10 @@
 
 
 # Top level environment
+include reproduce/software/config/LOCAL.conf
 include reproduce/software/make/build-rules.mk
-include reproduce/software/config/installation/LOCAL.conf
-include reproduce/software/config/installation/versions.conf
-include reproduce/software/config/installation/checksums.conf
+include reproduce/software/config/versions.conf
+include reproduce/software/config/checksums.conf
 
 lockdir = $(BDIR)/locks
 tdir    = $(BDIR)/software/tarballs
@@ -1334,12 +1334,14 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	  && cd ../.. \
 	  && tempname=$$odir/gcc-$(gcc-version)/build/rpath-temp-copy \
 	  && if [ "x$(on_mac_os)" != xyes ]; then \
-	       patchelf --add-needed $(ildir)/libiconv.so $(ildir)/libstdc++.so; \
 	       for f in $$(find $(idir)/libexec/gcc) $(ildir)/libstdc++*; do \
 	         isdynamic=$$(file $$f | grep "dynamically linked"); \
 	         if [ x"$$isdynamic" != x ]; then \
 	           cp $$f $$tempname; \
 	           patchelf --set-rpath $(ildir) $$tempname; \
+	           if [ "$$f" = $(ildir)/libstdc++.so ]; then \
+	             patchelf --add-needed $(ildir)/libiconv.so $$tempname; \
+	           fi; \
 	           mv $$tempname $$f; echo "corrected"; \
 	         fi; \
 	       done; \

@@ -321,17 +321,17 @@ variables/configurations) and _workhorse-Makefiles_ (Makefiles that
 actually contain analysis/processing rules).
 
 The configuration-Makefiles are those that satisfy these two wildcards:
-`reproduce/software/config/installation/*.conf` (for building the necessary
-software when you run `./project configure`) and
-`reproduce/analysis/config/*.conf` (for the high-level analysis, when you
-run `./project make`). These Makefiles don't actually have any rules, they
-just have values for various free parameters throughout the configuration
-or analysis. Open a few of them to see for yourself. These Makefiles must
-only contain raw Make variables (project configurations). By "raw" we mean
-that the Make variables in these files must not depend on variables in any
-other configuration-Makefile. This is because we don't want to assume any
-order in reading them. It is also very important to *not* define any rule,
-or other Make construct, in these configuration-Makefiles.
+`reproduce/software/config/*.conf` (for building the necessary software
+when you run `./project configure`) and `reproduce/analysis/config/*.conf`
+(for the high-level analysis, when you run `./project make`). These
+Makefiles don't actually have any rules, they just have values for various
+free parameters throughout the configuration or analysis. Open a few of
+them to see for yourself. These Makefiles must only contain raw Make
+variables (project configurations). By "raw" we mean that the Make
+variables in these files must not depend on variables in any other
+configuration-Makefile. This is because we don't want to assume any order
+in reading them. It is also very important to *not* define any rule, or
+other Make construct, in these configuration-Makefiles.
 
 Following this rule-of-thumb enables you to set these configure-Makefiles
 as a prerequisite to any target that depends on their variable
@@ -372,9 +372,8 @@ Let's see how this design is implemented. Please open and inspect
 `top-make.mk` it as we go along here. The first step (un-commented line) is
 to import the local configuration (your answers to the questions of
 `./project configure`). They are defined in the configuration-Makefile
-`reproduce/software/config/installation/LOCAL.conf` which was also built by
-`./project configure` (based on the `LOCAL.conf.in` template of the same
-directory).
+`reproduce/software/config/LOCAL.conf` which was also built by `./project
+configure` (based on the `LOCAL.conf.in` template of the same directory).
 
 The next non-commented set of the top `Makefile` defines the ultimate
 target of the whole project (`paper.pdf`). But to avoid mistakes, a sanity
@@ -767,21 +766,21 @@ Other basic customizations
 
  - **High-level software**: The template installs all the software that
      your project needs. You can specify which software your project needs
-     in `reproduce/software/config/installation/TARGETS.conf`. The
-     necessary software are classified into two classes: 1) programs or
-     libraries (usually written in C/C++) which are run directly by the
-     operating system. 2) Python modules/libraries that are run within
-     Python. By default `TARGETS.conf` only has GNU Astronomy Utilities
-     (Gnuastro) as one scientific program and Astropy as one scientific
-     Python module. Both have many dependencies which will be installed
-     into your project during the configuration step. To see a list of
-     software that are currently ready to be built in the template, see
-     `reproduce/software/config/installation/versions.conf` (which has
-     their versions also), the comments in `TARGETS.conf` describe how to use
-     the software name from `versions.conf`. Currently the raw pipeline just
-     uses Gnuastro to make the demonstration plots. Therefore if you don't
-     need Gnuastro, go through the analysis steps in `reproduce/analysis`
-     and remove all its use cases (clearly marked).
+     in `reproduce/software/config/TARGETS.conf`. The necessary software
+     are classified into two classes: 1) programs or libraries (usually
+     written in C/C++) which are run directly by the operating system. 2)
+     Python modules/libraries that are run within Python. By default
+     `TARGETS.conf` only has GNU Astronomy Utilities (Gnuastro) as one
+     scientific program and Astropy as one scientific Python module. Both
+     have many dependencies which will be installed into your project
+     during the configuration step. To see a list of software that are
+     currently ready to be built in the template, see
+     `reproduce/software/config/versions.conf` (which has their versions
+     also), the comments in `TARGETS.conf` describe how to use the software
+     name from `versions.conf`. Currently the raw pipeline just uses
+     Gnuastro to make the demonstration plots. Therefore if you don't need
+     Gnuastro, go through the analysis steps in `reproduce/analysis` and
+     remove all its use cases (clearly marked).
 
  - **Input dataset**: The input datasets are managed through the
      `reproduce/analysis/config/INPUTS.conf` file. It is best to gather all
@@ -856,7 +855,7 @@ Other basic customizations
      TeXLive comes (once every year), if you would like to build the paper,
      its necessary to update it in your project (otherwise the configure
      script will crash). To do that, just modify the years in
-     `reproduce/software/config/installation/texlive.conf`, then delete
+     `reproduce/software/config/texlive.conf`, then delete
      `.build/software/tarballs/install-tl-unx.tar.gz`. The next time you
      run `./project configure`, the new TeXLive will be installed and used.
 

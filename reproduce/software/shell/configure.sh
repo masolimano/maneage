@@ -36,15 +36,13 @@ optionaldir="/optional/path"
 adir=reproduce/analysis/config
 cdir=reproduce/software/config
 
-sbdir=$cdir/installation
-
-pconf=$sbdir/LOCAL.conf
-ptconf=$sbdir/LOCAL_tmp.conf
-poconf=$sbdir/LOCAL_old.conf
-depverfile=$cdir/installation/versions.conf
-depshafile=$cdir/installation/checksums.conf
+pconf=$cdir/LOCAL.conf
+ptconf=$cdir/LOCAL_tmp.conf
+poconf=$cdir/LOCAL_old.conf
+depverfile=$cdir/versions.conf
+depshafile=$cdir/checksums.conf
 # --------- Delete for no Gnuastro ---------
-glconf=$cdir/gnuastro/gnuastro-local.conf
+glconf=$adir/gnuastro/gnuastro-local.conf
 # ------------------------------------------
 
 

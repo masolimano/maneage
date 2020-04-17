@@ -308,8 +308,8 @@ $(packagecontents): paper.pdf | $(texdir)
         # have this machine's local settings and are irrelevant for anyone
         # else.
 	rm -rf $$dir/tex/build/build*
-	rm $$dir/reproduce/software/config/installation/LOCAL.conf
-	rm $$dir/reproduce/software/config/gnuastro/gnuastro-local.conf
+	rm $$dir/reproduce/software/config/LOCAL.conf
+	rm $$dir/reproduce/analysis/config/gnuastro/gnuastro-local.conf
 
         # When submitting to places like arXiv, they will just run LaTeX
         # once and won't run `biber'. So we need to also keep the `.bbl'

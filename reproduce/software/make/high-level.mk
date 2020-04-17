@@ -27,12 +27,12 @@
 
 
 # Top level environment
+include reproduce/software/config/LOCAL.conf
 include reproduce/software/make/build-rules.mk
-include reproduce/software/config/installation/LOCAL.conf
-include reproduce/software/config/installation/TARGETS.conf
-include reproduce/software/config/installation/versions.conf
-include reproduce/software/config/installation/checksums.conf
-include reproduce/software/config/installation/texlive-packages.conf
+include reproduce/software/config/TARGETS.conf
+include reproduce/software/config/versions.conf
+include reproduce/software/config/checksums.conf
+include reproduce/software/config/texlive-packages.conf
 
 lockdir = $(BDIR)/locks
 tdir    = $(BDIR)/software/tarballs
@@ -1240,7 +1240,7 @@ $(ibidir)/xlsxio: $(ibidir)/cmake \
 tlmirror=http://mirrors.rit.edu/CTAN/systems/texlive/tlnet
 
 # The core TeX Live system.
-$(itidir)/texlive-ready-tlmgr: reproduce/software/config/installation/texlive.conf \
+$(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf \
                                | $(tdir)/install-tl-unx.tar.gz
 
         # Unpack, enter the directory, and install based on the given
@@ -1251,7 +1251,7 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/installation/texlive.co
 	tar xf $(tdir)/install-tl-unx.tar.gz
 	cd install-tl-*
 	sed -e's|@installdir[@]|$(idir)|g' \
-	    $$topdir/reproduce/software/config/installation/texlive.conf \
+	    $$topdir/reproduce/software/config/texlive.conf \
 	    > texlive.conf
 
         # TeX Live's installation may fail due to any reason. But TeX Live
@@ -1292,7 +1292,7 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/installation/texlive.co
 #else
 #forbiber = $(ibidir)/libnsl
 #endif
-$(itidir)/texlive: reproduce/software/config/installation/texlive-packages.conf \
+$(itidir)/texlive: reproduce/software/config/texlive-packages.conf \
                    $(itidir)/texlive-ready-tlmgr \
                    $(forbiber)
 
