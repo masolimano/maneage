@@ -567,18 +567,9 @@ $(ibidir)/readline: $(ibidir)/ncurses \
 	               SHLIB_LIBS="-lncursesw" -j$(numthreads)) \
 	&& echo "GNU Readline $(readline-version)" > $@
 
-# When we have a static C library, PatchELF will be built statically. This
-# is because PatchELF links with the C++ standard library. But we need to
-# run PatchELF later on `libstdc++'! This circular dependency can cause a
-# crash, so when PatchELF can't be built statically, we won't build GCC
-# either, see the `configure.sh' script where we define `good_static_libc'
-# for more.
 $(ibidir)/patchelf: | $(ibidir)/make \
                       $(tdir)/patchelf-$(patchelf-version).tar.gz
-	if [ $(good_static_libc) = 1 ]; then \
-	  export LDFLAGS="$$LDFLAGS -static"; \
-	fi; \
-	$(call gbuild, patchelf-$(patchelf-version), static) \
+	$(call gbuild, patchelf-$(patchelf-version)) \
 	&& echo "PatchELF $(patchelf-version)" > $@
 
 
@@ -1342,7 +1333,7 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	           if [ "$$f" = $(ildir)/libstdc++.so ]; then \
 	             patchelf --add-needed $(ildir)/libiconv.so $$tempname; \
 	           fi; \
-	           mv $$tempname $$f; echo "corrected"; \
+	           mv $$tempname $$f; \
 	         fi; \
 	       done; \
 	     fi \
