@@ -85,7 +85,7 @@ all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 # Servers to use as backup, later this should go in a file that is not
 # under version control (the actual server that the tarbal comes from is
 # irrelevant).
-backupservers = http://akhlaghi.org/reproduce-software
+backupservers = http://akhlaghi.org/maneage-software
 
 
 
@@ -99,7 +99,7 @@ backupservers = http://akhlaghi.org/reproduce-software
 # we can preserve the variables).
 #
 # Software with main webpage at our backup repository
-# (http://akhlaghi.org/reproduce-software): As of our latest check their
+# (http://akhlaghi.org/maneage-software): As of our latest check their
 # major release tarballs either crash or don't build on some systems (for
 # example Make or Gzip), or they don't exist (for example Bzip2). So we are
 # building them from their Git history (which builds properly) or host them
@@ -164,10 +164,10 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	             | awk '{print $$1}' ); \
 	                                    \
 	mergenames=1; \
-	if   [ $$n = bash      ]; then c=$(bash-checksum); w=http://akhlaghi.org/reproduce-software; \
+	if   [ $$n = bash      ]; then c=$(bash-checksum); w=http://akhlaghi.org/maneage-software; \
 	elif [ $$n = binutils  ]; then c=$(binutils-checksum); w=http://ftp.gnu.org/gnu/binutils; \
-	elif [ $$n = bzip      ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/reproduce-software; \
-	elif [ $$n = cert      ]; then c=$(cert-checksum); w=http://akhlaghi.org/reproduce-software; \
+	elif [ $$n = bzip      ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/maneage-software; \
+	elif [ $$n = cert      ]; then c=$(cert-checksum); w=http://akhlaghi.org/maneage-software; \
 	elif [ $$n = coreutils ]; then c=$(coreutils-checksum); w=http://ftp.gnu.org/gnu/coreutils;\
 	elif [ $$n = curl      ]; then c=$(curl-checksum); w=https://curl.haxx.se/download; \
 	elif [ $$n = diffutils ]; then c=$(diffutils-checksum); w=http://ftp.gnu.org/gnu/diffutils;\
@@ -187,9 +187,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = m         ]; then \
 	  mergenames=0; \
 	  c=$(m4-checksum); \
-	  w=http://akhlaghi.org/reproduce-software/m4-1.4.18-patched.tar.gz; \
+	  w=http://akhlaghi.org/maneage-software/m4-1.4.18-patched.tar.gz; \
 	elif [ $$n = make      ]; then c=$(make-checksum); w=https://ftp.gnu.org/gnu/make; \
-	elif [ $$n = metastore ]; then c=$(metastore-checksum); w=http://akhlaghi.org/reproduce-software; \
+	elif [ $$n = metastore ]; then c=$(metastore-checksum); w=http://akhlaghi.org/maneage-software; \
 	elif [ $$n = mpc       ]; then c=$(mpc-checksum); w=http://ftp.gnu.org/gnu/mpc; \
 	elif [ $$n = mpfr      ]; then c=$(mpfr-checksum); w=http://www.mpfr.org/mpfr-current;\
 	elif [ $$n = ncurses   ]; then c=$(ncurses-checksum); w=http://ftp.gnu.org/gnu/ncurses; \

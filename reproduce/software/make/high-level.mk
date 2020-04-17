@@ -103,7 +103,7 @@ export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 # Servers to use as backup, later this should go in a file that is not
 # under version control (the actual server that the tarbal comes from is
 # irrelevant).
-backupservers = http://akhlaghi.org/reproduce-software
+backupservers = http://akhlaghi.org/maneage-software
 
 # Building flags:
 #
@@ -213,7 +213,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 
         # Set the top download link of the requested tarball.
 	mergenames=1
-	if   [ $$n = apachelog   ]; then c=$(apachelog4cxx-checksum); w=http://akhlaghi.org/reproduce-software
+	if   [ $$n = apachelog   ]; then c=$(apachelog4cxx-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $* = apr-util-$(apr-util-version).tar.gz ]; then
 	  c=$(apr-util-checksum); w=https://www-us.apache.org/dist/apr
 	elif [ $$n = apr         ]; then c=$(apr-checksum); w=https://www-us.apache.org/dist/apr
@@ -222,7 +222,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  mergenames=0
 	  c=$(atlas-checksum)
 	  w=https://sourceforge.net/projects/math-atlas/files/Stable/$(atlas-version)/atlas$(atlas-version).tar.bz2/download
-	elif [ $$n = autoconf    ]; then c=$(autoconf-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = autoconf    ]; then c=$(autoconf-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = automake    ]; then c=$(automake-checksum); w=http://ftp.gnu.org/gnu/automake
 	elif [ $$n = bison       ]; then c=$(bison-checksum); w=http://ftp.gnu.org/gnu/bison
 	elif [ $$n = boost       ]; then
@@ -264,9 +264,9 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(hdf5-checksum)
 	  majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
-	elif [ $$n = healpix     ]; then c=$(healpix-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = healpix     ]; then c=$(healpix-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = help        ]; then c=$(help2man-checksum); w=http://ftp.gnu.org/gnu/help2man
-	elif [ $$n = imagemagick ]; then c=$(imagemagick-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = imagemagick ]; then c=$(imagemagick-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = imfit       ]; then
 	  mergenames=0
 	  c=$(imfit-checksum)
@@ -274,7 +274,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = install     ]; then c=NO-CHECK-SUM; w=http://mirror.ctan.org/systems/texlive/tlnet
 	elif [ $$n = jpegsrc     ]; then c=$(libjpeg-checksum); w=http://ijg.org/files
 	elif [ $$n = lapack      ]; then c=$(lapack-checksum); w=http://www.netlib.org/lapack
-	elif [ $$n = libnsl      ]; then c=$(libnsl-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = libnsl      ]; then c=$(libnsl-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = libpng      ]; then c=$(libpng-checksum); w=https://download.sourceforge.net/libpng
 	elif [ $$n = libgit      ]; then
 	  mergenames=0
@@ -283,7 +283,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = libtirpc    ]; then c=$(libtirpc-checksum); w=https://downloads.sourceforge.net/libtirpc
 	elif [ $$n = libxml      ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2
 	elif [ $$n = missfits    ]; then c=$(missfits-checksum); w=https://www.astromatic.net/download/missfits
-	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = openblas    ]; then
 	  mergenames=0
 	  c=$(openblas-checksum)
@@ -299,15 +299,15 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  majver=$$(echo $(R-version) | sed -e's/\./ /g' | awk '{print $$1}')
 	  w=https://cran.r-project.org/src/base/R-$$majver
 	elif [ $$n = rpcsvc      ]; then c=$(rpcsvc-proto-checksum); w=https://github.com/thkukuk/rpcsvc-proto/releases/download/v$(rpcsvc-proto-version)
-	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = scons       ]; then
 	  mergenames=0
 	  c=$(scons-checksum)
 	  w=https://sourceforge.net/projects/scons/files/scons/$(scons-version)/scons-$(scons-version).tar.gz/download
-	elif [ $$n = sextractor  ]; then c=$(sextractor-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = sextractor  ]; then c=$(sextractor-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = swarp       ]; then c=$(swarp-checksum); w=https://www.astromatic.net/download/swarp
 	elif [ $$n = swig        ]; then c=$(swig-checksum); w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
-	elif [ $$n = tides       ]; then c=$(tides-checksum); w=http://akhlaghi.org/reproduce-software
+	elif [ $$n = tides       ]; then c=$(tides-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = tiff        ]; then c=$(libtiff-checksum); w=https://download.osgeo.org/libtiff
 	elif [ $$n = wcslib      ]; then c=$(wcslib-checksum); w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	elif [ $$n = xlsxio      ]; then
