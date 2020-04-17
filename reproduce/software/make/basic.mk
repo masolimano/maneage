@@ -1330,8 +1330,11 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	         if [ x"$$isdynamic" != x ]; then \
 	           cp $$f $$tempname; \
 	           patchelf --set-rpath $(ildir) $$tempname; \
-	           if [ "$$f" = $(ildir)/libstdc++.so ]; then \
+	           echo "$$f: added rpath"; \
+	           islibcpp=$$(echo $$f | grep "libstdc++"); \
+	           if [ x"$$islibcpp" != x ]; then \
 	             patchelf --add-needed $(ildir)/libiconv.so $$tempname; \
+	             echo "$$f: linked with libiconv"; \
 	           fi; \
 	           mv $$tempname $$f; \
 	         fi; \
