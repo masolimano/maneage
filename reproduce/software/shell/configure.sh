@@ -331,15 +331,8 @@ fi
 # See if a link-able static C library exists
 # ------------------------------------------
 #
-# After building GCC, we must use PatchELF to correct its RPATHs. However,
-# PatchELF links internally with `libstdc++'. So a dynamicly linked
-# PatchELF cannot be used to correct the links to `libstdc++' in general
-# (on some systems this causes no problem, but on others it doesn't!).
-#
-# However, to build a Static PatchELF, we need to be able to link with the
-# static C library, which is not always available on some GNU/Linux
-# systems. Therefore we need to check this here. If we can't build a static
-# PatchELF, we won't build any GCC either.
+# A static C library and the `sys/cdefs.h' header are necessary for
+# building GCC.
 if [ x"$host_cc" = x0 ]; then
     echo; echo; echo "Checking if static C library is available...";
     cat > $testsource <<EOF
@@ -352,11 +345,9 @@ EOF
     cc_call="$CC $testsource $CPPFLAGS $LDFLAGS -o$testprog -static -lc"
     if $cc_call && $testprog; then
         gccwarning=0
-        good_static_libc=1
         rm $testsource $testprog
     else
         echo; echo "Compilation command:"; echo "$cc_call"
-        good_static_libc=0
         rm $testsource
         gccwarning=1
         host_cc=1
@@ -1207,7 +1198,6 @@ fi
 echo; echo "Building necessary software (if necessary)..."
 make -k -f reproduce/software/make/basic.mk \
      sys_library_path=$sys_library_path \
-     good_static_libc=$good_static_libc \
      rpath_command=$rpath_command \
      static_build=$static_build \
      numthreads=$numthreads \
