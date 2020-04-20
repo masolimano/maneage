@@ -1,35 +1,34 @@
-Reproducible paper template
-===========================
+Maneage: managing data lineage
+==============================
 
 Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
 Copyright (C) 2020 Raul Infante-Sainz <infantesainz@gmail.com>\
 See the end of the file for license conditions.
 
-This project contains a **fully working template** for doing reproducible
-research (or writing a reproducible paper) as defined in the link below. If
-the link below is not accessible at the time of reading, please see the
-appendix at the end of this file for a portion of its introduction. Some
+Maneage is a **fully working template** for doing reproducible research (or
+writing a reproducible paper) as defined in the link below. If the link
+below is not accessible at the time of reading, please see the appendix at
+the end of this file for a portion of its introduction. Some
 [slides](http://akhlaghi.org/pdf/reproducible-paper.pdf) are also available
 to help demonstrate the concept implemented here.
 
   http://akhlaghi.org/reproducible-science.html
 
-This template is created with the aim of supporting reproducible research
-by making it easy to start a project in this framework. As shown below, it
-is very easy to customize this reproducible paper template for any
-particular (research) project and expand it as it starts and evolves. It
-can be run with no modification (as described in `README.md`) as a
-demonstration and customized for use in any project as fully described
-below.
+Maneage is created with the aim of supporting reproducible research by
+making it easy to start a project in this framework. As shown below, it is
+very easy to customize Maneage for any particular (research) project and
+expand it as it starts and evolves. It can be run with no modification (as
+described in `README.md`) as a demonstration and customized for use in any
+project as fully described below.
 
-A project designed using this template will download and build all the
-necessary libraries and programs for working in a closed environment
-(highly independent of the host operating system) with fixed versions of
-the necessary dependencies. The tarballs for building the local environment
-are also collected in a [separate
-repository](https://gitlab.com/makhlaghi/reproducible-paper-dependencies). The
-final output of the project is [a
-paper](https://gitlab.com/makhlaghi/reproducible-paper-output/raw/master/paper.pdf).
+A project designed using Maneage will download and build all the necessary
+libraries and programs for working in a closed environment (highly
+independent of the host operating system) with fixed versions of the
+necessary dependencies. The tarballs for building the local environment are
+also collected in a [separate
+repository](https://gitlab.com/maneage/software-source). The final output
+of the project is [a
+paper](https://gitlab.com/maneage/output-raw/-/blob/master/paper.pdf).
 Notice the last paragraph of the Acknowledgments where all the necessary
 software are mentioned with their versions.
 
@@ -37,18 +36,18 @@ Below, we start with a discussion of why Make was chosen as the high-level
 language/framework for project management and how to learn and master Make
 easily (and freely). The general architecture and design of the project is
 then discussed to help you navigate the files and their contents. This is
-followed by a checklist for the easy/fast customization of this template to
-your exciting research. We continue with some tips and guidelines on how to
+followed by a checklist for the easy/fast customization of Maneage to your
+exciting research. We continue with some tips and guidelines on how to
 manage or extend your project as it grows based on our experiences with it
 so far. The main body concludes with a description of possible future
-improvements that are planned for the template (but not yet
-implemented). As discussed above, we end with a short introduction on the
-necessity of reproducible science in the appendix.
+improvements that are planned for Maneage (but not yet implemented). As
+discussed above, we end with a short introduction on the necessity of
+reproducible science in the appendix.
 
-Please don't forget to share your thoughts, suggestions and criticisms on
-this template. Maintaining and designing this template is itself a separate
-project, so please join us if you are interested. Once it is mature enough,
-we will describe it in a paper (written by all contributors) for a formal
+Please don't forget to share your thoughts, suggestions and
+criticisms. Maintaining and designing Maneage is itself a separate project,
+so please join us if you are interested. Once it is mature enough, we will
+describe it in a paper (written by all contributors) for a formal
 introduction to the community.
 
 
@@ -117,9 +116,10 @@ Make is a +40 year old software that is still evolving, therefore many
 implementations of Make exist. The only difference in them is some extra
 features over the [standard
 definition](https://pubs.opengroup.org/onlinepubs/009695399/utilities/make.html)
-(which is shared in all of them). This template has been created for GNU
-Make which is the most common, most actively developed, and most advanced
-implementation. Just note that this template downloads, builds, internally
+(which is shared in all of them). Maneage is primarily written in GNU Make
+(which it installs itself, you don't have to have it on your system). GNU
+Make is the most common, most actively developed, and most advanced
+implementation. Just note that Maneage downloads, builds, internally
 installs, and uses its own dependencies (including GNU Make), so you don't
 have to have it installed before you try it out.
 
@@ -168,13 +168,14 @@ your hands off the keyboard!).
 
 
 
-Published works using this template
------------------------------------
+Published works using Maneage
+-----------------------------
 
 The list below shows some of the works that have already been published
-with (earlier versions of) this template. Note that this template is
-evolving, so some details may be different in them. The more recent ones
-can be used as a good working example besides the default template.
+with (earlier versions of) Maneage. Previously it was simply called
+"Reproducible paper template". Note that Maneage is evolving, so some
+details may be different in them. The more recent ones can be used as a
+good working example.
 
  - Infante-Sainz et
    al. ([2020](https://ui.adsabs.harvard.edu/abs/2020MNRAS.491.5317I),
@@ -208,11 +209,11 @@ can be used as a good working example besides the default template.
    ([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS, 220,
    1): The version controlled project is available [on
    GitLab](https://gitlab.com/makhlaghi/NoiseChisel-paper). This is the
-   very first (and much less mature!) implementation of this template: the
-   history of this template started more than two years after this paper
-   was published. It is a very rudimentary/initial implementation, thus it
-   is only included here for historical reasons. However, the project
-   source is complete, accurate and uploaded to arXiv along with the paper.
+   very first (and much less mature!) incarnation of Maneage: the history
+   of Maneage started more than two years after this paper was
+   published. It is a very rudimentary/initial implementation, thus it is
+   only included here for historical reasons. However, the project source
+   is complete, accurate and uploaded to arXiv along with the paper.
 
 
 
@@ -221,14 +222,10 @@ can be used as a good working example besides the default template.
 Citation
 --------
 
-A paper will be published to fully describe this reproducible paper
-template. Until then, if you used this template in your work, please cite
-the paper that implemented its first version: Akhlaghi & Ichikawa
+A paper to fully describe Maneage has been submitted. Until then, if you
+used it in your work, please cite the paper that implemented its first
+version: Akhlaghi & Ichikawa
 ([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS, 220, 1).
-
-The experience gained with this template after several more implementations
-will be used to make it robust enough for a complete and useful paper to
-introduce to the community afterwards.
 
 Also, when your paper is published, don't forget to add a notice in your
 own paper (in coordination with the publishing editor) that the paper is
@@ -249,15 +246,15 @@ a reproducible manner.
 Project architecture
 ====================
 
-In order to customize this template to your research, it is important to
-first understand its architecture so you can navigate your way in the
-directories and understand how to implement your research project within
-its framework: where to add new files and which existing files to modify
-for what purpose. But if this the first time you are using this template,
-before reading this theoretical discussion, please run the template once
-from scratch without any chages (described in `README.md`). You will see
-how it works (note that the configure step builds all necessary software,
-so it can take long, but you can continue reading while its working).
+In order to customize Maneage to your research, it is important to first
+understand its architecture so you can navigate your way in the directories
+and understand how to implement your research project within its framework:
+where to add new files and which existing files to modify for what
+purpose. But if this the first time you are using Maneage, before reading
+this theoretical discussion, please run Maneage once from scratch without
+any chages (described in `README.md`). You will see how it works (note that
+the configure step builds all necessary software, so it can take long, but
+you can continue reading while its working).
 
 The project has two top-level directories: `reproduce` and
 `tex`. `reproduce` hosts all the software building and analysis
@@ -276,9 +273,9 @@ links in the project's top source directory: `.build` which points to the
 top build directory and `.local` for easy access to the custom built
 software installation directory. With these you can easily access the build
 directory and project-specific software from your top source directory. For
-example if you run `.local/bin/ls` you will be using the `ls` of the
-template, which is problably different from your system's `ls` (run them
-both with `--version` to check).
+example if you run `.local/bin/ls` you will be using the `ls` of Maneage,
+which is problably different from your system's `ls` (run them both with
+`--version` to check).
 
 Once the project is configured for your system, `./project make` will do
 the basic preparations and run the project's analysis with the custom
@@ -287,7 +284,7 @@ version of software. The `project` script is just a wrapper, and with the
 (both are in the `reproduce/analysis/make` directory).
 
 In terms of organization, `top-prepare.mk` and `top-make.mk` have an
-identical design, only minor differences. So, let's continue the template's
+identical design, only minor differences. So, let's continue Maneage's
 architecture with `top-make.mk`. Once you understand that, you'll clearly
 understand `top-prepare.mk` also. These very high-level files are
 relatively short and heavily commented so hopefully the descriptions in
@@ -359,7 +356,7 @@ aren't directly a prerequisite of other workhorse-Makefile targets, they
 can be a pre-requisite of that intermediate LaTeX macro file and thus be
 called when necessary. Otherwise, they will be ignored by Make.
 
-This template also has a mode to share the build directory between several
+Maneage also has a mode to share the build directory between several
 users of a Unix group (when working on large computer clusters). In this
 scenario, each user can have their own cloned project source, but share the
 large built files between each other. To do this, it is necessary for all
@@ -441,19 +438,19 @@ files, it makes no effort in keeping the file meta data, and in particular
 the dates of files. Therefore when you checkout to a different branch,
 files that are re-written by Git will have a newer date than the other
 project files. However, file dates are important in the current design of
-the template: Make uses file dates of the pre-requisits and targets to see
+Maneage: Make uses file dates of the pre-requisits and targets to see
 if the target should be re-built.
 
-To fix this problem, for this template we use a forked version of
+To fix this problem, for Maneage we use a forked version of
 [Metastore](https://github.com/mohammad-akhlaghi/metastore). Metastore use
 a binary database file (which is called `.file-metadata`) to keep the
 modification dates of all the files under version control. This file is
 also under version control, but is hidden (because it shouldn't be modified
-by hand). During the project's configuration, the template installs to Git
-hooks to run Metastore 1) before making a commit to update its database
-with the file dates in a branch, and 2) after doing a checkout, to reset
-the file-dates after the checkout is complete and re-set the file dates
-back to what they were.
+by hand). During the project's configuration, Maneage installs to Git hooks
+to run Metastore 1) before making a commit to update its database with the
+file dates in a branch, and 2) after doing a checkout, to reset the
+file-dates after the checkout is complete and re-set the file dates back to
+what they were.
 
 In practice, Metastore should work almost fully invisiablly within your
 project. The only place you might notice its presence is that you'll see
@@ -506,7 +503,7 @@ mind are listed below.
 Customization checklist
 =======================
 
-Take the following steps to fully customize this template for your research
+Take the following steps to fully customize Maneage for your research
 project. After finishing the list, be sure to run `./project configure` and
 `project make` to see if everything works correctly. If you notice anything
 missing or any in-correct part (probably a change that has not been
@@ -514,12 +511,12 @@ explained here), please let us know to correct it.
 
 As described above, the concept of reproducibility (during a project)
 heavily relies on [version
-control](https://en.wikipedia.org/wiki/Version_control). Currently this
-template uses Git as its main version control system. If you are not
-already familiar with Git, please read the first three chapters of the
-[ProGit book](https://git-scm.com/book/en/v2) which provides a wonderful
-practical understanding of the basics. You can read later chapters as you
-get more advanced in later stages of your work.
+control](https://en.wikipedia.org/wiki/Version_control). Currently Maneage
+uses Git as its main version control system. If you are not already
+familiar with Git, please read the first three chapters of the [ProGit
+book](https://git-scm.com/book/en/v2) which provides a wonderful practical
+understanding of the basics. You can read later chapters as you get more
+advanced in later stages of your work.
 
 First custom commit
 -------------------
@@ -528,21 +525,20 @@ First custom commit
      Arguably the easiest way to start is to clone this repository as shown
      below. As you see, after the cloning some further corrections to your
      clone's Git settings are necessary: first, you need to remove all
-     possibly existing Git tags from the template's history. Then you need
+     possibly existing Git tags from the Maneage's history. Then you need
      to rename the conventional `origin` remote server, and the `master`
      branch. This renaming allows you to use these standard names for your
      own customized project (which greatly helps because this convention is
      widely used).
 
      ```shell
-     $ git clone git://git.sv.gnu.org/reproduce   # Clone/copy the project and its history.
-     $ mv reproduce my-project                    # Change the name to your project's name.
+     $ git clone https://gitlab.com/maneage/project.git # Clone/copy the project and its history.
+     $ mv project my-project                      # Change the name to your project's name.
      $ cd my-project                              # Go into the cloned directory.
-     $ git tag | xargs git tag -d                 # Delete all template tags.
-     $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from this template.
-     $ git remote rename origin template-origin   # Rename current/only remote to "template-origin".
-     $ git branch -m template                     # Rename current/only branch to "template".
-     $ git checkout -b master                     # Create and enter new "master" branch.
+     $ git tag | xargs git tag -d                 # Delete all Maneage tags.
+     $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from Maneage.
+     $ git remote rename origin origin-maneage    # Rename current/only remote to "origin-maneage".
+     $ git checkout -b master                     # Create and enter your own "master" branch.
      $ pwd                                        # Just to confirm where you are.
      ```
 
@@ -566,20 +562,20 @@ First custom commit
      $ ./project --check-config
      ```
 
- - **Test the template**: Before making any changes, it is important to
-     test it and see if everything works properly with the commands
-     below. If there is any problem in the `./project configure` or
-     `./project make` steps, please contact us to fix the problem before
-     continuing. Since the building of dependencies in configuration can
-     take long, you can take the next few steps (editing the files) while
-     its working (they don't affect the configuration). After `./project
-     make` is finished, open `paper.pdf`. If it looks fine, you are ready
-     to start customizing the template for your project. But before that,
-     clean all the extra template outputs with `make clean` as shown below.
+ - **Test Maneage**: Before making any changes, it is important to test it
+     and see if everything works properly with the commands below. If there
+     is any problem in the `./project configure` or `./project make` steps,
+     please contact us to fix the problem before continuing. Since the
+     building of dependencies in configuration can take long, you can take
+     the next few steps (editing the files) while its working (they don't
+     affect the configuration). After `./project make` is finished, open
+     `paper.pdf`. If it looks fine, you are ready to start customizing the
+     Maneage for your project. But before that, clean all the extra Maneage
+     outputs with `make clean` as shown below.
 
      ```shell
      $ ./project configure           # Build the project's software environment (can take an hour or so).
-     $ ./project make                # Do the processing and build paper (just a simple demo in the template).
+     $ ./project make                # Do the processing and build paper (just a simple demo).
 
      # Open 'paper.pdf' and see if everything is ok.
      ```
@@ -597,9 +593,9 @@ First custom commit
      place of `XXXXXXXXXX` in the first command below. With the second
      command, "push" your `master` branch to your `origin` remote, and
      (with the `--set-upstream` option) set them to track/follow each
-     other. However, the `template` branch is currently tracking/following
-     your `template-origin` remote (automatically set when you cloned the
-     template). So when pushing the `template` branch to your `origin`
+     other. However, the `maneage` branch is currently tracking/following
+     your `origin-maneage` remote (automatically set when you cloned
+     Maneage). So when pushing the `maneage` branch to your `origin`
      remote, you _shouldn't_ use `--set-upstream`. With the last command,
      you can actually check this (which local and remote branches are
      tracking each other).
@@ -607,7 +603,7 @@ First custom commit
      ```shell
      git remote add origin XXXXXXXXXX        # Newly created repo is now called 'origin'.
      git push --set-upstream origin master   # Push 'master' branch to 'origin' (enable tracking).
-     git push origin template                # Push 'template' branch to 'origin' (no tracking).
+     git push origin maneage                 # Push 'maneage' branch to 'origin' (no tracking).
      ```
 
  - **Title**, **short description** and **author**: The title and basic
@@ -621,10 +617,10 @@ First custom commit
      your own methods after finishing this checklist and doing your first
      commit.
 
- - **Delete dummy parts (can be done later)**: The template contains some
-     parts that are only for the initial/test run, mainly as a
-     demonstration of important steps. They not for any real analysis. You
-     can remove these parts in the file below
+ - **Delete dummy parts (can be done later)**: Maneage contains some parts
+     that are only for the initial/test run, mainly as a demonstration of
+     important steps. They not for any real analysis. You can remove these
+     parts in the file below
 
      - `paper.tex`: 1) Delete the text of the abstract (from
        `\includeabstract{` to `\vspace{0.25cm}`) and start writing your own
@@ -633,9 +629,9 @@ First custom commit
        body.` and `%% End of main body.`. 4) Remove the notice in the
        "Acknowledgments" section (in `\new{}`) and add Acknowledge your
        funding sources. Just don't delete the existing acknowledgment
-       statement: this template was designed by funding from many
-       grants. Since you are using it in your work, it is necessary to
-       acknowledge them in your work also.
+       statement: Maneage was designed by funding from many grants. Since
+       you are using it in your work, it is necessary to acknowledge them
+       in your work also.
 
      - `reproduce/analysis/make/top-make.mk`: Delete the `delete-me` line
        in the `makesrc` definition. Just make sure there is no empty line
@@ -673,15 +669,15 @@ First custom commit
        ```
 
      - Tell Git _not_ to merge changes in the dummy `delete-me` files, and
-       `paper.tex` (its contents are just dummy place holders) from the
-       template (by keeping their names in a `.gitattributes` file). Note
-       that only the first `echo` command has a `>` (to re-write the file
-       with the given line), the rest are `>>` (to append to it). After
-       doing this step in your own branch, when future commits in the
-       template make any change in the given files, they will not be
-       imported into your project's branch (it can be annoying!). You can
-       follow a similar strategy if you want to avoid any other set of
-       files to be imported from the template into your project's branch.
+       `paper.tex` (its contents are just dummy place holders) from Maneage
+       (by keeping their names in a `.gitattributes` file). Note that only
+       the first `echo` command has a `>` (to re-write the file with the
+       given line), the rest are `>>` (to append to it). After doing this
+       step in your own branch, when future commits in Maneage make any
+       change in the given files, they will not be imported into your
+       project's branch (it can be annoying!). You can follow a similar
+       strategy if you want to avoid any other set of files to be imported
+       from Maneage into your project's branch.
 
        ```shell
        $ echo "paper.tex" > .gitattributes
@@ -701,9 +697,9 @@ First custom commit
      a year and the author's name. The License notice is a short (or full,
      when its not too long, like the MIT license) description of the
      copyright license, usually less than three paragraphs. Don't forget to
-     add these _two_ notices to any new file you add to this template for
-     your project. When you modify an existing template file (which already
-     has the notices), just add a copyright notice in your name under the
+     add these _two_ notices to any new file you add to Maneage for your
+     project. When you modify an existing Maneage file (which already has
+     the notices), just add a copyright notice in your name under the
      existing one(s), like the line with capital letters below. Please add
      this line with your name and email address to `paper.tex` and
      `tex/src/preamble-header.tex`.
@@ -764,17 +760,17 @@ First custom commit
 Other basic customizations
 --------------------------
 
- - **High-level software**: The template installs all the software that
-     your project needs. You can specify which software your project needs
-     in `reproduce/software/config/TARGETS.conf`. The necessary software
-     are classified into two classes: 1) programs or libraries (usually
-     written in C/C++) which are run directly by the operating system. 2)
-     Python modules/libraries that are run within Python. By default
+ - **High-level software**: Maneage installs all the software that your
+     project needs. You can specify which software your project needs in
+     `reproduce/software/config/TARGETS.conf`. The necessary software are
+     classified into two classes: 1) programs or libraries (usually written
+     in C/C++) which are run directly by the operating system. 2) Python
+     modules/libraries that are run within Python. By default
      `TARGETS.conf` only has GNU Astronomy Utilities (Gnuastro) as one
      scientific program and Astropy as one scientific Python module. Both
      have many dependencies which will be installed into your project
      during the configuration step. To see a list of software that are
-     currently ready to be built in the template, see
+     currently ready to be built in Maneage, see
      `reproduce/software/config/versions.conf` (which has their versions
      also), the comments in `TARGETS.conf` describe how to use the software
      name from `versions.conf`. Currently the raw pipeline just uses
@@ -793,7 +789,7 @@ Other basic customizations
      `reproduce/analysis/make/download.mk`. Have a look there to see how
      these values are to be used. This information about the input datasets
      is also used in the initial `configure` script (to inform the users),
-     so also modify that file. You can find all occurrences of the template
+     so also modify that file. You can find all occurrences of the demo
      dataset with the command below and replace it with your input's
      dataset.
 
@@ -802,7 +798,7 @@ Other basic customizations
      ```
 
  - **`README.md`**: Correct all the `XXXXX` place holders (name of your
-     project, your own name, address of the template's online/remote
+     project, your own name, address of your project's online/remote
      repository, link to download dependencies and etc). Generally, read
      over the text and update it where necessary to fit your project. Don't
      forget that this is the first file that is displayed on your online
@@ -842,15 +838,15 @@ Other basic customizations
      the headers. You can use the provided function(s), or define one for
      your special formats.
 
- - **Feedback**: As you use the template you will notice many things that
-     if implemented from the start would have been very useful for your
-     work. This can be in the actual scripting and architecture of the
-     template, or useful implementation and usage tips, like those
-     below. In any case, please share your thoughts and suggestions with
-     us, so we can add them here for everyone's benefit.
+ - **Feedback**: As you use Maneage you will notice many things that if
+     implemented from the start would have been very useful for your
+     work. This can be in the actual scripting and architecture of Maneage,
+     or useful implementation and usage tips, like those below. In any
+     case, please share your thoughts and suggestions with us, so we can
+     add them here for everyone's benefit.
 
  - **Updating TeXLive**: Currently the only software package that the
-     template doesn't build is TeXLive (since its not part of the analysis,
+     Maneage doesn't build is TeXLive (since its not part of the analysis,
      only for demonstration: building the PDf). So when a new version of
      TeXLive comes (once every year), if you would like to build the paper,
      its necessary to update it in your project (otherwise the configure
@@ -926,8 +922,8 @@ for the benefit of others.
       of the processing, put all their configuration files in a devoted
       directory (with the program's name) within
       `reproduce/software/config`. Similar to the
-      `reproduce/software/config/gnuastro` directory (which is put in the
-      template as a demo in case you use GNU Astronomy Utilities). It is
+      `reproduce/software/config/gnuastro` directory (which is put in
+      Maneage as a demo in case you use GNU Astronomy Utilities). It is
       much cleaner and readable (thus less buggy) to avoid mixing the
       configuration files, even if there is no technical necessity.
 
@@ -938,8 +934,8 @@ for the benefit of others.
      (copyrights aren't necessary for the latter).
 
    - *Copyright*: Always start a file containing programming constructs
-      with a copyright statement like the ones that this template starts
-      with (for example in the top level `Makefile`).
+      with a copyright statement like the ones that Maneage starts with
+      (for example in the top level `Makefile`).
 
    - *Comments*: Comments are vital for readability (by yourself in two
       months, or others). Describe everything you can about why you are
@@ -1047,14 +1043,14 @@ for the benefit of others.
         .ONESHELL:
         .SHELLFLAGS = -ec
         all: mean-std.txt
-        shm-template = /dev/shm/$(shell whoami)-XXXXXXXXXX
+        shm-maneage := /dev/shm/$(shell whoami)-maneage-XXXXXXXXXX
         large1.txt: input.fits
-                out=$$(mktemp $(shm-template))
+                out=$$(mktemp $(shm-maneage))
                 astarithmetic $< 2 + --output=$$out.fits
                 echo "$$out" > $@
         large2.txt: large1.txt
                 input=$$(cat $<)
-                out=$$(mktemp $(shm-template))
+                out=$$(mktemp $(shm-maneage))
                 astarithmetic $$input.fits 2 - --output=$$out.fits
                 rm $$input.fits $$input
                 echo "$$out" > $@
@@ -1064,7 +1060,7 @@ for the benefit of others.
                 rm $$input.fits $$input
         ```
       The important point here is that the temporary name template
-      (`shm-template`) has no suffix. So you can add the suffix
+      (`shm-maneage`) has no suffix. So you can add the suffix
       corresponding to your desired format afterwards (for example
       `$$out.fits`, or `$$out.txt`). But more importantly, when `mktemp`
       sets the random name, it also checks if no file exists with that name
@@ -1078,15 +1074,14 @@ for the benefit of others.
       sure that first the file with a suffix is deleted, then the core
       random file (note that when working in parallel on powerful systems,
       in the time between deleting two files of a single `rm` command, many
-      things can happen!). When using this template, you can put the
-      definition of `shm-template` in
-      `reproduce/analysis/make/initialize.mk` to be usable in all the
-      different Makefiles of your analysis, and you won't need the three
-      lines above it. **Finally, BE RESPONSIBLE:** after you are finished,
-      be sure to clean up any possibly remaining files (due to crashes in
-      the processing while you are working), otherwise your RAM may fill up
-      very fast. You can do it easily with a command like this on your
-      command-line: `rm -f /dev/shm/$(whoami)-*`.
+      things can happen!). When using Maneage, you can put the definition
+      of `shm-maneage` in `reproduce/analysis/make/initialize.mk` to be
+      usable in all the different Makefiles of your analysis, and you won't
+      need the three lines above it. **Finally, BE RESPONSIBLE:** after you
+      are finished, be sure to clean up any possibly remaining files (due
+      to crashes in the processing while you are working), otherwise your
+      RAM may fill up very fast. You can do it easily with a command like
+      this on your command-line: `rm -f /dev/shm/$(whoami)-*`.
 
 
  - **Software tarballs and raw inputs**: It is critically important to
@@ -1114,69 +1109,69 @@ for the benefit of others.
       project's reproducibility, so like the above for software, make sure
       you have a backup of them, or their persistent identifiers (PIDs).
 
- - **Version control**: Version control is a critical component of this
-     template. Here are some tips to help in effectively using it.
+ - **Version control**: Version control is a critical component of
+     Maneage. Here are some tips to help in effectively using it.
 
    - *Regular commits*: It is important (and extremely useful) to have the
       history of your project under version control. So try to make commits
       regularly (after any meaningful change/step/result).
 
-   - *Keep template up-to-date*: In time, this template is going to become
-      more and more mature and robust (thanks to your feedback and the
-      feedback of other users). Bugs will be fixed and new/improved
-      features will be added. So every once and a while, you can run the
-      commands below to pull new work that is done in this template. If the
-      changes are useful for your work, you can merge them with your
-      project to benefit from them. Just pay **very close attention** to
-      resolving possible **conflicts** which might happen in the merge
-      (updated settings that you have customized in the template).
+   - *Keep Maneage up-to-date*: In time, Maneage is going to become more
+      and more mature and robust (thanks to your feedback and the feedback
+      of other users). Bugs will be fixed and new/improved features will be
+      added. So every once and a while, you can run the commands below to
+      pull new work that is done in Maneage. If the changes are useful for
+      your work, you can merge them with your project to benefit from
+      them. Just pay **very close attention** to resolving possible
+      **conflicts** which might happen in the merge (updated settings that
+      you have customized in Maneage).
 
         ```shell
-        $ git checkout template
-        $ git pull                            # Get recent work in the template
+        $ git checkout maneage
+        $ git pull                            # Get recent work in Maneage
         $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
         $ git log --oneline --graph --decorate --all # General view of branches.
         $ git checkout master                 # Go to your top working branch.
-        $ git merge template                  # Import all the work into master.
+        $ git merge maneage                   # Import all the work into master.
         ```
 
-   - *Adding this template to a fork of your project*: As you and your
-      colleagues continue your project, it will be necessary to have
-      separate forks/clones of it. But when you clone your own project on a
+   - *Adding Maneage to a fork of your project*: As you and your colleagues
+      continue your project, it will be necessary to have separate
+      forks/clones of it. But when you clone your own project on a
       different system, or a colleague clones it to collaborate with you,
-      the clone won't have the `template-origin` remote that you started
-      the project with. As shown in the previous item above, you need this
-      remote to be able to pull recent updates from the template. The steps
-      below will setup the `template-origin` remote, and a local `template`
+      the clone won't have the `origin-maneage` remote that you started the
+      project with. As shown in the previous item above, you need this
+      remote to be able to pull recent updates from Maneage. The steps
+      below will setup the `origin-maneage` remote, and a local `maneage`
       branch to track it, on the new clone.
 
         ```shell
-        $ git remote add template-origin git://git.sv.gnu.org/reproduce
-        $ git fetch template-origin
-        $ git checkout -b template --track template-origin/master
+        $ git remote add origin-maneage https://gitlab.com/maneage/project.git
+        $ git fetch origin-maneage
+        $ git checkout -b maneage --track origin-maneage/maneage
         ```
 
    - *Commit message*: The commit message is a very important and useful
       aspect of version control. To make the commit message useful for
       others (or yourself, one year later), it is good to follow a
-      consistent style. The template already has a consistent formatting
+      consistent style. Maneage already has a consistent formatting
       (described below), which you can also follow in your project if you
-      like. You can see many examples by running `git log` in the
-      `template` branch. If you intend to push commits to the main
-      template, for the consistency of the template, it is necessary to
-      follow these guidelines. 1) No line should be more than 75 characters
-      (to enable easy reading of the message when you run `git log` on the
-      standard 80-character terminal). 2) The first line is the title of
-      the commit and should summarize it (so `git log --oneline` can be
-      useful). The title should also not end with a point (`.`, because its
-      a short single sentence, so a point is not necessary and only wastes
-      space). 3) After the title, leave an empty line and start the body of
-      your message (possibly containing many paragraphs). 4) Describe the
-      context of your commit (the problem it is trying to solve) as much as
-      possible, then go onto how you solved it. One suggestion is to start
-      the main body of your commit with "Until now ...", and continue
-      describing the problem in the first paragraph(s). Afterwards, start
-      the next paragraph with "With this commit ...".
+      like. You can see many examples by running `git log` in the `maneage`
+      branch. If you intend to push commits to Maneage, for the consistency
+      of Maneage, it is necessary to follow these guidelines. 1) No line
+      should be more than 75 characters (to enable easy reading of the
+      message when you run `git log` on the standard 80-character
+      terminal). 2) The first line is the title of the commit and should
+      summarize it (so `git log --oneline` can be useful). The title should
+      also not end with a point (`.`, because its a short single sentence,
+      so a point is not necessary and only wastes space). 3) After the
+      title, leave an empty line and start the body of your message
+      (possibly containing many paragraphs). 4) Describe the context of
+      your commit (the problem it is trying to solve) as much as possible,
+      then go onto how you solved it. One suggestion is to start the main
+      body of your commit with "Until now ...", and continue describing the
+      problem in the first paragraph(s). Afterwards, start the next
+      paragraph with "With this commit ...".
 
    - *Tags*: To help manage the history, tag all major commits. This helps
       make a more human-friendly output of `git describe`: for example
@@ -1189,8 +1184,8 @@ for the benefit of others.
       headers](https://www.gnu.org/software/gnuastro/manual/html_node/Output-headers.html).
       In the checklist above, you tagged the first commit of your project
       with `v0`. Here is one suggestion on when to tag: when you have fully
-      adopted the template and have got the first (initial) results, you
-      can make a `v1` tag. Subsequently when you first start reporting the
+      adopted Maneage and have got the first (initial) results, you can
+      make a `v1` tag. Subsequently when you first start reporting the
       results to your colleagues, you can tag the commit as `v2` and
       increment the version on every later circulation, or referee
       submission.
@@ -1212,9 +1207,9 @@ for the benefit of others.
       communications). After the research is published, you can also
       release the outputs repository, or you can just delete it if it is
       too large or un-necessary (it was just for convenience, and fully
-      reproducible after all). For example this template's output is
-      available for demonstration in the separate
-      [reproducible-paper-output](https://gitlab.com/makhlaghi/reproducible-paper-output)
+      reproducible after all). For example Maneage's output is available
+      for demonstration in the separate
+      [reproducible-paper-output](https://gitlab.com/maneage/output-raw)
       repository.
 
    - *Full Git history in one file*: When you are publishing your project
@@ -1261,13 +1256,13 @@ future are listed below, please join us if you are interested.
 Package management
 ------------------
 
-It is important to have control of the environment of the project. The
-current template builds the higher-level programs (for example GNU Bash,
-GNU Make, GNU AWK and domain-specific software) it needs, then sets `PATH`
-so the analysis is done only with the project's built software. But
-currently the configuration of each program is in the Makefile rules that
-build it. This is not good because a change in the build configuration does
-not automatically cause a re-build. Also, each separate project on a system
+It is important to have control of the environment of the project. Maneage
+currently builds the higher-level programs (for example GNU Bash, GNU Make,
+GNU AWK and domain-specific software) it needs, then sets `PATH` so the
+analysis is done only with the project's built software. But currently the
+configuration of each program is in the Makefile rules that build it. This
+is not good because a change in the build configuration does not
+automatically cause a re-build. Also, each separate project on a system
 needs to have its own built tools (that can waste a lot of space).
 
 A good solution is based on the [Nix package
@@ -1346,18 +1341,17 @@ order of operations: this is contrary to the scientific spirit.
 
 Copyright information
 ---------------------
-This file is part of the reproducible paper template
-   http://savannah.nongnu.org/projects/reproduce
+This file is part of Maneage's core: https://gitlab.com/maneage/project
 
-This template is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the Free
+Maneage is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
 Software Foundation, either version 3 of the License, or (at your option)
 any later version.
 
-This template is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-more details.
+Maneage is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
 
 You should have received a copy of the GNU General Public License along
-with Template.  If not, see <https://www.gnu.org/licenses/>.
+with Maneage.  If not, see <https://www.gnu.org/licenses/>.

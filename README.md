@@ -26,12 +26,9 @@ $ ./project make
 
 To learn more about the purpose, principles and technicalities of this
 reproducible paper, please see `README-hacking.md`. For a general
-introduction to reproducible science as implemented in this project, please
-see the [principles of reproducible
-science](http://akhlaghi.org/reproducible-science.html), and a
-[reproducible paper
-template](https://gitlab.com/makhlaghi/reproducible-paper) that is based on
-it.
+introduction to reproducible science as implemented in this project
+(through Maneage), please see the [Maneage
+project](https://gitlab.com/maneage/project) for more.
 
 
 
@@ -92,9 +89,9 @@ requiring root/administrator permissions.
 Source from arXiv
 -----------------
 If the paper is also published on arXiv, it is highly likely that the
-authors also uploaded/published the full reproducible paper template there
-along with the LaTeX sources. If you have downloaded (or plan to download)
-this source from arXiv, some minor extra steps are necessary:
+authors also uploaded/published the full project there along with the LaTeX
+sources. If you have downloaded (or plan to download) this source from
+arXiv, some minor extra steps are necessary:
 
 1. If the arXiv code for the paper is 1234.56789, then the downloaded
    source will be called `1234.56789` (no special identification
