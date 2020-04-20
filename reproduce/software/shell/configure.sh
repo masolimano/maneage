@@ -610,6 +610,7 @@ fi
 
 # Build directory
 # ---------------
+currentdir=$(pwd)
 if [ $rewritepconfig = yes ]; then
     cat <<EOF
 
@@ -637,7 +638,6 @@ directory). The build directory cannot be a subdirectory of the source.
 
 EOF
     bdir=
-    currentdir=$(pwd)
     junkname=pure-junk-974adfkj38
     while [ x$bdir = x ]
     do
@@ -1044,18 +1044,18 @@ if [ $printnotice = yes ]; then
 Building dependencies ...
 -------------------------
 
-Necessary dependency programs and libraries will be built in $tsec sec.
-
-NOTE: the built software will NOT BE INSTALLED on your system (no root
-access is required). They are only for local usage by this project. They
-will be installed in:
+Necessary dependency programs and libraries will be built in
 
   $sdir/installed
 
-**TIP**: you can see which software is being installed at every moment with
-the following command. See "Inspecting status" section of
+NOTE: the built software will NOT BE INSTALLED on your system (no root
+access is required). They are only for local usage by this project.
+
+**TIP**: you can see which software are being installed at every moment
+with the following command. See "Inspecting status" section of
 'README-hacking.md' for more. In short, run it while the project is being
-configured (in another terminal, but on this same directory: 'pwd'):
+configured (in another terminal, but in this same directory:
+'$currentdir'):
 
   $ ./project --check-config
 
