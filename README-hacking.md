@@ -521,7 +521,7 @@ advanced in later stages of your work.
 First custom commit
 -------------------
 
- - **Get this repository and its history** (if you don't already have it):
+ 1. **Get this repository and its history** (if you don't already have it):
      Arguably the easiest way to start is to clone this repository as shown
      below. As you see, after the cloning some further corrections to your
      clone's Git settings are necessary: first, you need to remove all
@@ -542,7 +542,7 @@ First custom commit
      $ pwd                                        # Just to confirm where you are.
      ```
 
- - **Prepare to build project**: The `./project configure` command of the
+ 2. **Prepare to build project**: The `./project configure` command of the
      next step will build the different software packages within the
      "build" directory (that you will specify). Nothing else on your system
      will be touched. However, since it takes long, it is useful to see
@@ -562,7 +562,7 @@ First custom commit
      $ ./project --check-config
      ```
 
- - **Test Maneage**: Before making any changes, it is important to test it
+ 3. **Test Maneage**: Before making any changes, it is important to test it
      and see if everything works properly with the commands below. If there
      is any problem in the `./project configure` or `./project make` steps,
      please contact us to fix the problem before continuing. Since the
@@ -580,7 +580,7 @@ First custom commit
      # Open 'paper.pdf' and see if everything is ok.
      ```
 
- - **Setup the remote**: You can use any [hosting
+ 4. **Setup the remote**: You can use any [hosting
      facility](https://en.wikipedia.org/wiki/Comparison_of_source_code_hosting_facilities)
      that supports Git to keep an online copy of your project's version
      controlled history. We recommend [GitLab](https://gitlab.com) because
@@ -606,7 +606,7 @@ First custom commit
      git push origin maneage                 # Push 'maneage' branch to 'origin' (no tracking).
      ```
 
- - **Title**, **short description** and **author**: The title and basic
+ 5. **Title**, **short description** and **author**: The title and basic
      information of your project's output PDF paper should be added in
      `paper.tex`. You should see the relevant place in the preamble (prior
      to `\begin{document}`. After you are done, run the `./project make`
@@ -617,7 +617,7 @@ First custom commit
      your own methods after finishing this checklist and doing your first
      commit.
 
- - **Delete dummy parts (can be done later)**: Maneage contains some parts
+ 6. **Delete dummy parts (can be done later)**: Maneage contains some parts
      that are only for the initial/test run, mainly as a demonstration of
      important steps. They not for any real analysis. You can remove these
      parts in the file below
@@ -688,7 +688,7 @@ First custom commit
        $ git add .gitattributes
        ```
 
- - **Copyright and License notice**: To be usable/modifiable by others
+ 7. **Copyright and License notice**: To be usable/modifiable by others
      after publication, _all_ the "copyright-able" files in your project
      (those larger than 10 lines) must have a copyright notice and license
      notice. Please take a moment to look at several existing files to see
@@ -709,7 +709,7 @@ First custom commit
      Copyright (C) 2020 YOUR NAME <YOUR@EMAIL.ADDRESS>
      ```
 
- - **Configure Git for fist time**: If you have never used Git, then you
+ 8. **Configure Git for fist time**: If you have never used Git, then you
      have to configure it with some basic information in order to have
      essential information in the commit messages (ignore this step if you
      have already done it). Git will include your name and e-mail address
@@ -722,7 +722,7 @@ First custom commit
      $ git config --global core.editor vim
      ```
 
- - **Your first commit**: You have already made some small and basic
+ 9. **Your first commit**: You have already made some small and basic
      changes in the steps above and you are in the `master` branch. So, you
      can officially make your first commit in your project's history. But
      before that you need to make sure that there are no problems in the
@@ -739,7 +739,7 @@ First custom commit
      $ git tag -a v0              # Tag this as the zero-th version of your project.
      ```
 
- - **Push to the remote**: Push your first commit and its tag to your
+ 10. **Push to the remote**: Push your first commit and its tag to your
      remote repository with these commands. Since we have setup your
      `master` branch to follow `origin/master`, you can just use `git push`
      from now on.
@@ -749,7 +749,7 @@ First custom commit
      $ git push --tags
      ```
 
- - **Start your exciting research**: You are now ready to add flesh and
+ 11. **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. You can use the "published works" section in
      the introduction (above) as some fully working models to learn
@@ -844,16 +844,6 @@ Other basic customizations
      or useful implementation and usage tips, like those below. In any
      case, please share your thoughts and suggestions with us, so we can
      add them here for everyone's benefit.
-
- - **Updating TeXLive**: Currently the only software package that the
-     Maneage doesn't build is TeXLive (since its not part of the analysis,
-     only for demonstration: building the PDf). So when a new version of
-     TeXLive comes (once every year), if you would like to build the paper,
-     its necessary to update it in your project (otherwise the configure
-     script will crash). To do that, just modify the years in
-     `reproduce/software/config/texlive.conf`, then delete
-     `.build/software/tarballs/install-tl-unx.tar.gz`. The next time you
-     run `./project configure`, the new TeXLive will be installed and used.
 
  - **Pre-publication: add notice on reproducibility**: Add a notice
      somewhere prominent in the first page within your paper, informing the
