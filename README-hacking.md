@@ -588,17 +588,19 @@ First custom commit
      perfect)](https://www.gnu.org/software/repo-criteria-evaluation.html),
      and later you can also host GitLab on your own server. Anyway, create
      an account in your favorite hosting facility (if you don't already
-     have one), and define a new project there. It will give you a URL
-     (usually starting with `git@` and ending in `.git`), put this URL in
-     place of `XXXXXXXXXX` in the first command below. With the second
-     command, "push" your `master` branch to your `origin` remote, and
-     (with the `--set-upstream` option) set them to track/follow each
-     other. However, the `maneage` branch is currently tracking/following
-     your `origin-maneage` remote (automatically set when you cloned
-     Maneage). So when pushing the `maneage` branch to your `origin`
-     remote, you _shouldn't_ use `--set-upstream`. With the last command,
-     you can actually check this (which local and remote branches are
-     tracking each other).
+     have one), and define a new project there. Please make sure *the newly
+     created project is empty* (some services ask to include a `README` in
+     a new project which is bad in this scenario, and will not allow you to
+     push to it). It will give you a URL (usually starting with `git@` and
+     ending in `.git`), put this URL in place of `XXXXXXXXXX` in the first
+     command below. With the second command, "push" your `master` branch to
+     your `origin` remote, and (with the `--set-upstream` option) set them
+     to track/follow each other. However, the `maneage` branch is currently
+     tracking/following your `origin-maneage` remote (automatically set
+     when you cloned Maneage). So when pushing the `maneage` branch to your
+     `origin` remote, you _shouldn't_ use `--set-upstream`. With the last
+     command, you can actually check this (which local and remote branches
+     are tracking each other).
 
      ```shell
      git remote add origin XXXXXXXXXX        # Newly created repo is now called 'origin'.
@@ -617,21 +619,23 @@ First custom commit
      your own methods after finishing this checklist and doing your first
      commit.
 
- 6. **Delete dummy parts (can be done later)**: Maneage contains some parts
-     that are only for the initial/test run, mainly as a demonstration of
-     important steps. They not for any real analysis. You can remove these
-     parts in the file below
+ 6. **Delete dummy parts**: Maneage contains some parts that are only for
+     the initial/test run, mainly as a demonstration of important steps,
+     which you can use as a reference to use in your own project. But they
+     not for any real analysis, so you should remove these parts as
+     described below:
 
      - `paper.tex`: 1) Delete the text of the abstract (from
-       `\includeabstract{` to `\vspace{0.25cm}`) and start writing your own
-       (a single sentence can be enough now). 2) Add some keywords under it
-       in the keywords part. 3) Delete everything between `%% Start of main
-       body.` and `%% End of main body.`. 4) Remove the notice in the
-       "Acknowledgments" section (in `\new{}`) and add Acknowledge your
-       funding sources. Just don't delete the existing acknowledgment
-       statement: Maneage was designed by funding from many grants. Since
-       you are using it in your work, it is necessary to acknowledge them
-       in your work also.
+       `\includeabstract{` to `\vspace{0.25cm}`) and write your own own (a
+       single sentence can be enough now, you can complete it later). 2)
+       Add some keywords under it in the keywords part. 3) Delete
+       everything between `%% Start of main body.` and `%% End of main
+       body.`. 4) Remove the notice in the "Acknowledgments" section (in
+       `\new{}`) and Acknowledge your funding sources (this can also be
+       done later). Just don't delete the existing acknowledgment
+       statement: Maneage is possible thanks to funding from several
+       grants. Since Maneage is being used in your work, it is necessary to
+       acknowledge them in your work also.
 
      - `reproduce/analysis/make/top-make.mk`: Delete the `delete-me` line
        in the `makesrc` definition. Just make sure there is no empty line
@@ -674,10 +678,10 @@ First custom commit
        the first `echo` command has a `>` (to re-write the file with the
        given line), the rest are `>>` (to append to it). After doing this
        step in your own branch, when future commits in Maneage make any
-       change in the given files, they will not be imported into your
-       project's branch (it can be annoying!). You can follow a similar
-       strategy if you want to avoid any other set of files to be imported
-       from Maneage into your project's branch.
+       change in these files, it will not cause a conflict with your
+       project when you update Maneage (it is annoying!). You can follow a
+       similar strategy if you want to avoid any other set of files to be
+       imported from Maneage into your project's branch.
 
        ```shell
        $ echo "paper.tex" > .gitattributes
