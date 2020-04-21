@@ -252,7 +252,7 @@ and understand how to implement your research project within its framework:
 where to add new files and which existing files to modify for what
 purpose. But if this the first time you are using Maneage, before reading
 this theoretical discussion, please run Maneage once from scratch without
-any chages (described in `README.md`). You will see how it works (note that
+any changes (described in `README.md`). You will see how it works (note that
 the configure step builds all necessary software, so it can take long, but
 you can continue reading while its working).
 
@@ -274,7 +274,7 @@ top build directory and `.local` for easy access to the custom built
 software installation directory. With these you can easily access the build
 directory and project-specific software from your top source directory. For
 example if you run `.local/bin/ls` you will be using the `ls` of Maneage,
-which is problably different from your system's `ls` (run them both with
+which is probably different from your system's `ls` (run them both with
 `--version` to check).
 
 Once the project is configured for your system, `./project make` will do
@@ -353,7 +353,7 @@ compiling it to the final PDF). So the last target in a workhorse-Makefile
 is a `.tex` file (with the same base-name as the Makefile, but in
 `$(BDIR)/tex/macros`). As a result, if the targets in a workhorse-Makefile
 aren't directly a prerequisite of other workhorse-Makefile targets, they
-can be a pre-requisite of that intermediate LaTeX macro file and thus be
+can be a prerequisite of that intermediate LaTeX macro file and thus be
 called when necessary. Otherwise, they will be ignored by Make.
 
 Maneage also has a mode to share the build directory between several
@@ -438,8 +438,8 @@ files, it makes no effort in keeping the file meta data, and in particular
 the dates of files. Therefore when you checkout to a different branch,
 files that are re-written by Git will have a newer date than the other
 project files. However, file dates are important in the current design of
-Maneage: Make uses file dates of the pre-requisits and targets to see
-if the target should be re-built.
+Maneage: Make checks the dates of the prerequisite files and target files
+to see if the target should be re-built.
 
 To fix this problem, for Maneage we use a forked version of
 [Metastore](https://github.com/mohammad-akhlaghi/metastore). Metastore use
@@ -452,13 +452,13 @@ file dates in a branch, and 2) after doing a checkout, to reset the
 file-dates after the checkout is complete and re-set the file dates back to
 what they were.
 
-In practice, Metastore should work almost fully invisiablly within your
+In practice, Metastore should work almost fully invisibly within your
 project. The only place you might notice its presence is that you'll see
 `.file-metadata` in the list of modified/staged files (commonly after
 merging your branches). Since its a binary file, Git also won't show you
 the changed contents. In a merge, you can simply accept any changes with
 `git add -u`. But if Git is telling you that it has changed without a merge
-(for example if you started a commit, but cancelled it in the middle), you
+(for example if you started a commit, but canceled it in the middle), you
 can just do `git checkout .file-metadata` and set it back to its original
 state.
 
@@ -482,7 +482,7 @@ mind are listed below.
    in the workhorse-Makefiles or paper's LaTeX source. Define such
    constants as logically-grouped, separate configuration-Makefiles in
    `reproduce/analysis/config/XXXXX.conf`. Then set this
-   configuration-Makefiles file as a pre-requisite to any rule that uses
+   configuration-Makefiles file as a prerequisite to any rule that uses
    the variable defined in it.
 
  - Through any number of intermediate prerequisites, all processing steps
@@ -522,24 +522,21 @@ First custom commit
 -------------------
 
  1. **Get this repository and its history** (if you don't already have it):
-     Arguably the easiest way to start is to clone this repository as shown
-     below. As you see, after the cloning some further corrections to your
-     clone's Git settings are necessary: first, you need to remove all
-     possibly existing Git tags from the Maneage's history. Then you need
-     to rename the conventional `origin` remote server, and the `master`
-     branch. This renaming allows you to use these standard names for your
-     own customized project (which greatly helps because this convention is
-     widely used).
+     Arguably the easiest way to start is to clone Maneage and prepare for
+     your customizations as shown below. After the cloning first you rename
+     the default `origin` remote server to specify that this is Maneage's
+     remote server. This will allow you to use the conventional `origin`
+     name for your own project as shown in the next steps. Second, you will
+     create and go into the conventional `master` branch to start
+     committing in your project later.
 
      ```shell
      $ git clone https://gitlab.com/maneage/project.git # Clone/copy the project and its history.
-     $ mv project my-project                      # Change the name to your project's name.
-     $ cd my-project                              # Go into the cloned directory.
-     $ git tag | xargs git tag -d                 # Delete all Maneage tags.
-     $ git config remote.origin.tagopt --no-tags  # No tags in future fetch/pull from Maneage.
-     $ git remote rename origin origin-maneage    # Rename current/only remote to "origin-maneage".
-     $ git checkout -b master                     # Create and enter your own "master" branch.
-     $ pwd                                        # Just to confirm where you are.
+     $ mv project my-project                            # Change the name to your project's name.
+     $ cd my-project                                    # Go into the cloned directory.
+     $ git remote rename origin origin-maneage          # Rename current/only remote to "origin-maneage".
+     $ git checkout -b master                           # Create and enter your own "master" branch.
+     $ pwd                                              # Just to confirm where you are.
      ```
 
  2. **Prepare to build project**: The `./project configure` command of the
@@ -551,14 +548,14 @@ First custom commit
      terminal on your desktop and navigate to the same project directory
      that you cloned (output of last command above). Then run the following
      command. Once every second, this command will just print the date
-     (possibly followed by a non-existant directory notice). But as soon as
+     (possibly followed by a non-existent directory notice). But as soon as
      the next step starts building software, you'll see the names of
      software get printed as they are being built. Once any software is
      installed in the project build directory it will be removed. Again,
      don't worry, nothing will be installed outside the build directory.
 
      ```shell
-     # On another terminal (go to top project directory)
+     # On another terminal (go to top project source directory, last command above)
      $ ./project --check-config
      ```
 
@@ -604,7 +601,7 @@ First custom commit
 
      ```shell
      git remote add origin XXXXXXXXXX        # Newly created repo is now called 'origin'.
-     git push --set-upstream origin master   # Push 'master' branch to 'origin' (enable tracking).
+     git push --set-upstream origin master   # Push 'master' branch to 'origin' (with tracking).
      git push origin maneage                 # Push 'maneage' branch to 'origin' (no tracking).
      ```
 
@@ -626,7 +623,7 @@ First custom commit
      described below:
 
      - `paper.tex`: 1) Delete the text of the abstract (from
-       `\includeabstract{` to `\vspace{0.25cm}`) and write your own own (a
+       `\includeabstract{` to `\vspace{0.25cm}`) and write your own (a
        single sentence can be enough now, you can complete it later). 2)
        Add some keywords under it in the keywords part. 3) Delete
        everything between `%% Start of main body.` and `%% End of main
@@ -640,7 +637,7 @@ First custom commit
      - `reproduce/analysis/make/top-make.mk`: Delete the `delete-me` line
        in the `makesrc` definition. Just make sure there is no empty line
        between the `download \` and `verify \` lines (they should be
-       directly under eachother).
+       directly under each other).
 
      - `reproduce/analysis/make/verify.mk`: In the final recipe, under the
        commented line `Verify TeX macros`, remove the full line that
@@ -692,33 +689,35 @@ First custom commit
        $ git add .gitattributes
        ```
 
- 7. **Copyright and License notice**: To be usable/modifiable by others
-     after publication, _all_ the "copyright-able" files in your project
-     (those larger than 10 lines) must have a copyright notice and license
-     notice. Please take a moment to look at several existing files to see
-     a few examples. The copyright notice is usually close to the start of
-     the file, it is the line starting with `Copyright (C)` and containing
-     a year and the author's name. The License notice is a short (or full,
-     when its not too long, like the MIT license) description of the
-     copyright license, usually less than three paragraphs. Don't forget to
-     add these _two_ notices to any new file you add to Maneage for your
-     project. When you modify an existing Maneage file (which already has
-     the notices), just add a copyright notice in your name under the
-     existing one(s), like the line with capital letters below. Please add
-     this line with your name and email address to `paper.tex` and
-     `tex/src/preamble-header.tex`.
+ 7. **Copyright and License notice**: It is necessary that _all_ the
+     "copyright-able" files in your project (those larger than 10 lines)
+     have a copyright and license notice. Please take a moment to look at
+     several existing files to see a few examples. The copyright notice is
+     usually close to the start of the file, it is the line starting with
+     `Copyright (C)` and containing a year and the author's name (like the
+     examples below). The License notice is a short description of the
+     copyright license, usually one or two paragraphs with a URL to the
+     full license. Don't forget to add these _two_ notices to *any new
+     file* you add in your project (you can just copy-and-paste). When you
+     modify an existing Maneage file (which already has the notices), just
+     add a copyright notice in your name under the existing one(s), like
+     the line with capital letters below. To start with, add this line with
+     your name and email address to `paper.tex`,
+     `tex/src/preamble-header.tex`, `reproduce/analysis/make/top-make.mk`,
+     and generally, all the files you modified in the previous step.
 
      ```
-     Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+     Copyright (C) 2018-2020 Existing Name <existing@email.address>
      Copyright (C) 2020 YOUR NAME <YOUR@EMAIL.ADDRESS>
      ```
 
- 8. **Configure Git for fist time**: If you have never used Git, then you
-     have to configure it with some basic information in order to have
-     essential information in the commit messages (ignore this step if you
-     have already done it). Git will include your name and e-mail address
-     information in each commit. You can also specify your favorite text
-     editor for making the commit (`emacs`, `vim`, etc.).
+ 8. **Configure Git for fist time**: If this is the first time you are
+     running Git on this system, then you have to configure it with some
+     basic information in order to have essential information in the commit
+     messages (ignore this step if you have already done it). Git will
+     include your name and e-mail address information in each commit. You
+     can also specify your favorite text editor for making the commit
+     (`emacs`, `vim`, `nano`, and etc.).
 
      ```shell
      $ git config --global user.name "YourName YourSurname"
@@ -727,33 +726,25 @@ First custom commit
      ```
 
  9. **Your first commit**: You have already made some small and basic
-     changes in the steps above and you are in the `master` branch. So, you
-     can officially make your first commit in your project's history. But
-     before that you need to make sure that there are no problems in the
-     project (this is a good habit to always re-build the system before a
-     commit to be sure it works as expected).
+     changes in the steps above and you are in your project's `master`
+     branch. So, you can officially make your first commit in your
+     project's history and push it. But before that, you need to make sure
+     that there are no problems in the project. This is a good habit to
+     always re-build the system before a commit to be sure it works as
+     expected.
 
      ```shell
      $ git status                 # See which files you have changed.
-     $ git diff                   # See the lines you have added/changed.
+     $ git diff                   # Check the lines you have added/changed.
      $ ./project make             # Make sure everything builds successfully.
      $ git add -u                 # Put all tracked changes in staging area.
      $ git status                 # Make sure everything is fine.
-     $ git commit                 # Your first commit, add a nice description.
-     $ git tag -a v0              # Tag this as the zero-th version of your project.
+     $ git diff --cached          # Confirm all the changes that will be committed.
+     $ git commit                 # Your first commit: put a good description!
+     $ git push                   # Push your commit to your remote.
      ```
 
- 10. **Push to the remote**: Push your first commit and its tag to your
-     remote repository with these commands. Since we have setup your
-     `master` branch to follow `origin/master`, you can just use `git push`
-     from now on.
-
-     ```shell
-     $ git push
-     $ git push --tags
-     ```
-
- 11. **Start your exciting research**: You are now ready to add flesh and
+ 10. **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. You can use the "published works" section in
      the introduction (above) as some fully working models to learn
@@ -821,7 +812,7 @@ Other basic customizations
      checksum and if any file's checksum is different from the one recorded
      in the project, it will stop and print the problematic file and its
      expected and calculated checksums. First set the value of
-     `verify-outputs` valiable in
+     `verify-outputs` variable in
      `reproduce/analysis/config/verify-outputs.conf` to `yes`. Then go to
      `reproduce/analysis/make/verify.mk`. The verification of all the files
      is only done in one recipe. First the files that go into the
@@ -961,11 +952,11 @@ for the benefit of others.
      contexts.
 
    - *Environment of each recipe*: If you need to define a special
-      environment (or alises, or scripts to run) for all the recipes in
+      environment (or aliases, or scripts to run) for all the recipes in
       your Makefiles, you can use a Bash startup file
       `reproduce/software/shell/bashrc.sh`. This file is loaded before every
       Make recipe is run, just like the `.bashrc` in your home directory is
-      loaded everytime you start a new interactive, non-login terminal. See
+      loaded every time you start a new interactive, non-login terminal. See
       the comments in that file for more.
 
    - *Automatic variables*: These are wonderful and very useful Make
@@ -1024,8 +1015,8 @@ for the benefit of others.
       will give you a special shared-memory device (directory): on systems
       using the GNU C Library (all GNU/Linux system), it is `/dev/shm`. The
       contents of this directory are actually in your RAM, not in your
-      persistance storage like the HDD or SSD. Reading and writing from/to
-      the RAM is much faster than persistant storage, so if you have enough
+      persistence storage like the HDD or SSD. Reading and writing from/to
+      the RAM is much faster than persistent storage, so if you have enough
       RAM available, it can be very beneficial for large temporary files to
       be put there. You can use the `mktemp` program to give the temporary
       files a randomly-set name, and use text files as targets to keep that
@@ -1167,23 +1158,6 @@ for the benefit of others.
       problem in the first paragraph(s). Afterwards, start the next
       paragraph with "With this commit ...".
 
-   - *Tags*: To help manage the history, tag all major commits. This helps
-      make a more human-friendly output of `git describe`: for example
-      `v1-4-gaafdb04` states that we are on commit `aafdb04` which is 4
-      commits after tag `v1`. The output of `git describe` is included in
-      your final PDF as part of this project. Also, if you use
-      reproducibility-friendly software like Gnuastro, this value will also
-      be included in all output files, see the description of `COMMIT` in
-      [Output
-      headers](https://www.gnu.org/software/gnuastro/manual/html_node/Output-headers.html).
-      In the checklist above, you tagged the first commit of your project
-      with `v0`. Here is one suggestion on when to tag: when you have fully
-      adopted Maneage and have got the first (initial) results, you can
-      make a `v1` tag. Subsequently when you first start reporting the
-      results to your colleagues, you can tag the commit as `v2` and
-      increment the version on every later circulation, or referee
-      submission.
-
    - *Project outputs*: During your research, it is possible to checkout a
       specific commit and reproduce its results. However, the processing
       can be time consuming. Therefore, it is useful to also keep track of
@@ -1209,8 +1183,8 @@ for the benefit of others.
    - *Full Git history in one file*: When you are publishing your project
       (for example to Zenodo for long term preservation), it is more
       convenient to have the whole project's Git history into one file to
-      save with your datasets. Afterall, you can't be sure that your
-      current Git server (for example Gitlab, Github, or Bitbucket) will be
+      save with your datasets. After all, you can't be sure that your
+      current Git server (for example GitLab, Github, or Bitbucket) will be
       active forever. While they are good for the immediate future, you
       can't rely on them for archival purposes. Fortunately keeping your
       whole history in one file is easy with Git using the following
@@ -1225,7 +1199,7 @@ for the benefit of others.
         ```
 
       - You can easily upload `my-project-git.bundle` anywhere. Later, if
-        you need to unbundle it, you can use the following command.
+        you need to un-bundle it, you can use the following command.
 
         ```shell
         $ git clone my-project-git.bundle
