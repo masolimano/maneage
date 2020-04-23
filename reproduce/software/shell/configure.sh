@@ -93,6 +93,64 @@ absolute_dir ()
 
 
 
+# Check file permission handling (POSIX-compatibility)
+# ----------------------------------------------------
+#
+# Check if a `given' directory handles permissions as expected.
+#
+# This is to prevent a known bug in the NTFS filesystem that prevents
+# proper installation of Perl, and probably some other packages. This
+# function receives the directory as an argument and then, creates a dummy
+# file, and examines whether the given directory handles the file
+# permissions as expected.
+#
+# Returns `0' if everything is fine, and `255' otherwise. Choosing `0' is
+# to mimic the `$ echo $?' behavior, while choosing `255' is to prevent
+# misunderstanding 0 and 1 as true and false.
+#
+# ===== CAUTION! ===== #
+#
+# Since there is a `set -e' before running this function, the whole script
+# stops and exits IF the `check_permission' (or any other function) returns
+# anything OTHER than `0'! So, only use this function as a test. Here's a
+# minimal example:
+#
+#     if $(check_permission $some_directory) ; then
+#       echo "yay"; else "nay";
+#     fi ;
+check_permission ()
+{
+    # Make a `junk' file, activate its executable flag and record its
+    # permissions generally.
+    local junkfile=$1/check_permission_tmp_file
+    rm -f $junkfile
+    echo "Don't let my short life go to waste" > $junkfile
+    chmod +x $junkfile
+    local perm_before=$(ls -l $junkfile | awk '{print $1}')
+
+    # Now, remove the executable flag and record the permissions.
+    chmod -x $junkfile
+    local perm_after=$(ls -l $junkfile | awk '{print $1}')
+
+    # Clean up before leaving the function
+    rm -f $junkfile
+
+    # If the permissions are equal, the filesystem doesn't allow
+    # permissions.
+    if [ $perm_before = $perm_after ]; then
+        # Setting permission FAILED
+        return 1
+    else
+        # Setting permission SUCCESSFUL
+	return 0
+    fi
+}
+
+
+
+
+
+
 # Check for C/C++ compilers
 # -------------------------
 #
@@ -653,21 +711,20 @@ EOF
                 bdir=$(absolute_dir $build_dir)
                 rm -rf $build_dir/$junkname
             else
-                echo " -- Can't write in '$build_dir'"; echo
+                echo " ** Can't write in '$build_dir'"; echo
             fi
         else
             if mkdir $build_dir 2> /dev/null; then
                 instring="the newly created"
                 bdir=$(absolute_dir $build_dir)
             else
-                echo " -- Can't create '$build_dir'"; echo
+                echo " ** Can't create '$build_dir'"; echo
             fi
         fi
 
         # If its given, make sure it isn't a subdirectory of the source
         # directory.
         if ! [ x"$bdir" = x ]; then
-            echo "Given build directory: $bdir"
             if echo "$bdir/" \
                     | grep '^'$currentdir 2> /dev/null > /dev/null; then
 
@@ -676,17 +733,30 @@ EOF
 
                 # Inform the user that this is not acceptable and reset `bdir'.
                 bdir=
-                echo " -- The build-directory cannot be under the source-directory."
-                echo "    Please specify another build-directory that is outside of the source."
-                echo ""
-            else
-                echo " -- Build directory set to ($instring): '$bdir'"
+                echo " ** The build-directory cannot be under the source-directory."
             fi
         fi
 
-        # Reset `build_dir' to blank, so it continues asking when the
-        # previous value wasn't usable.
-        build_dir=
+	# If everything is fine until now, see if we're able to manipulate
+	# file permissions.
+	if ! [ x"$bdir" = x ]; then
+            if ! $(check_permission $bdir); then
+                bdir=
+                echo " ** File permissions can't be modified in this directory"
+            fi
+        fi
+
+        # If the build directory was good, the loop will stop, if not,
+        # reset `build_dir' to blank, so it continues asking for another
+        # directory and let the user know that they must select a new
+        # directory.
+        if [ x$bdir = x ]; then
+            build_dir=
+            echo " ** Please select another directory."
+            echo ""
+        else
+            echo " -- Build directory set to ($instring): '$bdir'"
+        fi
     done
 fi
 
