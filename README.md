@@ -27,8 +27,8 @@ $ ./project make
 To learn more about the purpose, principles and technicalities of this
 reproducible paper, please see `README-hacking.md`. For a general
 introduction to reproducible science as implemented in this project
-(through Maneage), please see the [Maneage
-project](https://gitlab.com/maneage/project) for more.
+(through Maneage), please see Maneage project's webpage at
+https://maneage.org.
 
 
 

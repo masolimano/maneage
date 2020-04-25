@@ -26,11 +26,11 @@ libraries and programs for working in a closed environment (highly
 independent of the host operating system) with fixed versions of the
 necessary dependencies. The tarballs for building the local environment are
 also collected in a [separate
-repository](https://gitlab.com/maneage/software-source). The final output
-of the project is [a
-paper](https://gitlab.com/maneage/output-raw/-/blob/master/paper.pdf).
-Notice the last paragraph of the Acknowledgments where all the necessary
-software are mentioned with their versions.
+repository](http://git.maneage.org/tarballs-software.git/tree/). The final
+output of the project is [a
+paper](http://git.maneage.org/output-raw.git/plain/paper.pdf).  Notice the
+last paragraph of the Acknowledgments where all the necessary software are
+mentioned with their versions.
 
 Below, we start with a discussion of why Make was chosen as the high-level
 language/framework for project management and how to learn and master Make
@@ -531,7 +531,7 @@ First custom commit
      committing in your project later.
 
      ```shell
-     $ git clone https://gitlab.com/maneage/project.git # Clone/copy the project and its history.
+     $ git clone https://git.maneage.org/project.git    # Clone/copy the project and its history.
      $ mv project my-project                            # Change the name to your project's name.
      $ cd my-project                                    # Go into the cloned directory.
      $ git remote rename origin origin-maneage          # Rename current/only remote to "origin-maneage".
@@ -1131,7 +1131,7 @@ for the benefit of others.
       branch to track it, on the new clone.
 
         ```shell
-        $ git remote add origin-maneage https://gitlab.com/maneage/project.git
+        $ git remote add origin-maneage https://git.maneage.org/project.git
         $ git fetch origin-maneage
         $ git checkout -b maneage --track origin-maneage/maneage
         ```
@@ -1176,9 +1176,8 @@ for the benefit of others.
       release the outputs repository, or you can just delete it if it is
       too large or un-necessary (it was just for convenience, and fully
       reproducible after all). For example Maneage's output is available
-      for demonstration in the separate
-      [reproducible-paper-output](https://gitlab.com/maneage/output-raw)
-      repository.
+      for demonstration in [a
+      separate](http://git.maneage.org/output-raw.git/) repository.
 
    - *Full Git history in one file*: When you are publishing your project
       (for example to Zenodo for long term preservation), it is more
@@ -1309,7 +1308,7 @@ order of operations: this is contrary to the scientific spirit.
 
 Copyright information
 ---------------------
-This file is part of Maneage's core: https://gitlab.com/maneage/project
+This file is part of Maneage's core: https://git.maneage.org/project.git
 
 Maneage is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
