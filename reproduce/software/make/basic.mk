@@ -156,14 +156,18 @@ tarballs = $(foreach t, bash-$(bash-version).tar.lz \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
 
-	n=$$(echo $* | sed -e's/[0-9\-]/ /g' \
-	                   -e's/\./ /g' \
+        # Remove the version numbers and suffix from the tarball name so we
+        # can search more easily only with the program name. This requires
+        # the first character of the version to be a digit: packages such
+        # as `foo' and `foo-3' will not be distinguished, but `foo' and
+        # `foo2' will be distinguished.
+	n=$$(echo $* | sed -e's/-[0-9]/ /' -e's/\./ /g' \
 	             | awk '{print $$1}' ); \
 	                                    \
 	mergenames=1; \
 	if   [ $$n = bash      ]; then c=$(bash-checksum); w=http://akhlaghi.org/maneage-software; \
 	elif [ $$n = binutils  ]; then c=$(binutils-checksum); w=http://ftp.gnu.org/gnu/binutils; \
-	elif [ $$n = bzip      ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/maneage-software; \
+	elif [ $$n = bzip2     ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/maneage-software; \
 	elif [ $$n = cert      ]; then c=$(cert-checksum); w=http://akhlaghi.org/maneage-software; \
 	elif [ $$n = coreutils ]; then c=$(coreutils-checksum); w=http://ftp.gnu.org/gnu/coreutils;\
 	elif [ $$n = curl      ]; then c=$(curl-checksum); w=https://curl.haxx.se/download; \
@@ -181,7 +185,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = libiconv  ]; then c=$(libiconv-checksum); w=https://ftp.gnu.org/pub/gnu/libiconv; \
 	elif [ $$n = libtool   ]; then c=$(libtool-checksum); w=http://ftp.gnu.org/gnu/libtool; \
 	elif [ $$n = lzip      ]; then c=$(lzip-checksum); w=http://download.savannah.gnu.org/releases/lzip; \
-	elif [ $$n = m         ]; then \
+	elif [ $$n = m4        ]; then \
 	  mergenames=0; \
 	  c=$(m4-checksum); \
 	  w=http://akhlaghi.org/maneage-software/m4-1.4.18-patched.tar.gz; \

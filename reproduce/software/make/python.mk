@@ -131,16 +131,18 @@ $(pytarballs): $(tdir)/%:
         # first string.
 	@if [ $* = python-dateutil-$(python-dateutil-version).tar.gz ]; then
 	  n=dateutil
-	elif [ $* = h5py-$(h5py-version).tar.gz ]; then
-	  n=h5py
 
         # elif [ $* = strange-tarball5name-version.tar.gz ]; then
         #  n=strange5-name
 	else
-          # Remove all numbers, `-' and `.' from the tarball name so we can
-          # search more easily only with the program name.
-	  n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g'           \
-	            | awk '{print $$1}')
+          # Remove the version numbers and suffix from the tarball name so
+          # we can search more easily only with the program name. This
+          # requires the first character of the version to be a digit:
+          # packages such as `foo' and `foo-3' will not be distinguished,
+          # but `foo' and `foo2' will be distinguished.
+	  n=$$(echo $* | sed -e's/-[0-9]/ /' -e's/\./ /g' \
+	               | awk '{print $$1}' )
+
 	fi
 
         # Set the top download link of the requested tarball. The ones
@@ -180,11 +182,11 @@ $(pytarballs): $(tdir)/%:
 	  c=$(secretstorage-checksum)
 	  hash=a6/89/df343dbc2957a317127e7ff2983230dc5336273be34f2e1911519d85aeb5
 	  h=$(pytopurl)/$$hash/SecretStorage-$(secretstorage-version).tar.gz
-	elif [ $$n = asn            ]; then h=fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4; c=$(asn1crypto-checksum)
+	elif [ $$n = asn1crypto     ]; then h=fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4; c=$(asn1crypto-checksum)
 	elif [ $$n = asteval        ]; then h=50/3f/29b7935c6dc09ee96dc347edc66c57e8ef68d595dd35b763a36a117acc8c; c=$(asteval-checksum)
 	elif [ $$n = astroquery     ]; then h=e2/af/a3cd3b30745832a0e81f5f13327234099aaf5d03b7979ac947a888e68e91; c=$(astroquery-checksum)
 	elif [ $$n = astropy        ]; then h=de/96/7feaca4b9be134128838395a9d924ea0b389ed4381702dcd9d11ae31789f; c=$(astropy-checksum)
-	elif [ $$n = beautifulsoup  ]; then h=80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748; c=$(beautifulsoup4-checksum)
+	elif [ $$n = beautifulsoup4 ]; then h=80/f2/f6aca7f1b209bb9a7ef069d68813b091c8c3620642b568dac4eb0e507748; c=$(beautifulsoup4-checksum)
 	elif [ $$n = certifi        ]; then h=55/54/3ce77783acba5979ce16674fc98b1920d00b01d337cfaaf5db22543505ed; c=$(certifi-checksum)
 	elif [ $$n = cffi           ]; then h=64/7c/27367b38e6cc3e1f49f193deb761fe75cda9f95da37b67b422e62281fcac; c=$(cffi-checksum)
 	elif [ $$n = chardet        ]; then h=fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d; c=$(chardet-checksum)
@@ -195,23 +197,23 @@ $(pytarballs): $(tdir)/%:
 	elif [ $$n = emcee          ]; then h=f0/c0/cd433f2aedeef9b1e5ed7d236c82564f7518fe7fe2238fa141ea9ce08e73; c=$(emcee-checksum)
 	elif [ $$n = entrypoints    ]; then h=b4/ef/063484f1f9ba3081e920ec9972c96664e2edb9fdc3d8669b0e3b8fc0ad7c; c=$(entrypoints-checksum)
 	elif [ $$n = esutil         ]; then h=5b/91/77e38282fd3d47b55e351544ab179eb209b309a8d2d40f8cdb6241beda00; c=$(esutil-checksum)
-	elif [ $$n = flake          ]; then h=8d/a7/99222c9200af533c1ecb1120d99adbd1c033b57296ac5cb39d121db007a8; c=$(flake8-checksum)
+	elif [ $$n = flake8         ]; then h=8d/a7/99222c9200af533c1ecb1120d99adbd1c033b57296ac5cb39d121db007a8; c=$(flake8-checksum)
 	elif [ $$n = future         ]; then h=3f/bf/57733d44afd0cf67580658507bd11d3ec629612d5e0e432beb4b8f6fbb04; c=$(future-checksum)
 	elif [ $$n = h5py           ]; then h=43/27/a6e7dcb8ae20a4dbf3725321058923fec262b6f7835179d78ccc8d98deec; c=$(h5py-checksum)
-	elif [ $$n = html           ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f; c=$(html5lib-checksum)
+	elif [ $$n = html5lib       ]; then h=85/3e/cf449cf1b5004e87510b9368e7a5f1acd8831c2d6691edd3c62a0823f98f; c=$(html5lib-checksum)
 	elif [ $$n = idna           ]; then h=ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7; c=$(idna-checksum)
 	elif [ $$n = jeepney        ]; then h=16/1d/74adf3b164a8d19a60d0fcf706a751ffa2a1eaa8e5bbb1b6705c92a05263; c=$(jeepney-checksum)
 	elif [ $$n = keyring        ]; then h=15/88/c6ce9509438bc02d54cf214923cfba814412f90c31c95028af852b19f9b2; c=$(keyring-checksum)
 	elif [ $$n = kiwisolver     ]; then h=31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864; c=$(kiwisolver-checksum)
 	elif [ $$n = lmfit          ]; then h=59/6e/117794cf85b7345361877e49245870490ae438f1981dea3c6af1316b30e7; c=$(lmfit-checksum)
 	elif [ $$n = matplotlib     ]; then h=12/d1/7b12cd79c791348cb0c78ce6e7d16bd72992f13c9f1e8e43d2725a6d8adf; c=$(matplotlib-checksum)
-	elif [ $$n = mpi            ]; then h=04/f5/a615603ce4ab7f40b65dba63759455e3da610d9a155d4d4cece1d8fd6706; c=$(mpi4py-checksum)
+	elif [ $$n = mpi4py         ]; then h=04/f5/a615603ce4ab7f40b65dba63759455e3da610d9a155d4d4cece1d8fd6706; c=$(mpi4py-checksum)
 	elif [ $$n = mpmath         ]; then h=ca/63/3384ebb3b51af9610086b23ea976e6d27d6d97bf140a76a365bd77a3eb32; c=$(mpmath-checksum)
 	elif [ $$n = numpy          ]; then h=ac/36/325b27ef698684c38b1fe2e546e2e7ef9cecd7037bcdb35c87efec4356af; c=$(numpy-checksum)
 	elif [ $$n = pexpect        ]; then h=1c/b1/362a0d4235496cb42c33d1d8732b5e2c607b0129ad5fdd76f5a583b9fcb3; c=$(pexpect-checksum)
 	elif [ $$n = pip            ]; then h=4c/4d/88bc9413da11702cbbace3ccc51350ae099bb351febae8acc85fec34f9af; c=$(pip-checksum)
 	elif [ $$n = pkgconfig      ]; then h=6e/a9/ff67ef67217dfdf2aca847685fe789f82b931a6957a3deac861297585db6; c=$(pypkgconfig-checksum)
-	elif [ $$n = pybind         ]; then h=aa/91/deb6743e79e22ab01502296570b39b8404f10cc507a6692d612a7fee8d51; c=$(pybind11-checksum)
+	elif [ $$n = pybind11       ]; then h=aa/91/deb6743e79e22ab01502296570b39b8404f10cc507a6692d612a7fee8d51; c=$(pybind11-checksum)
 	elif [ $$n = pycodestyle    ]; then h=1c/d1/41294da5915f4cae7f4b388cea6c2cd0d6cd53039788635f6875dfe8c72f; c=$(pycodestyle-checksum)
 	elif [ $$n = pycparser      ]; then h=68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a; c=$(pycparser-checksum)
 	elif [ $$n = pyflakes       ]; then h=52/64/87303747635c2988fcaef18af54bfdec925b6ea3b80bcd28aaca5ba41c9e; c=$(pyflakes-checksum)
@@ -227,7 +229,7 @@ $(pytarballs): $(tdir)/%:
 	elif [ $$n = soupsieve      ]; then h=0c/52/e9088bb9b96e2d39fc3b33fcda5b4fde9d71473536ac660a1ca9a0958a2f; c=$(soupsieve-checksum)
 	elif [ $$n = sympy          ]; then h=54/2e/6adb11fe599d4cfb7e8833753350ac51aa2c0603c226b36f9051cc9d2425; c=$(sympy-checksum)
 	elif [ $$n = uncertainties  ]; then h=2a/c2/babbe5b16141859dd799ed31c03987100a7b6d0ca7c0ed4429c96ce60fdf; c=$(uncertainties-checksum)
-	elif [ $$n = urllib         ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1; c=$(urllib3-checksum)
+	elif [ $$n = urllib3        ]; then h=b1/53/37d82ab391393565f2f831b8eedbffd57db5a718216f82f1a8b4d381a1c1; c=$(urllib3-checksum)
 	elif [ $$n = virtualenv     ]; then h=51/aa/c395a6e6eaaedfa5a04723b6446a1df783b16cca6fec66e671cede514688; c=$(virtualenv-checksum)
 	elif [ $$n = webencodings   ]; then h=0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47; c=$(webencodings-checksum)
 #	elif [ $$n = strange5-name  ]; then h=XXXXX; c=$(XXXXX-checksum)

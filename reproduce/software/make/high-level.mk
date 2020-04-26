@@ -203,14 +203,17 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                       , $(tdir)/$(t) )
 $(tarballs): $(tdir)/%: | $(lockdir)
 
-        # Remove all numbers, `-' and `.' from the tarball name so we can
-        # search more easily only with the program name.
-	@n=$$(echo $* | sed -e's/[0-9\-]/ /g' -e's/\./ /g' \
-	             | awk '{print $$1}' )
+        # Remove the version numbers and suffix from the tarball name so we
+        # can search more easily only with the program name. This requires
+        # the first character of the version to be a digit: packages such
+        # as `foo' and `foo-3' will not be distinguished, but `foo' and
+        # `foo2' will be distinguished.
+	@n=$$(echo $* | sed -e's/-[0-9]/ /' -e's/\./ /g' \
+	              | awk '{print $$1}' )
 
         # Set the top download link of the requested tarball.
 	mergenames=1
-	if   [ $$n = apachelog   ]; then c=$(apachelog4cxx-checksum); w=http://akhlaghi.org/maneage-software
+	if   [ $$n = apachelog4cxx ]; then c=$(apachelog4cxx-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $* = apr-util-$(apr-util-version).tar.gz ]; then
 	  c=$(apr-util-checksum); w=https://www-us.apache.org/dist/apr
 	elif [ $$n = apr         ]; then c=$(apr-checksum); w=https://www-us.apache.org/dist/apr
@@ -262,7 +265,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$$majorver/hdf5-$(hdf5-version)/src/$*
 	elif [ $$n = healpix     ]; then c=$(healpix-checksum); w=http://akhlaghi.org/maneage-software
-	elif [ $$n = help        ]; then c=$(help2man-checksum); w=http://ftp.gnu.org/gnu/help2man
+	elif [ $$n = help2man    ]; then c=$(help2man-checksum); w=http://ftp.gnu.org/gnu/help2man
 	elif [ $$n = imagemagick ]; then c=$(imagemagick-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = imfit       ]; then
 	  mergenames=0
@@ -273,12 +276,12 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = lapack      ]; then c=$(lapack-checksum); w=http://www.netlib.org/lapack
 	elif [ $$n = libnsl      ]; then c=$(libnsl-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = libpng      ]; then c=$(libpng-checksum); w=https://download.sourceforge.net/libpng
-	elif [ $$n = libgit      ]; then
+	elif [ $$n = libgit2     ]; then
 	  mergenames=0
 	  c=$(libgit2-checksum)
 	  w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	elif [ $$n = libtirpc    ]; then c=$(libtirpc-checksum); w=https://downloads.sourceforge.net/libtirpc
-	elif [ $$n = libxml      ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2
+	elif [ $$n = libxml2     ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2
 	elif [ $$n = missfits    ]; then c=$(missfits-checksum); w=https://www.astromatic.net/download/missfits
 	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = openblas    ]; then
