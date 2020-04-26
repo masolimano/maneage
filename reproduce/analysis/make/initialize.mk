@@ -36,7 +36,7 @@ bashdir     = reproduce/analysis/bash
 pconfdir    = reproduce/analysis/config
 installdir  = $(BDIR)/software/installed
 # --------- Delete for no Gnuastro ---------
-gconfdir    = reproduce/software/config/gnuastro
+gconfdir    = reproduce/analysis/config/gnuastro
 # ------------------------------------------
 
 
