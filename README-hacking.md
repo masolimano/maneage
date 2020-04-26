@@ -840,7 +840,26 @@ Other basic customizations
      case, please share your thoughts and suggestions with us, so we can
      add them here for everyone's benefit.
 
- - **Pre-publication: add notice on reproducibility**: Add a notice
+ - **Re-preparation**: Automatic preparation is only run in the first run
+     of the project on a system, to re-do the preparation you have to use
+     the option below. Here is the reason for this: when its necessary, the
+     preparation process can be slow and will unnecessarily slow down the
+     whole project while the project is under development (focus is on the
+     analysis that is done after preparation). Because of this, preparation
+     will be done automatically for the first time that the project is run
+     (when `.build/software/preparation-done.mk` doesn't exist). After the
+     preparation process completes once, future runs of `./project make`
+     will not do the preparation process anymore (will not call
+     `top-prepare.mk`). They will only call `top-make.mk` for the
+     analysis. To manually invoke the preparation process after the first
+     attempt, the `./project make` script should be run with the
+     `--prepare-redo` option, or you can delete the special file above.
+
+     ```shell
+     $ ./project make --prepare-redo
+     ```
+
+ - **Pre-publication**: add notice on reproducibility**: Add a notice
      somewhere prominent in the first page within your paper, informing the
      reader that your research is fully reproducible. For example in the
      end of the abstract, or under the keywords with a title like
