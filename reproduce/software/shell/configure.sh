@@ -299,7 +299,7 @@ rm -f $testprog $testsource
 
 # See if the C compiler can build static libraries
 # ------------------------------------------------
-
+#
 # We are manually only working with shared libraries: because some
 # high-level programs like Wget and cURL need dynamic linking and if we
 # build the libraries statically, our own builds will be ignored and these
@@ -311,6 +311,44 @@ rm -f $testprog $testsource
 # unless you follow the build closely, its not easy to see if the source of
 # the library came from the system or our build.
 static_build=no
+
+
+
+
+
+# Check for GNU gettext
+# ---------------------
+#
+# Some of the basic sofware need GNU gettext which we don't yet install.
+has_gettext=0
+if type msgfmt > /dev/null 2>/dev/null; then has_gettext=1; fi
+if [ $has_gettext = 0 ]; then
+    cat <<EOF
+______________________________________________________
+!!!!!!!          GNU gettext NOT FOUND         !!!!!!!
+
+Some of the core programs in Maneage require a running GNU gettext on the
+host. Unfortuantely we haven't had the time yet to include its installation
+in Maneage, but it is defined as task #15616 so we don't forget. Generally,
+GNU gettext is already available on many systems, so it hasn't been
+reported too commonly. But please consider helping in this if you have
+time and interest.
+
+Until we include gettext's installation in Maneage, please use your package
+manager to install GNU gettext, then re-run the configuration to
+continue. Here are the relevant commands on some common GNU/Linux
+distributions (you'll only need one of them, or a similar command, if you
+use another package manager):
+
+  apt install gettext
+  yum install gettext
+  pacman -S gettext
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    exit 1
+fi
 
 
 
