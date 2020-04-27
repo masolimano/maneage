@@ -200,7 +200,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(perl-checksum); \
 	  v=$$(echo $(perl-version) | sed -e's/\./ /g' | awk '{printf("%d.0", $$1)}'); \
 	  w=https://www.cpan.org/src/$$v; \
-	elif [ $$n = pkg       ]; then c=$(pkgconfig-checksum); w=http://pkg-config.freedesktop.org/releases; \
+	elif [ $$n = pkg-config ]; then c=$(pkgconfig-checksum); w=http://pkg-config.freedesktop.org/releases; \
 	elif [ $$n = readline  ]; then c=$(readline-checksum); w=http://ftp.gnu.org/gnu/readline; \
 	elif [ $$n = sed       ]; then c=$(sed-checksum); w=http://ftp.gnu.org/gnu/sed; \
 	elif [ $$n = tar       ]; then c=$(tar-checksum); w=http://ftp.gnu.org/gnu/tar; \
