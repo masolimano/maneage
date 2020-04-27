@@ -214,9 +214,8 @@ $(tarballs): $(tdir)/%: | $(lockdir)
         # Set the top download link of the requested tarball.
 	mergenames=1
 	if   [ $$n = apachelog4cxx ]; then c=$(apachelog4cxx-checksum); w=http://akhlaghi.org/maneage-software
-	elif [ $* = apr-util-$(apr-util-version).tar.gz ]; then
-	  c=$(apr-util-checksum); w=https://www-us.apache.org/dist/apr
 	elif [ $$n = apr         ]; then c=$(apr-checksum); w=https://www-us.apache.org/dist/apr
+	elif [ $$n = apr-util    ]; then c=$(apr-util-checksum); w=https://www-us.apache.org/dist/apr
 	elif [ $$n = astrometry  ]; then c=$(astrometrynet-checksum); w=http://astrometry.net/downloads
 	elif [ $$n = atlas       ]; then
 	  mergenames=0
@@ -259,7 +258,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  w=https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs$$v
 	elif [ $$n = gnuastro    ]; then c=$(gnuastro-checksum); w=http://ftp.gnu.org/gnu/gnuastro
 	elif [ $$n = gsl         ]; then c=$(gsl-checksum); w=http://ftp.gnu.org/gnu/gsl
-	elif [ $$n = hdf         ]; then
+	elif [ $$n = hdf5        ]; then
 	  mergenames=0
 	  c=$(hdf5-checksum)
 	  majorver=$$(echo $(hdf5-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
@@ -271,7 +270,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  mergenames=0
 	  c=$(imfit-checksum)
 	  w=http://www.mpe.mpg.de/~erwin/resources/imfit/imfit-$(imfit-version)-source.tar.gz
-	elif [ $$n = install     ]; then c=NO-CHECK-SUM; w=http://mirror.ctan.org/systems/texlive/tlnet
+	elif [ $$n = install-tl-unx ]; then c=NO-CHECK-SUM; w=http://mirror.ctan.org/systems/texlive/tlnet
 	elif [ $$n = jpegsrc     ]; then c=$(libjpeg-checksum); w=http://ijg.org/files
 	elif [ $$n = lapack      ]; then c=$(lapack-checksum); w=http://www.netlib.org/lapack
 	elif [ $$n = libnsl      ]; then c=$(libnsl-checksum); w=http://akhlaghi.org/maneage-software
@@ -298,7 +297,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = R           ]; then c=$(R-checksum);
 	  majver=$$(echo $(R-version) | sed -e's/\./ /g' | awk '{print $$1}')
 	  w=https://cran.r-project.org/src/base/R-$$majver
-	elif [ $$n = rpcsvc      ]; then c=$(rpcsvc-proto-checksum); w=https://github.com/thkukuk/rpcsvc-proto/releases/download/v$(rpcsvc-proto-version)
+	elif [ $$n = rpcsvc-proto ]; then c=$(rpcsvc-proto-checksum); w=https://github.com/thkukuk/rpcsvc-proto/releases/download/v$(rpcsvc-proto-version)
 	elif [ $$n = scamp       ]; then c=$(scamp-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = scons       ]; then
 	  mergenames=0
