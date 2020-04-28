@@ -1514,12 +1514,16 @@ cat <<EOF
 ----------------
 The project and its environment are configured with no errors.
 
-Please run the following command to start.
+To change the configuration later, you can re-run './project configure' or
+manually edit 'reproduce/software/config/LOCAL.conf'. Just be careful with
+the build-directory: its location is hard-coded in the installed software
+so if you change it manually, many of the project's software will crash. If
+you have to use another built-directory, just re-configure a clean project
+there.
+
+Please run the following command to start the project.
 (Replace '8' with the number of CPU threads on your system)
 
     $buildcommand
-
-To change the configuration later, please re-run './project configure', DO
-NOT manually edit the relevant files.
 
 EOF
