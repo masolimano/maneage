@@ -669,27 +669,34 @@ First custom commit
        $ ./project make
        ```
 
-     - Tell Git _not_ to merge changes in the dummy `delete-me` files, and
-       `paper.tex` (its contents are just dummy place holders) from Maneage
-       (by keeping their names in a `.gitattributes` file). Note that only
-       the first `echo` command has a `>` (to re-write the file with the
-       given line), the rest are `>>` (to append to it). After doing this
-       step in your own branch, when future commits in Maneage make any
-       change in these files, it will not cause a conflict with your
-       project when you update Maneage (it is annoying!). You can follow a
-       similar strategy if you want to avoid any other set of files to be
-       imported from Maneage into your project's branch.
+ 7. **Don't merge some files in future updates**: As described below, you
+     can later update your infra-structure (for example to fix bugs) by
+     merging your `master` branch with `maneage`. For files that you have
+     created in your own branch, there will be no problem. However if you
+     modify an existing Maneage file for your project, next time its
+     updated on `maneage` you'll have an annoying conflict. The commands
+     below show how to fix this future problem. With them, you can
+     configure Git to ignore the changes in `maneage` for some of the files
+     you have already edited and deleted above (and will edit below). Note
+     that only the first `echo` command has a `>` (to write over the file),
+     the rest are `>>` (to append to it). If you want to avoid any other
+     set of files to be imported from Maneage into your project's branch,
+     you can follow a similar strategy. We recommend only doing it when you
+     encounter the same conflict in more than one merge and there is no
+     other change in that file. Also, don't add core Maneage Makefiles,
+     otherwise Maneage can break on the next run.
 
-       ```shell
-       $ echo "paper.tex" > .gitattributes
-       $ echo "tex/src/delete-me.mk merge=ours" >> .gitattributes
-       $ echo "tex/src/delete-me-demo.mk merge=ours" >> .gitattributes
-       $ echo "reproduce/analysis/make/delete-me.mk merge=ours" >> .gitattributes
-       $ echo "reproduce/analysis/config/delete-me-num.conf merge=ours" >> .gitattributes
-       $ git add .gitattributes
-       ```
+     ```shell
+     $ echo "paper.tex merge=ours" > .gitattributes
+     $ echo "tex/src/delete-me.mk merge=ours" >> .gitattributes
+     $ echo "tex/src/delete-me-demo.mk merge=ours" >> .gitattributes
+     $ echo "reproduce/analysis/make/delete-me.mk merge=ours" >> .gitattributes
+     $ echo "reproduce/software/config/TARGETS.conf merge=ours" >> .gitattributes
+     $ echo "reproduce/analysis/config/delete-me-num.conf merge=ours" >> .gitattributes
+     $ git add .gitattributes
+     ```
 
- 7. **Copyright and License notice**: It is necessary that _all_ the
+ 8. **Copyright and License notice**: It is necessary that _all_ the
      "copyright-able" files in your project (those larger than 10 lines)
      have a copyright and license notice. Please take a moment to look at
      several existing files to see a few examples. The copyright notice is
@@ -711,7 +718,7 @@ First custom commit
      Copyright (C) 2020 YOUR NAME <YOUR@EMAIL.ADDRESS>
      ```
 
- 8. **Configure Git for fist time**: If this is the first time you are
+ 9. **Configure Git for fist time**: If this is the first time you are
      running Git on this system, then you have to configure it with some
      basic information in order to have essential information in the commit
      messages (ignore this step if you have already done it). Git will
@@ -722,10 +729,10 @@ First custom commit
      ```shell
      $ git config --global user.name "YourName YourSurname"
      $ git config --global user.email your-email@example.com
-     $ git config --global core.editor vim
+     $ git config --global core.editor nano
      ```
 
- 9. **Your first commit**: You have already made some small and basic
+ 10. **Your first commit**: You have already made some small and basic
      changes in the steps above and you are in your project's `master`
      branch. So, you can officially make your first commit in your
      project's history and push it. But before that, you need to make sure
@@ -744,7 +751,7 @@ First custom commit
      $ git push                   # Push your commit to your remote.
      ```
 
- 10. **Start your exciting research**: You are now ready to add flesh and
+ 11. **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. You can use the "published works" section in
      the introduction (above) as some fully working models to learn
