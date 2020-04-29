@@ -1297,8 +1297,8 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	  tar xf $(word 1,$(filter $(tdir)/%,$|)); \
 	  if [ $$odir != $(ddir) ]; then \
 	    ln -s $$odir/gcc-$(gcc-version) $(ddir)/gcc-$(gcc-version); \
-	  fi \
-	  && cd gcc-$(gcc-version) \
+	  fi; \
+	  if cd gcc-$(gcc-version) \
 	  && mkdir build \
 	  && cd build \
 	  && ../configure SHELL=$(ibdir)/bash \
@@ -1347,6 +1347,25 @@ $(ibidir)/gcc: | $(ibidir)/binutils \
 	       rm -rf $$odir; \
 	       rm $(ddir)/gcc-$(gcc-version); \
 	     fi \
-	  && ln -sf $(ibdir)/gcc $(ibdir)/cc \
-	  && echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@; \
+	  && ln -sf $(ibdir)/gcc $(ibdir)/cc; \
+	  then \
+	    echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@; \
+	  else echo; echo; echo; \
+	    echo "_________________________________________________"; \
+	    echo "!!!!!!!!       Warning from Maneage      !!!!!!!!"; \
+	    echo; \
+	    echo "Unfortunately building of GCC failed on this system!"; \
+	    echo "Can you please copy the last ~500 lines above and post it"; \
+	    echo "as a bug here (as an attached file):"; \
+	    echo "  https://sv.nongnu.org/support/?func=additem&group=reproduce"; \
+	    echo; \
+	    echo "In the meantime, please re-configure Maneage with '--host-cc'"; \
+	    echo "like below so it uses your own C compiler for building the"; \
+	    echo "high-level software ('-e' is to use the existing configuration):"; \
+	    echo; \
+	    echo "  ./project configure -e --host-cc"; \
+	    echo; \
+	    echo "__________ SEE NOTE FROM MANEAGE ABOVE __________"; \
+	    echo; exit 1; \
+	  fi; \
 	fi
