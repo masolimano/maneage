@@ -805,6 +805,14 @@ $(ibidir)/openssl: $(tdir)/cert.pem \
         # environment variable.
         #
         # https://wiki.openssl.org/index.php/Compilation_and_Installation
+        #
+        # Bug 58263 (https://savannah.nongnu.org/bugs/?58263): In OpenSSL
+        # Version 1.1.1a (also checked in 1.1.1g), `openssl/ec.h' fails to
+        # include `openssl/openconf.h' on some OSs. The SED hack below
+        # inserts a hardwired element of `openssl/openconf.h' that is
+        # needed to include sections of code `f` that are deprecated in
+        # 1.2.0, but not yet in 1.1.1. This problem may be solved in
+        # version 1.2.x, so please check again in that bug.
 	if [ x$(on_mac_os) = xyes ]; then \
 	  export KERNEL_BITS=64; \
 	  copt="shared no-ssl2 no-ssl3 enable-ec_nistp_64_gcc_128";  \
@@ -817,6 +825,9 @@ $(ibidir)/openssl: $(tdir)/cert.pem \
 	               --with-zlib-lib=$(ildir) \
 	               --with-zlib-include=$(idir)/include, \
 	               -j$(numthreads), , ./config ) \
+	&& mv -v $(idir)/include/openssl/ec.h $(idir)/include/openssl/ec.h.orig \
+	&& sed -e 's,\(# include .openssl/opensslconf\.h.\),\1\n#ifndef DEPRECATEDIN_1_2_0\n#define DEPRECATEDIN_1_2_0(f)   f;\n#endif\n,' \
+	   $(idir)/include/openssl/ec.h.orig > $(idir)/include/openssl/ec.h \
 	&& cp $(tdir)/cert.pem $(idir)/etc/ssl/cert.pem \
 	&& if [ $$? = 0 ]; then \
 	     if [ x$(on_mac_os) = xyes ]; then \
