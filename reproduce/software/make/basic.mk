@@ -124,6 +124,7 @@ tarballs = $(foreach t, bash-$(bash-version).tar.lz \
                         findutils-$(findutils-version).tar.xz \
                         gawk-$(gawk-version).tar.lz \
                         gcc-$(gcc-version).tar.xz \
+                        gettext-$(gettext-version).tar.xz \
                         git-$(git-version).tar.xz \
                         gmp-$(gmp-version).tar.lz \
                         grep-$(grep-version).tar.xz \
@@ -132,6 +133,8 @@ tarballs = $(foreach t, bash-$(bash-version).tar.lz \
                         libbsd-$(libbsd-version).tar.xz	\
                         libiconv-$(libiconv-version).tar.gz \
                         libtool-$(libtool-version).tar.xz \
+                        libunistring-$(libunistring-version).tar.xz \
+                        libxml2-$(libxml2-version).tar.gz \
                         lzip-$(lzip-version).tar.gz \
                         m4-$(m4-version).tar.gz \
                         make-$(make-version).tar.gz \
@@ -176,6 +179,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = findutils ]; then c=$(findutils-checksum); w=http://ftp.gnu.org/gnu/findutils; \
 	elif [ $$n = gawk      ]; then c=$(gawk-checksum); w=http://ftp.gnu.org/gnu/gawk; \
 	elif [ $$n = gcc       ]; then c=$(gcc-checksum); w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
+	elif [ $$n = gettext   ]; then c=$(gettext-checksum); w=https://ftp.gnu.org/gnu/gettext; \
 	elif [ $$n = git       ]; then c=$(git-checksum); w=http://mirrors.edge.kernel.org/pub/software/scm/git; \
 	elif [ $$n = gmp       ]; then c=$(gmp-checksum); w=https://gmplib.org/download/gmp; \
 	elif [ $$n = grep      ]; then c=$(grep-checksum); w=http://ftp.gnu.org/gnu/grep; \
@@ -184,6 +188,8 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = libbsd    ]; then c=$(libbsd-checksum); w=http://libbsd.freedesktop.org/releases; \
 	elif [ $$n = libiconv  ]; then c=$(libiconv-checksum); w=https://ftp.gnu.org/pub/gnu/libiconv; \
 	elif [ $$n = libtool   ]; then c=$(libtool-checksum); w=http://ftp.gnu.org/gnu/libtool; \
+	elif [ $$n = libunistring ]; then c=$(libunistring-checksum); w=http://ftp.gnu.org/gnu/libunistring; \
+	elif [ $$n = libxml2   ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2; \
 	elif [ $$n = lzip      ]; then c=$(lzip-checksum); w=http://download.savannah.gnu.org/releases/lzip; \
 	elif [ $$n = m4        ]; then \
 	  mergenames=0; \
@@ -311,9 +317,6 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
         # libtool we'll build in the high-level dependencies has the
         # executable name `glibtool'.
 	$(call makelink,libtool)
-
-        # GNU Gettext (translate messages)
-	$(call makelink,msgfmt)
 
         # Necessary libraries:
         #   Libdl (for dynamic loading libraries at runtime)
@@ -610,24 +613,14 @@ else
 needpatchelf = $(ibidir)/patchelf
 endif
 $(ibidir)/bash: $(needpatchelf) \
+                $(ibidir)/gettext \
                 $(ibidir)/readline \
                 $(tdir)/bash-$(bash-version).tar.lz
 
-        # Delete the (possibly) existing Bash executable.
+        # Delete the (possibly) existing Bash executable in the project,
+        # let it use the default shell of the host.
 	rm -f $(ibdir)/bash
 
-        # Build Bash. Note that we aren't building Bash with
-        # `--with-installed-readline'. This is because (as described above)
-        # Bash needs the `LD_LIBRARY_PATH' set properly before it is
-        # run. Within a recipe, things are fine (we do set
-        # `LD_LIBRARY_PATH'). However, Make will also call the shell
-        # outside of the recipe (for example in the `foreach' Make
-        # function!). In such cases, our new `LD_LIBRARY_PATH' is not set.
-        # This will cause a crash in the shell and thus the Makefile,
-        # complaining that it can't find `libreadline'. Therefore, even
-        # though we build readline below, we won't link Bash with an
-        # external readline.
-        #
         # Bash has many `--enable' features which are already enabled by
         # default. As described in the manual, they are mainly useful when
         # you disable them all with `--enable-minimal-config' and enable a
@@ -635,9 +628,14 @@ $(ibidir)/bash: $(needpatchelf) \
 	if [ "x$(static_build)" = xyes ]; then stopt="--enable-static-link";\
 	else                                   stopt=""; \
 	fi; \
-	$(call gbuild, bash-$(bash-version),, \
-	               --with-installed-readline=$(ildir) $$stopt, \
-                       -j$(numthreads))
+	export CFLAGS="$$CFLAGS \
+	               -DDEFAULT_PATH_VALUE='\"$(ibdir)\"' \
+	               -DSTANDARD_UTILS_PATH='\"$(ibdir)\"'  \
+	               -DSYS_BASHRC='\"$(BASH_ENV)\"' "; \
+	$(call gbuild, bash-$(bash-version),, $$stopt \
+	               --with-installed-readline=$(ildir) \
+	               --with-curses=yes, \
+	               -j$(numthreads))
 
         # Atleast on GNU/Linux systems, Bash doesn't include RPATH by
         # default. So, we have to manually include it, currently we are
@@ -676,7 +674,7 @@ perl-conflddlflags =
 else
 perl-conflddlflags = -Dlddlflags="-shared $$LDFLAGS"
 endif
-$(ibidir)/perl: $(ibidir)/bash \
+$(ibidir)/perl: $(ibidir)/make \
                 $(tdir)/perl-$(perl-version).tar.gz
 	major_version=$$(echo $(perl-version) \
 	                     | sed -e's/\./ /g' \
@@ -690,11 +688,6 @@ $(ibidir)/perl: $(ibidir)/bash \
 	      echo; echo "Tar error"; exit 1; \
 	   fi \
 	&& cd perl-$(perl-version) \
-	&& sed -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
-	       -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
-	       Configure > Configure-tmp \
-	&& mv -f Configure-tmp Configure \
-	&& chmod +x Configure \
 	&& ./Configure -des \
 	               -Dusethreads \
 	               -Duseshrplib \
@@ -715,8 +708,8 @@ $(ibidir)/perl: $(ibidir)/bash \
 	               -Dcccdlflags='-fPIC' \
 	               $(perl-conflddlflags) \
 	               -Dldflags="$$LDFLAGS" \
-	&& make SHELL=$(ibdir)/bash -j$(numthreads) \
-	&& make SHELL=$(ibdir)/bash install \
+	&& make -j$(numthreads) \
+	&& make install \
 	&& cd .. \
 	&& rm -rf perl-$(perl-version) \
 	&& cd $$topdir \
@@ -747,7 +740,8 @@ $(ibidir)/perl: $(ibidir)/bash \
 # an error).
 #
 # Coreutils uses Perl to create man pages!
-$(ibidir)/coreutils: $(ibidir)/perl \
+$(ibidir)/coreutils: $(ibidir)/bash \
+                     $(ibidir)/perl \
                      $(ibidir)/openssl \
                      $(tdir)/coreutils-$(coreutils-version).tar.xz
 	cd $(ddir) \
@@ -971,7 +965,34 @@ $(ibidir)/libiconv: $(ibidir)/pkg-config \
 	$(call gbuild, libiconv-$(libiconv-version), static) \
 	&& echo "GNU libiconv $(libiconv-version)" > $@
 
+$(ibidir)/libunistring: $(ibidir)/make \
+                        $(tdir)/libunistring-$(libunistring-version).tar.xz
+	$(call gbuild, libunistring-$(libunistring-version), static,, \
+	               -j$(numthreads)) \
+	&& echo "GNU libunistring $(libunistring-version)" > $@
+
+$(ibidir)/libxml2: $(ibidir)/make \
+                   $(tdir)/libxml2-$(libxml2-version).tar.gz
+        # The libxml2 tarball also contains Python bindings which are built
+        # and installed to a system directory by default. If you don't need
+        # the Python bindings, the easiest solution is to compile without
+        # Python support: `./configure --without-python'. If you really need
+        # the Python bindings, use `--with-python-install-dir=DIR' instead.
+	$(call gbuild, libxml2-$(libxml2-version), static, \
+	               --without-python) \
+	&& echo "Libxml2 $(libxml2-version)" > $@
+
+$(ibidir)/gettext: $(ibidir)/m4 \
+                   $(ibidir)/libxml2 \
+                   $(ibidir)/ncurses \
+                   $(ibidir)/libiconv \
+                   $(ibidir)/libunistring \
+                   $(tdir)/gettext-$(gettext-version).tar.xz
+	$(call gbuild, gettext-$(gettext-version), static, V=1) \
+	&& echo "GNU gettext $(gettext-version)" > $@
+
 $(ibidir)/git: $(ibidir)/curl \
+               $(ibidir)/gettext \
                $(ibidir)/libiconv \
                $(tdir)/git-$(git-version).tar.xz
 	if [ x$(on_mac_os) = xyes ]; then \
@@ -1013,9 +1034,7 @@ $(ibidir)/libbsd: $(ibidir)/coreutils \
 #
 # [1] https://raw.githubusercontent.com/macports/macports-ports/edf0ee1e2cf/devel/m4/files/secure_snprintf.patch
 # [2] https://github.com/Homebrew/homebrew-core/blob/master/Formula/m4.rb
-$(ibidir)/m4: $(ibidir)/sed \
-              $(ibidir)/texinfo \
-              $(ibidir)/coreutils \
+$(ibidir)/m4: $(ibidir)/texinfo \
               $(tdir)/m4-$(m4-version).tar.gz
 	cd $(ddir); \
 	unpackdir=m4-$(m4-version); \
@@ -1025,15 +1044,14 @@ $(ibidir)/m4: $(ibidir)/sed \
 	   fi \
 	&& cd $$unpackdir \
 	&& if [ x$(on_mac_os) = xyes ]; then \
-	     sed -i -e's|if !(((__GLIBC__ > 2|if !defined(__APPLE__) \&\& !(((__GLIBC__ > 2|' lib/vasnprintf.c;  \
+	     sed 's|if !(((__GLIBC__ > 2|if !defined(__APPLE__) \&\& !(((__GLIBC__ > 2|' \
+	         lib/vasnprintf.c > lib/vasnprintf_edited.c;  \
+	     mv lib/vasnprintf_edited.c lib/vasnprintf.c; \
 	   fi \
-	&& sed -i -e's|\#\! /bin/sh|\#\! $(ibdir)/bash|' \
-	          -e's|\#\!/bin/sh|\#\! $(ibdir)/bash|' \
-	       configure \
-	&& ./configure --prefix=$(idir) SHELL=$(ibdir)/bash  \
-	               LDFLAGS="$(LDFLAGS)" CPPFLAGS="$(CPPFLAGS)" \
-	&& make SHELL=$(ibdir)/bash V=1 -j$(numthreads) \
-	&& make SHELL=$(ibdir)/bash V=1 install \
+	&& ./configure --prefix=$(idir) LDFLAGS="$(LDFLAGS)" \
+	               CPPFLAGS="$(CPPFLAGS)" \
+	&& make V=1 -j$(numthreads) \
+	&& make V=1 install \
 	&& cd .. \
 	&& rm -rf $$unpackdir \
 	&& echo "GNU M4 $(m4-version)" > $@
@@ -1128,7 +1146,7 @@ $(ibidir)/mpfr: $(ibidir)/gmp \
 	$(call gbuild, mpfr-$(mpfr-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
-$(ibidir)/pkg-config: $(ibidir)/coreutils \
+$(ibidir)/pkg-config: $(ibidir)/make \
                       $(tdir)/pkg-config-$(pkgconfig-version).tar.gz
         # An existing `libiconv' can cause a conflict with `pkg-config',
         # this is why `libiconv' depends on `pkg-config'. On a clean build,

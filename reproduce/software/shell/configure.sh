@@ -316,44 +316,6 @@ static_build=no
 
 
 
-# Check for GNU gettext
-# ---------------------
-#
-# Some of the basic sofware need GNU gettext which we don't yet install.
-has_gettext=0
-if type msgfmt > /dev/null 2>/dev/null; then has_gettext=1; fi
-if [ $has_gettext = 0 ]; then
-    cat <<EOF
-______________________________________________________
-!!!!!!!          GNU gettext NOT FOUND         !!!!!!!
-
-Some of the core programs in Maneage require a running GNU gettext on the
-host. Unfortuantely we haven't had the time yet to include its installation
-in Maneage, but it is defined as task #15616 so we don't forget. Generally,
-GNU gettext is already available on many systems, so it hasn't been
-reported too commonly. But please consider helping in this if you have
-time and interest.
-
-Until we include gettext's installation in Maneage, please use your package
-manager to install GNU gettext, then re-run the configuration to
-continue. Here are the relevant commands on some common GNU/Linux
-distributions (you'll only need one of them, or a similar command, if you
-use another package manager):
-
-  apt install gettext
-  yum install gettext
-  pacman -S gettext
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-    exit 1
-fi
-
-
-
-
-
 # If we are on a Mac OS system
 # ----------------------------
 #
@@ -1375,11 +1337,10 @@ analysis, you can safely ignore this warning and continue.
 
 If you later have internet access and would like to add TeX live to your
 project, please delete the respective files, then re-run configure as shown
-below. Within configure, answer 'n' (for "no") when asked to re-write the
-configuration files.
+below.
 
     rm .local/version-info/tex/texlive-ready-tlmgr
-    ./project configure
+    ./project configure -e
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -180,7 +180,6 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         libnsl-$(libnsl-version).tar.gz \
                         libpng-$(libpng-version).tar.xz \
                         libtirpc-$(libtirpc-version).tar.bz2 \
-                        libxml2-$(libxml2-version).tar.gz \
                         missfits-$(missfits-version).tar.gz \
                         netpbm-$(netpbm-version).tar.gz \
                         openblas-$(openblas-version).tar.gz \
@@ -280,7 +279,6 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  c=$(libgit2-checksum)
 	  w=https://github.com/libgit2/libgit2/archive/v$(libgit2-version).tar.gz
 	elif [ $$n = libtirpc    ]; then c=$(libtirpc-checksum); w=https://downloads.sourceforge.net/libtirpc
-	elif [ $$n = libxml2     ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2
 	elif [ $$n = missfits    ]; then c=$(missfits-checksum); w=https://www.astromatic.net/download/missfits
 	elif [ $$n = netpbm      ]; then c=$(netpbm-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = openblas    ]; then
@@ -688,17 +686,6 @@ $(ibidir)/libtirpc: $(tdir)/libtirpc-$(libtirpc-version).tar.bz2
 	$(call gbuild, libtirpc-$(libtirpc-version), static, \
 	               --disable-gssapi, V=1) \
 	echo "libtirpc $(libtirpc-version)" > $@
-
-$(ibidir)/libxml2: | $(tdir)/libxml2-$(libxml2-version).tar.gz
-       # The libxml2 tarball also contains Python bindings which are built and
-       # installed to a system directory by default. If you don't need the Python
-       # bindings, the easiest solution is to compile without Python support:
-       # ./configure --without-python
-       # If you really need the Python bindings, try the
-       # --with-python-install-dir=DIR option
-	$(call gbuild, libxml2-$(libxml2-version), static, \
-	               --without-python)                       \
-	&& echo "Libxml2 $(libxml2-version)" > $@
 
 $(ibidir)/openblas: $(tdir)/openblas-$(openblas-version).tar.gz
 	if [ x$(on_mac_os) = xyes ]; then \
