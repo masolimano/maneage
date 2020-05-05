@@ -57,7 +57,7 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(2)" = xstatic ]; then \
 	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi; \
 	 cd $(ddir); rm -rf $(1); \
 	 if [ x"$$gbuild_tar" = x ]; then \
-	   tarball=$(word 1,$(filter $(tdir)/%,$|)); \
+	   tarball=$(word 1,$(filter $(tdir)/%,$^)); \
 	 else tarball=$$gbuild_tar; \
 	 fi; \
 	 if ! tar xf $$tarball; then \
@@ -113,7 +113,7 @@ cbuild = if [ x$(static_build) = xyes ] && [ $(2)x = staticx ]; then \
 	 fi; \
 	 cd $(ddir) \
 	 && rm -rf $(1) \
-	 && tar xf $(word 1,$(filter $(tdir)/%,$|)) \
+	 && tar xf $(word 1,$(filter $(tdir)/%,$^)) \
 	 && cd $(1) \
 	 && rm -rf project-build \
 	 && mkdir project-build \
