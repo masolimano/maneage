@@ -1117,7 +1117,9 @@ $(ibidir)/scamp: $(ibidir)/fftw \
                  $(ibidir)/cdsclient \
                  $(tdir)/scamp-$(scamp-version).tar.lz
 	$(call gbuild, scamp-$(scamp-version), static, \
-                   --enable-threads --enable-openblas \
+                   --enable-threads \
+                   --enable-openblas \
+                   --enable-plplot=no \
                    --with-fftw-libdir=$(idir) \
                    --with-fftw-incdir=$(idir)/include \
                    --with-openblas-libdir=$(ildir) \
