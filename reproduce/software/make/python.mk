@@ -705,7 +705,7 @@ $(ipydir)/sip_tpv: $(ipydir)/sympy \
                    $(tdir)/sip_tpv-$(sip_tpv-version).tar.gz
 	$(call pybuild, tar xf, sip_tpv-$(sip_tpv-version), ,) \
 	&& cp $(dtexdir)/sip_tpv.tex $(ictdir)/ \
-	&& echo "sip\_tpv $(sip_tpv-version) \citep{sip-tpv}" > $@
+	&& echo "sip_tpv $(sip_tpv-version) \citep{sip-tpv}" > $@
 
 
 $(ipydir)/six: $(ipydir)/setuptools \
