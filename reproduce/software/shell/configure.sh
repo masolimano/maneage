@@ -947,7 +947,7 @@ version that this project was designed to use in '$depverfile'
 ($gversion). Please re-run after removing the former file:
 
    $ rm $glconf
-   $ ./project configure
+   $ ./project configure -e
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
