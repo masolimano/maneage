@@ -311,6 +311,7 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
 	$(call makelink,clang++)
 
         # Mac OS specific
+	$(call makelink,mig)
 	$(call makelink,sysctl)
 	$(call makelink,sw_vers)
 	$(call makelink,dsymutil)

@@ -42,6 +42,7 @@ ibdir   = $(BDIR)/software/installed/bin
 ildir   = $(BDIR)/software/installed/lib
 iidir   = $(BDIR)/software/installed/include
 dtexdir = $(shell pwd)/reproduce/software/bibtex
+patchdir= $(shell pwd)/reproduce/software/patches
 itidir  = $(BDIR)/software/installed/version-info/tex
 ictdir  = $(BDIR)/software/installed/version-info/cite
 ipydir  = $(BDIR)/software/installed/version-info/python
@@ -188,6 +189,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         openblas-$(openblas-version).tar.gz \
                         openmpi-$(openmpi-version).tar.gz \
                         openssh-$(openssh-version).tar.gz \
+                        patch-$(patch-version).tar.gz \
                         pixman-$(pixman-version).tar.gz \
                         R-$(R-version).tar.gz \
                         scamp-$(scamp-version).tar.lz \
@@ -198,6 +200,7 @@ tarballs = $(foreach t, apachelog4cxx-$(apachelog4cxx-version).tar.lz \
                         rpcsvc-proto-$(rpcsvc-proto-version).tar.xz \
                         tides-$(tides-version).tar.gz \
                         tiff-$(libtiff-version).tar.gz \
+                        valgrind-$(valgrind-version).tar.bz2 \
                         wcslib-$(wcslib-version).tar.bz2 \
                         xlsxio-$(xlsxio-version).tar.gz \
                         yaml-$(yaml-version).tar.gz \
@@ -294,6 +297,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	  majorver=$$(echo $(openmpi-version) | sed -e 's/\./ /g' | awk '{printf("%d.%d", $$1, $$2)}')
 	  w=https://download.open-mpi.org/release/open-mpi/v$$majorver/$*
 	elif [ $$n = openssh     ]; then c=$(openssh-checksum); w=https://artfiles.org/openbsd/OpenSSH/portable
+	elif [ $$n = patch       ]; then c=$(patch-checksum); w=http://ftp.gnu.org/gnu/patch
 	elif [ $$n = pixman      ]; then c=$(pixman-checksum); w=https://www.cairographics.org/releases
 	elif [ $$n = R           ]; then c=$(R-checksum);
 	  majver=$$(echo $(R-version) | sed -e's/\./ /g' | awk '{print $$1}')
@@ -309,6 +313,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 	elif [ $$n = swig        ]; then c=$(swig-checksum); w=https://sourceforge.net/projects/swig/files/swig/swig-$(swig-version)
 	elif [ $$n = tides       ]; then c=$(tides-checksum); w=http://akhlaghi.org/maneage-software
 	elif [ $$n = tiff        ]; then c=$(libtiff-checksum); w=https://download.osgeo.org/libtiff
+	elif [ $$n = valgrind    ]; then c=$(valgrind-checksum); w=https://sourceware.org/pub/valgrind
 	elif [ $$n = wcslib      ]; then c=$(wcslib-checksum); w=ftp://ftp.atnf.csiro.au/pub/software/wcslib
 	elif [ $$n = xlsxio      ]; then
 	  mergenames=0
@@ -737,6 +742,33 @@ $(ibidir)/tides: $(tdir)/tides-$(tides-version).tar.gz
 	&& cp $(dtexdir)/tides.tex $(ictdir)/ \
 	&& echo "TIDES $(tides-version) \citep{tides}" > $@
 
+$(ibidir)/valgrind: $(ibidir)/patch \
+                    $(ibidir)/autoconf \
+                    $(ibidir)/automake \
+                    $(tdir)/valgrind-$(valgrind-version).tar.bz2
+        # For valgrind-3.15.0, see
+        # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=946329 for a
+        # report on an MPI-related compile bug and the two patches
+        # below. These two patches and `automake` should allow valgrind to
+        # compile with gcc-9.2.0.
+	cd $(ddir) \
+	&& tar -x -f $(word 1,$(filter $(tdir)/%,$^)) \
+	&& valgrinddir=valgrind-$(valgrind-version) \
+	&& cd $${valgrinddir} \
+	&& printf "valgrindir=$${valgrinddir} ; pwd = %s .\n" $$($(ibdir)/pwd) \
+	&& if [ "x$(valgrind-version)" = "x3.15.0" ]; then \
+	     patch --verbose -p1 < $(patchdir)/valgrind-3.15.0-mpi-fix1.patch; \
+	     patch --verbose -p1 < $(patchdir)/valgrind-3.15.0-mpi-fix2.patch; \
+	   fi \
+	&& autoreconf \
+	&& ./configure --prefix=$(idir) \
+	&& make -j$(numthreads) \
+	&& if ! make check -j$(numthreads); then \
+	     echo; echo "Valgrind's 'make check' failed!"; echo; \
+	   fi \
+	&& make install \
+	&& echo "Valgrind $(valgrind-version)" > $@
+
 $(ibidir)/yaml: $(tdir)/yaml-$(yaml-version).tar.gz
 	$(call gbuild, yaml-$(yaml-version), static) \
 	&& echo "LibYAML $(yaml-version)" > $@
@@ -1098,6 +1130,10 @@ $(ibidir)/netpbm: $(ibidir)/unzip \
 	&& cd .. \
 	&& rm -rf $$unpackdir \
 	&& echo "Netpbm $(netpbm-version)" > $@
+
+$(ibidir)/patch: $(tdir)/patch-$(patch-version).tar.gz
+	$(call gbuild, patch-$(patch-version), static, ,V=1) \
+	&& echo "GNU Patch $(patch-version)" > $@
 
 # R programming language
 $(ibidir)/R: $(ibidir)/libpng \

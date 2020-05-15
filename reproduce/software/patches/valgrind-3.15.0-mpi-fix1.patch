@@ -1,0 +1,37 @@
+---
+ mpi/libmpiwrap.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+ Patch by Samuel Thibault:
+ https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=946329;msg=10
+ and hacked further by Boud Roukema 2020-05-10.
+--- a/mpi/libmpiwrap.c
++++ b/mpi/libmpiwrap.c
+@@ -278,8 +278,12 @@ static void showTy ( FILE* f, MPI_Dataty
+    else if (ty == MPI_LONG_INT)       fprintf(f,"LONG_INT");
+    else if (ty == MPI_SHORT_INT)      fprintf(f,"SHORT_INT");
+    else if (ty == MPI_2INT)           fprintf(f,"2INT");
++#  if defined(MPI_UB_ENABLED_IN_MPI1)
+    else if (ty == MPI_UB)             fprintf(f,"UB");
++#  endif
++#  if defined(MPI_LB_ENABLED_IN_MPI1)
+    else if (ty == MPI_LB)             fprintf(f,"LB");
++#  endif
+ #  if defined(MPI_WCHAR)
+    else if (ty == MPI_WCHAR)          fprintf(f,"WCHAR");
+ #  endif
+@@ -733,8 +737,14 @@ void walk_type ( void(*f)(void*,long), c
+          f(base + offsetof(Ty,loc), sizeof(int));
+          return;
+       }
+-      if (ty == MPI_LB || ty == MPI_UB)
++#if defined(MPI_LB_ENABLED_IN_MPI1)
++      if (ty == MPI_LB)
++         return; /* have zero size, so nothing needs to be done */
++#endif
++#if defined(MPI_UB_ENABLED_IN_MPI1)
++      if (ty == MPI_UB)
+          return; /* have zero size, so nothing needs to be done */
++#endif
+       goto unhandled;
+       /*NOTREACHED*/
+    }
