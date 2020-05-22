@@ -1,5 +1,8 @@
 Software building instructions
-==============================
+------------------------------
+
+Copyright (C) 2019-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
+See the end of the file for license conditions.
 
 This directory contains Makefiles that are called by the high-level
 `reproduce/software/shell/configure.sh` script. The main target for the
@@ -13,8 +16,7 @@ Besides being directly used in the paper, these simple plain text files
 also act as prerequisites for higher-level software that depend on
 lower-level ones.
 
-Note on prerequisites
----------------------
+### Note on prerequisites
 
 Tarballs are order-only prerequsites (after a `|`) because we already
 check their contents with the checksums, so their date is irrelevant: a
@@ -31,3 +33,23 @@ higher-level program, then it shouldn't be order-only.
 Libraries or Python modules that are used at compile time must be normal
 prerequisites (not order-only), because they are used during the building
 of the program.
+
+
+
+
+
+### Copyright information
+This file is part of Maneage (https://maneage.org).
+
+This file is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+This file is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with this file.  If not, see <http://www.gnu.org/licenses/>.
