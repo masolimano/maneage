@@ -374,7 +374,7 @@ $(ibidir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
         # Bzip2 doesn't have a `./configure' script, and its Makefile
         # doesn't build a shared library. So we can't use the `gbuild'
         # function here and we need to take some extra steps (inspired
-        # from the "Linux from Scratch" guide for Bzip2):
+        # from the GNU/Linux from Scratch (LFS) guide for Bzip2):
         #   1) The `sed' call is for relative installed symbolic links.
         #   2) The special Makefile-libbz2_so builds shared libraries.
         #
@@ -514,7 +514,7 @@ $(ibidir)/ncurses: $(ibidir)/make \
         # explicitly mentioning its name correctly (as a value to `-l' at
         # link time in their configure scripts).
         #
-        # This part is taken from the Arch Linux build script[1], then
+        # This part is taken from the Arch GNU/Linux build script[1], then
         # extended to Mac thanks to Homebrew's script [2].
         #
         # [1] https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/ncurses

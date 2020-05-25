@@ -1059,7 +1059,7 @@ $(ibidir)/imfit: $(ibidir)/gsl \
 # Autotools (Autoconf and Automake). Note that Minizip 2.x isn't like this
 # any more and has its own independent tarball, but currently the programs
 # that depend on Minizip need Minizip 1.x. The instructions to build
-# minizip were taken from ArchLinux.
+# minizip were taken from Arch GNU/Linux.
 #
 # About deleting the final crypt.h file after installation, see
 # https://bugzilla.redhat.com/show_bug.cgi?id=1424609

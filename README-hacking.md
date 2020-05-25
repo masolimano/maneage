@@ -1113,8 +1113,8 @@ for the benefit of others.
       project. [zenodo.1163746](https://doi.org/10.5281/zenodo.1163746) is
       one example of how the data, Gnuastro (main software used) and all
       major Gnuastro's dependencies have been uploaded with the project's
-      source. Just note that this is only possible for free and open-source
-      software.
+      source. Just note that this is only possible for [free
+      software](https://www.gnu.org/philosophy/free-sw.html).
 
    - *Keep your input data*: The input data is also critical to the
       project's reproducibility, so like the above for software, make sure
