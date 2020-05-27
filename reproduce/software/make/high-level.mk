@@ -1255,7 +1255,7 @@ $(ibidir)/xlsxio: $(ibidir)/cmake \
 # the final PDF). So we'll make a simple ASCII file called
 # `texlive-ready-tlmgr' and use its contents to mark if we can use it or
 # not.
-
+#
 # TeX Live mirror
 # ---------------
 #
@@ -1284,7 +1284,33 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf \
         # TeX Live's installation may fail due to any reason. But TeX Live
         # is optional (only necessary for building the final PDF). So we
         # don't want the configure script to fail if it can't run.
-	if ./install-tl --profile=texlive.conf -repository $(tlmirror); then
+        # Possible error messages will be saved into `log.txt' and if it
+        # fails, 'log.txt' will be checked to see if the error is due to
+        # the different version of the current tarball and the TeXLive
+        # server or something else.
+        #
+        # The problem with versions is this: each installer tarball (that
+        # is downloaded and a user may backup) is for a specific version of
+        # TeXLive (specified by year, usually around April). So if a user
+        # has an old tarball, but the CTAN server has been updated, the
+        # script will fail with a message like this:
+        #
+        #     =============================================================
+        #     ./install-tl: The TeX Live versions of the local installation
+        #     and the repository being accessed are not compatible:
+        #           local: 2019
+        #      repository: 2020
+        #     Perhaps you need to use a different CTAN mirror?
+        #     (For more, see the output of install-tl --help, especially the
+        #     -repository option.  Online via https://tug.org/texlive/doc.)
+        #     =============================================================
+        #
+        # To address this problem, when this happens, we simply download a
+        # the most recent tarball, and if it succeeds, we will build
+        # TeXLive using that. The old tarball will be preserved, but will
+        # have an '-OLD' suffix after it.
+	if ./install-tl --profile=texlive.conf -repository \
+	                $(tlmirror) 2> log.txt; then
 
           # Put a symbolic link of the TeX Live executables in `ibdir' to
           # avoid all the complexities of its sub-directories and additions
@@ -1293,8 +1319,59 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf \
 
           # Register that the build was successful.
 	  echo "TeX Live is ready." > $@
+
+        # The build failed!
 	else
-	  echo "NOT!" > $@
+	  # Print on the command line the error messages during the
+	  # installation.
+	  cat log.txt
+
+	  # Look for words `repository:' and `local:' in `log.txt' and make
+	  # sure that two lines are returned. Note that we need to check
+	  # for two lines because one of them may exist, but another may
+	  # not (in this case, its not a version conflict scenario).
+	  version_check=$$(grep -w 'repository:\|local:' log.txt | wc -l)
+
+	  # If these words exists and two lines are found, there is a
+	  # conflict with the main TeXLive version in the tarball and on
+	  # the server. So it is necessary to move the old tarball and
+	  # download the new one to install it.
+	  if [ x"$$version_check" = x2 ]; then
+            # Go back to the top project directory, don't remove the
+            # tarball, just rename it.
+	    cd $$topdir
+	    mv $(tdir)/install-tl-unx.tar.gz $(tdir)/install-tl-unx-OLD.tar.gz
+
+            # Download using the script specially defined for this job. If
+            # the download of new tarball success, install it (same lines
+            # than above). If not, record the fail into the target.
+	    url=http://mirror.ctan.org/systems/texlive/tlnet
+	    tarballurl=$$url/install-tl-unx.tar.gz
+	    touch $(lockdir)/download
+	    downloader="wget --no-use-server-timestamps -O"
+	    if $(downloadwrapper) "$$downloader" $(lockdir)/download \
+	                          $$tarballurl "$(tdir)/install-tl-unx.tar.gz" \
+	                          "$(backupservers)"; then
+	      cd $(ddir)
+	      rm -rf install-tl-*
+	      tar xf $(tdir)/install-tl-unx.tar.gz
+	      cd install-tl-*
+	      sed -e's|@installdir[@]|$(idir)|g' \
+	          $$topdir/reproduce/software/config/texlive.conf \
+	          > texlive.conf
+	      if ./install-tl --profile=texlive.conf -repository \
+	                      $(tlmirror); then
+	        ln -fs $(idir)/texlive/maneage/bin/*/* $(ibdir)/
+	        echo "TeX Live is ready." > $@
+	      else
+	        echo "NOT!" > $@                  # Building failed.
+	      fi
+	    else
+	      echo "NOT!" > $@                    # Download failed.
+	    fi
+	  else
+	    echo "NOT!" > $@                      # Error was not version.
+	  fi
 	fi
 
         # Clean up
