@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Attempt downloading multiple times before crashing whole project. From
 # the top project directory (for the shebang above), this script must be
@@ -90,50 +90,61 @@ counter=0
 maxcounter=10
 while [ ! -f "$outname" ]; do
 
-    # Increment the counter. We need the `counter=' part here because
-    # without it the evaluation of arithmetic expression will be like and
-    # error and the script is set to crash on errors.
-    counter=$((counter+1))
+    # Increment the counter.
+    counter=$(echo $counter | awk '{print $1+1}')
 
     # If we have passed a maximum number of trials, just exit with
     # a failed code.
-    if (( counter > maxcounter )); then
-        echo
+    reachedmax=$(echo $counter \
+         | awk '{if($1>'$maxcounter') print "yes"; else print "no";}')
+    if [ x$reachedmax = xyes ]; then
+        echo ""
 	echo "Failed $maxcounter download attempts: $outname"
-        echo
+        echo ""
 	exit 1
     fi
 
     # If this isn't the first attempt print a notice and wait a little for
     # the next trail.
-    if (( counter > 1 )); then
-	tstep=$((counter*5))
+    if [ x$counter = x1 ]; then
+        just_a_place_holder=1
+    else
+        tstep=$(echo $counter | awk '{print $1*5}')
         echo "Download trial $counter for '$outname' in $tstep seconds."
         sleep $tstep
     fi
 
-    # Attempt downloading the file (one-at-a-time). Note that the
-    # `downloader' ends with the respective option to specify the output
-    # name. For example "wget -O" (so `outname', that comes after it) will
-    # be the name of the downloaded file.
+    # Attempt downloading the file. Note that the `downloader' ends with
+    # the respective option to specify the output name. For example "wget
+    # -O" (so `outname', that comes after it) will be the name of the
+    # downloaded file.
     if [ x"$lockfile" = xnolock ]; then
         if ! $downloader $outname $inurl; then rm -f $outname; fi
     else
         # Try downloading from the requested URL.
-        flock "$lockfile" bash -c \
+        flock "$lockfile" sh -c \
               "if ! $downloader $outname $inurl; then rm -f $outname; fi"
-
-        # If it failed, try the backup server(s).
-        if [ ! -f "$outname" ]; then
-            if [ x"$backupservers" != x ]; then
-                for bs in "$backupservers"; do
-                    flock "$lockfile" bash -c \
-                          "if ! $downloader $outname $bs/$urlfile; then rm -f $outname; fi"
-                done
-            fi
-        fi
     fi
 
+    # If the download failed, try the backup server(s).
+    if [ ! -f "$outname" ]; then
+        if [ x"$backupservers" != x ]; then
+            for bs in $backupservers; do
+
+                # Use this backup server.
+                if [ x"$lockfile" = xnolock ]; then
+                    if ! $downloader $outname $bs/$urlfile; then rm -f $outname; fi
+                else
+                    flock "$lockfile" sh -c \
+                          "if ! $downloader $outname $bs/$urlfile; then rm -f $outname; fi"
+                fi
+
+                # If the file was downloaded, break out of the loop that
+                # parses over the backup servers.
+                if [ -f "$outname" ]; then break; fi
+            done
+        fi
+    fi
 done
 
 

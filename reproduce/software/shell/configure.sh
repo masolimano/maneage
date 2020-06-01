@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 #
 # Necessary preparations/configurations for the reproducible project.
 #
@@ -319,19 +319,27 @@ static_build=no
 
 
 
-# If we are on a Mac OS system
-# ----------------------------
+# See if we are on a Linux-based system
+# --------------------------------------
 #
-# For the time being, we'll use the existance of `otool' to see if we are
-# on a Mac OS system or not. Some tools (for example OpenSSL) need to know
-# this.
-#
-# On Mac OS, the building of GCC crashes sometimes while building libiberty
-# with CLang's `g++'. Until we find a solution, we'll just use the host's C
-# compiler.
-if type otool > /dev/null 2>/dev/null; then
+# Some features are tailored to GNU/Linux systems, while the BSD-based
+# behavior is different. Initially we only tested macOS (hence the name of
+# the variable), but as FreeBSD is also being inlucded in our tests. As
+# more systems get used, we need to tailor these kinds of things better.
+kernelname=$(uname -s)
+if [ x$kernelname = xLinux ]; then
+    on_mac_os=no
+else
     host_cc=1
     on_mac_os=yes
+fi
+
+
+
+
+
+# Print warning if the host CC is to be used.
+if [ x$host_cc = x1 ]; then
     cat <<EOF
 
 ______________________________________________________
@@ -347,10 +355,7 @@ ______________________________________________________
 
 EOF
     sleep 5
-else
-    on_mac_os=no
 fi
-
 
 
 
@@ -1143,94 +1148,25 @@ fi
 
 
 
-# Number of threads for basic builds
-# ----------------------------------
+# Number of threads to build software
+# -----------------------------------
 #
-# Since the system might not have GNU Make at this stage, and other Make
-# implementations can't deal with parallel build properly, we'll just
-# default to 1 thread. This is because some versions of Make complain about
-# not having enough 'pipe' (memory) on some systems. After some searching,
-# I found out its because of too many threads. GNU Make will be present on
-# GNU systems (that have `nproc', part of GNU Coreutils). So to simplify
-# the test for GNU Make, we'll just try running `nproc'.
-if which nproc &> /dev/null; then
-    if [ $jobs = 0 ]; then
+# If the user hasn't manually specified the number of threads, see if we
+# can deduce it from the host:
+#  - On systems with GNU Coreutils we have 'nproc'.
+#  - On BSD-based systems (for example FreeBSD and macOS), we have a
+#    'hw.ncpu' in the output of 'sysctl'.
+#  - When none of the above work, just set the number of threads to 1.
+if [ $jobs = 0 ]; then
+    if type nproc > /dev/null 2> /dev/null; then
         numthreads=$(nproc --all);
     else
-        numthreads=$jobs
+        numthreads=$(sysctl -a | awk '/^hw\.ncpu/{print $2}')
+        if [ x"$numthreads" = x ]; then numthreads=1; fi
     fi
 else
-    numthreads=1;
+    numthreads=$jobs
 fi
-
-
-
-
-
-# Build `flock' before other program
-# ----------------------------------
-#
-# Flock (or file-lock) is a unique program that is necessary to serialize
-# the (generally parallel) processing of make when necessary. GNU/Linux
-# machines have it as part of their `util-linux' programs. But to be
-# consistent in non-GNU/Linux systems, we will be using our own build.
-#
-# The reason that `flock' is sepecial is that we need it to serialize the
-# download process of the software tarballs.
-flockversion=$(awk '/flock-version/{print $3}' $depverfile)
-flockchecksum=$(awk '/flock-checksum/{print $3}' $depshafile)
-flocktar=flock-$flockversion.tar.gz
-flockurl=http://github.com/discoteq/flock/releases/download/v$flockversion/
-
-# Prepare/download the tarball.
-if ! [ -f $tardir/$flocktar ]; then
-    flocktarname=$tardir/$flocktar
-    ucname=$flocktarname.unchecked
-    if [ -f $ddir/$flocktar ]; then
-        cp $ddir/$flocktar $ucname
-    else
-        if ! $downloader $ucname $flockurl/$flocktar; then
-            rm -f $ucname;
-            echo
-            echo "DOWNLOAD ERROR: Couldn't download the 'flock' tarball:"
-            echo "  $flockurl"
-            echo
-            echo "You can manually place it in '$ddir' to avoid downloading."
-            exit 1
-        fi
-    fi
-
-    # Make sure this is the correct tarball.
-    if type sha512sum > /dev/null 2>/dev/null; then
-        checksum=$(sha512sum "$ucname" | awk '{print $1}')
-        if [ x$checksum = x$flockchecksum ]; then mv "$ucname" "$flocktarname"
-        else echo "ERROR: Non-matching checksum for '$flocktar'."; exit 1
-        fi;
-    else mv "$ucname" "$flocktarname"
-    fi
-fi
-
-# If the tarball is newer than the (possibly existing) program (the version
-# has changed), then delete the program.
-if [ -f .local/bin/flock ]; then
-    if [ $tardir/$flocktar -nt $ibidir/flock ]; then
-        rm $ibidir/flock
-    fi
-fi
-
-# Build `flock' if necessary.
-if ! [ -f $ibidir/flock ]; then
-    cd $tmpblddir
-    tar xf $tardir/$flocktar
-    cd flock-$flockversion
-    ./configure --prefix=$instdir
-    make
-    make install
-    cd $topdir
-    rm -rf $tmpblddir/flock-$flockversion
-    echo "Discoteq flock $flockversion" > $ibidir/flock
-fi
-
 
 
 
@@ -1261,14 +1197,28 @@ fi
 
 
 
-# Build basic software
-# --------------------
+# Build core tools for project
+# ----------------------------
+#
+# Here we build the core tools that 'basic.mk' depends on: Lzip
+# (compression program), GNU Make (that 'basic.mk' is written in), Dash
+# (minimal Bash-like shell) and Flock (to lock files and enable serial
+# download).
+./reproduce/software/shell/pre-make-build.sh \
+    "$bdir" "$ddir" "$downloader"
+
+
+
+
+
+# Build other basic tools our own GNU Make
+# ----------------------------------------
 #
 # When building these software we don't have our own un-packing software,
 # Bash, Make, or AWK. In this step, we'll install such low-level basic
 # tools, but we have to be very portable (and use minimal features in all).
 echo; echo "Building necessary software (if necessary)..."
-make -k -f reproduce/software/make/basic.mk \
+.local/bin/make -k -f reproduce/software/make/basic.mk \
      sys_library_path=$sys_library_path \
      rpath_command=$rpath_command \
      static_build=$static_build \

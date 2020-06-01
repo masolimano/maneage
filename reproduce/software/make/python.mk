@@ -250,6 +250,7 @@ $(pytarballs): $(tdir)/%:
         # storing all the tarballs in one directory, we want it to have
         # the same naming convention, so we'll download it to a temporary
         # name, then rename that.
+	rm -f "$@.unchecked"
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
 	  cp $(DEPENDENCIES-DIR)/$* "$@.unchecked"
 	else

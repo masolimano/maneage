@@ -52,12 +52,24 @@ syspath := $(PATH)
 
 # As we build more programs, we want to use this project's built programs
 # and libraries, not the host's.
+.ONESHELL:
 export CCACHE_DISABLE := 1
 export PATH := $(ibdir):$(PATH)
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
 export LDFLAGS := $(rpath_command) -L$(ildir) $(LDFLAGS)
+
+# Note that we build GNU Bash here in 'basic.mk'. So we can't assume Bash
+# in this Makefile and use the DASH shell that was before calling this
+# Makefile: http://gondor.apana.org.au/~herbert/dash. Dash is a minimalist
+# POSIX shell, so it doesn't have startup options like '--noprofile
+# --norc'. But from its manual, to load startup files, Dash actually
+# requires that it be called with a '-' before it (for example '-dash'), so
+# it shouldn't be loading any startup files if it was interpretted
+# properly.
+.SHELLFLAGS := -e -c
+export SHELL := $(ibdir)/dash
 
 # This is the "basic" tools where we are relying on the host operating
 # system, but are slowly populating our basic software envirnoment. To run
@@ -85,7 +97,10 @@ all: $(foreach p, $(top-level-programs), $(ibidir)/$(p))
 # Servers to use as backup, later this should go in a file that is not
 # under version control (the actual server that the tarbal comes from is
 # irrelevant).
-backupservers = http://akhlaghi.org/maneage-software
+backupservers := $(shell awk '!/^#/{printf "%s ", $$1}' \
+                         reproduce/software/config/servers-backup.conf)
+
+
 
 
 
@@ -131,16 +146,14 @@ tarballs = $(foreach t, bash-$(bash-version).tar.lz \
                         git-$(git-version).tar.xz \
                         gmp-$(gmp-version).tar.lz \
                         grep-$(grep-version).tar.xz \
-                        gzip-$(gzip-version).tar.gz \
+                        gzip-$(gzip-version).tar.lz \
                         isl-$(isl-version).tar.bz2 \
                         libbsd-$(libbsd-version).tar.xz	\
                         libiconv-$(libiconv-version).tar.gz \
                         libtool-$(libtool-version).tar.xz \
                         libunistring-$(libunistring-version).tar.xz \
                         libxml2-$(libxml2-version).tar.gz \
-                        lzip-$(lzip-version).tar.gz \
                         m4-$(m4-version).tar.gz \
-                        make-$(make-version).tar.gz \
                         metastore-$(metastore-version).tar.gz \
                         mpfr-$(mpfr-version).tar.xz \
                         mpc-$(mpc-version).tar.gz \
@@ -167,105 +180,108 @@ $(tarballs): $(tdir)/%: | $(lockdir)
         # the first character of the version to be a digit: packages such
         # as `foo' and `foo-3' will not be distinguished, but `foo' and
         # `foo2' will be distinguished.
-	n=$$(echo $* | sed -e's/-[0-9]/ /' -e's/\./ /g' \
-	             | awk '{print $$1}' ); \
-	                                    \
+	@n=$$(echo $* | sed -e's/-[0-9]/ /' -e's/\./ /g' \
+	             | awk '{print $$1}' )
+
 	mergenames=1; \
-	if   [ $$n = bash      ]; then c=$(bash-checksum); w=http://akhlaghi.org/maneage-software; \
-	elif [ $$n = binutils  ]; then c=$(binutils-checksum); w=http://ftp.gnu.org/gnu/binutils; \
-	elif [ $$n = bzip2     ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/maneage-software; \
-	elif [ $$n = cert      ]; then c=$(cert-checksum); w=http://akhlaghi.org/maneage-software; \
-	elif [ $$n = coreutils ]; then c=$(coreutils-checksum); w=http://ftp.gnu.org/gnu/coreutils;\
-	elif [ $$n = curl      ]; then c=$(curl-checksum); w=https://curl.haxx.se/download; \
-	elif [ $$n = diffutils ]; then c=$(diffutils-checksum); w=http://ftp.gnu.org/gnu/diffutils;\
-	elif [ $$n = file      ]; then c=$(file-checksum); w=ftp://ftp.astron.com/pub/file; \
-	elif [ $$n = findutils ]; then c=$(findutils-checksum); w=http://ftp.gnu.org/gnu/findutils; \
-	elif [ $$n = gawk      ]; then c=$(gawk-checksum); w=http://ftp.gnu.org/gnu/gawk; \
-	elif [ $$n = gcc       ]; then c=$(gcc-checksum); w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version); \
-	elif [ $$n = gettext   ]; then c=$(gettext-checksum); w=https://ftp.gnu.org/gnu/gettext; \
-	elif [ $$n = git       ]; then c=$(git-checksum); w=http://mirrors.edge.kernel.org/pub/software/scm/git; \
-	elif [ $$n = gmp       ]; then c=$(gmp-checksum); w=https://gmplib.org/download/gmp; \
-	elif [ $$n = grep      ]; then c=$(grep-checksum); w=http://ftp.gnu.org/gnu/grep; \
-	elif [ $$n = gzip      ]; then c=$(gzip-checksum); w=http://ftp.gnu.org/gnu/gzip; \
-	elif [ $$n = isl       ]; then c=$(isl-checksum); w=ftp://gcc.gnu.org/pub/gcc/infrastructure; \
-	elif [ $$n = libbsd    ]; then c=$(libbsd-checksum); w=http://libbsd.freedesktop.org/releases; \
-	elif [ $$n = libiconv  ]; then c=$(libiconv-checksum); w=https://ftp.gnu.org/pub/gnu/libiconv; \
-	elif [ $$n = libtool   ]; then c=$(libtool-checksum); w=http://ftp.gnu.org/gnu/libtool; \
-	elif [ $$n = libunistring ]; then c=$(libunistring-checksum); w=http://ftp.gnu.org/gnu/libunistring; \
-	elif [ $$n = libxml2   ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2; \
-	elif [ $$n = lzip      ]; then c=$(lzip-checksum); w=http://download.savannah.gnu.org/releases/lzip; \
-	elif [ $$n = m4        ]; then \
-	  mergenames=0; \
-	  c=$(m4-checksum); \
-	  w=http://akhlaghi.org/maneage-software/m4-1.4.18-patched.tar.gz; \
-	elif [ $$n = make      ]; then c=$(make-checksum); w=https://ftp.gnu.org/gnu/make; \
-	elif [ $$n = metastore ]; then c=$(metastore-checksum); w=http://akhlaghi.org/maneage-software; \
-	elif [ $$n = mpc       ]; then c=$(mpc-checksum); w=http://ftp.gnu.org/gnu/mpc; \
-	elif [ $$n = mpfr      ]; then c=$(mpfr-checksum); w=http://www.mpfr.org/mpfr-current;\
-	elif [ $$n = ncurses   ]; then c=$(ncurses-checksum); w=http://ftp.gnu.org/gnu/ncurses; \
-	elif [ $$n = openssl   ]; then c=$(openssl-checksum); w=http://www.openssl.org/source; \
-	elif [ $$n = patchelf  ]; then c=$(patchelf-checksum); w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version); \
-	elif [ $$n = perl      ]; then \
-	  c=$(perl-checksum); \
-	  v=$$(echo $(perl-version) | sed -e's/\./ /g' | awk '{printf("%d.0", $$1)}'); \
-	  w=https://www.cpan.org/src/$$v; \
-	elif [ $$n = pkg-config ]; then c=$(pkgconfig-checksum); w=http://pkg-config.freedesktop.org/releases; \
-	elif [ $$n = readline  ]; then c=$(readline-checksum); w=http://ftp.gnu.org/gnu/readline; \
-	elif [ $$n = sed       ]; then c=$(sed-checksum); w=http://ftp.gnu.org/gnu/sed; \
-	elif [ $$n = tar       ]; then c=$(tar-checksum); w=http://ftp.gnu.org/gnu/tar; \
-	elif [ $$n = texinfo   ]; then c=$(texinfo-checksum); w=http://ftp.gnu.org/gnu/texinfo; \
-	elif [ $$n = unzip     ]; then \
-	  c=$(unzip-checksum); \
-	  mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//'); \
-	  w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz; \
-	elif [ $$n = wget      ]; then c=$(wget-checksum); w=http://ftp.gnu.org/gnu/wget; \
-	elif [ $$n = which     ]; then c=$(which-checksum); w=http://ftp.gnu.org/gnu/which; \
-	elif [ $$n = xz        ]; then c=$(xz-checksum); w=http://tukaani.org/xz; \
-	elif [ $$n = zip       ]; then \
-	  c=$(zip-checksum); \
-	  mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//'); \
-	  w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz; \
-	elif [ $$n = zlib      ]; then c=$(zlib-checksum); w=http://www.zlib.net; \
-	else \
-	  echo; echo; echo; \
-	  echo "'$$n' not recognized as a software tarball name to download."; \
-	  echo; echo; echo; \
-	  exit 1; \
-	fi; \
-	                                       \
-	                                       \
-	if [ -f $(DEPENDENCIES-DIR)/$* ]; then \
-	  cp $(DEPENDENCIES-DIR)/$* "$@.unchecked"; \
-	else \
-	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"; \
-	  else                           tarballurl=$$w; \
-	  fi; \
-	      \
-	  echo "Downloading $$tarballurl"; \
-	  if [ -f $(ibdir)/wget ]; then \
-	    downloader="wget --no-use-server-timestamps -O"; \
-	  else \
-	    downloader="$(DOWNLOADER)"; \
-	  fi; \
-	      \
-	  touch $(lockdir)/download; \
+	if   [ $$n = bash      ]; then c=$(bash-checksum); w=http://akhlaghi.org/maneage-software
+	elif [ $$n = binutils  ]; then c=$(binutils-checksum); w=http://ftp.gnu.org/gnu/binutils
+	elif [ $$n = bzip2     ]; then c=$(bzip2-checksum); w=http://akhlaghi.org/maneage-software
+	elif [ $$n = cert      ]; then c=$(cert-checksum); w=http://akhlaghi.org/maneage-software
+	elif [ $$n = coreutils ]; then c=$(coreutils-checksum); w=http://ftp.gnu.org/gnu/coreutils
+	elif [ $$n = curl      ]; then c=$(curl-checksum); w=https://curl.haxx.se/download
+	elif [ $$n = diffutils ]; then c=$(diffutils-checksum); w=http://ftp.gnu.org/gnu/diffutils
+	elif [ $$n = file      ]; then c=$(file-checksum); w=ftp://ftp.astron.com/pub/file
+	elif [ $$n = findutils ]; then c=$(findutils-checksum); w=http://ftp.gnu.org/gnu/findutils
+	elif [ $$n = gawk      ]; then c=$(gawk-checksum); w=http://ftp.gnu.org/gnu/gawk
+	elif [ $$n = gcc       ]; then c=$(gcc-checksum); w=http://ftp.gnu.org/gnu/gcc/gcc-$(gcc-version)
+	elif [ $$n = gettext   ]; then c=$(gettext-checksum); w=https://ftp.gnu.org/gnu/gettext
+	elif [ $$n = git       ]; then c=$(git-checksum); w=http://mirrors.edge.kernel.org/pub/software/scm/git
+	elif [ $$n = gmp       ]; then c=$(gmp-checksum); w=https://gmplib.org/download/gmp
+	elif [ $$n = grep      ]; then c=$(grep-checksum); w=http://ftp.gnu.org/gnu/grep
+	elif [ $$n = gzip      ]; then c=$(gzip-checksum); w=http://akhlaghi.org/src
+	elif [ $$n = isl       ]; then c=$(isl-checksum); w=ftp://gcc.gnu.org/pub/gcc/infrastructure
+	elif [ $$n = libbsd    ]; then c=$(libbsd-checksum); w=http://libbsd.freedesktop.org/releases
+	elif [ $$n = libiconv  ]; then c=$(libiconv-checksum); w=https://ftp.gnu.org/pub/gnu/libiconv
+	elif [ $$n = libtool   ]; then c=$(libtool-checksum); w=http://ftp.gnu.org/gnu/libtool
+	elif [ $$n = libunistring ]; then c=$(libunistring-checksum); w=http://ftp.gnu.org/gnu/libunistring
+	elif [ $$n = libxml2   ]; then c=$(libxml2-checksum); w=ftp://xmlsoft.org/libxml2
+	elif [ $$n = m4        ]; then
+	  mergenames=0
+	  c=$(m4-checksum)
+	  w=http://akhlaghi.org/maneage-software/m4-1.4.18-patched.tar.gz
+	elif [ $$n = metastore ]; then c=$(metastore-checksum); w=http://akhlaghi.org/maneage-software
+	elif [ $$n = mpc       ]; then c=$(mpc-checksum); w=http://ftp.gnu.org/gnu/mpc
+	elif [ $$n = mpfr      ]; then c=$(mpfr-checksum); w=http://www.mpfr.org/mpfr-current
+	elif [ $$n = ncurses   ]; then c=$(ncurses-checksum); w=http://ftp.gnu.org/gnu/ncurses
+	elif [ $$n = openssl   ]; then c=$(openssl-checksum); w=http://www.openssl.org/source
+	elif [ $$n = patchelf  ]; then c=$(patchelf-checksum); w=http://nixos.org/releases/patchelf/patchelf-$(patchelf-version)
+	elif [ $$n = perl      ]; then
+	  c=$(perl-checksum)
+	  v=$$(echo $(perl-version) | sed -e's/\./ /g' | awk '{printf("%d.0", $$1)}')
+	  w=https://www.cpan.org/src/$$v
+	elif [ $$n = pkg-config ]; then c=$(pkgconfig-checksum); w=http://pkg-config.freedesktop.org/releases
+	elif [ $$n = readline  ]; then c=$(readline-checksum); w=http://ftp.gnu.org/gnu/readline
+	elif [ $$n = sed       ]; then c=$(sed-checksum); w=http://ftp.gnu.org/gnu/sed
+	elif [ $$n = tar       ]; then c=$(tar-checksum); w=http://ftp.gnu.org/gnu/tar
+	elif [ $$n = texinfo   ]; then c=$(texinfo-checksum); w=http://ftp.gnu.org/gnu/texinfo
+	elif [ $$n = unzip     ]; then
+	  c=$(unzip-checksum)
+	  mergenames=0; v=$$(echo $(unzip-version) | sed -e's/\.//')
+	  w=ftp://ftp.info-zip.org/pub/infozip/src/unzip$$v.tgz
+	elif [ $$n = wget      ]; then c=$(wget-checksum); w=http://ftp.gnu.org/gnu/wget
+	elif [ $$n = which     ]; then c=$(which-checksum); w=http://ftp.gnu.org/gnu/which
+	elif [ $$n = xz        ]; then c=$(xz-checksum); w=http://tukaani.org/xz
+	elif [ $$n = zip       ]; then
+	  c=$(zip-checksum)
+	  mergenames=0; v=$$(echo $(zip-version) | sed -e's/\.//')
+	  w=ftp://ftp.info-zip.org/pub/infozip/src/zip$$v.tgz
+	elif [ $$n = zlib      ]; then c=$(zlib-checksum); w=http://www.zlib.net
+	else
+	  echo; echo; echo
+	  echo "'$$n' not recognized as a software tarball name to download."
+	  echo; echo; echo
+	  exit 1
+	fi
+
+        # Download the raw tarball, using an '.unchecked' suffix to specify
+        # that it is not yet fully checked and usable. But first, since the
+        # download may be interrupted in a previous build and an incomplete
+        # '.unchecked' file may remain, we'll remove any possibly existing
+        # uncheked file.
+	rm -f "$@.unchecked"
+	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
+	  cp $(DEPENDENCIES-DIR)/$* "$@.unchecked"
+	else
+	  if [ $$mergenames = 1 ]; then  tarballurl=$$w/"$*"
+	  else                           tarballurl=$$w
+	  fi
+
+	  echo "Downloading $$tarballurl"
+	  if [ -f $(ibdir)/wget ]; then
+	    downloader="wget --no-use-server-timestamps -O"
+	  else
+	    downloader="$(DOWNLOADER)"
+	  fi
+
+	  touch $(lockdir)/download
 	  $(downloadwrapper) "$$downloader" $(lockdir)/download \
-	                     $$tarballurl "$@.unchecked" "$(backupservers)"; \
-	fi; \
-	                                                \
-	                                                \
-	if type sha512sum > /dev/null 2>/dev/null; then \
-	  checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}'); \
-	  if [ x"$$checksum" = x"$$c" ]; then \
-	    mv "$@.unchecked" "$@"; \
-	  else \
-	    echo "ERROR: Non-matching checksum for '$*'."; \
-	    echo "Checksum should be: $$c"; \
-	    echo "Checksum is:        $$checksum"; \
-	    exit 1; \
-	  fi; \
-	else mv "$@.unchecked" "$@"; \
-	fi;
+	                     $$tarballurl "$@.unchecked" "$(backupservers)"
+	fi
+
+        # Make sure the file's Checksum is correct.
+	if type sha512sum > /dev/null 2>/dev/null; then
+	  checksum=$$(sha512sum "$@.unchecked" | awk '{print $$1}')
+	  if [ x"$$checksum" = x"$$c" ]; then
+	    mv "$@.unchecked" "$@"
+	  else
+	    echo "ERROR: Non-matching checksum for '$*'."
+	    echo "Checksum should be: $$c"
+	    echo "Checksum is:        $$checksum"
+	    exit 1
+	  fi
+	else mv "$@.unchecked" "$@"
+	fi
 
 
 
@@ -274,36 +290,39 @@ $(tarballs): $(tdir)/%: | $(lockdir)
 # Low-level (not built) programs
 # ------------------------------
 #
-# For the time being, we aren't building a local C compiler, but we'll use
-# any C compiler that the system already has and just make a symbolic link
-# to it.
+# For the time being, some components of the project on some systems, so we
+# are simply making a symbolic link to the system's files here. We'll do
+# this after building GNU Coreutils to have trustable elements.
 #
-# ccache: ccache acts like a wrapper over the C compiler and is made to
-# avoid/speed-up compiling of identical files in a system (it is commonly
-# used on large servers). It actually makes `gcc' or `g++' a symbolic link
-# to itself so it can control them internally. So, for our purpose here, it
-# is very annoying and can cause many complications. We thus remove any
-# part of PATH of that has `ccache' in it before making symbolic links to
-# the programs we are not building ourselves.
+# About ccache: ccache acts like a wrapper over the C compiler and is made
+# to avoid/speed-up compiling of identical files in a system (it is
+# commonly used on large servers). It actually makes `gcc' or `g++' a
+# symbolic link to itself so it can control them internally. So, for our
+# purpose here, it is very annoying and can cause many complications. We
+# thus remove any part of PATH of that has `ccache' in it before making
+# symbolic links to the programs we are not building ourselves.
 makelink = origpath="$$PATH"; \
-	   export PATH=$$(echo $(syspath) \
-	                       | tr : '\n' \
-	                       | grep -v ccache \
-	                       | tr '\n' :); \
-	   a=$$(which $(1) 2> /dev/null); \
-	   if [ -e $(ibdir)/$(1) ]; then rm $(ibdir)/$(1); fi; \
-	   if [ x$$a = x ]; then \
-	     if [ "x$(strip $(2))" = xmandatory ]; then \
-	       echo "'$(1)' is necessary for higher-level tools."; \
-	       echo "Please install it for the configuration to continue."; \
-	       exit 1; \
-	     fi; \
-	   else \
-	     ln -s $$a $(ibdir)/$(1); \
-	   fi; \
-	   export PATH="$$origpath"
+	export PATH=$$(echo $(syspath) \
+	                    | tr : '\n' \
+	                    | grep -v ccache \
+	                    | tr '\n' :); \
+	if type $(1) > /dev/null 2> /dev/null; then \
+	  if [ x$(3) = x ]; then \
+	    ln -sf $$(which $(1)) $(ibdir)/$(1); \
+	  else \
+	    ln -sf $$(which $(1)) $(ibdir)/$(3); \
+	  fi; \
+	else \
+	  if [ "x$(strip $(2))" = xmandatory ]; then \
+	    echo "'$(1)' is necessary for higher-level tools."; \
+	    echo "Please install it for the configuration to continue."; \
+	    exit 1; \
+	  fi; \
+	fi; \
+	export PATH="$$origpath"
+
 $(ibdir) $(ildir):; mkdir $@
-$(ibidir)/low-level-links: | $(ibdir) $(ildir)
+$(ibidir)/low-level-links: $(ibidir)/coreutils | $(ibdir) $(ildir)
 
         # Not-installed (but necessary in some cases) compilers.
         #  Clang is necessary for CMake.
@@ -325,11 +344,11 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
         # Necessary libraries:
         #   Libdl (for dynamic loading libraries at runtime)
         #   POSIX Threads library for multi-threaded programs.
-	for l in dl pthread; do \
-          rm -f $(ildir)/lib$$l*; \
-	  if [ -f /usr/lib/lib$$l.a ]; then \
-	    ln -s /usr/lib/lib$$l.* $(ildir)/; \
-	  fi; \
+	for l in dl pthread; do
+	  rm -f $(ildir)/lib$$l*;
+	  if [ -f /usr/lib/lib$$l.a ]; then
+	    ln -s /usr/lib/lib$$l.* $(ildir)/
+	  fi
 	done
 
         # We want this to be empty (so it doesn't interefere with the other
@@ -349,28 +368,23 @@ $(ibidir)/low-level-links: | $(ibdir) $(ildir)
 # ------------------------------------------
 #
 # The first set of programs to be built are those that we need to unpack
-# the source code tarballs of each program. First, we'll build the
-# necessary programs, then we'll build GNU Tar.
-$(ibidir)/gzip: $(tdir)/gzip-$(gzip-version).tar.gz
+# the source code tarballs of each program. We have already installed Lzip
+# before calling 'basic.mk', so it is present and working. Hence we first
+# build the Lzipped tarball of Gzip, then use our own Gzip to unpack the
+# tarballs of the other compression programs. Once all the compression
+# programs/libraries are complete, we build our own GNU Tar and continue
+# with other software.
+$(ibidir)/gzip: $(tdir)/gzip-$(gzip-version).tar.lz
 	$(call gbuild, gzip-$(gzip-version), static, , V=1) \
 	&& echo "GNU Gzip $(gzip-version)" > $@
 
-# GNU Lzip: For a static build, the `-static' flag should be given to
-# LDFLAGS on the command-line (not from the environment).
-ifeq ($(static_build),yes)
-lzipconf="LDFLAGS=-static"
-else
-lzipconf=
-endif
-$(ibidir)/lzip: $(tdir)/lzip-$(lzip-version).tar.gz
-	$(call gbuild, lzip-$(lzip-version), , $(lzipconf)) \
-	&& echo "Lzip $(lzip-version)" > $@
-
-$(ibidir)/xz: $(tdir)/xz-$(xz-version).tar.gz
+$(ibidir)/xz: $(ibidir)/gzip \
+              $(tdir)/xz-$(xz-version).tar.gz
 	$(call gbuild, xz-$(xz-version), static) \
 	&& echo "XZ Utils $(xz-version)" > $@
 
-$(ibidir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
+$(ibidir)/bzip2: $(ibidir)/gzip \
+                 $(tdir)/bzip2-$(bzip2-version).tar.gz
         # Bzip2 doesn't have a `./configure' script, and its Makefile
         # doesn't build a shared library. So we can't use the `gbuild'
         # function here and we need to take some extra steps (inspired
@@ -380,28 +394,28 @@ $(ibidir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
         #
         # NOTE: the major version number appears in the final symbolic
         # link.
-	tdir=bzip2-$(bzip2-version); \
-	if [ $(static_build) = yes ]; then \
-	  makecommand="make LDFLAGS=-static"; \
-	  makeshared="echo no-shared"; \
-	else \
-	  makecommand="make"; \
-	  if [ x$(on_mac_os) = xyes ]; then \
-	    makeshared="echo no-shared"; \
-	  else \
-	    makeshared="make -f Makefile-libbz2_so"; \
-	  fi; \
-	fi; \
+	tdir=bzip2-$(bzip2-version)
+	if [ $(static_build) = yes ]; then
+	  makecommand="make LDFLAGS=-static"
+	  makeshared="echo no-shared"
+	else
+	  makecommand="make"
+	  if [ x$(on_mac_os) = xyes ]; then
+	    makeshared="echo no-shared"
+	  else
+	    makeshared="make -f Makefile-libbz2_so"
+	  fi
+	fi
 	cd $(ddir) && rm -rf $$tdir \
 	&& tar xf $(word 1,$(filter $(tdir)/%,$^)) \
 	&& cd $$tdir \
 	&& sed -e 's@\(ln -s -f \)$$(PREFIX)/bin/@\1@' Makefile \
 	       > Makefile.sed \
 	&& mv Makefile.sed Makefile \
-	&& $$makeshared \
+	&& $$makeshared CC=cc \
 	&& cp -a libbz2* $(ildir)/ \
 	&& make clean \
-	&& $$makecommand \
+	&& $$makecommand CC=cc \
 	&& make install PREFIX=$(idir) \
 	&& cd .. \
 	&& rm -rf $$tdir \
@@ -409,21 +423,23 @@ $(ibidir)/bzip2: $(tdir)/bzip2-$(bzip2-version).tar.gz
 	&& ln -fs libbz2.so.1.0 libbz2.so \
 	&& echo "Bzip2 $(bzip2-version)" > $@
 
-$(ibidir)/unzip: $(tdir)/unzip-$(unzip-version).tar.gz
-	v=$$(echo $(unzip-version) | sed -e's/\.//'); \
+$(ibidir)/unzip: $(ibidir)/gzip \
+                 $(tdir)/unzip-$(unzip-version).tar.gz
+	v=$$(echo $(unzip-version) | sed -e's/\.//')
 	$(call gbuild, unzip$$v, static,, \
-	               -f unix/Makefile generic_gcc \
+	               -f unix/Makefile generic \
 	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
-	               -f unix/Makefile \
+	               -f unix/Makefile generic \
 	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
 	&& echo "Unzip $(unzip-version)" > $@
 
-$(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
-	v=$$(echo $(zip-version) | sed -e's/\.//'); \
+$(ibidir)/zip: $(ibidir)/gzip \
+               $(tdir)/zip-$(zip-version).tar.gz
+	v=$$(echo $(zip-version) | sed -e's/\.//')
 	$(call gbuild, zip$$v, static,, \
-	               -f unix/Makefile generic_gcc \
+	               -f unix/Makefile generic \
 	               CFLAGS="-DBIG_MEM -DMMAP",,pwd, \
-	               -f unix/Makefile \
+	               -f unix/Makefile generic \
 	               BINDIR=$(ibdir) MANDIR=$(idir)/man/man1 ) \
 	&& echo "Zip $(zip-version)" > $@
 
@@ -432,7 +448,8 @@ $(ibidir)/zip: $(tdir)/zip-$(zip-version).tar.gz
 #
 # Note for a static-only build: Zlib's `./configure' doesn't use Autoconf's
 # configure script, it just accepts a direct `--static' option.
-$(ibidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
+$(ibidir)/zlib: $(ibidir)/gzip \
+                $(tdir)/zlib-$(zlib-version).tar.gz
 	$(call gbuild, zlib-$(zlib-version)) \
 	&& echo "Zlib $(zlib-version)" > $@
 
@@ -443,8 +460,7 @@ $(ibidir)/zlib: $(tdir)/zlib-$(zlib-version).tar.gz
 # software to be built).
 $(ibidir)/tar: $(ibidir)/xz \
                $(ibidir)/zip \
-	       $(ibidir)/gzip \
-	       $(ibidir)/lzip \
+               $(ibidir)/gzip \
                $(ibidir)/zlib \
                $(ibidir)/bzip2 \
                $(ibidir)/unzip \
@@ -476,13 +492,7 @@ $(ibidir)/tar: $(ibidir)/xz \
 # function (for tilde expansion). The first can be disabled with
 # `--disable-load', but unfortunately I don't know any way to fix the
 # second. So, we'll have to build it dynamically for now.
-$(ibidir)/make: $(ibidir)/tar \
-                $(tdir)/make-$(make-version).tar.gz
-        # See Tar's comments for the `-j' option.
-	$(call gbuild, make-$(make-version), , , -j$(numthreads)) \
-	&& echo "GNU Make $(make-version)" > $@
-
-$(ibidir)/ncurses: $(ibidir)/make \
+$(ibidir)/ncurses: $(ibidir)/tar \
                    $(tdir)/ncurses-$(ncurses-version).tar.gz
 
         # Delete the library that will be installed (so we can make sure
@@ -540,32 +550,32 @@ $(ibidir)/ncurses: $(ibidir)/make \
         #
         #   5. A link is made to also be able to include files from the
         #      `ncurses' headers.
-	if [ x$(on_mac_os) = xyes ]; then so="dylib"; else so="so"; fi; \
-	if [ -f $(ildir)/libncursesw.$$so ]; then \
-	                                          \
+	if [ x$(on_mac_os) = xyes ]; then so="dylib"; else so="so"; fi
+	if [ -f $(ildir)/libncursesw.$$so ]; then
+
 	  sov=$$(ls -l $(ildir)/libncursesw* \
 	               | awk '/^-/{print $$NF}' \
-	               | sed -e's|'$(ildir)/libncursesw.'||'); \
-	                                                       \
-	  cd "$(ildir)"; \
-	  for lib in ncurses ncurses++ form panel menu; do \
-	    ln -fs lib$$lib"w".$$sov     lib$$lib.$$so; \
-	    ln -fs $(ildir)/pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc; \
-	  done; \
-	  for lib in tic tinfo; do \
-	    ln -fs libncursesw.$$sov     lib$$lib.$$so; \
-	    ln -fs libncursesw.$$sov     lib$$lib.$$sov; \
-	    ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/$$lib.pc; \
-	  done; \
-	  ln -fs libncursesw.$$sov libcurses.$$so; \
-	  ln -fs libncursesw.$$sov libcursesw.$$sov; \
-	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/curses.pc; \
-	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/cursesw.pc; \
-	                                                              \
-	  ln -fs $(idir)/include/ncursesw $(idir)/include/ncurses; \
-	  echo "GNU NCURSES $(ncurses-version)" > $@; \
-	else \
-	  exit 1; \
+	               | sed -e's|'$(ildir)/libncursesw.'||')
+
+	  cd "$(ildir)"
+	  for lib in ncurses ncurses++ form panel menu; do
+	    ln -fs lib$$lib"w".$$sov     lib$$lib.$$so
+	    ln -fs $(ildir)/pkgconfig/"$$lib"w.pc pkgconfig/$$lib.pc
+	  done
+	  for lib in tic tinfo; do
+	    ln -fs libncursesw.$$sov     lib$$lib.$$so
+	    ln -fs libncursesw.$$sov     lib$$lib.$$sov
+	    ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/$$lib.pc
+	  done
+	  ln -fs libncursesw.$$sov libcurses.$$so
+	  ln -fs libncursesw.$$sov libcursesw.$$sov
+	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/curses.pc
+	  ln -fs $(ildir)/pkgconfig/ncursesw.pc pkgconfig/cursesw.pc
+
+	  ln -fs $(idir)/include/ncursesw $(idir)/include/ncurses
+	  echo "GNU NCURSES $(ncurses-version)" > $@
+	else
+	  exit 1
 	fi
 
 $(ibidir)/readline: $(ibidir)/ncurses \
@@ -575,7 +585,7 @@ $(ibidir)/readline: $(ibidir)/ncurses \
 	               SHLIB_LIBS="-lncursesw" -j$(numthreads)) \
 	&& echo "GNU Readline $(readline-version)" > $@
 
-$(ibidir)/patchelf: $(ibidir)/make \
+$(ibidir)/patchelf: $(ibidir)/tar \
                     $(tdir)/patchelf-$(patchelf-version).tar.gz
 	$(call gbuild, patchelf-$(patchelf-version)) \
 	&& echo "PatchELF $(patchelf-version)" > $@
@@ -629,13 +639,13 @@ $(ibidir)/bash: $(needpatchelf) \
         # default. As described in the manual, they are mainly useful when
         # you disable them all with `--enable-minimal-config' and enable a
         # subset using the `--enable' options.
-	if [ "x$(static_build)" = xyes ]; then stopt="--enable-static-link";\
-	else                                   stopt=""; \
-	fi; \
+	if [ "x$(static_build)" = xyes ]; then stopt="--enable-static-link"
+	else                                   stopt=""
+	fi;
 	export CFLAGS="$$CFLAGS \
 	               -DDEFAULT_PATH_VALUE='\"$(ibdir)\"' \
 	               -DSTANDARD_UTILS_PATH='\"$(ibdir)\"'  \
-	               -DSYS_BASHRC='\"$(BASH_ENV)\"' "; \
+	               -DSYS_BASHRC='\"$(BASH_ENV)\"' "
 	$(call gbuild, bash-$(bash-version),, $$stopt \
 	               --with-installed-readline=$(ildir) \
 	               --with-curses=yes, \
@@ -645,9 +655,9 @@ $(ibidir)/bash: $(needpatchelf) \
         # default. So, we have to manually include it, currently we are
         # only doing this on GNU/Linux systems (using the `patchelf'
         # program).
-	if [ "x$(needpatchelf)" != x ]; then \
-	  if [ -f $(ibdir)/bash ]; then \
-	    $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/bash; fi \
+	if [ "x$(needpatchelf)" != x ]; then
+	  if [ -f $(ibdir)/bash ]; then
+	    $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/bash; fi
 	fi
 
         # To be generic, some systems use the `sh' command to call the
@@ -658,10 +668,10 @@ $(ibidir)/bash: $(needpatchelf) \
         # Just to be sure that the installation step above went well,
         # before making the link, we'll see if the file actually exists
         # there.
-	if [ -f $(ibdir)/bash ]; then \
-	  ln -fs $(ibdir)/bash $(ibdir)/sh; \
-	  echo "GNU Bash $(bash-version)" > $@; \
-	else \
+	if [ -f $(ibdir)/bash ]; then
+	  ln -fs $(ibdir)/bash $(ibdir)/sh
+	  echo "GNU Bash $(bash-version)" > $@
+	else
 	  echo "GNU Bash not built!"; exit 1; fi
 
 
@@ -678,14 +688,14 @@ perl-conflddlflags =
 else
 perl-conflddlflags = -Dlddlflags="-shared $$LDFLAGS"
 endif
-$(ibidir)/perl: $(ibidir)/make \
+$(ibidir)/perl: $(ibidir)/tar \
                 $(tdir)/perl-$(perl-version).tar.gz
 	major_version=$$(echo $(perl-version) \
 	                     | sed -e's/\./ /g' \
-	                     | awk '{printf("%d", $$1)}'); \
+	                     | awk '{printf("%d", $$1)}')
 	base_version=$$(echo $(perl-version) \
 	                     | sed -e's/\./ /g' \
-	                     | awk '{printf("%d.%d", $$1, $$2)}'); \
+	                     | awk '{printf("%d.%d", $$1, $$2)}')
 	cd $(ddir) \
 	&& rm -rf perl-$(perl-version) \
 	&& if ! tar xf $(word 1,$(filter $(tdir)/%,$^)); then \
@@ -795,7 +805,7 @@ $(idir)/etc:; mkdir $@
 # Note: cert.pm has to be AFTER the tarball, otherwise the build script
 # will try to unpack cert.pm and crash (it unpacks the first dependency
 # under `tdir').
-$(ibidir)/openssl: $(ibidir)/make \
+$(ibidir)/openssl: $(ibidir)/tar \
                    $(tdir)/openssl-$(openssl-version).tar.gz \
                    $(tdir)/cert.pem \
                    | $(idir)/etc
@@ -969,13 +979,13 @@ $(ibidir)/libiconv: $(ibidir)/pkg-config \
 	$(call gbuild, libiconv-$(libiconv-version), static) \
 	&& echo "GNU libiconv $(libiconv-version)" > $@
 
-$(ibidir)/libunistring: $(ibidir)/make \
+$(ibidir)/libunistring: $(ibidir)/libiconv \
                         $(tdir)/libunistring-$(libunistring-version).tar.xz
 	$(call gbuild, libunistring-$(libunistring-version), static,, \
 	               -j$(numthreads)) \
 	&& echo "GNU libunistring $(libunistring-version)" > $@
 
-$(ibidir)/libxml2: $(ibidir)/make \
+$(ibidir)/libxml2: $(ibidir)/tar \
                    $(tdir)/libxml2-$(libxml2-version).tar.gz
         # The libxml2 tarball also contains Python bindings which are built
         # and installed to a system directory by default. If you don't need
@@ -1150,7 +1160,7 @@ $(ibidir)/mpfr: $(ibidir)/gmp \
 	$(call gbuild, mpfr-$(mpfr-version), static, , , make check)  \
 	&& echo "GNU Multiple Precision Floating-Point Reliably $(mpfr-version)" > $@
 
-$(ibidir)/pkg-config: $(ibidir)/make \
+$(ibidir)/pkg-config: $(ibidir)/tar \
                       $(tdir)/pkg-config-$(pkgconfig-version).tar.gz
         # An existing `libiconv' can cause a conflict with `pkg-config',
         # this is why `libiconv' depends on `pkg-config'. On a clean build,
@@ -1305,11 +1315,11 @@ $(ibidir)/gcc: $(gcc-tarball) \
         # in '$(idir)/lib' by defining the '$(idir)/lib64' as a symbolic
         # link to '$(idir)/lib'.
 	if [ $(host_cc) = 1 ]; then \
-	  $(call makelink,gcc); \
-	  $(call makelink,g++,mandatory); \
-	  $(call makelink,gfortran,mandatory); \
+	  $(call makelink,cc); \
+	  $(call makelink,cc,,gcc); \
+	  $(call makelink,c++,,g++); \
+	  $(call makelink,gfortran); \
 	  $(call makelink,strip,mandatory); \
-	  ln -sf $$(which gcc) $(ibdir)/cc; \
 	  ccinfo=$$(gcc --version | awk 'NR==1'); \
 	  echo "C compiler (""$$ccinfo"")" > $@; \
 	else \

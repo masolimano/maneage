@@ -104,7 +104,8 @@ export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 # Servers to use as backup, later this should go in a file that is not
 # under version control (the actual server that the tarbal comes from is
 # irrelevant).
-backupservers = http://akhlaghi.org/maneage-software
+backupservers := $(shell awk '!/^#/{printf "%s ", $$1}' \
+                         reproduce/software/config/servers-backup.conf)
 
 # Building flags:
 #
@@ -335,6 +336,7 @@ $(tarballs): $(tdir)/%: | $(lockdir)
         # storing all the tarballs in one directory, we want it to have the
         # same naming convention, so we'll download it to a temporary name,
         # then rename that.
+	rm -f "$@.unchecked"
 	if [ -f $(DEPENDENCIES-DIR)/$* ]; then
 	  cp $(DEPENDENCIES-DIR)/$* "$@.unchecked"
 	else
@@ -812,11 +814,17 @@ $(ibidir)/libgit2: $(ibidir)/curl \
 
 $(ibidir)/wcslib: $(ibidir)/cfitsio \
                   $(tdir)/wcslib-$(wcslib-version).tar.bz2
+        # If Fortran isn't present, don't build WCSLIB with it.
+	if type gfortran &> /dev/null; then fortranopt="";
+	else fortranopt="--disable-fortran"
+	fi
+
+        # Build WCSLIB.
 	$(call gbuild, wcslib-$(wcslib-version), , \
 	               LIBS="-pthread -lcurl -lm" \
                        --with-cfitsiolib=$(ildir) \
                        --with-cfitsioinc=$(idir)/include \
-                       --without-pgplot) \
+                       --without-pgplot $$fortranopt) \
 	&& if [ x$(on_mac_os) = xyes ]; then \
 	     install_name_tool -id $(ildir)/libwcs.6.4.dylib \
 	                           $(ildir)/libwcs.6.4.dylib; \

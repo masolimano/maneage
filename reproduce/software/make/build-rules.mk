@@ -34,6 +34,31 @@
 
 
 
+# Unpack a tarball in the current directory. The issue is that until we
+# install GNU Tar within Maneage, we have to use the host's Tar
+# implementation and in some cases, they don't recognize '.lz'.
+uncompress = csuffix=$$(echo $$tarball \
+	                     | sed -e's/\./ /g' \
+	                     | awk '{print $$NF}'); \
+	if [ x$$csuffix = xlz ]; then \
+	  intarrm=1; \
+	  intar=$$(echo $$tarball | sed -e's/.lz//'); \
+	  lzip -c -d $$tarball > $$intar; \
+	else \
+	  intarrm=0; \
+	  intar=$$tarball; \
+	fi; \
+	if tar xf $$intar; then \
+	  if [ x$$intarrm = x1 ]; then rm $$intar; fi; \
+	else \
+	  echo; echo "Tar error"; exit 1; \
+	fi
+
+
+
+
+
+
 # GNU Build system
 # ----------------
 #
@@ -58,13 +83,13 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(2)" = xstatic ]; then \
 	 fi; \
 	 check="$(5)"; \
 	 if [ x"$$check" = x ]; then check="echo Skipping-check"; fi; \
-	 cd $(ddir); rm -rf $(1); \
+	 cd $(ddir); \
+	 rm -rf $(1); \
 	 if [ x"$$gbuild_tar" = x ]; then \
 	   tarball=$(word 1,$(filter $(tdir)/%,$^)); \
 	 else tarball=$$gbuild_tar; \
 	 fi; \
-	 if ! tar xf $$tarball; then \
-	   echo; echo "Tar error"; exit 1; fi; \
+	 $(call uncompress); \
 	 cd $(1); \
 	          \
 	 if   [ x"$(strip $(6))" = x ]; then confscript=./configure; \
@@ -114,10 +139,11 @@ cbuild = if [ x$(static_build) = xyes ] && [ $(2)x = staticx ]; then \
 	   export LDFLAGS="$$LDFLAGS -static"; \
 	   opts="-DBUILD_SHARED_LIBS=OFF"; \
 	 fi; \
-	 cd $(ddir) \
-	 && rm -rf $(1) \
-	 && tar xf $(word 1,$(filter $(tdir)/%,$^)) \
-	 && cd $(1) \
+	 tarball=$(word 1,$(filter $(tdir)/%,$^)); \
+	 cd $(ddir); \
+	 rm -rf $(1); \
+	 $(call uncompress); \
+	 cd $(1) \
 	 && rm -rf project-build \
 	 && mkdir project-build \
 	 && cd project-build \
