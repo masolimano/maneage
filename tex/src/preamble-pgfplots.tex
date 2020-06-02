@@ -77,17 +77,28 @@
 
 
 
-%% The following rule will cause the name of the files keeping a figure's
-%% external PDF to be set based on the file that the TiKZ commands are
-%% from. Without this, TiKZ will use numbers based on the order of
-%% figures. These numbers can be hard to manage and they will also depend
-%% on order in the final PDF, so it will be very buggy to manage them.
-\newcommand{\includetikz}[1]{%
+%% The '\includetikz' can be used to either build the figures using
+%% PGFPlots (when '\makepdf' is defined), or use an existing file (when
+%% '\makepdf' isn't defined). When making the PDF, it will set the output
+%% figure name to be the same as the 'tex/src/XXXX.tex' file that contains
+%% the PGFPlots source of the figure. In this way, when using the PDF, it
+%% will also have the same name, thus allowing the figures to easily change
+%% their place relative to others: figure ordering won't be a problem. This
+%% is a problem by default because if an explicit name isn't set at the
+%% start, tikz will make images based on their order in the paper.
+%
+%% This function takes two arguments:
+%%     1) The base-name of the LaTeX file with the 'tikzpicture'
+%%        environment. As mentioned above, this will also be the name of
+%%        the produced figure.
+%%     2) The settings to use with 'includegraphics' when an already-built
+%%        file should be used.
+\newcommand{\includetikz}[2]{%
   \ifdefined\makepdf%
     \tikzsetnextfilename{#1}%
     \input{tex/src/#1.tex}%
   \else
-    \includegraphics[width=\linewidth]{tex/tikz/#1.pdf}
+    \includegraphics[#2]{tex/tikz/#1.pdf}
   \fi
 }
 

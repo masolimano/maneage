@@ -40,22 +40,34 @@ verify-print-tips = \
   echo "the following project source file:"; \
   echo "    reproduce/analysis/make/verify.mk"
 
-verify-txt-no-comments-leading-space = \
+# Removes following components of a plain-text file, calculates checksum
+# and compares with given checksum:
+#   - All commented lines (starting with '#') are removed.
+#   - All empty lines are removed.
+#   - All space-characters in remaining lines are removed (so the width of
+#     the printed columns won't invalidate the verification).
+#
+# It takes three arguments:
+#   - First argument: Full address of file to check.
+#   - Second argument: Expected checksum of the file to check.
+#   - File name to write result.
+verify-txt-no-comments-no-space = \
   infile=$(strip $(1)); \
   inchecksum=$(strip $(2)); \
+  innobdir=$$(echo $$infile | sed -e's|$(BDIR)/||g'); \
   if ! [ -f "$$infile" ]; then \
     $(call verify-print-error-start); \
     echo "The following file (that should be verified) doesn't exist:"; \
     echo "    $$infile"; \
     echo; exit 1; \
   fi; \
-  checksum=$$(sed -e 's/^[[:space:]]*//g' \
+  checksum=$$(sed -e 's/[[:space:]][[:space:]]*//g' \
                   -e 's/\#.*$$//' \
                   -e '/^$$/d' $$infile \
-	          | md5sum \
-	          | awk '{print $$1}'); \
+                  | md5sum \
+                  | awk '{print $$1}'); \
   if [ x"$$inchecksum" = x"$$checksum" ]; then \
-    echo "Verified: $$infile"; \
+    echo "%% (VERIFIED) $$checksum $$innobdir" >> $(3); \
   else \
     $(call verify-print-error-start); \
     $(call verify-print-tips); \
@@ -105,11 +117,20 @@ $(mtexdir)/verify.tex: $(foreach s, $(verify-dep), $(mtexdir)/$(s).tex)
         # Make sure that verification is actually requested.
 	if [ x"$(verify-outputs)" = xyes ]; then
 
+          # Make sure the temporary output doesn't exist (because we want
+          # to append to it). We are making a temporary output target so if
+          # there is a crash in the middle, Make will not continue. If we
+          # write in the final target progressively, the file will exist,
+          # and its date will be more recent than all prerequisites, so
+          # next time the project is run, Make will continue and ignore the
+          # rest of the checks.
+	  rm -f $@.tmp
+
           # Verify the figure datasets.
-	  $(call verify-txt-no-comments-leading-space, \
-	         $(delete-num), ad345e873e6af577f0e4e7c8942cdf08)
-	  $(call verify-txt-no-comments-leading-space, \
-	         $(delete-histogram), 12a81c4c8c5f552e5ed5686453587fe8)
+	  $(call verify-txt-no-comments-no-space, \
+	         $(dm-squared), 6b6d3b0f9c351de53606507b59bca5d1, $@.tmp)
+	  $(call verify-txt-no-comments-no-space, \
+	         $(dm-img-histogram), b1f9c413f915a1ad96078fee8767b16c, $@.tmp)
 
           # Verify TeX macros (the values that go into the PDF text).
 	  for m in $(verify-check); do
@@ -118,9 +139,11 @@ $(mtexdir)/verify.tex: $(foreach s, $(verify-dep), $(mtexdir)/$(s).tex)
 	    elif [ $$m == delete-me ]; then s=711e2f7fa1f16ecbeeb3df6bcb4ec705
 	    else echo; echo "'$$m' not recognized."; exit 1
 	    fi
-	    $(call verify-txt-no-comments-leading-space, $$file, $$s)
+	    $(call verify-txt-no-comments-no-space, $$file, $$s, $@.tmp)
 	  done
-	fi
 
-        # Make an empty final target.
-	touch $@
+          # Move temporary file to final target.
+	  mv $@.tmp $@
+	else
+	  echo "% Verification was DISABLED!" > $@
+	fi

@@ -39,10 +39,11 @@ then discussed to help you navigate the files and their contents. This is
 followed by a checklist for the easy/fast customization of Maneage to your
 exciting research. We continue with some tips and guidelines on how to
 manage or extend your project as it grows based on our experiences with it
-so far. The main body concludes with a description of possible future
-improvements that are planned for Maneage (but not yet implemented). As
-discussed above, we end with a short introduction on the necessity of
-reproducible science in the appendix.
+so far. There is also a publication checklist, describing the recommended
+steps to publish your data/code. The main body concludes with a description
+of possible future improvements that are planned for Maneage (but not yet
+implemented). As discussed above, we end with a short introduction on the
+necessity of reproducible science in the appendix.
 
 Please don't forget to share your thoughts, suggestions and
 criticisms. Maintaining and designing Maneage is itself a separate project,
@@ -176,6 +177,12 @@ with (earlier versions of) Maneage. Previously it was simply called
 "Reproducible paper template". Note that Maneage is evolving, so some
 details may be different in them. The more recent ones can be used as a
 good working example.
+
+ - Akhlaghi et al. ([2020](https://arxiv.org/abs/2006.03018),
+   arXiv:2006.03018): The project's version controlled source is [on
+   Gitlab](https://gitlab.com/makhlaghi/maneage-paper), necessary software,
+   outputs and backup of history is available in
+   [zenodo.3872248](https://doi.org/10.5281/zenodo.3872248).
 
  - Infante-Sainz et
    al. ([2020](https://ui.adsabs.harvard.edu/abs/2020MNRAS.491.5317I),
@@ -605,16 +612,18 @@ First custom commit
      git push origin maneage                 # Push 'maneage' branch to 'origin' (no tracking).
      ```
 
- 5. **Title**, **short description** and **author**: The title and basic
-     information of your project's output PDF paper should be added in
+ 5. **Title**, **short description** and **author**: You can start adding
+     your name (with your possible coauthors) and tentative abstract in
      `paper.tex`. You should see the relevant place in the preamble (prior
-     to `\begin{document}`. After you are done, run the `./project make`
-     command again to see your changes in the final PDF, and make sure that
-     your changes don't cause a crash in LaTeX. Of course, if you use a
-     different LaTeX package/style for managing the title and authors (in
-     particular a specific journal's style), please feel free to use it
-     your own methods after finishing this checklist and doing your first
-     commit.
+     to `\begin{document}`. Just note that some core project metadata like
+     the project tile are actually set in
+     `reproduce/analysis/config/metadata.conf`. So set your project title
+     in there. After you are done, run the `./project make` command again
+     to see your changes in the final PDF and make sure that your changes
+     don't cause a crash in LaTeX. Of course, if you use a different LaTeX
+     package/style for managing the title and authors (in particular a
+     specific journal's style), please feel free to use it your own methods
+     after finishing this checklist and doing your first commit.
 
  6. **Delete dummy parts**: Maneage contains some parts that are only for
      the initial/test run, mainly as a demonstration of important steps,
@@ -756,7 +765,17 @@ First custom commit
      $ git push                   # Push your commit to your remote.
      ```
 
- 11. **Start your exciting research**: You are now ready to add flesh and
+ 11. **Read the publication checklist**: The publication checklist below is
+     very similar to this one, but for the final phase of your project. For
+     now, you don't have to do any of its steps, but reading it will give
+     you good insight into the later stages of your project. If you already
+     know how you want to publish your project, you can implement many of
+     those steps from the start and during the actual project (in
+     particular how to organize your data files that go into the plots).
+     Making it much easier to complete that checklist when you are ready
+     for submission.
+
+ 12. **Start your exciting research**: You are now ready to add flesh and
      blood to this raw skeleton by further modifying and adding your
      exciting research steps. You can use the "published works" section in
      the introduction (above) as some fully working models to learn
@@ -878,6 +897,278 @@ Other basic customizations
      "reproducible paper". This will encourage them to publish their own
      works in this manner also and also will help spread the word.
 
+
+
+
+
+
+
+
+
+
+Publication checklist
+=====================
+
+Once your project is complete and you are ready to submit/publish the
+project, we recommend the following steps to ensure the maximum FAIRness of
+all your hard work (Findability, Accessibility, Interoperability, and
+Reusability). This list may seem long, and may take a day or so to
+complete, but please consider the fact that you have spent months/years on
+your project, so it is a very small step in your over-all project! Most of
+it is about organizing things that you can do during your project. So its
+good to have a look at these from the start of your project.
+
+As you will notice, when you complete this checklist, your projects source
+will be present in multiple places: Zenodo, SoftwareHeritage, arXiv, your
+own Git repositories. This is a major advantage of Maneaged(!)  projects:
+because their source is very small (a few hundred kilobytes), there is
+effectively no cost in keeping multiple redundancies on different servers,
+just in case one (or more) of them are discontinued in the (near/far)
+future.
+
+ - **Reserve a DOI for your dataset**: There are multiple data servers that
+   give this functionality, one of the most well known and (currently!)
+   well-funded is [Zenodo](https://zenodo.org) so we'll focus on it
+   here. Ofcourse, you can use any other service that provides a similar
+   functionality. Once you complete these steps, you can start using/citing
+   your dataset's DOI in the source of your project to finalize the rest of
+   the points. Note that with Zenodo, you can even use the given identifier
+   for things like downloading.
+
+   * *Start new upload*: After you log-in to Zenodo, you can start a new
+     upload by clicking on the "New Upload button".
+
+   * *Reserve DOI*: Under the "Basic information" --> "Digital Object
+     Identifier", click on the "Reserve DOI" button.
+
+   * *Fill basic info*: You need to atleast fill the "required fields"
+      (marked with a red star).
+
+   * *Save your upload*: You should now be able to press the "Save" button
+      (at the top or bottom of the page) to finalize this step.
+
+ - **Request archival on SoftwareHeritage**: [Software
+   Heritage](https://archive.softwareheritage.org/save/) is an online
+   project to archive source code and their development histories. It
+   provides wonderful features for archiving source code (not data!) and
+   also for citing special parts of a project's source in any point of its
+   history. So it blends elegantly with the purpose of Maneage. Once you
+   make your project's Git repository publicly accessible (no login
+   required to clone it), you can request that SoftwareHeritage archives
+   it. Its good if you do this as soon as you make your Git repository
+   public. When you are ready, just register your repository's address (the
+   same one you give to `git clone`) to in [SoftwareHeritage's save
+   form](https://archive.softwareheritage.org/save).
+
+ - **Run a spell-check on `paper.tex`**: we all forget ;-)!
+
+ - **Zenodo/SoftwareHeritage links in paper**: put links to the Zenodo-DOI
+   (and SoftwareHeritage source when you make it public) in your
+   paper. Somewhere close the start, maybe under the keywords/abstract,
+   highlighting that they are supplements for reproducibility. These help
+   readers easily access these resources for supplementary material
+   directly from your PDF paper (sources on SoftwareHeritage and
+   data/software on Zenodo). These links are more trusted/reliable in terms
+   of longevity than Git repositories or private webpages.
+
+ - **Identify and properly format output data**: If you have a plot, figure
+   or table in your paper, you need to verify that data later and publish
+   that data with the paper (see the steps below for both). But before
+   going to those steps, its good if you polish your datasets with the
+   recommendations below:
+
+   * *Keep published data in a special place*: it helps if you keep the
+     to-be-published data files in a special sub-directory under your build
+     directory. In this way, irrespective of which subMakefile builds a
+     published dataset, they won't be lost/scatterred in the middle of all
+     the project's intermediate-built files.
+
+   * *In plain-text*: If the data are in tabular form (for example the X
+     and Y values in your plots), store them as a simple plain-text file
+     (for example with columns separated by white-space characters or in
+     the more formal [Comma-separated
+     values](https://en.wikipedia.org/wiki/Comma-separated_values), or CSV,
+     format). If you have other types of data (for example images, or very
+     large tables with millions of rows/columns that can be inconvenient in
+     plain-text), feel free to use custom binary formats, but later, in the
+     description of your project on the server, tell people what software
+     they should use to open them.
+
+   * *Descriptive names*: In some papers there are many files and having
+     cryptic names will only confuse your readers (actually, yourself in
+     two years!). So set the names of the files to be as descriptive as
+     possible, so simply by reading the name of the file, someone who has
+     read the paper will understand what figure it corresponds to. In
+     particular, don't set names like `figure-3.txt`! In a few months you
+     will forget the order of the figures! Even worse, after the referee
+     report, you may need to re-arrange some figures and you will be forced
+     to rename everything related to each figure (which is very frustrating
+     and prone to errors).
+
+   * *Good metadata*: Raw data are not too useful merely as a series of
+     numbers! So don't forget to have **good metadata in every file**. If
+     its a plain-text file, usually lines starting with a `#` are
+     ignored. So in the command that generates each dataset, add some extra
+     information about the dataset as lines starting with `#`. A minimal
+     set of recommended metadata are listed below. Feel free to add
+     more. You can use a configuration file to keep this information in one
+     place and automatically include them in all your output files.
+
+     * *Project Title and authors*: This is very important to give a
+        general perspective of the figure.
+
+     * *Links to project*: For example Zenodo-DOI, Journal-DOI (after it is
+       accepted), SoftwareHeritage page, arXiv-ID (or any other pre-print
+       server) and ofcourse, your Git repository.
+
+     * *Commit hash* of the project that produced the dataset. This
+       directly links the dataset to a particular point in your project's
+       history. It is stored in the `$(project-commit-hash)` variable that
+       is defined in `initialize.mk`. So you can use it anywhere in your
+       project.
+
+     * *Copyright as metadata*: people need to know if they can use the
+       dataset (i.e., modify it), or possibly re-distribute it and their
+       derived products. They also need to know how they can contact the
+       creator of the datset (who is usually also the copyright owner). So
+       as another metadata element, also add your name and email-address
+       (or the name of the person and email of the person who was in charge
+       of that part of the project), and the copyright license name and
+       standard link to the fully copyright license.
+
+ - **Link to figure datasets in caption**: all the datasets that go into
+   the plots should be uploaded directly to Zenodo so they can be
+   viewed/downloaded with a simple link in the caption. For example see the
+   last sentence of the caption of Figure 1 in
+   [arXiv:2006.03018](https://arxiv.org/pdf/2006.03018.pdf), it points to
+   [the data](https://zenodo.org/record/3872248/files/tools-per-year.txt)
+   that was used to create that figure's top plot. As you see, this will
+   allow your paper's readers (again, most probably your future-self!) to
+   directly access the numbers of each visualization (plot/figure) with a
+   simple click in a trusted server. This also shows the major advantage of
+   having your data as simple plain-text where possible, as described
+   above. To help you keep all your to-be-visualized datasets in a single
+   place, Maneage has the two `tex-publish-dir` and `data-publish-dir`
+   directories that are defined in `reproduce/analysis/make/initialize.mk`,
+   see the comments above their definition for more.
+
+ - **Verification step**: It is very important to automatically verify the
+   outptus of your project. Recall from the customization checklist (above)
+   that you can activate verification by setting the `verify-outputs`
+   variable to `yes` in `reproduce/analysis/config/verify-outputs.conf`. So
+   please activate it and look into the `reproduce/analysis/make/verify.mk`
+   to add the necessary steps to automatically verify your outputs. *Tip*:
+   you don't have to generate the checksums manually, just give a wrong
+   value (for example `XXXX`) so Maneage crashes! In the error message it
+   will then print the actual and expected checksums and you can take the
+   value from there. Outputs that must be verified can be listed as:
+
+   * *subMakefile LaTeX macro files*: these LaTeX macros put numbers into
+     the text. You don't want your readers (actually: yourself in two
+     years!) to have to painfully find and check, by eye, all those tiny
+     numbers buried deep in the ocean of words!
+
+   * *Final data files* (for tables, figures, or plots, or as data
+     release). These are the same files described above. If you have
+     followed the guidelines above and stored them as plain-text with
+     comments on top, you can use the provided function
+     `verify-txt-no-comments-leading-space` which takes the filename and
+     checksum as arguments to avoid the commented lines (which may change)
+     and only verify the data. If your data are in other formats, be sure
+     to verify them without metadata that may change (like date and etc).
+
+ - **Fill `README.md`**: The `README.md` is *the first place* your readers
+   are going to look into. It already has a default text with place-holders
+   in the form of `XXXXXX`. Please go through it and replace the
+   place-holders with the relevant information/links or feel free to
+   add/remove anything else. Just don't forget to tell your readers in
+   `README.md` that they can learn about this system in the
+   `README-hacking.md` file (ideally close to the top, like it is now).
+
+ - **Confirm if your project builds from scratch**: Before publishing
+   anything, you should see if your project can indeed reproduce itself!
+   So, go to a temporary directory, clone your project from its repository
+   and try configuring and building it from scratch in a new-temporary
+   build-directory. It is important to ignore the directory you developed
+   your project on (source and build): you may have files there that you
+   forgot to import into Git or depended on in the build (it
+   happens!). Ideally, it would be good to try it on a different computer.
+
+ - **Confirm if `./project make dist` works**: The special target `dist`
+   tells the project to build a tarball that is ready to compile the LaTeX
+   PDF without having to do the analysis and build software. This is very
+   useful for servers like arXiv, or some journals. This tarball is also
+   one of the deliverables you want to publish on Zenodo. Once the tarball
+   is created, copy it to a temporary directory outside of Maneage, unpack
+   it and run `make` (completely ignoring Maneage's `./project` script). If
+   you plan to submit your paper to arXiv, the best test is to actually
+   start a test submission on arXiv to upload the tarball there to see if
+   it can build your PDF. Once it works, you can delete that temporary
+   submission for now. Afterwards, try configuring and building it with the
+   tarball by running its `./project` (from scratch and without the Git
+   history!). If there is a problem in any of these tests, you can modify
+   what goes into this tarball in `reproduce/analysis/make/initialize.mk`:
+   go through the steps and add the necessary components until the checks
+   pass.
+
+ - **Upload all deliverables to Zenodo**: With the datasets ready, you can
+   now upload the following deliverables to Zenodo. Except for the data
+   files, put the Git hash of your Maneaged project at the moment of
+   publication in the filename of other uploaded files. The output files
+   shouldn't have a hash in their names because their URL (that goes in the
+   caption of the figures/tables) should be known prior to a commit,
+   creating a cyclic dependency! Ideally the hash should be placed just
+   before the final suffix, for example `paper-XXXXXXX.pdf` (where
+   `XXXXXXX` is the Git hash). This will clearly identify the point in
+   history that your file was created.
+
+     * **paper-XXXXXXX.pdf**: you shouldn't just download data to the data
+       server, also upload your paper's PDF so its there with the other raw
+       formats. It will greatly help yourself and others. Most datacenters
+       (like Zenodo) actually also have a PDF viewer that will load
+       automatically before the list of data files. For example see
+       [zenodo.3408481](https://doi.org/10.5281/zenodo.3408481).
+
+     * **`project-XXXXXXX.tar.gz`**: Or the output of `make dist` as
+       described above.
+
+     * **`project-git.bundle`** This is the full Git history of the project
+       in one file (which you can actually clone from later!). Its
+       necessary to publish this with your dataset too because Git
+       repositories make no promise on longevity. The way to "bundle" a Git
+       history is described below, in summary, its this command:
+       ```shell
+       $ git bundle create my-project-git.bundle --all
+       ```
+
+     * **`software-XXXXXXX.tar.gz`**: This is effectively a copy of all the
+       software source code tarballs in your project's
+       `.build/software/tarballs`. It is necessary to upload these with
+       your project to avoid relying on third party servers. In the future
+       any one of those servers may go down and if so, your project won't
+       be buildable. You can generate this tarball easily with `make
+       dist-software`.
+
+     * All the figure (and other) output datasets of the project. Don't
+       rename these files, let them have the same descriptive name
+       mentioned above. Also recall that a link to all these files is also
+       in the caption of the respective figure.
+
+ - **Upload to [arXiv](https://arxiv.org)**: or to any other pre-print
+   server (if you want to). Of course, you can also do this after the
+   initial/final submission to your desired journal. But we'll just add the
+   necessary points for arXiv submission here:
+
+   * *Necessary links in comments*: put a link to your project's Git
+     repository, Zenodo-DOI (this is not your paper's DOI, its the
+     data/resources DOI), and/or SoftwareHeritage link in the comments.
+
+ - **Submission to a journal**: different journals accept submissions in
+   different formats, some accept LaTeX, some only want a PDF, or etc. It
+   would be good if you highlight in the cover-letter that your work is
+   reproducible and provide the Zenodo and Software Heritage links (if they
+   are public). If not, you can mention that everything is ready for such a
+   submission after acceptance.
 
 
 
@@ -1148,10 +1439,21 @@ for the benefit of others.
       scratch (from `./project configure` in a new build-directory).
 
         ```shell
-        # Go to the 'maneage' branch and import/inspect updates.
+        # Go to the 'maneage' branch and import updates.
         $ git checkout maneage
         $ git pull                            # Get recent work in Maneage
-        $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
+
+        # Read all the commit messages of the newly imported
+        # features/changes. In particular pay close attention to the ones
+        # starting with 'IMPORTANT': these may cause a crash in your
+        # project (changing something fundamental in Maneage).
+        #
+        # Replace the XXXXXXX..YYYYYYY with hashs mentioned close to start
+        # of the 'git pull' command outputs.
+        $ git log XXXXXXX..YYYYYYY --reverse
+
+        # Have a look at the commits in the 'maneage' branch in relation
+        # with your project.
         $ git log --oneline --graph --decorate --all # General view of branches.
 
         # Go to your 'master' branch and import all the updates into
@@ -1183,6 +1485,18 @@ for the benefit of others.
         # merge. In the commit message, Explain any conflicts that you
         # fixed.
         git commit
+
+        # Do a clean build of your project (to check for "Semanic
+        # conflicts" (not detected as a conflict by Git, but may cause a
+        # crash in your project). You can backup your build directory
+        # before running the 'distclean' target.
+
+        # Any error in the build will be due to changes in Maneage, so look
+        # closely at the commits (especially the
+
+        ./project make distclean  # will DELETE ALL your build-directory!!
+        ./project configure -e
+        ./project make
         ```
 
    - *Adding Maneage to a fork of your project*: As you and your colleagues

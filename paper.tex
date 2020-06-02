@@ -31,7 +31,14 @@
 %% LaTeX style file, you will probably not need to set them, and can also
 %% replace this "Title and author information" section with the journal's
 %% preferred format.
-\title{\large \uppercase{The paper's title goes here}}
+%
+%% NOTE ON TITLE: The title of the project should also be printed as
+%% metadata in all output files. So it is defined with other core project
+%% metadata in 'reproduce/analysis/config/metadata.conf'. That value is
+%% then written in the '\projectitle' LaTeX macro and directly used
+%% here. So please set your project's title in that Makefile with other
+%% basic information.
+\title{\large \uppercase{\projecttitle}}
 \author[1]{Your name}
 \author[2]{Coauthor one}
 \author[1,3]{Coauthor two}
@@ -103,29 +110,29 @@ or
 in this way, will let you focus clearly on your science and not have to
 worry about fixing this or that number/name in the text.
 
-Figure \ref{delete-me} shows a simple plot as a demonstration of creating
+Figure \ref{squared} shows a simple plot as a demonstration of creating
 plots within \LaTeX{} (using the {\small PGFP}lots package). The minimum
 value in this distribution is $\deletememin$, and $\deletememax$ is the
 maximum. Take a look into the \LaTeX{} source and you'll see these numbers
 are actually macros that were calculated from the same dataset (they will
 change if the dataset, or function that produced it, changes).
 
-The individual {\small PDF} file of Figure \ref{delete-me} is available
-under the \texttt{tex/tikz/} directory of your build directory. You can use
-this PDF file in other contexts (for example in slides showing your
-progress or after publishing the work). If you want to directly use the
-{\small PDF} file in the figure without having to let {\small T}i{\small
-  KZ} decide if it should be remade or not, you can also comment the
-\texttt{makepdf} macro at the top of this \LaTeX{} source file.
+The individual {\small PDF} file of Figure \ref{squared} is available under
+the \texttt{tex/tikz/} directory of your build directory. You can use this
+PDF file in other contexts (for example in slides showing your progress or
+after publishing the work). If you want to directly use the {\small PDF}
+file in the figure without having to let {\small T}i{\small KZ} decide if
+it should be remade or not, you can also comment the \texttt{makepdf} macro
+at the top of this \LaTeX{} source file.
 
 \begin{figure}[t]
-  \includetikz{delete-me}
+  \includetikz{delete-me-squared}{width=\linewidth}
 
-  \captionof{figure}{\label{delete-me} A very basic $X^2$ plot for
+  \captionof{figure}{\label{squared} A very basic $X^2$ plot for
     demonstration.}
 \end{figure}
 
-Figure \ref{delete-me-demo} is another demonstration of showing images
+Figure \ref{image-histogram} is another demonstration of showing images
 (datasets) using PGFPlots. It shows a small crop of an image from the
 Wide-Field Planetary Camera 2, on board the Hubble Space Telescope from
 1993 to 2009. This cropped image is one of the sample FITS files from the
@@ -134,7 +141,7 @@ webpage\footnote{\url{https://fits.gsfc.nasa.gov/fits_samples.html}}. Just
 as another basic reporting of measurements on this dataset within the paper
 without using numbers in the \LaTeX{} source, the mean is
 $\deletemewfpctwomean$ and the median is $\deletemewfpctwomedian$. The
-skewness in the histogram of Figure \ref{delete-me-demo}(b) explains this
+skewness in the histogram of Figure \ref{image-histogram}(b) explains this
 difference between the mean and median. The dataset was prepared for
 demonstration here with Gnuastro's \textsf{Convert\-Type} program and the
 histogram and basic statstics were generated with Gnuastro's
@@ -172,13 +179,13 @@ new co-authors (who don't want to be distracted by these issues in their
 first time reading).
 
 \begin{figure}[t]
-  \includetikz{delete-me-demo}
+  \includetikz{delete-me-image-histogram}{width=\linewidth}
 
-  \captionof{figure}{\label{delete-me-demo} (a) An example image of the
-    Wide-Field Planetary Camera 2, on board the Hubble Space Telescope from
-    1993 to 2009. This is one of the sample images from the FITS standard
-    webpage, kept as examples for this file format. (b) Histogram of pixel
-    values in (a).}
+  \captionof{figure}{\label{image-histogram} (a) An example image
+    of the Wide-Field Planetary Camera 2, on board the Hubble Space
+    Telescope from 1993 to 2009. This is one of the sample images from the
+    FITS standard webpage, kept as examples for this file format. (b)
+    Histogram of pixel values in (a).}
 \end{figure}
 
 

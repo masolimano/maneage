@@ -1046,6 +1046,21 @@ tikzdir=$texbdir/tikz
 if ! [ -d $tikzdir ]; then mkdir $tikzdir; fi
 
 
+# If 'tex/build' and 'tex/tikz' are symbolic links then 'rm -f' will delete
+# them and we can continue. However, when the project is being built from
+# the tarball, these two are not symbolic links but actual directories with
+# the necessary built-components to build the PDF in them. In this case,
+# because 'tex/build' is a directory, 'rm -f' will fail, so we'll just
+# rename the two directories (as backup) and let the project build the
+# proper symbolic links afterwards.
+if rm -f tex/build; then
+    rm -f tex/tikz
+else
+    mv tex/tikz tex/tikz-from-tarball
+    mv tex/build tex/build-from-tarball
+fi
+
+
 # Set the symbolic links for easy access to the top project build
 # directories. Note that these are put in each user's source/cloned
 # directory, not in the build directory (which can be shared between many
@@ -1054,7 +1069,7 @@ if ! [ -d $tikzdir ]; then mkdir $tikzdir; fi
 # Note: if we don't delete them first, it can happen that an extra link
 # will be created in each directory that points to its parent. So to be
 # safe, we are deleting all the links on each re-configure of the project.
-rm -f .build .local tex/build tex/tikz .gnuastro
+rm -f .build .local .gnuastro
 ln -s $bdir .build
 ln -s $instdir .local
 ln -s $texdir tex/build

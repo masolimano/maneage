@@ -202,6 +202,16 @@ $(lockdir): | $(BDIR); mkdir $@
 
 
 
+# Version and distribution tarball definitions
+project-commit-hash := $(shell if [ -d .git ]; then \
+    echo $$(git describe --dirty --always --long); else echo NOGIT; fi)
+project-package-name := maneaged-$(project-commit-hash)
+project-package-contents = $(texdir)/$(project-package-name)
+
+
+
+
+
 # High-level Makefile management
 # ------------------------------
 #
@@ -212,11 +222,8 @@ $(lockdir): | $(BDIR); mkdir $@
 # we want to ensure that the file is always built in every run: it contains
 # the project version which may change between two separate runs, even when
 # no file actually differs.
-packagebasename := $(shell if [ -d .git ]; then \
-    echo paper-$$(git describe --dirty --always --long); else echo NOGIT; fi)
-packagecontents = $(texdir)/$(packagebasename)
-.PHONY: all clean dist dist-zip distclean clean-mmap $(packagecontents) \
-        $(mtexdir)/initialize.tex
+.PHONY: all clean dist dist-zip dist-lzip distclean clean-mmap \
+        $(project-package-contents) $(mtexdir)/initialize.tex
 
 # --------- Delete for no Gnuastro ---------
 clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
@@ -260,11 +267,11 @@ distclean: clean
 # that is ready for building the final PDF with LaTeX. This is useful for
 # collaborators who only want to contribute to the text of your project,
 # without having to worry about the technicalities of the analysis.
-$(packagecontents): paper.pdf | $(texdir)
+$(project-package-contents): paper.pdf | $(texdir)
 
         # Set up the output directory, delete it if it exists and remake it
         # to fill with new contents.
-	dir=$(texdir)/$(packagebasename)
+	dir=$@
 	rm -rf $$dir
 	mkdir $$dir
 
@@ -298,7 +305,7 @@ $(packagecontents): paper.pdf | $(texdir)
 	cp -r tex/src                            $$dir/tex/src
 	cp tex/tikz/*.pdf                        $$dir/tex/tikz
 	cp -r reproduce/*                        $$dir/reproduce
-	cp -r tex/build/!(paper-v*)              $$dir/tex/build
+	cp -r tex/build/!($(project-package-name)) $$dir/tex/build
 
         # Clean up un-necessary/local files: 1) the $(texdir)/build*
         # directories (when building in a group structure, there will be
@@ -337,32 +344,113 @@ $(packagecontents): paper.pdf | $(texdir)
 
         # Clean temporary (currently those ending in `~') files.
 	cd $(texdir)
-	find $(packagebasename) -name \*~ -delete
-	find $(packagebasename) -name \*.swp -delete
+	find $(project-package-name) -name \*~ -delete
+	find $(project-package-name) -name \*.swp -delete
 
         # PROJECT SPECIFIC
         # ----------------
         # Put any project specific distribution steps here.
         # ----------------
 
-# Package into `.tar.gz'.
-dist: $(packagecontents)
+# Package into `.tar.gz' or '.tar.lz'.
+dist dist-lzip: $(project-package-contents)
 	curdir=$$(pwd)
 	cd $(texdir)
-	tar -cf $(packagebasename).tar $(packagebasename)
-	gzip -f --best $(packagebasename).tar
-	rm -rf $(packagebasename)
+	tar -cf $(project-package-name).tar $(project-package-name)
+	if [ $@ = dist ]; then
+	  suffix=gz
+	  gzip -f --best $(project-package-name).tar
+	elif [ $@ = dist-lzip ]; then
+	  suffix=lz
+	  lzip -f --best $(project-package-name).tar
+	fi
+	rm -rf $(project-package-name)
 	cd $$curdir
-	mv $(texdir)/$(packagebasename).tar.gz ./
+	mv $(texdir)/$(project-package-name).tar.$$suffix ./
 
 # Package into `.zip'.
-dist-zip: $(packagecontents)
+dist-zip: $(project-package-contents)
 	curdir=$$(pwd)
 	cd $(texdir)
-	zip -q -r $(packagebasename).zip $(packagebasename)
-	rm -rf $(packagebasename)
+	zip -q -r $(project-package-name).zip $(project-package-name)
+	rm -rf $(project-package-name)
 	cd $$curdir
-	mv $(texdir)/$(packagebasename).zip ./
+	mv $(texdir)/$(project-package-name).zip ./
+
+# Package the software tarballs.
+dist-software:
+	curdir=$$(pwd)
+	cd $(BDIR)
+	if [ -d .git ]; then
+	  dirname="software-$$(git describe --dirty --always --long)"
+	else
+	  dirname="software-NOGIT";
+	fi
+	mkdir $$dirname
+	cp -L software/tarballs/* $$dirname/
+	tar -cf $$dirname.tar $$dirname
+	gzip -f --best $$dirname.tar
+	rm -rf $$dirname
+	cd $$curdir
+	mv $(BDIR)/$$dir.tar.gz ./
+
+
+
+
+
+# Directory containing to-be-published datasets
+# ---------------------------------------------
+#
+# Its good practice (so you don't forget in the last moment!) to have all
+# the plot/figure/table data that you ultimately want to publish in a
+# single directory.
+#
+# There are two types of to-publish data in the project.
+#
+#  1. Those data that also go into LaTeX (for example to give to LateX's
+#     PGFPlots package to create the plot internally) should be under the
+#     '$(BDIR)/tex' directory (because other LaTeX producers may also need
+#     it for example when using './project make dist'). The contents of
+#     this directory are directly taken into the tarball.
+#
+#  2. The data that aren't included directly in the LaTeX run of the paper,
+#     can be seen as supplements. A good place to keep them is under your
+#     build-directory.
+#
+# RECOMMENDATION: don't put the figure/plot/table number in the names of
+# your to-be-published datasets! Given them a descriptive/short name that
+# would be clear to anyone who has read the paper. Later, in the caption
+# (or paper's tex/appendix), you will put links to the dataset on servers
+# like Zenodo (see the "Publication checklist" in 'README-hacking.md').
+tex-publish-dir = $(texdir)/to-publish
+data-publish-dir = $(BDIR)/data-to-publish
+$(tex-publish-dir):; mkdir $@
+$(data-publish-dir):; mkdir $@
+
+
+
+
+
+# Print Copyright statement
+# -------------------------
+#
+# This statement can be used in published datasets that are in plain-text
+# format. It assumes you have already put the data-specific statements in
+# its first argument, it will supplement them with general project links.
+print-copyright = \
+	echo "\# Project title: $(metadata-title)" >> $(1); \
+	echo "\# Git commit (that produced this dataset): $(project-commit-hash)" >> $(1); \
+	echo "\# Project's Git repository: $(metadata-git-repository)" >> $(1); \
+	if [ x$(metadata-arxiv) != x ]; then \
+	  echo "\# Pre-print server: arXiv:$(metadata-arxiv)" >> $(1); fi; \
+	if [ x$(metadata-doi-journal) != x ]; then \
+	  echo "\# DOI (Journal): $(metadata-doi-journal)" >> $(1); fi; \
+	if [ x$(metadata-doi-zenodo) != x ]; then \
+	echo "\# DOI (Zenodo): $(metadata-doi-zenodo)" >> $(1); fi; \
+	echo "\#" >> $(1); \
+	echo "\# Copyright (C) $$(date +%Y) $(metadata-copyright-owner)" >> $(1); \
+	echo "\# Dataset is available under $(metadata-copyright)." >> $(1); \
+	echo "\# License URL: $(metadata-copyright-url)" >> $(1);
 
 
 
@@ -377,7 +465,6 @@ dist-zip: $(packagecontents)
 # actually exists, it is also aded as a `.PHONY' target above.
 $(mtexdir)/initialize.tex: | $(mtexdir)
 
-        # Version of the project.
-	@if [ -d .git ]; then v=$$(git describe --dirty --always --long);
-	else                  v=NO-GIT; fi
-	echo "\newcommand{\projectversion}{$$v}" > $@
+        # Version and title of project.
+	echo "\newcommand{\projecttitle}{$(metadata-title)}" > $@
+	echo "\newcommand{\projectversion}{$(project-commit-hash)}" >> $@

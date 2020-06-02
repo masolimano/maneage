@@ -1,5 +1,5 @@
 Reproducible source for XXXXXXXXXXXXXXXXX
-=========================================
+-------------------------------------------------------------------------
 
 Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
 See the end of the file for license conditions.
@@ -9,13 +9,15 @@ XXXXXX**", by XXXXX XXXXXX, YYYYYY YYYYY and ZZZZZZ ZZZZZ that is published
 in XXXXX XXXXX.
 
 To reproduce the results and final paper, the only dependency is a minimal
-Unix-based building environment including a C compiler (already available
-on your system if you have ever built and installed a software from source)
-and a downloader (Wget or cURL). Note that **Git is not mandatory**: if you
-don't have Git to run the first command below, go to the URL given in the
-command on your browser, and download the project's source (there is a
-button to download a compressed tarball of the project). If you have
-received this source from arXiv, please see the respective section below.
+Unix-based building environment including a C and C++ compiler (already
+available on your system if you have ever built and installed a software
+from source) and a downloader (Wget or cURL). Note that **Git is not
+mandatory**: if you don't have Git to run the first command below, go to
+the URL given in the command on your browser, and download the project's
+source (there is a button to download a compressed tarball of the
+project). If you have received this source from arXiv or Zenodo (without
+any `.git` directory inside), please see the "Building project tarball"
+section below.
 
 ```shell
 $ git clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -24,18 +26,15 @@ $ ./project configure
 $ ./project make
 ```
 
-To learn more about the purpose, principles and technicalities of this
-reproducible paper, please see `README-hacking.md`. For a general
-introduction to reproducible science as implemented in this project
-(through Maneage), please see Maneage project's webpage at
-https://maneage.org.
+This paper is made reproducible using Maneage (MANaging data linEAGE). To
+learn more about its purpose, principles and technicalities, please see
+`README-hacking.md`, or the Maneage webpage at https://maneage.org.
 
 
 
 
 
-Building the project
---------------------
+### Building the project
 
 This project was designed to have as few dependencies as possible without
 requiring root/administrator permissions.
@@ -52,14 +51,15 @@ requiring root/administrator permissions.
         a directory given at configuration time), they will be
         used. Otherwise, a downloader (`wget` or `curl`) will be necessary
         to download any necessary tarball. The necessary tarballs are also
-        collected in the archived project on Zenodo (link below) [[TO
-        AUTHORS: UPLOAD THE SOFTWARE TARBALLS WITH YOUR DATA AND PROJECT
-        SOURCE TO ZENODO OR OTHER SIMILAR SERVICES. THEN ADD THE DOI/LINK
-        HERE.DON'T FORGET THAT THE SOFTWARE ARE A CRITICAL PART OF YOUR
-        WORK.]]. Just unpack that tarball, and when `./project configure`
-        asks for the "software tarball directory", give the address of the
-        unpacked directory that has all the tarballs.
-          https://doi.org/10.5281/zenodo.3408481
+        collected in the archived project on
+        [https://doi.org/10.5281/zenodo.XXXXXXX](XXXXXXX). Just unpack that
+        tarball and you should see all the tarballs of this project's
+        software. When `./project configure` asks for the "software tarball
+        directory", give the address of the unpacked directory that has all
+        the tarballs. [[TO AUTHORS: UPLOAD THE SOFTWARE TARBALLS WITH YOUR
+        DATA AND PROJECT SOURCE TO ZENODO OR OTHER SIMILAR SERVICES. THEN
+        ADD THE DOI/LINK HERE. DON'T FORGET THAT THE SOFTWARE ARE A
+        CRITICAL PART OF YOUR WORK'S REPRODUCIBILITY.]]
 
 2. Configure the environment (top-level directories in particular) and
    build all the necessary software for use in the next step. It is
@@ -86,15 +86,33 @@ requiring root/administrator permissions.
 
 
 
-Source from arXiv
------------------
+
+
+
+
+
+### Building project tarball (possibly from arXiv)
+
 If the paper is also published on arXiv, it is highly likely that the
 authors also uploaded/published the full project there along with the LaTeX
 sources. If you have downloaded (or plan to download) this source from
-arXiv, some minor extra steps are necessary:
+arXiv, some minor extra steps are necessary as listed below. This is
+because this tarball is mainly tailored to automatic creation of the final
+PDF without using Maneage (only calling LaTeX, not using the './project'
+command)!
 
-1. If the arXiv code for the paper is 1234.56789, then the downloaded
-   source will be called `1234.56789` (no special identification
+You can directly run 'latex' on this directory and the paper will be built
+with no analysis (all necessary built products are already included in the
+tarball). One important feature of the tarball is that it has an extra
+`Makefile` to allow easy building of the PDF paper without worring about
+the exact LaTeX and bibliography software commands.
+
+
+
+#### Only building PDF using tarball (no analysis)
+
+1. If you got the tarball from arXiv and the arXiv code for the paper is
+   1234.56789, then the downloaded source will be called `1234.56789` (no
    suffix). However, it is actually a `.tar.gz` file. So take these steps
    to unpack it to see its contents.
 
@@ -106,14 +124,52 @@ arXiv, some minor extra steps are necessary:
      $ tar xf ../$arxiv.tar.gz
      ```
 
-2. arXiv removes the executable flag from the files (for its own
-   security). So before following the standard procedure of projects
-   described in the sections above, its necessary to set the executable
-   flag of the main project management file with this command:
+2. No matter how you got the tarball, if you just want to build the PDF
+   paper, simply run the command below. Note that this won't actually
+   install any software or do any analysis, it will just use your host
+   operating system (assuming you already have a LaTeX installation and all
+   the necessary LaTeX packages) to build the PDF using the already-present
+   plots data.
+
+   ```shell
+   $ make              # Build PDF in tarball without doing analysis
+   ```
+
+3. If you want to re-build the figures from scratch, you need to make the
+   following corrections to the paper's main LaTeX source (`paper.tex`):
+   uncomment (remove the starting `%`) the line containing
+   `\newcommand{\makepdf}{}`, see the comments above it for more.
+
+
+
+#### Building full project from tarball (custom software and analysis)
+
+As described above, the tarball is mainly geared to only building the final
+PDF. A few small tweaks are necessary to build the full project from
+scratch (download necessary software and data, build them and run the
+analysis and finally create the final paper).
+
+1. If you got the tarball from arXiv, before following the standard
+   procedure of projects described at the top of the file above (using the
+   `./project` script), its necessary to set its executable flag because
+   arXiv removes the executable flag from the files (for its own security).
 
      ```shell
      $ chmod +x project
      ```
+
+2. Make the following changes in two of the LaTeX files so LaTeX attempts
+   to build the figures from scratch (to make the tarball; it was
+   configured to avoid building the figures, just using the ones that came
+   with the tarball).
+
+   - `paper.tex`: uncomment (remove the starting `%`) of the line
+     containing `\newcommand{\makepdf}{}`, see the comments above it for
+     more.
+
+   - `tex/src/preamble-pgfplots.tex`: set the `tikzsetexternalprefix`
+     variable value to `tikz/`, so it looks like this:
+     `\tikzsetexternalprefix{tikz/}`.
 
 3. Remove extra files. In order to make sure arXiv can build the paper
    (resolve conflicts due to different versions of LaTeX packages), it is
@@ -125,38 +181,14 @@ arXiv, some minor extra steps are necessary:
 
      ```shell
      $ ls
-     COPYING  paper.tex  project  README-hacking.md  README.md  reproduce  tex
-     ```
-
-4. To build the figures from scratch, you need to make the following
-   corrections to the LaTeX source files below.
-
-   4.1: `paper.tex`: uncomment (remove the starting `%`) of the line
-         containing `\newcommand{\makepdf}{}`. See the comments above it
-         for more information.
-
-   4.2: `tex/src/preamble-pgfplots.tex`: set the `tikzsetexternalprefix`
-        variable value to `tikz/`, so it looks like this:
-        `\tikzsetexternalprefix{tikz/}`.
-
-5. In order to let arXiv build the LaTeX paper without bothering to run the
-   analysis pipeline it was necessary to create and fill the two
-   `tex/build` and `tex/tikz` subdirectories. But to do a clean build of
-   the project, it is necessary for these to be symbolic links to the build
-   directory. So when you are first configuring the project, run it with
-   `--clean-texdir` (only once is enough, they will be deleted permanently
-   after that), for example:
-
-     ```shell
-     $ ./project configure --clean-texdir
+     COPYING  paper.tex  project  README-hacking.md  README.md  reproduce/  tex/
      ```
 
 
 
 
 
-Copyright information
----------------------
+### Copyright information
 
 This file and `.file-metadata` (a binary file, used by Metastore to store
 file dates when doing Git checkouts) are part of the reproducible project
