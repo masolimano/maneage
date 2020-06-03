@@ -669,30 +669,35 @@ First custom commit
        $ ./project make
        ```
 
- 7. **Don't merge some files in future updates**: As described below, you
-     can later update your infra-structure (for example to fix bugs) by
-     merging your `master` branch with `maneage`. For files that you have
-     created in your own branch, there will be no problem. However if you
-     modify an existing Maneage file for your project, next time its
-     updated on `maneage` you'll have an annoying conflict. The commands
-     below show how to fix this future problem. With them, you can
-     configure Git to ignore the changes in `maneage` for some of the files
-     you have already edited and deleted above (and will edit below). Note
-     that only the first `echo` command has a `>` (to write over the file),
-     the rest are `>>` (to append to it). If you want to avoid any other
-     set of files to be imported from Maneage into your project's branch,
-     you can follow a similar strategy. We recommend only doing it when you
-     encounter the same conflict in more than one merge and there is no
-     other change in that file. Also, don't add core Maneage Makefiles,
-     otherwise Maneage can break on the next run.
+ 7. **Ingore changes in some Maneage files**: One of the main advantages of
+     Maneage is that you can later update your infra-structure by merging
+     your `master` branch with the `maneage` branch. This is good for many
+     low-level features that you will likely never modify yourself. But it
+     is not desired for some files like `paper.tex` (you don't want changes
+     in Maneage's default `paper.tex` to cause conflicts with all the text
+     you have already written for your project). You need to tell Git to
+     ignore changes in such files from the `maneage` branch during the
+     merge, and just keep your own branch's version. The commands below
+     show how you can avert such future conflicts and frustrations with
+     some known files. Note that only the first `echo` command has a `>`
+     (to write over the file), the rest are `>>` (to append to it). If you
+     want to avoid any other set of files to be imported from Maneage into
+     your project's branch, you can follow a similar strategy (it should
+     happen rarely, if at all!). Generally be very careful about adding
+     files to `.gitattributes` because it affects the whole file and if a
+     wrong file is ignored, Maneage may break after a merge (some
+     inter-dependent files may not get updated together). We recommend only
+     doing it when you encounter the same conflict in more than one merge,
+     and are sure that it won't affect other files. In such cases please
+     let us know so we can improve the design of Maneage and modularize
+     those components to be easily added here.
 
      ```shell
      $ echo "paper.tex merge=ours" > .gitattributes
-     $ echo "tex/src/delete-me.mk merge=ours" >> .gitattributes
-     $ echo "tex/src/delete-me-demo.mk merge=ours" >> .gitattributes
-     $ echo "reproduce/analysis/make/delete-me.mk merge=ours" >> .gitattributes
+     $ echo "tex/src/*.tex merge=ours" >> .gitattributes
+     $ echo "reproduce/analysis/config/*.conf merge=ours" >> .gitattributes
      $ echo "reproduce/software/config/TARGETS.conf merge=ours" >> .gitattributes
-     $ echo "reproduce/analysis/config/delete-me-num.conf merge=ours" >> .gitattributes
+     $ echo "reproduce/software/config/texlive-packages.conf merge=ours" >> .gitattributes
      $ git add .gitattributes
      ```
 
@@ -1138,12 +1143,38 @@ for the benefit of others.
       you have customized in Maneage).
 
         ```shell
+        # Go to the 'maneage' branch and import/inspect updates.
         $ git checkout maneage
         $ git pull                            # Get recent work in Maneage
         $ git log XXXXXX..XXXXXX --reverse    # Inspect new work (replace XXXXXXs with hashs mentioned in output of previous command).
         $ git log --oneline --graph --decorate --all # General view of branches.
-        $ git checkout master                 # Go to your top working branch.
-        $ git merge maneage                   # Import all the work into master.
+
+        # Go to your 'master' branch and import all the updates into
+        # 'master', don't worry about the printed outputs (in particular
+        # the 'CONFLICT's), we'll clean them up in the next step.
+        $ git checkout master
+        $ git merge maneage
+
+        # Ignore conflicting Maneage files that you had previously deleted
+        # in the customization checklist (mostly demonstration files).
+        $ git status             # Just for a check
+        $ git status --porcelain | awk '/^DU/{system("git rm "$NF)}'
+        $ git status             # Just for a check
+
+        # If any files have conflicts, open a text editor and correct the
+        # conflict (placed in between '<<<<<<<', '=======' and '>>>>>>>'.
+        # When such conflicts are remoted, the file will be automatically
+        # removed from the "Unmerged paths"
+        git status
+
+        # TIP: If you want the changes in one file to be only from branch
+        # ('maneage' or 'master'), you can use this command:
+        #  $ git checkout <BRANCH-NAME> -- <FILENAME>
+
+        # When there are no more "Unmerged paths", you can commit the
+        # merge. In the commit message, Explain any conflicts that you
+        # fixed.
+        git commit
         ```
 
    - *Adding Maneage to a fork of your project*: As you and your colleagues
