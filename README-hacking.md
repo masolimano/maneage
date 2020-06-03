@@ -1139,8 +1139,13 @@ for the benefit of others.
       pull new work that is done in Maneage. If the changes are useful for
       your work, you can merge them with your project to benefit from
       them. Just pay **very close attention** to resolving possible
-      **conflicts** which might happen in the merge (updated settings that
-      you have customized in Maneage).
+      **conflicts** which might happen in the merge. In particular the
+      "semantic conflicts" that don't show up in Git, but can potentially
+      break your project, for example updates to software versions, or to
+      internal Maneage structure. Hence read the commit messages of `git
+      log` carefully to **see what has changed**. The best way to check is
+      to first complete the steps below, then build your project from
+      scratch (from `./project configure` in a new build-directory).
 
         ```shell
         # Go to the 'maneage' branch and import/inspect updates.
@@ -1163,13 +1168,16 @@ for the benefit of others.
 
         # If any files have conflicts, open a text editor and correct the
         # conflict (placed in between '<<<<<<<', '=======' and '>>>>>>>'.
-        # When such conflicts are remoted, the file will be automatically
-        # removed from the "Unmerged paths"
+        # Once all conflicts in a file are remoted, the file will be
+        # automatically removed from the "Unmerged paths", so run this
+        # command after correcting the conflicts of each file just to make
+        # sure things are clean.
         git status
 
-        # TIP: If you want the changes in one file to be only from branch
-        # ('maneage' or 'master'), you can use this command:
-        #  $ git checkout <BRANCH-NAME> -- <FILENAME>
+        # TIP: If you want the changes in one file to be only from a
+        # special branch ('maneage' or 'master', completely ignoring
+        # changes in the other), use this command:
+        # $ git checkout <BRANCH-NAME> -- <FILENAME>
 
         # When there are no more "Unmerged paths", you can commit the
         # merge. In the commit message, Explain any conflicts that you
