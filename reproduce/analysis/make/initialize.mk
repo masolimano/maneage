@@ -442,7 +442,7 @@ print-copyright = \
 	echo "\# Git commit (that produced this dataset): $(project-commit-hash)" >> $(1); \
 	echo "\# Project's Git repository: $(metadata-git-repository)" >> $(1); \
 	if [ x$(metadata-arxiv) != x ]; then \
-	  echo "\# Pre-print server: arXiv:$(metadata-arxiv)" >> $(1); fi; \
+	  echo "\# Pre-print server: https://arxiv.org/abs/$(metadata-arxiv)" >> $(1); fi; \
 	if [ x$(metadata-doi-journal) != x ]; then \
 	  echo "\# DOI (Journal): $(metadata-doi-journal)" >> $(1); fi; \
 	if [ x$(metadata-doi-zenodo) != x ]; then \
