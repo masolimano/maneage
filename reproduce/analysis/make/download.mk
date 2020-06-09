@@ -58,7 +58,7 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 
         # Set the necessary parameters for this input file.
 	if   [ $* = wfpc2 ]; then
-	  origname=$(WFPC2IMAGE); url=$(WFPC2URL); mdf=$(WFPC2MD5);
+	  localname=$(WFPC2IMAGE); url=$(WFPC2URL); mdf=$(WFPC2MD5);
 	else
 	echo; echo; echo "Not recognized input dataset: '$*.fits'."
 	echo; echo; exit 1
@@ -71,21 +71,25 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
         # here points to the final file directly (note that `readlink' is
         # part of GNU Coreutils). If its not a link, the `readlink' part
         # has no effect.
-	if [ -f $(INDIR)/$$origname ]; then
-	  ln -fs $$(readlink -f $(INDIR)/$$origname) $$out
+	unchecked=$@.unchecked
+	if [ -f $(INDIR)/$$localname ]; then
+	  ln -fs $$(readlink -f $(INDIR)/$$localname) $$unchecked
 	else
 	  touch $(lockdir)/download
 	  $(downloadwrapper) "wget --no-use-server-timestamps -O" \
-	                     $(lockdir)/download $$url/$$origname $@
+	                     $(lockdir)/download $$url $$unchecked
 	fi
 
         # Check the md5 sum to see if this is the proper dataset.
-	sum=$$(md5sum $@ | awk '{print $$1}')
-	if [ $$sum != $$mdf ]; then
-	  wrongname=$(dir $@)/wrong-$(notdir $@)
-	  mv $@ $$wrongname
-	  echo; echo; echo "Wrong MD5 checksum for '$$origname' in $$wrongname"
-	  echo; echo; exit 1
+	sum=$$(md5sum $$unchecked | awk '{print $$1}')
+	if [ $$sum = $$mdf ]; then
+	  mv $$unchecked $@
+	else
+	  echo; echo;
+	  echo "Wrong MD5 checksum for input file '$$localname':"
+	  echo "  Expected MD5 checksum:   $$mdf"; \
+	  echo "  Calculated MD5 checksum: $$sum"; \
+	  echo; exit 1
 	fi
 
 

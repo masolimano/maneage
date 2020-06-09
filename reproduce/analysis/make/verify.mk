@@ -135,7 +135,7 @@ $(mtexdir)/verify.tex: $(foreach s, $(verify-dep), $(mtexdir)/$(s).tex)
           # Verify TeX macros (the values that go into the PDF text).
 	  for m in $(verify-check); do
 	    file=$(mtexdir)/$$m.tex
-	    if   [ $$m == download  ]; then s=6749e17ce606d57d30cebdbc1a5d23ad
+	    if   [ $$m == download  ]; then s=49e4e9f049aa9da0453a67203d798587
 	    elif [ $$m == delete-me ]; then s=711e2f7fa1f16ecbeeb3df6bcb4ec705
 	    else echo; echo "'$$m' not recognized."; exit 1
 	    fi
