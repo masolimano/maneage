@@ -63,25 +63,32 @@
 %% Project abstract and keywords.
 \includeabstract{
 
-  You have completed the reproducible paper template and are ready to
-  configure and implement it for your own research. This template contains
-  almost all the elements that you will need in a research project
-  containing the downloading of raw data and necessary software, building
-  the software, and processing the data with the software in a
-  highly-controlled environment. It then allows including the results in
-  plots and producing the final report, including this abstract, figures
-  and bibliography. If you design your project with this template's
-  infra-structure in your work, don't forget to add a notice and clearly
-  let the readers know that your work is reproducible. If this template
-  proves useful in your research, please cite \citet{gnuastro}.
+  Welcome to Maneage (\emph{Man}aging data lin\emph{eage}) and reproducible
+  papers/projects, for a review of the basics of this system, please see
+  \citet{akhlaghi20}. You are now ready to configure Maneage and implement
+  your own research in this framework. Maneage contains almost all the
+  elements that you will need in a research project, and adding any missing
+  parts is very easy once you become familiar with it. For example it
+  already has steps to downloading of raw data and necessary software
+  (while verifying them with their checksums), building the software, and
+  processing the data with the software in a highly-controlled
+  environment. But Maneage is not just for the analysis of your project,
+  you will also write your paper in it (by replacing this text in
+  \texttt{paper.tex}): including this abstract, figures and
+  bibliography. If you design your project with Maneage's infra-structure,
+  don't forget to add a notice and clearly let the readers know that your
+  work is reproducible, we should spread the word and show the world how
+  useful reproducible research is for the sciences, also don't forget to
+  cite and acknowledge it so we can continue developing it. This PDF was
+  made with Maneage, commit \projectversion{}.
 
   \vspace{0.25cm}
 
   \textsl{Keywords}: Add some keywords for your research here.
 
   \textsl{Reproducible paper}: All quantitave results (numbers and plots)
-  in this paper are exactly reproducible with Maneage (version \projectversion{},
-  \url{https://maneage.org}).}
+  in this paper are exactly reproducible with Maneage
+  (\url{https://maneage.org}).  }
 
 %% To add the first page's headers.
 \thispagestyle{firststyle}
@@ -93,22 +100,44 @@
 %% Start of main body.
 \section{Congratulations!}
 Congratulations on running the raw template project! You can now follow the
-checklist in the \texttt{README.md} file to customize this template to your
-exciting research project.
+``Customization checklist'' in the \texttt{README-hacking.md} file,
+customize this template and start your exciting research project over
+it. You can always merge Maneage back into your project to improve its
+infra-structure and leaving your own project intact. If you haven't already
+read \citet{akhlaghi20}, please do so before continuing, it isn't long
+(just 7 pages).
 
-Just don't forget to \emph{never} use numbers or fixed strings (for example
-database urls like \url{\wfpctwourl}) directly within your \LaTeX{}
-source. Read them directly from your configuration files, or processing
-outputs, and import them into \LaTeX{} as macros through the
-\texttt{tex/build/macros/project.tex} file (created after running the
-project). See the several existing examples within the template for a
-demonstration. For some recent real-world examples, the reproducible
-project sources for Sections 4 and 7.3 of \citet{bacon17} are available at
-\href{https://doi.org/10.5281/zenodo.1164774}{zenodo.1164774}\footnote{\url{https://gitlab.com/makhlaghi/muse-udf-origin-only-hst-magnitudes}},
-or
-\href{https://doi.org/10.5281/zenodo.1163746}{zenodo.1163746}\footnote{\url{https://gitlab.com/makhlaghi/muse-udf-photometry-astrometry}}. Working
+While you are writing your paper, just don't forget to \emph{not} use
+numbers or fixed strings (for example database urls like \url{\wfpctwourl})
+directly within your \LaTeX{} source. Put them in configuration files and
+after using them in the analysis, pass them into the \LaTeX{} source
+through macros in the same subMakefile that used them. For some already
+published examples, please see
+\citet{akhlaghi20}\footnote{\url{https://gitlab.com/makhlaghi/maneage-paper}},
+\citet{infantesainz20}\footnote{\url{https://gitlab.com/infantesainz/sdss-extended-psfs-paper}}
+and
+\citet{akhlaghi19}\footnote{\url{https://gitlab.com/makhlaghi/iau-symposium-355}}. Working
 in this way, will let you focus clearly on your science and not have to
 worry about fixing this or that number/name in the text.
+
+Once your project is ready for publication, there is also a ``Publication
+checklist'' in \texttt{README-hacking.md} that will guide you in the steps
+to do for making your project as FAIR as possible (Findable, Accessibile,
+Interoperable, and Reusable).
+
+The default \LaTeX{} structure within Maneage also has two \LaTeX{} macros
+for easy marking of text within your document as \emph{new} and
+\emph{notes}. For example, \new{this text has been marked as \texttt{new}.}
+\tonote{While this one is marked as \texttt{tonote}.} Please try commenting
+the line that defines \texttt{highlightchanges} in \texttt{paper.tex} (by
+adding a `\texttt{\%}' at the start of the line or simply deleting the
+line). You will then notice that the line that was marked as \texttt{new}
+will become black (totally blend in with the rest of the text) and the one
+marked \texttt{tonote} will not be in the final PDF. You can thus use
+\texttt{highlightchanges} to easily make copies of your research for
+existing coauthors (who are just interested in the new parts or notes) and
+new co-authors (who don't want to be distracted by these issues in their
+first time reading).
 
 Figure \ref{squared} shows a simple plot as a demonstration of creating
 plots within \LaTeX{} (using the {\small PGFP}lots package). The minimum
@@ -134,49 +163,30 @@ at the top of this \LaTeX{} source file.
 
 Figure \ref{image-histogram} is another demonstration of showing images
 (datasets) using PGFPlots. It shows a small crop of an image from the
-Wide-Field Planetary Camera 2, on board the Hubble Space Telescope from
-1993 to 2009. This cropped image is one of the sample FITS files from the
-FITS file standard
-webpage\footnote{\url{https://fits.gsfc.nasa.gov/fits_samples.html}}. Just
-as another basic reporting of measurements on this dataset within the paper
-without using numbers in the \LaTeX{} source, the mean is
-$\deletemewfpctwomean$ and the median is $\deletemewfpctwomedian$. The
-skewness in the histogram of Figure \ref{image-histogram}(b) explains this
-difference between the mean and median. The dataset was prepared for
-demonstration here with Gnuastro's \textsf{Convert\-Type} program and the
+Wide-Field Planetary Camera 2 (that was installed on the Hubble Space
+Telescope from 1993 to 2009). As another more realistic demonstration of
+reporting results with Maneage, here we report that the mean pixel value in
+that image is $\deletemewfpctwomean$ and the median is
+$\deletemewfpctwomedian$. The skewness in the histogram of Figure
+\ref{image-histogram}(b) explains this difference between the mean and
+median. The dataset is visualized here as a black and white image using the
+\textsf{Convert\-Type} program of GNU Astronomy Utilities (Gnuastro).  The
 histogram and basic statstics were generated with Gnuastro's
 \textsf{Statistics} program.
 
 {\small PGFP}lots\footnote{\url{https://ctan.org/pkg/pgfplots}} is a great
 tool to build the plots within \LaTeX{} and removes the necessity to add
-further dependencies (to create the plots) to your project. There are
-high-level language libraries like Matplotlib which also generate
-plots. However, the problem is that they require many dependencies (Python,
-Numpy and etc). Installing these dependencies from source, is not easy and
-will harm the reproducibility of your paper. Note that after several years,
-the binary files of these high-level libraries, that you easily install
-today, will no longer be available in common repositories. Therefore
-building the libraries from source is the only option to reproduce your
-results.
+further dependencies, just to create the plots. There are high-level
+libraries like Matplotlib which also generate plots. However, the problem
+is that they require \emph{many} dependencies, for example see Figure 1 of
+\citet{alliez19}. Installing these dependencies from source, is not easy
+and will harm the reproducibility of your paper in the future.
 
-Furthermore, since {\small PGFP}lots is built by \LaTeX{} it respects all
-the properties of your text (for example line width and fonts and
-etc). Therefore the final plot blends in your paper much more nicely. It
-also has a wonderful
+Furthermore, since {\small PGFP}lots builds the plots within \LaTeX{}, it
+respects all the properties of your text (for example line width and fonts
+and etc). Therefore the final plot blends in your paper much more
+nicely. It also has a wonderful
 manual\footnote{\url{http://mirrors.ctan.org/graphics/pgf/contrib/pgfplots/doc/pgfplots.pdf}}.
-
-This template also defines two \LaTeX{} macros that allow you to mark text
-within your document as \emph{new} and \emph{notes}. For example, \new{this
-  text has been marked as \texttt{new}.} \tonote{While this one is marked
-  as \texttt{tonote}.} If you comment the line (by adding a `\texttt{\%}'
-at the start of the line or simply deleting the line) that defines
-\texttt{highlightchanges}, then the one that was marked \texttt{new} will
-become black (totally blend in with the rest of the text) and the one
-marked \texttt{tonote} will not be in the final PDF. You can thus use
-\texttt{highlightchanges} to easily make copies of your research for
-existing coauthors (who are just interested in the new parts or notes) and
-new co-authors (who don't want to be distracted by these issues in their
-first time reading).
 
 \begin{figure}[t]
   \includetikz{delete-me-image-histogram}{width=\linewidth}
@@ -193,15 +203,15 @@ first time reading).
 \section{Notice and citations}
 To encourage other scientists to publish similarly reproducible papers,
 please add a notice close to the start of your paper or in the end of the
-abstract clearly mentioning that your work is fully reproducible.
+abstract clearly mentioning that your work is fully reproducible. One
+convention we have adopted until now is to put the Git checkum of the
+project as the last word of the abstract, for example see
+\citet{akhlaghi19}, \citet{infantesainz20} and \citet{akhlaghi20}
 
-For the time being, we haven't written a specific paper only for this
-template. Until then, we would be grateful if you could cite the first
-paper that used the early versions of this template: \citet{gnuastro}.
-
-After publication, don't forget to upload all the necessary data, software
-source code and the project's source to a long-lasting host like Zenodo
-(\url{https://zenodo.org}).
+Finally, don't forget to cite \citet{akhlaghi20} and acknowledge the
+funders mentioned below. Otherwise we won't be able to continue working on
+Maneage. Also, just as another reminder, before publication, don't forget
+to follow the ``Publication checklist'' of \texttt{README-hacking.md}.
 %% End of main body.
 
 
@@ -210,11 +220,10 @@ source code and the project's source to a long-lasting host like Zenodo
 
 \section{Acknowledgements}
 \new{Please include the following two paragraphs in the Acknowledgement
-  section of your paper. This reproducible paper template was developed in
-  parallel with Gnuastro, so it benefited from the same grants. If you
-  don't use Gnuastro in your final/customized project, please remove it
-  from the paragraph below, only mentioning the reproducible paper
-  template.}
+  section of your paper. Maneage was developed in parallel with Gnuastro,
+  so it benefited from the same grants. If you don't use Gnuastro in your
+  final/customized project, please remove it from the paragraph below, only
+  mentioning the reproducible paper template.}
 
 This research was partly done using GNU Astronomy Utilities (Gnuastro,
 ascl.net/1801.009), and the reproducible paper template
