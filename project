@@ -41,6 +41,7 @@ make_targets=
 software_dir=
 clean_texdir=0
 prepare_redo=0
+all_highlevel=0
 existing_conf=0
 scriptname="./project"
 minmapsize=10000000000
@@ -77,6 +78,7 @@ operation is defined by the (mandatory) second argument:
 
   configure    - Configure project for this machine (e.g., build software).
   make         - Run the project (do analysis and build outputs).
+  shell        - Execute the project's shell for interactive testing.
 
 RECOMMENDATION: If this is the first time you are configuring this
 template, please don't use the options and let the script explain each
@@ -108,6 +110,7 @@ Configure options:
       --clean-texdir       Remove possibly existing build-time subdirectories
                            under the project's 'tex/' directory (can happen
                            when source is from arXiv for example).
+      --all-highlevel      Build all high-level software (for development).
 
 Configure and Make options:
   -g, --group=STR          Build and run with write permissions for a group.
@@ -159,6 +162,7 @@ do
   # Main operation.
   configure)    func_operation_set $1; shift;;
   make)         func_operation_set $1; shift;;
+  shell)        func_operation_set $1; shift;;
 
 
   # Configure options:
@@ -182,6 +186,8 @@ do
   --check-config=*)      on_off_option_error --check-config;;
   --clean-texdir)        clean_texdir=1;                                                           shift;;
   --clean-texdir=*)      on_off_option_error --clean-texdir;;
+  --all-highlevel)       all_highlevel=1;                                                          shift;;
+  --all-highlevel=*)     on_off_option_error --all-highlevel;;
 
   # Configure and Make options:
   -g|--group)             group="$2";                            check_v group "$group";   shift;shift;;
@@ -274,6 +280,35 @@ fi
 
 
 
+# Error when configuration isn't run
+configuration_necessary() {
+    cat <<EOF
+
+The project is either (1) not configured on this system, or (2) the
+configuration wasn't successful.
+
+(1) If it hasn't been configured at all, use the command below to configure
+it (set a build directory and let it build its necessary software in it).
+
+      $ ./project configure
+
+(2) If it has been configured, but the configuration failed in a step, you
+can re-configure it using your previous settings with the command
+below. All successful steps will be skipped, allowing a fast completion.
+
+      $ ./project configure -e
+
+If there was a problem, please let us know by filling this online form:
+      http://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+EOF
+    exit 1
+}
+
+
+
+
+
 # Run operations in controlled environment
 # ----------------------------------------
 controlled_env() {
@@ -347,6 +382,7 @@ case $operation in
         export minmapsize=$minmapsize
         export software_dir=$software_dir
         export existing_conf=$existing_conf
+        export all_highlevel=$all_highlevel
         export reproducible_paper_group_name=$group
 
         # Run the configuration script
@@ -372,33 +408,13 @@ case $operation in
 
 
 
-    # Run the project.
+    # Batch execution of the project.
     make)
 
         # Make sure the configure script has been completed properly
         # (`configuration-done.txt' exists).
         if ! [ -f .build/software/configuration-done.txt ]; then
-            cat <<EOF
-
-The project is either (1) not configured on this system, or (2) the
-configuration wasn't successful.
-
-(1) If it hasn't been configured at all, use the command below to configure
-it (set a build directory and let it build its necessary software in it).
-
-      $ ./project configure
-
-(2) If it has been configured, but the configuration failed in a step, you
-can re-configure it using your previous settings with the command
-below. All successful steps will be skipped, allowing a fast completion.
-
-      $ ./project configure -e
-
-If there was a problem, please let us know by filling this online form:
-      http://savannah.nongnu.org/support/?func=additem&group=reproduce
-
-EOF
-            exit 1
+            configuration_necessary
         fi
 
         # Run data preparation phase (optionally build Makefiles with
@@ -417,7 +433,32 @@ EOF
         ;;
 
 
+    shell)
 
+        # Make sure the configure script has been completed properly
+        # (`configuration-done.txt' exists).
+        if ! [ -f .build/software/configuration-done.txt ]; then
+            configuration_necessary
+        fi
+
+        # Run the project's own shell without inheriting any environment
+        # from the host.
+        bdir=`.local/bin/realpath .build`
+        instdir=$bdir/software/installed
+        .local/bin/env -i \
+                       HOME=$bdir \
+                       CCACHE_DISABLE=1 \
+                       PATH=$instdir/bin \
+                       LDFLAGS=-L$instdir/lib \
+                       SHELL=$instdir/bin/bash \
+                       CPPFLAGS=-I$instdir/include \
+                       LD_LIBRARY_PATH=$instdir/lib \
+                       OMPI_MCA_plm_rsh_agent=/bin/false \
+                       PYTHONPATH=$instdir/lib/python/site-packages \
+                       PYTHONPATH3=$instdir/lib/python/site-packages \
+                       PS1="[\[\033[32m\](maneage)\[\033[00m\] \u@\h \W]$ " \
+                       $instdir/bin/bash
+        ;;
 
 
     # Operation not specified.

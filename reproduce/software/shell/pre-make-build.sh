@@ -34,6 +34,7 @@ set -e
 bdir=$1
 ddir=$2
 downloader="$3"
+user_backup_urls="$4"
 
 
 
@@ -51,6 +52,7 @@ downloadwrapper=reproduce/analysis/bash/download-multi-try
 
 # Derived directories
 bindir=$instdir/bin
+urlfile=$confdir/urls.conf
 versionsfile=$confdir/versions.conf
 checksumsfile=$confdir/checksums.conf
 backupfile=$confdir/servers-backup.conf
@@ -65,8 +67,18 @@ export PATH="$bindir:$PATH"
 
 
 
-# Load the backup servers
-backupservers=$(awk '!/^#/{printf "%s ", $1}' $backupfile)
+# Load the backup servers, but separate the first one.
+backupservers=""
+topbackupserver=""
+maneage_backup_urls=$(awk '!/^#/{printf "%s ", $1}' $backupfile)
+backupservers_all="$user_backup_urls $maneage_backup_urls"
+for b in $backupservers_all; do
+    if [ x$topbackupserver = x ]; then
+        topbackupserver=$b
+    else
+        backupservers="$backupservers $b"
+    fi
+done
 
 
 
@@ -83,12 +95,21 @@ download_tarball() {
   else
     ucname=$tardir/$tarball.unchecked
 
+    # If the URL is empty, use the top backup server
+    if [ x$w = x ]; then
+        bservers="$backupservers"
+        tarballurl=$topbackupserver/$tarball
+    else
+        bservers="$backupservers_all"
+        tarballurl=$url/$tarball
+    fi
+
     # See if it is in the input software directory.
     if [ -f "$ddir/$tarball" ]; then
       cp $ddir/$tarball $ucname
     else
-      $downloadwrapper "$downloader" nolock $url/$tarball $ucname \
-                       "$backupservers"
+      $downloadwrapper "$downloader" nolock $tarballurl $ucname \
+                       "$bservers"
     fi
 
     # Make sure this is the correct tarball.
@@ -119,9 +140,13 @@ download_tarball() {
 
 
 
-# Build the program from the tarball
+# Build the program from the tarball. This function takes one argument
+# which is the configure-time options.
 build_program() {
   if ! [ -f $ibidir/$progname ]; then
+
+    # Options
+    configoptions=$1
 
     # Go into the temporary building directory.
     cd $tmpblddir
@@ -140,13 +165,31 @@ build_program() {
       intar=$tardir/$tarball
     fi
 
-    # Unpack the tarball and build the program.
+    # Unpack the tarball and go into it.
     tar xf $intar
     if [ x$intarrm = x1 ]; then rm $intar; fi
     cd $unpackdir
-    ./configure --prefix=$instdir
-    make
-    make install
+
+    # build the project, either with Make and either without it.
+    if [ x$progname = xlzip ]; then
+        ./configure --build --check --installdir=$instdir/bin $configoptions
+    else
+        # All others accept the configure script.
+        ./configure --prefix=$instdir $configoptions
+
+        # To build GNU Make, we don't want to assume the existance of a
+        # Make program, so we use its 'build.sh' script and its own built
+        # 'make' program to install itself.
+        if [ x$progname = xmake ]; then
+            /bin/sh build.sh
+            ./make install
+        else
+            make
+            make install
+        fi
+    fi
+
+    # Clean up the source directory
     cd $topdir
     rm -rf $tmpblddir/$unpackdir
     echo "$progname_tex $version" > $ibidir/$progname
@@ -167,7 +210,7 @@ build_program() {
 # won't rely on the host's compression tools at all.
 progname="lzip"
 progname_tex="Lzip"
-url=http://akhlaghi.org/src
+url=$(awk '/^'$progname'-url/{print $3}' $urlfile)
 version=$(awk '/^'$progname'-version/{print $3}' $versionsfile)
 tarball=$progname-$version.tar
 download_tarball
@@ -180,19 +223,17 @@ build_program
 # GNU Make
 # --------
 #
-# The job orchestrator of Maneage is GNU Make. Although it is not
-# impossible to account for all the differences between various Make
-# implementations, its much easier (for reading the code and
-# writing/debugging it) if we can count on a special implementation. So
-# before going into the complex job orchestration in building high-level
-# software, we start by building GNU Make.
+# The job orchestrator of Maneage is GNU Make. The
+# '--disable-dependency-tracking' configure-time option is necessary so
+# Make doesn't check for an existing 'make' implementation (recall that we
+# aren't assuming any 'make' on the host).
 progname="make"
 progname_tex="GNU Make"
-url=http://akhlaghi.org/src
+url=$(awk '/^'$progname'-url/{print $3}' $urlfile)
 version=$(awk '/^'$progname'-version/{print $3}' $versionsfile)
 tarball=$progname-$version.tar.lz
 download_tarball
-build_program
+build_program --disable-dependency-tracking
 
 
 
@@ -206,7 +247,7 @@ build_program
 # (which builds GNU Bash).
 progname="dash"
 progname_tex="Dash"
-url=http://akhlaghi.org/src
+url=$(awk '/^'$progname'-url/{print $3}' $urlfile)
 version=$(awk '/^'$progname'-version/{print $3}' $versionsfile)
 tarball=$progname-$version.tar.lz
 download_tarball
@@ -235,7 +276,7 @@ fi
 # many simultaneous download commands are called.
 progname="flock"
 progname_tex="Discoteq flock"
-url=http://akhlaghi.org/src
+url=$(awk '/^'$progname'-url/{print $3}' $urlfile)
 version=$(awk '/^'$progname'-version/{print $3}' $versionsfile)
 tarball=$progname-$version.tar.lz
 download_tarball

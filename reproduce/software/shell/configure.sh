@@ -1280,6 +1280,48 @@ fi
 
 
 
+# Find Zenodo URL for software downloading
+# ----------------------------------------
+#
+# All free-software source tarballs that are potentially used in Maneage
+# are also archived in Zenodo with a certain concept-DOI. A concept-DOI is
+# a Zenodo terminology, meaning a fixed DOI of the project (that can have
+# many sub-DOIs for different versions). By default, the concept-DOI points
+# to the most recently uploaded version. However, the concept-DOI itself is
+# not directly usable for downloading files. The concept-DOI will just take
+# us to the top webpage of the most recent version of the upload.
+#
+# The problem is that as more software are added (as new Zenodo versions),
+# the most recent Zenodo-URL that the concept-DOI points to, also
+# changes. The most reliable solution was found to be the tiny script below
+# which will download the DOI-resolved webpage, and extract the Zenodo-URL
+# of the most recent version from there (using the 'coreutils' tarball as
+# an example, the directory part of the URL for all the other software are
+# the same).
+user_backup_urls=""
+zenodocheck=.build/software/zenodo-check.html
+if $downloader $zenodocheck https://doi.org/10.5281/zenodo.3883409; then
+    zenodourl=$(sed -n -e'/coreutils/p' $zenodocheck \
+                    | sed -n -e'/http/p' \
+                    | tr ' ' '\n' \
+                    | grep http \
+                    | sed -e 's/href="//' -e 's|/coreutils| |' \
+                    | awk 'NR==1{print $1}')
+else
+    zenodourl=""
+fi
+rm -f $zenodocheck
+
+# Add the Zenodo URL to the user's given back software URLs. Since the user
+# can specify 'user_backup_urls' (not yet implemented as an option in
+# './project'), we'll give preference to their specified servers, then add
+# the Zenodo URL afterwards.
+user_backup_urls="$user_backup_urls $zenodourl"
+
+
+
+
+
 # Build core tools for project
 # ----------------------------
 #
@@ -1288,7 +1330,7 @@ fi
 # (minimal Bash-like shell) and Flock (to lock files and enable serial
 # download).
 ./reproduce/software/shell/pre-make-build.sh \
-    "$bdir" "$ddir" "$downloader"
+    "$bdir" "$ddir" "$downloader" "$user_backup_urls"
 
 
 
@@ -1302,6 +1344,7 @@ fi
 # tools, but we have to be very portable (and use minimal features in all).
 echo; echo "Building necessary software (if necessary)..."
 .local/bin/make -k -f reproduce/software/make/basic.mk \
+     user_backup_urls="$user_backup_urls" \
      sys_library_path=$sys_library_path \
      rpath_command=$rpath_command \
      static_build=$static_build \
@@ -1323,20 +1366,22 @@ echo; echo "Building necessary software (if necessary)..."
 # script. Bash and Make were the tools we need to run Makefiles, so we had
 # to build them in this script. But after this, we can rely on Makefiles.
 if [ $jobs = 0 ]; then
-    numthreads=$($instdir/bin/nproc --all)
+    numthreads=$(.local/bin/nproc --all)
 else
     numthreads=$jobs
 fi
 .local/bin/env -i HOME=$bdir \
-    .local/bin/make -k -f reproduce/software/make/high-level.mk \
-                    sys_library_path=$sys_library_path \
-                    rpath_command=$rpath_command \
-                    static_build=$static_build \
-                    numthreads=$numthreads \
-                    on_mac_os=$on_mac_os \
-                    sys_cpath=$sys_cpath \
-                    host_cc=$host_cc \
-                    -j$numthreads
+     .local/bin/make -k -f reproduce/software/make/high-level.mk \
+          user_backup_urls="$user_backup_urls" \
+          sys_library_path=$sys_library_path \
+          rpath_command=$rpath_command \
+          all_highlevel=$all_highlevel \
+          static_build=$static_build \
+          numthreads=$numthreads \
+          on_mac_os=$on_mac_os \
+          sys_cpath=$sys_cpath \
+          host_cc=$host_cc \
+          -j$numthreads
 
 
 
