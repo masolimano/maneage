@@ -1387,26 +1387,27 @@ prepare_name_version ()
     fi
 }
 
+# Import the context/sentences for placing between the list of software
+# names during their acknowledgment.
+. $cdir/software_acknowledge_context.sh
+
 # Report the different software in separate contexts (separating Python and
 # TeX packages from the C/C++ programs and libraries).
 proglibs=$(prepare_name_version $verdir/proglib/*)
 pymodules=$(prepare_name_version $verdir/python/*)
 texpkg=$(prepare_name_version $verdir/tex/texlive)
 
-# Write them as one paragraph for LaTeX.
+# Acknowledge these software packages in a LaTeX paragraph.
 pkgver=$mtexdir/dependencies.tex
-.local/bin/echo "This research was done with the following free" > $pkgver
-.local/bin/echo "software programs and libraries: $proglibs."   >> $pkgver
+
+# Add the text to the ${pkgver} file.
+.local/bin/echo "$thank_software_introduce " > $pkgver
+.local/bin/echo "$thank_progs_libs $proglibs. "   >> $pkgver
 if [ x"$pymodules" != x ]; then
-    .local/bin/echo "Within Python, the following modules"      >> $pkgver
-    echo "were used: $pymodules."                               >> $pkgver
+    .local/bin/echo "$thank_python $pymodules. "   >> $pkgver
 fi
-.local/bin/echo "The \LaTeX{} source of the paper was compiled" >> $pkgver
-.local/bin/echo "to make the PDF using the following packages:" >> $pkgver
-.local/bin/echo "$texpkg. We are very grateful to all their"    >> $pkgver
-.local/bin/echo "creators for freely providing this necessary"  >> $pkgver
-.local/bin/echo "infrastructure. This research (and many "      >> $pkgver
-.local/bin/echo "others) would not be possible without them."   >> $pkgver
+.local/bin/echo "$thank_latex $texpkg. " >> $pkgver
+.local/bin/echo "$thank_software_conclude" >> $pkgver
 
 # Prepare the BibTeX entries for the used software (if there are any).
 hasentry=0
