@@ -782,10 +782,6 @@ if [ x"$input_dir" = x ]; then
 else
     indir=$input_dir
 fi
-wfpc2name=$(awk '!/^#/ && $1=="WFPC2IMAGE" {print $3}' $adir/INPUTS.conf)
-wfpc2md5=$(awk  '!/^#/ && $1=="WFPC2MD5"   {print $3}' $adir/INPUTS.conf)
-wfpc2size=$(awk '!/^#/ && $1=="WFPC2SIZE"  {print $3}' $adir/INPUTS.conf)
-wfpc2url=$(awk  '!/^#/ && $1=="WFPC2URL"   {print $3}' $adir/INPUTS.conf)
 if [ $rewritepconfig = yes ] && [ x"$input_dir" = x ]; then
     cat <<EOF
 
@@ -793,26 +789,24 @@ if [ $rewritepconfig = yes ] && [ x"$input_dir" = x ]; then
 (OPTIONAL) Input dataset directory
 ----------------------------------
 
-This project needs the dataset(s) listed below. If you already have them,
-please specify the directory hosting them on this system. If you don't,
-they will be downloaded automatically. Each file is shown with its total
-volume and its 128-bit MD5 checksum in parenthesis.
+This project needs the dataset(s) listed in the following file:
 
-  $wfpc2name ($wfpc2size, $wfpc2md5):
-    A 100x100 Hubble Space Telescope WFPC II image used in the FITS
-    standard webpage as a demonstration of this file format.
-    URL: $wfpc2url/$wfpc2name
+      reproduce/analysis/config/INPUTS.conf
 
-NOTE I: This directory, or the datasets above, are optional. If it doesn't
-exist, the files will be downloaded in the build directory and used.
+If you already have a copy of them on this system, please specify the
+directory hosting them on this system. If they aren't present, they will be
+downloaded automatically when necessary.
 
-NOTE II: This directory (if given) will only be read, nothing will be
-written into it, so no writing permissions are necessary.
+NOTE I: This directory is optional. If not given, or if the files can't be
+found inside it, any necessary file will be downloaded directly in the
+build directory and used.
+
+NOTE II: If a directory is given, it will be used as read-only. Nothing
+will be written into it, so no writing permissions are necessary.
 
 TIP: If you have these files in multiple directories on your system and
-don't want to download them or make duplicates, you can create symbolic
-links to them and put those symbolic links in the given top-level
-directory.
+don't want to make duplicates, you can create symbolic links to them and
+put those symbolic links in the given top-level directory.
 
 EOF
     read -p"(OPTIONAL) Input datasets directory ($indir): " inindir
