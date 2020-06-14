@@ -569,9 +569,13 @@ cat <<EOF
 Project's local configuration
 -----------------------------
 
-Local configuration includes things like top-level directories, or
-processing steps. It is STRONGLY recommended to read the comments, and set
-the best values for your system (where necessary).
+Below, some basic local settings will be requested to start building
+Maneage on this system (if they haven't been specified on the
+command-line). This includes the top-level directories that Maneage will
+use on your system. Most are only optional and you can simply press ENTER,
+without giving any value (in this case, Maneage will download the necessary
+components from pre-defined webpages). It is STRONGLY recommended to read
+the description above each question before answering it.
 
 EOF
 
