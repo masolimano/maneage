@@ -100,6 +100,13 @@ $(texbdir)/paper.bbl: tex/src/references.tex $(mtexdir)/dependencies-bib.tex \
 	  p=$$(pwd)
 	  export TEXINPUTS=$$p:
 	  cd $(texbdir);
+
+          # The pdflatex option '-shell-escape' is "normally disallowed for
+          # security reasons" according to the `info pdflatex' manual, but
+          # is enabled here in order to allow the use of PGFPlots. If you
+          # do not use PGFPlots, then you should remove the `-shell-escape'
+          # option for better security. See
+          # https://savannah.nongnu.org/task/?15694 for details.
 	  pdflatex -shell-escape -halt-on-error $$p/paper.tex
 	  biber paper
 
@@ -127,6 +134,8 @@ paper.pdf: $(mtexdir)/project.tex paper.tex $(texbdir)/paper.bbl
 	  p=$$(pwd)
 	  export TEXINPUTS=$$p:
 	  cd $(texbdir)
+          # See above for a warning and brief discussion on the the
+          # pdflatex option `-shell-escape'.
 	  pdflatex -shell-escape -halt-on-error $$p/paper.tex
 
           # Come back to the top project directory and copy the built PDF
