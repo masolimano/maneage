@@ -712,7 +712,14 @@ EOF
     do
         # Ask the user (if not already set on the command-line).
         if [ x"$build_dir" = x ]; then
-            read -p"Please enter the top build directory: " build_dir
+            if read -p"Please enter the top build directory: " build_dir; then
+                just_a_place_holder_to_avoid_not_equal_test=1;
+            else
+                echo "ERROR: shell is in non-interactive-mode and no build directory specified."
+                echo "The build directory (described above) is mandatory, configuration can't continue."
+                echo "Please use '--build-dir' to specify a build directory non-interactively."
+                exit 1
+            fi
         fi
 
         # If it exists, see if we can write in it. If not, try making it.
@@ -782,6 +789,7 @@ if [ x"$input_dir" = x ]; then
 else
     indir=$input_dir
 fi
+noninteractive_sleep=2
 if [ $rewritepconfig = yes ] && [ x"$input_dir" = x ]; then
     cat <<EOF
 
@@ -809,7 +817,17 @@ don't want to make duplicates, you can create symbolic links to them and
 put those symbolic links in the given top-level directory.
 
 EOF
-    read -p"(OPTIONAL) Input datasets directory ($indir): " inindir
+    # Read the input directory if interactive mode is enabled.
+    if read -p"(OPTIONAL) Input datasets directory ($indir): " inindir; then
+        just_a_place_holder_to_avoid_not_equal_test=1;
+    else
+        echo "WARNING: interactive-mode seems to be disabled!"
+        echo "If you have a local copy of the inputs, use '--input-dir'."
+        echo "... project configuration will continue in $noninteractive_sleep sec ..."
+        sleep $noninteractive_sleep
+    fi
+
+    # In case an input-directory is given, write it in 'indir'.
     if [ x$inindir != x ]; then
         indir=$inindir
         echo " -- Using '$indir'"
@@ -836,15 +854,24 @@ if [ $rewritepconfig = yes ] && [ x"$software_dir" = x ]; then
 
 To ensure an identical build environment, the project will use its own
 build of the programs it needs. Therefore the tarball of the relevant
-programs are necessary. If a tarball isn't present in the specified
-directory, *IT WILL BE DOWNLOADED* automatically.
+programs are necessary.
 
 If you don't specify any directory here, or it doesn't contain the tarball
-of a dependency, it is necessary to have an internet connection. The
+of a dependency, it is necessary to have an internet connection because the
 project will download the tarballs it needs automatically.
 
 EOF
-    read -p"(OPTIONAL) Directory of dependency tarballs ($ddir): " tmpddir
+    # Read the software directory if interactive mode is enabled.
+    if read -p"(OPTIONAL) Directory of dependency tarballs ($ddir): " tmpddir; then
+        just_a_place_holder_to_avoid_not_equal_test=1;
+    else
+        echo "WARNING: interactive-mode seems to be disabled!"
+        echo "If you have a local copy of the software source, use '--software-dir'."
+        echo "... project configuration will continue in $noninteractive_sleep sec ..."
+        sleep $noninteractive_sleep
+    fi
+
+    # If given, write the software directory.
     if [ x"$tmpddir" != x ]; then
         ddir=$tmpddir
         echo " -- Using '$ddir'"
