@@ -805,7 +805,7 @@ $(idir)/etc:; mkdir $@
 # Note: cert.pm has to be AFTER the tarball, otherwise the build script
 # will try to unpack cert.pm and crash (it unpacks the first dependency
 # under `tdir').
-$(ibidir)/openssl: $(ibidir)/tar \
+$(ibidir)/openssl: $(ibidir)/perl \
                    $(tdir)/openssl-$(openssl-version).tar.gz \
                    $(tdir)/cert.pem \
                    | $(idir)/etc
