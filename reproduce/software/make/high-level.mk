@@ -1224,9 +1224,9 @@ $(ibidir)/xlsxio: $(ibidir)/cmake \
 	if [ x$(on_mac_os) = xyes ]; then \
 	  export CC=clang; \
 	  export CXX=clang++; \
-	  export LDFLAGS="-lbz2"; \
+	  export LDFLAGS="$$LDFLAGS -lbz2"; \
 	else \
-	  export LDFLAGS="-lbz2 -lbsd"; \
+	  export LDFLAGS="$$LDFLAGS -lbz2 -lbsd"; \
 	fi; \
 	$(call cbuild, xlsxio-$(xlsxio-version), static, \
 	       -DMINIZIP_DIR:PATH=$(idir) \
