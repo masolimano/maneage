@@ -1100,7 +1100,7 @@ ln -s $instdir .local
 ln -s $texdir tex/build
 ln -s $tikzdir tex/tikz
 # --------- Delete for no Gnuastro ---------
-ln -s $topdir/reproduce/software/config/gnuastro .gnuastro
+ln -s $topdir/reproduce/analysis/config/gnuastro .gnuastro
 # ------------------------------------------
 
 
