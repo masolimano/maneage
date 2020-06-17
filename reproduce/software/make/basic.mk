@@ -587,8 +587,12 @@ $(ibidir)/readline: $(ibidir)/ncurses \
 
 $(ibidir)/patchelf: $(ibidir)/tar \
                     $(tdir)/patchelf-$(patchelf-version).tar.gz
-	$(call gbuild, patchelf-$(patchelf-version)) \
-	&& echo "PatchELF $(patchelf-version)" > $@
+	if [ x$(on_mac_os) = yes ]; then
+	  echo "" > $@
+	else
+	  $(call gbuild, patchelf-$(patchelf-version)) \
+	  && echo "PatchELF $(patchelf-version)" > $@
+	fi
 
 
 # IMPORTANT: Even though we have enabled `rpath', Bash doesn't write the
@@ -620,14 +624,8 @@ $(ibidir)/patchelf: $(ibidir)/tar \
 #   $ tar cf bash-5.0.$number.tar bash-5.0.$number
 #   $ lzip --best bash-5.0.$number.tar
 #   $ rm -rf bash50-* bash-5.0.$number bash-5.0.tar.gz
-
-ifeq ($(on_mac_os),yes)
-needpatchelf =
-else
-needpatchelf = $(ibidir)/patchelf
-endif
-$(ibidir)/bash: $(needpatchelf) \
-                $(ibidir)/gettext \
+$(ibidir)/bash: $(ibidir)/gettext \
+                $(ibidir)/patchelf \
                 $(ibidir)/readline \
                 $(tdir)/bash-$(bash-version).tar.lz
 
@@ -1040,8 +1038,12 @@ $(ibidir)/grep: $(ibidir)/coreutils \
 
 $(ibidir)/libbsd: $(ibidir)/coreutils \
                   $(tdir)/libbsd-$(libbsd-version).tar.xz
-	$(call gbuild, libbsd-$(libbsd-version), static,,V=1) \
-	&& echo "Libbsd $(libbsd-version)" > $@
+	if [ x$(on_mac_os) = yes ]; then
+	  echo "" > $@
+	else
+	  $(call gbuild, libbsd-$(libbsd-version), static,,V=1) \
+	  && echo "Libbsd $(libbsd-version)" > $@
+	fi
 
 # We need to apply a patch to the M4 source to be used properly on macOS.
 # The patch [1] was inspired by Homebrew's build instructions [1].
@@ -1087,15 +1089,10 @@ $(ibidir)/m4: $(ibidir)/texinfo \
 #
 # Libbsd is not necessary on macOS systems, because macOS is already a
 # BSD-based distribution. But on GNU/Linux systems, it is necessary.
-ifeq ($(on_mac_os),yes)
-needlibbsd =
-else
-needlibbsd = $(ibidir)/libbsd
-endif
-$(ibidir)/metastore: $(needlibbsd) \
-                     $(ibidir)/sed \
+$(ibidir)/metastore: $(ibidir)/sed \
                      $(ibidir)/git \
                      $(ibidir)/gawk \
+                     $(ibidir)/libbsd \
                      $(ibidir)/coreutils \
                      $(tdir)/metastore-$(metastore-version).tar.gz
 
@@ -1212,33 +1209,23 @@ $(ibidir)/which: $(ibidir)/coreutils \
 
 # GCC and its prerequisites
 # -------------------------
-
 $(ibidir)/isl: $(ibidir)/gmp \
                $(tdir)/isl-$(isl-version).tar.bz2
-	$(call gbuild, isl-$(isl-version), static, , V=1)  \
-	&& echo "GNU Integer Set Library $(isl-version)" > $@
+	if [ x$(on_mac_os) = xyes ]; then
+	  echo "" > $@
+	else
+	  $(call gbuild, isl-$(isl-version), static, , V=1)  \
+	  && echo "GNU Integer Set Library $(isl-version)" > $@
+	fi
 
 $(ibidir)/mpc: $(ibidir)/mpfr \
                $(tdir)/mpc-$(mpc-version).tar.gz
-	$(call gbuild, mpc-$(mpc-version), static, , , make check)  \
-	&& echo "GNU Multiple Precision Complex library" > $@
-
-# Binutils' assembler (`as') and linker (`ld') will conflict with other
-# compilers. So until then, on Mac systems we'll use the host opertating
-# system's Binutils equivalents by just making links.
-
-ifeq ($(host_cc),1)
-gcc-prerequisites =
-else
-gcc-prerequisites = $(ibidir)/isl \
-                    $(ibidir)/mpc
-endif
-
-ifeq ($(on_mac_os),yes)
-binutils-tarball =
-else
-binutils-tarball = $(tdir)/binutils-$(binutils-version).tar.lz
-endif
+	if [ x$(on_mac_os) = xyes ]; then
+	  echo "" > $@
+	else
+	  $(call gbuild, mpc-$(mpc-version), static, , , make check)  \
+	  && echo "GNU Multiple Precision Complex library" > $@
+	fi
 
 # The installation of Binutils can cause problems during the build of other
 # programs (http://savannah.nongnu.org/bugs/?56294). Therefore, we'll set
@@ -1254,19 +1241,23 @@ endif
 # later, when we build the GNU C Library in the project, we should remove
 # this step.
 $(ibidir)/binutils: $(ibidir)/sed \
+                    $(ibidir)/isl \
+                    $(ibidir)/mpc \
                     $(ibidir)/wget \
                     $(ibidir)/grep \
                     $(ibidir)/file \
                     $(ibidir)/gawk \
                     $(ibidir)/which \
                     $(ibidir)/glibtool \
-                    $(binutils-tarball) \
                     $(ibidir)/metastore \
                     $(ibidir)/findutils \
                     $(ibidir)/diffutils \
                     $(ibidir)/coreutils \
-                    $(gcc-prerequisites)
+                    $(tdir)/binutils-$(binutils-version).tar.lz
 
+        # Binutils' assembler (`as') and linker (`ld') will conflict with
+        # other compilers. So until then, on Mac systems we'll use the host
+        # opertating system's Binutils equivalents by just making links.
 	if [ x$(on_mac_os) = xyes ]; then \
 	  $(call makelink,as); \
 	  $(call makelink,ar); \
@@ -1301,13 +1292,8 @@ $(ibidir)/binutils: $(ibidir)/sed \
 #
 # We are currently having problems installing GCC on macOS, so for the time
 # being, if the project is being run on a macOS, we'll just set a link.
-ifeq ($(host_cc),1)
-gcc-tarball =
-else
-gcc-tarball = $(tdir)/gcc-$(gcc-version).tar.xz
-endif
-$(ibidir)/gcc: $(gcc-tarball) \
-               $(ibidir)/binutils
+$(ibidir)/gcc: $(ibidir)/binutils \
+               $(tdir)/gcc-$(gcc-version).tar.xz
 
         # GCC builds is own libraries in '$(idir)/lib64'. But all other
         # libraries are in '$(idir)/lib'. Since this project is only for a

@@ -1398,12 +1398,6 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf \
 # don't currently build biber from source. So we can't choose the library
 # version. But we have the source and build instructions for the `nsl'
 # library. When we later build biber from source, we can easily use them.
-#
-#ifeq ($(on_mac_os),yes)
-#forbiber =
-#else
-#forbiber = $(ibidir)/libnsl
-#endif
 $(itidir)/texlive: reproduce/software/config/texlive-packages.conf \
                    $(itidir)/texlive-ready-tlmgr \
                    $(forbiber)
