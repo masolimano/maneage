@@ -92,6 +92,9 @@ Project 'make' special features.
                            uploaded to servers like 'arXiv.org'.
   ./project make dist-lzip Similar to 'dist', but compress to '.tar.lz'.
   ./project make dist-zip  Similar to 'dist', but compress to '.zip'.
+  ./project make dist-software  Build a .tar.gz tarball containing all
+                                software source tarballs necessary for the
+                                project.
 
 With the options below you can modify the default behavior.
 Configure options:

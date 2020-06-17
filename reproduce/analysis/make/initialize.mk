@@ -380,19 +380,15 @@ dist-zip: $(project-package-contents)
 # Package the software tarballs.
 dist-software:
 	curdir=$$(pwd)
+	dirname=software-$(project-commit-hash)
 	cd $(BDIR)
-	if [ -d .git ]; then
-	  dirname="software-$$(git describe --dirty --always --long)"
-	else
-	  dirname="software-NOGIT";
-	fi
 	mkdir $$dirname
 	cp -L software/tarballs/* $$dirname/
 	tar -cf $$dirname.tar $$dirname
 	gzip -f --best $$dirname.tar
 	rm -rf $$dirname
 	cd $$curdir
-	mv $(BDIR)/$$dir.tar.gz ./
+	mv $(BDIR)/$$dirname.tar.gz ./
 
 
 
