@@ -431,6 +431,7 @@ $(ipydir)/mpmath-$(mpmath-version): $(ipydir)/setuptools-$(setuptools-version)
 
 $(ipydir)/numpy-$(numpy-version): \
                 $(ibidir)/unzip-$(unzip-version) \
+                $(ipydir)/cython-$(cython-version) \
                 $(ibidir)/openblas-$(openblas-version) \
                 $(ipydir)/setuptools-$(setuptools-version)
 	tarball=numpy-$(numpy-version).zip
@@ -528,7 +529,9 @@ $(ipydir)/requests-$(requests-version): $(ipydir)/idna-$(idna-version) \
 	$(call pybuild, tar xf, requests-$(requests-version), , \
 	                Requests $(requests-version))
 
-$(ipydir)/scipy-$(scipy-version): $(ipydir)/numpy-$(numpy-version)
+$(ipydir)/scipy-$(scipy-version): \
+                  $(ipydir)/numpy-$(numpy-version) \
+                  $(ipydir)/pybind11-$(pybind11-version)
 	tarball=scipy-$(scipy-version).tar.gz
 	$(call import-source, $(scipy-url), $(scipy-checksum))
 	if [ x$(on_mac_os) = xyes ]; then

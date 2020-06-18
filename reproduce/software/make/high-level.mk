@@ -763,8 +763,8 @@ $(ibidir)/libgit2-$(libgit2-version): $(ibidir)/cmake-$(cmake-version)
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF \
 	              -DTHREADSAFE=ON -DUSE_ICONV=OFF )
 	if [ x$(on_mac_os) = xyes ]; then
-	  install_name_tool -id $(ildir)/libgit2.28.dylib \
-	                        $(ildir)/libgit2.28.dylib
+	  install_name_tool -id $(ildir)/libgit2.1.0.dylib \
+	                        $(ildir)/libgit2.1.0.dylib
 	fi
 	echo "Libgit2 $(libgit2-version)" > $@
 
@@ -785,8 +785,8 @@ $(ibidir)/wcslib-$(wcslib-version): $(ibidir)/cfitsio-$(cfitsio-version)
                        --with-cfitsioinc=$(idir)/include \
                        --without-pgplot $$fortranopt)
 	if [ x$(on_mac_os) = xyes ]; then
-	  install_name_tool -id $(ildir)/libwcs.6.4.dylib \
-	                        $(ildir)/libwcs.6.4.dylib
+	  install_name_tool -id $(ildir)/libwcs.7.3.dylib \
+	                        $(ildir)/libwcs.7.3.dylib
 	fi
 	echo "WCSLIB $(wcslib-version)" > $@
 
@@ -853,7 +853,7 @@ $(ibidir)/automake-$(automake-version): $(ibidir)/autoconf-$(autoconf-version)
 	echo "GNU Automake $(automake-version)" > $@
 
 $(ibidir)/bison-$(bison-version): $(ibidir)/help2man-$(help2man-version)
-	tarball=bison-$(bison-version).tar.xz
+	tarball=bison-$(bison-version).tar.lz
 	$(call import-source, $(bison-url), $(bison-checksum))
 	$(call gbuild, bison-$(bison-version), static, ,V=1 -j$(numthreads))
 	echo "GNU Bison $(bison-version)" > $@
@@ -916,6 +916,7 @@ $(ibidir)/flex-$(flex-version): $(ibidir)/bison-$(bison-version)
 
 $(ibidir)/gdb-$(gdb-version): $(ibidir)/python-$(python-version)
 	tarball=gdb-$(gdb-version).tar.gz
+	export configure_in_different_directory=1;
 	$(call import-source, $(gdb-url), $(gdb-checksum))
 	$(call gbuild, gdb-$(gdb-version),,,V=1 -j$(numthreads))
 	echo "GNU Project Debugger (GDB) $(gdb-version)" > $@
@@ -1096,10 +1097,17 @@ $(ibidir)/minizip-$(minizip-version): $(ibidir)/automake-$(automake-version)
 	rm -rf $$unpackdir
 	echo "Minizip $(minizip-version)" > $@
 
+# The Astromatic software packages (including missfits, sextractor, swarp
+# and others) need the '-fcommon' flag to compile properly on GCC 10 and
+# after. Previous to GCC 10, it was the default, but from GCC 10, the
+# default is '-fno-common'. This is known by the author (as SExtractor
+# issue 12: https://github.com/astromatic/sextractor/issues/12) and will
+# hopefully be fixed in the future.
 $(ibidir)/missfits-$(missfits-version):
 	tarball=missfits-$(missfits-version).tar.gz
 	$(call import-source, $(missfits-url), $(missfits-checksum))
-	$(call gbuild, missfits-$(missfits-version), static)
+	$(call gbuild, missfits-$(missfits-version), static, \
+	        CFLAGS="-fcommon")
 	cp $(dtexdir)/missfits.tex $(ictdir)/
 	echo "MissFITS $(missfits-version) \citep{missfits}" > $@
 
@@ -1163,11 +1171,25 @@ $(ibidir)/R-$(R-version): \
             $(ibidir)/libpaper-$(libpaper-version)
 	tarball=R-$(R-version).tar.gz
 	$(call import-source, $(R-url), $(R-checksum))
+	cd $(ddir)
+	tar xf $(tdir)/$$tarball
+	cd R-$(R-version)
 
+        # We need to manually remove the lines with '~autodetect~', they
+        # cause the configure script to crash in version 4.0.2. They are
+        # used in relation to Java, and we don't use Java anyway.
+	sed -i -e '/\~autodetect\~/ s/^/#/g' configure
 	export R_SHELL=$(SHELL)
-	$(call gbuild, R-$(R-version), static, \
-                       --without-x --with-readline \
-	               --disable-openmp, -j$(numthreads))
+	./configure --prefix=$(idir) \
+	            --without-x \
+	            --with-pcre1 \
+	            --disable-java \
+	            --with-readline \
+	            --disable-openmp
+	make -j$(numthreads)
+	make install
+	cd ..
+	rm -rf R-$(R-version)
 	echo "R $(R-version)" > $@
 
 # SCAMP documentation says ATLAS is a mandatory prerequisite for using
@@ -1181,7 +1203,10 @@ $(ibidir)/scamp-$(scamp-version): \
                 $(ibidir)/cdsclient-$(cdsclient-version)
 	tarball=scamp-$(scamp-version).tar.lz
 	$(call import-source, $(scamp-url), $(scamp-checksum))
+
+        # See comment above 'missfits' for '-fcommon'.
 	$(call gbuild, scamp-$(scamp-version), static, \
+	           CFLAGS="-fcommon" \
                    --enable-threads \
                    --enable-openblas \
                    --enable-plplot=no \
@@ -1209,13 +1234,20 @@ $(ibidir)/scons-$(scons-version): $(ibidir)/python-$(python-version)
 # libraries. But we can override this issue since we have Openblas
 # installed, it is just necessary to explicity tell sextractor to use it in
 # the configuration step.
+#
+# The '-fcommon' is a necessary C compilation flag for GCC 10 and above. It
+# is necessary for astromatic libraries, otherwise their build will crash.
 $(ibidir)/sextractor-$(sextractor-version): \
                      $(ibidir)/fftw-$(fftw-version) \
                      $(ibidir)/openblas-$(openblas-version)
 	tarball=sextractor-$(sextractor-version).tar.lz
 	$(call import-source, $(sextractor-url), $(sextractor-checksum))
+
+        # See comment above 'missfits' for '-fcommon'.
 	$(call gbuild, sextractor-$(sextractor-version), static, \
-	               --enable-threads --enable-openblas \
+	               CFLAGS="-fcommon" \
+	               --enable-threads \
+	               --enable-openblas \
 	               --with-openblas-libdir=$(ildir) \
 	               --with-openblas-incdir=$(idir)/include)
 	ln -fs $(ibdir)/sex $(ibdir)/sextractor
@@ -1225,7 +1257,10 @@ $(ibidir)/sextractor-$(sextractor-version): \
 $(ibidir)/swarp-$(swarp-version): $(ibidir)/fftw-$(fftw-version)
 	tarball=swarp-$(swarp-version).tar.gz
 	$(call import-source, $(swarp-url), $(swarp-checksum))
+
+        # See comment above 'missfits' for '-fcommon'.
 	$(call gbuild, swarp-$(swarp-version), static, \
+	               CFLAGS="-fcommon" \
                        --enable-threads)
 	cp $(dtexdir)/swarp.tex $(ictdir)/
 	echo "SWarp $(swarp-version) \citep{swarp}" > $@

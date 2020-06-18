@@ -170,11 +170,21 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(2)" = xstatic ]; then \
 	     \
 	 echo; echo "Using '$$confscript' to configure:"; echo; \
 	 echo "$$confscript $(3) $$configop"; echo; \
-	 $$confscript $(3) $$configop; \
-	 make "$$shellop" $(4); \
-	 $$check; \
-	 make "$$shellop" install $(7); \
-	 cd ..; \
+	 if [ x$$configure_in_different_directory = x1 ]; then \
+	   mkdir build; \
+	   cd build; \
+	   ../$$confscript $(3) $$configop; \
+	   make "$$shellop" $(4); \
+	   $$check; \
+	   make "$$shellop" install $(7); \
+	   cd ../..; \
+	 else \
+	   $$confscript $(3) $$configop; \
+	   make "$$shellop" $(4); \
+	   $$check; \
+	   make "$$shellop" install $(7); \
+	   cd ..; \
+	 fi; \
 	 rm -rf $(1)
 
 

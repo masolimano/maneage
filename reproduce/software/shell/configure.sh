@@ -58,9 +58,6 @@ ptconf=$cdir/LOCAL_tmp.conf
 poconf=$cdir/LOCAL_old.conf
 depverfile=$cdir/versions.conf
 depshafile=$cdir/checksums.conf
-# --------- Delete for no Gnuastro ---------
-glconf=$adir/gnuastro/gnuastro-local.conf
-# ------------------------------------------
 
 
 
@@ -634,12 +631,10 @@ EOF
 # (for example the user might have ran `./project configure' by mistake).
 printnotice=yes
 rewritepconfig=yes
-rewritegconfig=yes
-if [ -f $pconf ] || [ -f $glconf ]; then
+if [ -f $pconf ]; then
     if [ $existing_conf = 1 ]; then
         printnotice=no
         if [ -f $pconf  ]; then rewritepconfig=no; fi
-        if [ -f $glconf ]; then rewritegconfig=no; fi
     fi
 fi
 
@@ -1010,44 +1005,6 @@ fi
 
 
 
-# --------- Delete for no Gnuastro ---------
-# Get the version of Gnuastro that must be used.
-gversion=$(awk '$1=="gnuastro-version" {print $NF}' $depverfile)
-
-# Gnuastro's local configuration settings
-if [ $rewritegconfig = yes ]; then
-    create_file_with_notice $glconf
-    echo "# Minimum number of bytes to use HDD/SSD instead of RAM." >> $glconf
-    echo " minmapsize $minmapsize"                                  >> $glconf
-    echo                                                            >> $glconf
-    echo "# Version of Gnuastro that must be used."                 >> $glconf
-    echo " onlyversion $gversion"                                   >> $glconf
-else
-    ingversion=$(awk '$1=="onlyversion" {print $NF}' $glconf)
-    if [ x$ingversion != x$gversion ]; then
-           cat <<EOF
-______________________________________________________
-!!!!!!!!!!!!!!!!!!CONFIGURATION ERROR!!!!!!!!!!!!!!!!!
-
-Gnuastro's version in '$glconf' ($ingversion) doesn't match the tarball
-version that this project was designed to use in '$depverfile'
-($gversion). Please re-run after removing the former file:
-
-   $ rm $glconf
-   $ ./project configure -e
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-EOF
-        exit 1
-    fi
-fi
-# ------------------------------------------
-
-
-
-
-
 # Delete final configuration target
 # ---------------------------------
 #
@@ -1148,12 +1105,15 @@ fi
 # Note: if we don't delete them first, it can happen that an extra link
 # will be created in each directory that points to its parent. So to be
 # safe, we are deleting all the links on each re-configure of the project.
-rm -f .build .local .gnuastro
+rm -f .build .local
+
 ln -s $bdir .build
 ln -s $instdir .local
 ln -s $texdir tex/build
 ln -s $tikzdir tex/tikz
+
 # --------- Delete for no Gnuastro ---------
+rm -f .gnuastro
 ln -s $topdir/reproduce/analysis/config/gnuastro .gnuastro
 # ------------------------------------------
 

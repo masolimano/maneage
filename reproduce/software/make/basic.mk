@@ -183,6 +183,10 @@ $(ibdir) $(ildir):; mkdir $@
 $(ibidir)/low-level-links: $(ibidir)/grep-$(grep-version) \
                            | $(ibdir) $(ildir)
 
+        # Hardware specific
+	$(call makelink,lp)    # For printing, necessary for R.
+	$(call makelink,lpr)   # For printing, necessary for R.
+
         # Mac OS specific
 	$(call makelink,mig)
 	$(call makelink,xcrun)
@@ -922,7 +926,7 @@ $(ibidir)/gettext-$(gettext-version): \
                   $(ibidir)/ncurses-$(ncurses-version) \
                   $(ibidir)/libiconv-$(libiconv-version) \
                   $(ibidir)/libunistring-$(libunistring-version)
-	tarball=gettext-$(gettext-version).tar.xz
+	tarball=gettext-$(gettext-version).tar.lz
 	$(call import-source, $(gettext-url), $(gettext-checksum))
 	$(call gbuild, gettext-$(gettext-version), static,, \
 	               V=1 -j$(numthreads))
@@ -959,7 +963,7 @@ $(ibidir)/libtool-$(libtool-version): $(ibidir)/m4-$(m4-version)
 	$(call import-source, $(libtool-url), $(libtool-checksum))
 	$(call gbuild, libtool-$(libtool-version), static, \
                        --program-prefix=g, V=1 -j$(numthreads))
-	ln -s $(ibdir)/glibtoolize $(ibdir)/libtoolize
+	ln -sf $(ibdir)/glibtoolize $(ibdir)/libtoolize
 	echo "GNU Libtool $(libtool-version)" > $@
 
 $(ibidir)/grep-$(grep-version): $(ibidir)/coreutils-$(coreutils-version)
@@ -1211,6 +1215,7 @@ $(ibidir)/binutils-$(binutils-version): \
 	  $(call makelink,ld)
 	  $(call makelink,nm)
 	  $(call makelink,ps)
+	  $(call makelink,strip)
 	  $(call makelink,ranlib)
 	  echo "" > $@
 	else
@@ -1220,14 +1225,15 @@ $(ibidir)/binutils-$(binutils-version): \
 	                 --with-lib-path=$(sys_library_path), \
 	                 -j$(numthreads) )
 
-          # The `ld' linker of Binutils needs several `*crt*.o' file to
-          # run. On some systems these object files aren't installed in
-          # standard places. We defined `LIBRARY_PATH' and that fixed the
-          # problem for many systems. However, some software (for example
-          # ImageMagick) over-write `LIBRARY_PATH', therefore there is no
-          # other way than to put a link to these necessary files in our
-          # local build directory. IMPORTANT NOTE: later, when we build the
-          # GNU C Library in the project, we should remove this step.
+          # The `ld' linker of Binutils needs several `*crt*.o' files from
+          # the host's GNU C Library to run. On some systems these object
+          # files aren't installed in standard places. We defined
+          # `LIBRARY_PATH' and that fixed the problem for many
+          # systems. However, some software (for example ImageMagick)
+          # over-write `LIBRARY_PATH', therefore there is no other way than
+          # to put a link to these necessary files in our local build
+          # directory. IMPORTANT NOTE: later, when we build the GNU C
+          # Library in the project, we should remove this step.
 	  if ! [ x"$(sys_library_path)" = x ]; then
 	    for f in $(sys_library_path)/*crt*.o; do
 	      b=$$($(ibdir)/basename $$f)
@@ -1284,9 +1290,9 @@ $(ibidir)/gcc-$(gcc-version): $(ibidir)/binutils-$(binutils-version)
         # built/existing compilers in this project. Note that GCC also
         # installs several executables like this 'x86_64-pc-linux-gnu-gcc',
         # 'x86_64-pc-linux-gnu-gcc-ar' or 'x86_64-pc-linux-gnu-g++'.
+	rm -f $(ibdir)/*g++ $(ibdir)/cpp $(ibdir)/gfortran
 	rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*
 	rm -f $(ibdir)/*gcc* $(ibdir)/gcov* $(ibdir)/cc $(ibdir)/c++
-	rm -f $(ibdir)/*g++ $(ibdir)/cpp $(ibdir)/gfortran $(ibdir)/strip
 	rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*
 
         # GCC builds is own libraries in '$(idir)/lib64'. But all other
@@ -1315,7 +1321,6 @@ $(ibidir)/gcc-$(gcc-version): $(ibidir)/binutils-$(binutils-version)
           # having GNU CPP in the project build directory is known to cause
           # problems with 'libX11'.
 	  $(call makelink,gfortran)
-	  $(call makelink,strip,mandatory)
 	  if [ x$(on_mac_os) = xyes ]; then
 	    $(call makelink,clang)
 	    $(call makelink,clang++)
