@@ -587,7 +587,7 @@ $(ibidir)/readline: $(ibidir)/ncurses \
 
 $(ibidir)/patchelf: $(ibidir)/tar \
                     $(tdir)/patchelf-$(patchelf-version).tar.gz
-	if [ x$(on_mac_os) = yes ]; then
+	if [ x$(on_mac_os) = xyes ]; then
 	  echo "" > $@
 	else
 	  $(call gbuild, patchelf-$(patchelf-version)) \
@@ -1038,7 +1038,7 @@ $(ibidir)/grep: $(ibidir)/coreutils \
 
 $(ibidir)/libbsd: $(ibidir)/coreutils \
                   $(tdir)/libbsd-$(libbsd-version).tar.xz
-	if [ x$(on_mac_os) = yes ]; then
+	if [ x$(on_mac_os) = xyes ]; then
 	  echo "" > $@
 	else
 	  $(call gbuild, libbsd-$(libbsd-version), static,,V=1) \
@@ -1211,7 +1211,7 @@ $(ibidir)/which: $(ibidir)/coreutils \
 # -------------------------
 $(ibidir)/isl: $(ibidir)/gmp \
                $(tdir)/isl-$(isl-version).tar.bz2
-	if [ x$(on_mac_os) = xyes ]; then
+	if [ $(host_cc) = 1 ]; then
 	  echo "" > $@
 	else
 	  $(call gbuild, isl-$(isl-version), static, , V=1)  \
@@ -1220,7 +1220,7 @@ $(ibidir)/isl: $(ibidir)/gmp \
 
 $(ibidir)/mpc: $(ibidir)/mpfr \
                $(tdir)/mpc-$(mpc-version).tar.gz
-	if [ x$(on_mac_os) = xyes ]; then
+	if [ $(host_cc) = 1 ]; then
 	  echo "" > $@
 	else
 	  $(call gbuild, mpc-$(mpc-version), static, , , make check)  \
