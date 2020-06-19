@@ -242,6 +242,7 @@ clean: clean-mmap
 	rm -rf $(BDIR)/tex/macros/!(dependencies.tex|dependencies-bib.tex)
 	rm -rf $(BDIR)/!(software|tex) $(BDIR)/tex/!(macros|$(texbtopdir))
 	rm -rf $(BDIR)/tex/build/!(tikz) $(BDIR)/tex/build/tikz/*
+	rm -rf $(BDIR)/software/preparation-done.mk
 
 distclean: clean
         #  Without cleaning the Git hooks, we won't be able to easily
