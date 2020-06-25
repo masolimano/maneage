@@ -153,6 +153,38 @@ check_permission ()
 
 
 
+# Check if there is enough free space available in the build directory
+# --------------------------------------------------------------------
+#
+# Use this function to check if there is enough free space in a
+# directory. It is meant to be passed to the 'if' statement in the
+# shell. So if there is enough space, it returns 0 (which translates to
+# TRUE), otherwise, the funcion returns 1 (which translates to FALSE).
+#
+# Expects to be called with two arguments, the first is the threshold and
+# the second is the desired directory. The 'df' function checks the given
+# path to see where it is mounted on, and how much free space there is on
+# that partition (in units of 1024 bytes).
+#
+# synopsis:
+# $ free_space_warning <acceptable_threshold> <path-to-check>
+#
+# example:
+# To check if there is 5MB of space available in /path/to/check
+# call the command with arguments as shown below:
+# $ free_space_warning 5000 /path/to/check/free/space
+free_space_warning()
+{
+    fs_threshold=$1
+    fs_destpath=$2
+    return $(df $fs_destpath \
+                | awk 'FNR==2 {if($4>'$fs_threshold') print 1; \
+                               else                   print 0; }')
+}
+
+
+
+
 
 # Check for C/C++ compilers
 # -------------------------
@@ -729,14 +761,14 @@ EOF
                 bdir=$(absolute_dir $build_dir)
                 rm -rf $build_dir/$junkname
             else
-                echo " ** Can't write in '$build_dir'"; echo
+                echo " ** Can't write in '$build_dir'";
             fi
         else
             if mkdir $build_dir 2> /dev/null; then
                 instring="the newly created"
                 bdir=$(absolute_dir $build_dir)
             else
-                echo " ** Can't create '$build_dir'"; echo
+                echo " ** Can't create '$build_dir'";
             fi
         fi
 
@@ -759,8 +791,19 @@ EOF
 	# file permissions.
 	if ! [ x"$bdir" = x ]; then
             if ! $(check_permission $bdir); then
+                # Unable to handle permissions well
                 bdir=
                 echo " ** File permissions can't be modified in this directory"
+            else
+                # Able to handle permissions, now check for 5GB free space
+                # in the given partition (note that the number is in units
+                # of 1024 bytes). If this is not the case, print a warning.
+                if $(free_space_warning 5000000 $bdir); then
+                    echo " !! LESS THAN 5GB FREE SPACE IN: $bdir"
+                    echo " !! We recommend choosing another partition."
+                    echo " !! Build will continue in 5 seconds..."
+                    sleep 5
+                fi
             fi
         fi
 
