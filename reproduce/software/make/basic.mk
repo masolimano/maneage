@@ -191,9 +191,8 @@ $(ibidir)/low-level-links: $(ibidir)/coreutils-$(coreutils-version) \
         #   Libdl (for dynamic loading libraries at runtime)
         #   POSIX Threads library for multi-threaded programs.
 	for l in dl pthread; do
-	  rm -f $(ildir)/lib$$l*;
 	  if [ -f /usr/lib/lib$$l.a ]; then
-	    ln -s /usr/lib/lib$$l.* $(ildir)/
+	    ln -sf /usr/lib/lib$$l.* $(ildir)/
 	  fi
 	done
 

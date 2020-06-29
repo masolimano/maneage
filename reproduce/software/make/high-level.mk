@@ -70,10 +70,10 @@ ifeq ($(strip $(all_highlevel)),1)
   # we'll need to filter it out, then add it in the end: minizip (has same
   # version as zlib)
   #
-  # Packages that are installed in the same recipe as others. These need to
-  # be totally removed when testing all the builds (they will be built
-  # anyway).  lapack (installed with ATLAS)
-  targets-proglib := $(filter-out minizip-% lapack-%, \
+  # Packages that are installed in the same recipe as others shouldn't be
+  # included here because there is no explicit target for them: they will
+  # be built as part of the other package.
+  targets-proglib := $(filter-out minizip-% lapack-% ghostscript-fonts-%, \
       $(shell awk '/^# CLASS:PYTHON/{good=0} \
                    good==1 && !/^#/ && $$1 ~ /-version$$/ { \
                        printf("%s %s ", $$1, $$3)} \
@@ -126,14 +126,16 @@ export CCACHE_DISABLE := 1
 export SHELL := $(ibdir)/bash
 export CPPFLAGS := -I$(idir)/include
 .SHELLFLAGS := --noprofile --norc -ec
-export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export LDFLAGS := $(rpath_command) -L$(ildir)
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
+export PKG_CONFIG_PATH := $(ildir)/pkgconfig:$(idir)/share/pkgconfig
 
 # Settings specific to this Makefile.
 export CC := $(ibdir)/gcc
 export CXX := $(ibdir)/g++
 export F77 := $(ibdir)/gfortran
+export C_INCLUDE_PATH := $(iidir)
+export CPLUS_INCLUDE_PATH := $(iidir)
 export LD_RUN_PATH := $(ildir):$(il64dir)
 export LD_LIBRARY_PATH := $(ildir):$(il64dir)
 
@@ -156,7 +158,15 @@ export DYLD_LIBRARY_PATH :=
 # library, it is thus necessary to include this location here. On systems
 # that don't need it, `sys_library_path' is just empty. This is necessary
 # for `ld'.
-export LIBRARY_PATH := $(sys_library_path)
+#
+# If this variable is not defined, it will be interpretted as the current
+# directory. In this case, when the program source has a 'specs' directory,
+# GCC will crash because it expects it to be special file.
+ifeq ($(strip $(sys_library_path)),)
+export LIBRARY_PATH := $(ildir)
+else
+export LIBRARY_PATH := $(ildir):$(sys_library_path)
+endif
 
 # Building flags:
 #
@@ -190,7 +200,8 @@ backupservers = $(filter-out $(topbackupserver),$(backupservers_all))
 
 
 
-# Import rules to build Python packages,
+# Import rules to build specialized software
+include reproduce/software/make/xorg.mk
 include reproduce/software/make/python.mk
 
 
@@ -466,6 +477,12 @@ $(ibidir)/freetype-$(freetype-version): $(ibidir)/libpng-$(libpng-version)
 	$(call gbuild, freetype-$(freetype-version), static)
 	echo "FreeType $(freetype-version)" > $@
 
+$(ibidir)/gperf-$(gperf-version):
+	tarball=gperf-$(gperf-version).tar.gz
+	$(call import-source, $(gperf-url), $(gperf-checksum))
+	$(call gbuild, gperf-$(gperf-version), static)
+	echo "GNU gperf $(gperf-version)" > $@
+
 $(ibidir)/gsl-$(gsl-version):
 	tarball=gsl-$(gsl-version).tar.gz
 	$(call import-source, $(gsl-url), $(gsl-checksum))
@@ -532,6 +549,13 @@ $(ibidir)/healpix-$(healpix-version): $(healpix-python-dep) \
 	rm -rf $(ddir)/Healpix_$(healpix-version)
 	cp $(dtexdir)/healpix.tex $(ictdir)/
 	echo "HEALPix $(healpix-version) \citep{healpix}" > $@
+
+$(ibidir)/libidn-$(libidn-version):
+	tarball=libidn-$(libidn-version).tar.gz
+	$(call import-source, $(libidn-url), $(libidn-checksum))
+	$(call gbuild, libidn-$(libidn-version), static, \
+	               --disable-doc, -j$(numthreads) V=1)
+	echo "Libjpeg $(libjpeg-version)" > $@
 
 $(ibidir)/libjpeg-$(libjpeg-version):
 	tarball=jpegsrc.$(libjpeg-version).tar.gz
@@ -893,50 +917,58 @@ $(ibidir)/gdb-$(gdb-version): $(ibidir)/python-$(python-version)
 	echo "GNU Project Debugger (GDB) $(gdb-version)" > $@
 
 $(ibidir)/ghostscript-$(ghostscript-version): \
+                      $(ibidir)/libxt-$(libxt-version) \
+                      $(ibidir)/expat-$(expat-version) \
+                      $(ibidir)/libidn-$(libidn-version) \
                       $(ibidir)/libpng-$(libpng-version) \
-                      $(ibidir)/libtiff-$(libtiff-version)
+                      $(ibidir)/libtiff-$(libtiff-version) \
+                      $(ibidir)/libpaper-$(libpaper-version)
 
-        # Import the tarball.
+        # Download the standard collection of Ghostscript fonts.
+	tarball=ghostscript-fonts-std-$(ghostscript-fonts-std-version).tar.gz
+	$(call import-source, $(ghostscript-fonts-std-url), \
+	                      $(ghostscript-fonts-std-checksum))
+
+        # Download the extra GNU fonts for Ghostscript.
+	tarball=ghostscript-fonts-gnu-$(ghostscript-fonts-gnu-version).tar.gz
+	$(call import-source, $(ghostscript-fonts-gnu-url), \
+	                      $(ghostscript-fonts-gnu-checksum))
+
+        # Download the tarball
 	tarball=ghostscript-$(ghostscript-version).tar.gz
 	$(call import-source, $(ghostscript-url), $(ghostscript-checksum))
 
-        # First we need to make sure some necessary X11 libraries that we
-        # don't yet install in this template are present on the host
-        # system, see https://savannah.nongnu.org/task/?15481 .
-        # Adding `-L/opt/X11/lib' to LDFLAGS is necessary for macOS systems
-        # because X11 libraries used to be installed there.
-	echo;
-	echo "Template: testing necessary X11 libraries for ghostscript"
-	echo "---------------------------------------------------------"
-	oprog=$(ddir)/libXext-test-for-ghostscript
-	cprog=$(ddir)/libXext-test-for-ghostscript.c
-	echo "#include <stdio.h>"          > $$cprog
-	echo "int main(void) {return 0;}" >> $$cprog
-	export LDFLAGS="$$LDFLAGS -L/opt/X11/lib"
-	if $$CC $$LDFLAGS $$cprog -o$$oprog -lXt -lSM -lICE -lXext; then
-	  echo "Necessary X11 libraries are present. Proceeding to the build."
-	  rm $$cprog $$oprog
-	else
-	  rm $$cprog
-	  echo ""
-	  echo "Problem in building Ghostscript"
-	  echo "-------------------------------"
-	  echo "Some necessary X11 libraries (that we don't yet install"
-	  echo "within the template) couldn't be found on your system, see"
-	  echo "the 'ld' error message above. Please install them manually"
-	  echo "so Ghostscript can be built."
-	  echo
-	  echo "For example if you use Debian-based OSs, run this command:"
-	  echo "  sudo apt install libxext-dev libxt-dev libsm-dev libice-dev ghostscript"
-	  echo ""
-	  echo "This notice will be removed once these packages are built"
-	  echo "within the project (Task #15481)."
-	  echo "-------------------------------"
-	  exit 1
-	fi
+        # Unpack it and configure Ghostscript.
+	cd $(ddir)
+	tar xf $(tdir)/$$tarball
+	cd ghostscript-$(ghostscript-version)
+	./configure --prefix=$(idir) \
+	            --disable-cups \
+	            --enable-dynamic \
+	            --with-system-libtiff \
+	            --disable-compile-inits
 
-        # If they were present, go onto building Ghostscript.
-	$(call gbuild, ghostscript-$(ghostscript-version),,,V=1 -j$(numthreads))
+        # Build and install the program and the shared libraries.
+	make    V=1 -j$(numthreads)
+	make so V=1 -j$(numthreads)
+	make install
+	make soinstall
+
+        # Install headers and set PostScript (PS) headers to point there.
+	install -v -m644 base/*.h $(iidir)/ghostscript
+	ln -sfvn $(iidir)/ghostscript $(iidir)/ps
+
+        # Install the fonts.
+	tar -xvf $(tdir)/ghostscript-fonts-std-$(ghostscript-fonts-std-version).tar.gz \
+	    -C $(idir)/share/ghostscript
+	tar -xvf $(tdir)/ghostscript-fonts-gnu-$(ghostscript-fonts-gnu-version).tar.gz \
+	    -C $(idir)/share/ghostscript
+	fc-cache -v $(idir)/share/ghostscript/fonts/
+	echo; echo "Ghostscript fonts added to Fontconfig."; echo;
+
+        # Clean up and write the output target.
+	cd ..
+	rm -rf ghostscript-$(ghostscript-version)
 	echo "GPL Ghostscript $(ghostscript-version)" > $@
 
 $(ibidir)/gnuastro-$(gnuastro-version): \
@@ -1202,6 +1234,70 @@ $(ibidir)/swig-$(swig-version):
 	$(call import-source, $(swig-url), $(swig-checksum))
 	$(call gbuild, swig-$(swig-version), static, --without-pcre)
 	echo "Swig $(swig-version)" > $@
+
+# The disables:
+#   For macOS:
+#       --disable-dependency-tracking
+#       --disable-silent-rules
+#       --disable-ipcrm
+#       --disable-ipcs
+#   Because they need root:
+#       --disable-mount
+#       --disable-wall
+#       --disable-su
+#
+# NOTE ON INSTALLATION DIRECTORY: Util-linux libraries are relatively
+# low-level and may cause conflicts with system libraries (especilly when
+# we don't build the C compiler in Maneage). The precise conflict that
+# triggered this was building CMake on macOS (it was expecting the host's
+# uuid library, but would crash because of conflicts with the installed
+# 'uuid.h' headers of Maneage's 'util-linux'.
+#
+# Since many programs don't actually need 'util-linux' libraries, to avoid
+# low-level conflicts, we will install util-linux in a unique top-level
+# directory and put symbolic links of its binaries in the main
+# '$(ibdir)'. If any program does need 'util-linux' libraries, they can
+# simply add the proper directories to the environment variables, see
+# 'fontconfig' for example.
+$(ibidir)/util-linux-$(util-linux-version):
+
+        # Import the source.
+	tarball=util-linux-$(util-linux-version).tar.xz
+	$(call import-source, $(util-linux-url), $(util-linux-checksum))
+
+        # Unpack the source and set it to install in a special directory
+        # (as explained above). As shown below, later, we'll put a symbolic
+        # link of all the necessary binaries in the main '$(idir)/bin'.
+	cd $(ddir)
+	tar xf $(tdir)/$$tarball
+	cd util-linux-$(util-linux-version)
+	./configure --prefix=$(idir)/util-linux \
+	            --disable-dependency-tracking \
+	            --disable-silent-rules \
+	            --without-systemd \
+	            --enable-libuuid \
+	            --disable-mount \
+	            --disable-ipcrm \
+	            --disable-ipcs \
+	            --disable-wall \
+	            --disable-su
+
+        # Build and install it.
+	make V=1 -j$(numthreads)
+	make install
+
+        # Put a symbolic link to installed programs in main installation
+        # directory. If 'sbin' exists in the main installation directory,
+        # put util-linux's 'sbin/' directory there too.
+	ln -sf $(idir)/util-linux/bin/* $(ibdir)/
+	if [ -d $(idir)/sbin ]; then
+	  ln -sf $(idir)/util-linux/sbin/* $(idir)/sbin
+	else
+	  ln -sf $(idir)/util-linux/sbin/* $(idir)/bin
+	fi
+
+        # Write the main target.
+	echo "util-Linux $(util-linux-version)" > $@
 
 $(ibidir)/xlsxio-$(xlsxio-version): \
                  $(ibidir)/cmake-$(cmake-version) \
