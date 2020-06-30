@@ -872,7 +872,7 @@ EOF
 
     # In case an input-directory is given, write it in 'indir'.
     if [ x$inindir != x ]; then
-        indir=$inindir
+        indir=$(absolute_dir $inindir)
         echo " -- Using '$indir'"
     fi
 fi
@@ -916,7 +916,7 @@ EOF
 
     # If given, write the software directory.
     if [ x"$tmpddir" != x ]; then
-        ddir=$tmpddir
+        ddir=$(absolute_dir $tmpddir)
         echo " -- Using '$ddir'"
     fi
 fi
