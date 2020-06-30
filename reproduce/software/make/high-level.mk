@@ -1296,7 +1296,9 @@ $(ibidir)/util-linux-$(util-linux-version):
 	  ln -sf $(idir)/util-linux/sbin/* $(idir)/bin
 	fi
 
-        # Write the main target.
+        # Clean up and write the main target.
+	cd ../
+	rm -rf util-linux-$(util-linux-version)
 	echo "util-Linux $(util-linux-version)" > $@
 
 $(ibidir)/xlsxio-$(xlsxio-version): \
