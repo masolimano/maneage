@@ -130,9 +130,17 @@ backupservers = $(filter-out $(topbackupserver),$(backupservers_all))
 # Low-level (not built) programs
 # ------------------------------
 #
-# For the time being, some components of the project on some systems, so we
-# are simply making a symbolic link to the system's files here. We'll do
-# this after building GNU Coreutils to have trustable elements.
+# For the time being, some components of the project aren't being built on
+# some systems (primarily on proprietary operating systems). So we are
+# simply making a symbolic link to the system's programs/libraries in the
+# build directory.
+#
+# The logical position of this rule is irrelevant in this Makefile (because
+# programs being built here have full access to the system's PATH
+# already). This is done for the high-level programs installed in
+# 'high-level.mk', 'xorg.mk' or 'python.mk'. So this step is done after
+# building our own GNU Grep (which is the highest-level program used in
+# 'makelink') to have trustable elements.
 #
 # About ccache: ccache acts like a wrapper over the C compiler and is made
 # to avoid/speed-up compiling of identical files in a system (it is
@@ -142,19 +150,19 @@ backupservers = $(filter-out $(topbackupserver),$(backupservers_all))
 # thus remove any part of PATH of that has `ccache' in it before making
 # symbolic links to the programs we are not building ourselves.
 #
-# We'll need the system's PATH for making links to low-level programs we
-# won't be building ourselves.
+# The double quotations after the starting 'export PATH' are necessary in
+# case the user's PATH has space-characters in it.
 syspath := $(PATH)
 makelink = origpath="$$PATH"; \
-	export PATH=$$(echo $(syspath) \
-	                    | tr : '\n' \
-	                    | grep -v ccache \
-	                    | tr '\n' :); \
+	export PATH="$$(echo $(syspath) \
+	                     | tr : '\n' \
+	                     | grep -v ccache \
+	                     | tr '\n' :)"; \
 	if type $(1) > /dev/null 2> /dev/null; then \
 	  if [ x$(3) = x ]; then \
-	    ln -sf $$(which $(1)) $(ibdir)/$(1); \
+	    ln -sf "$$(which $(1))" $(ibdir)/$(1); \
 	  else \
-	    ln -sf $$(which $(1)) $(ibdir)/$(3); \
+	    ln -sf "$$(which $(1))" $(ibdir)/$(3); \
 	  fi; \
 	else \
 	  if [ "x$(strip $(2))" = xmandatory ]; then \
@@ -166,7 +174,7 @@ makelink = origpath="$$PATH"; \
 	export PATH="$$origpath"
 
 $(ibdir) $(ildir):; mkdir $@
-$(ibidir)/low-level-links: $(ibidir)/coreutils-$(coreutils-version) \
+$(ibidir)/low-level-links: $(ibidir)/grep-$(grep-version) \
                            | $(ibdir) $(ildir)
 
         # Not-installed (but necessary in some cases) compilers.
