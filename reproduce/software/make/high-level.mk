@@ -555,7 +555,7 @@ $(ibidir)/libidn-$(libidn-version):
 	$(call import-source, $(libidn-url), $(libidn-checksum))
 	$(call gbuild, libidn-$(libidn-version), static, \
 	               --disable-doc, -j$(numthreads) V=1)
-	echo "Libjpeg $(libjpeg-version)" > $@
+	echo "Libidn $(libidn-version)" > $@
 
 $(ibidir)/libjpeg-$(libjpeg-version):
 	tarball=jpegsrc.$(libjpeg-version).tar.gz
