@@ -152,6 +152,12 @@ backupservers = $(filter-out $(topbackupserver),$(backupservers_all))
 #
 # The double quotations after the starting 'export PATH' are necessary in
 # case the user's PATH has space-characters in it.
+#
+# We use 'realpath' here (part of GNU Coreutils which is already installed
+# by the time we use 'makelink') to avoid linking to a link (on the
+# host). 'realpath' will follow a link (and possibly other links in the
+# middle) to an actual file and return its address. When the location isn't
+# a link, it will just return it.
 syspath := $(PATH)
 makelink = origpath="$$PATH"; \
 	export PATH="$$(echo $(syspath) \
@@ -160,9 +166,9 @@ makelink = origpath="$$PATH"; \
 	                     | tr '\n' :)"; \
 	if type $(1) > /dev/null 2> /dev/null; then \
 	  if [ x$(3) = x ]; then \
-	    ln -sf "$$(which $(1))" $(ibdir)/$(1); \
+	    ln -sf "$$(realpath $$(which $(1)))" $(ibdir)/$(1); \
 	  else \
-	    ln -sf "$$(which $(1))" $(ibdir)/$(3); \
+	    ln -sf "$$(realpath $$(which $(1)))" $(ibdir)/$(3); \
 	  fi; \
 	else \
 	  if [ "x$(strip $(2))" = xmandatory ]; then \
@@ -176,11 +182,6 @@ makelink = origpath="$$PATH"; \
 $(ibdir) $(ildir):; mkdir $@
 $(ibidir)/low-level-links: $(ibidir)/grep-$(grep-version) \
                            | $(ibdir) $(ildir)
-
-        # Not-installed (but necessary in some cases) compilers.
-        #  Clang is necessary for CMake.
-	$(call makelink,clang)
-	$(call makelink,clang++)
 
         # Mac OS specific
 	$(call makelink,mig)
@@ -1278,6 +1279,16 @@ $(ibidir)/gcc-$(gcc-version): $(ibidir)/binutils-$(binutils-version)
 	tarball=gcc-$(gcc-version).tar.xz
 	$(call import-source, $(gcc-url), $(gcc-checksum))
 
+        # To avoid any previous build in '.local/bin' causing problems in
+        # this build/links of this GCC, we'll first delete all the possibly
+        # built/existing compilers in this project. Note that GCC also
+        # installs several executables like this 'x86_64-pc-linux-gnu-gcc',
+        # 'x86_64-pc-linux-gnu-gcc-ar' or 'x86_64-pc-linux-gnu-g++'.
+	rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*
+	rm -f $(ibdir)/*gcc* $(ibdir)/gcov* $(ibdir)/cc $(ibdir)/c++
+	rm -f $(ibdir)/*g++ $(ibdir)/cpp $(ibdir)/gfortran $(ibdir)/strip
+	rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*
+
         # GCC builds is own libraries in '$(idir)/lib64'. But all other
         # libraries are in '$(idir)/lib'. Since this project is only for a
         # single architecture, we can trick GCC into building its libraries
@@ -1285,34 +1296,53 @@ $(ibidir)/gcc-$(gcc-version): $(ibidir)/binutils-$(binutils-version)
         # link to '$(idir)/lib'.
 	if [ $(host_cc) = 1 ]; then
 
-          # Make sure we don't have any of the program we want to link to
-          # in the '.local/bin' directory.
-	  rm -f $(ibdir)/cc
-	  rm -f $(ibdir)/c++
-	  rm -f $(ibdir)/gcc
-	  rm -f $(ibdir)/cpp
-	  rm -f $(ibdir)/strip;
-	  rm -f $(ibdir)/gfortran;
-
-          # Put links to the host's tools in '.local/bin'.
-	  $(call makelink,cc)
-	  $(call makelink,cpp)
-	  $(call makelink,cc,,gcc)
+          # Put links to the host's tools in '.local/bin'. Note that some
+          # macOS systems have both a native clang *and* a GNU C Compiler
+          # (note that this is different from the "normal" macOS situation
+          # where 'gcc' actually points to clang, here we mean when 'gcc'
+          # is actually the GNU C Compiler).
+          #
+          # In such cases, the GCC isn't complete and using it will cause
+          # problems when building high-level tools (for example openBLAS,
+          # rpcsvc-proto, CMake, xlsxio, Python or Matplotlib among
+          # others). To avoid such situations macOSs are configured like
+          # this: we'll simply set 'gcc' to point to 'clang' and won't set
+          # 'gcc' to point to the system's 'gcc'.
+          #
+          # Also, note that LLVM's clang doesn't have a C Pre-Processor. So
+          # we will only put a link to the host's 'cpp' if the system is
+          # not macOS. On macOS systems that have a real GCC installed,
+          # having GNU CPP in the project build directory is known to cause
+          # problems with 'libX11'.
 	  $(call makelink,gfortran)
-	  $(call makelink,c++,,g++)
 	  $(call makelink,strip,mandatory)
+	  if [ x$(on_mac_os) = xyes ]; then
+	    $(call makelink,clang)
+	    $(call makelink,clang++)
+	    $(call makelink,clang,,gcc)
+	    $(call makelink,clang++,,g++)
+	  else
+	    $(call makelink,cpp)
+	    $(call makelink,gcc)
+	    $(call makelink,g++)
+	  fi
+
+          # We also want to have the two 'cc' and 'c++' in the build
+          # directory that point to the selected compiler. With the checks
+          # above, 'gcc' and 'g++' will point to the proper compiler, so
+          # we'll use them to define 'cc' and 'c++'.
+	  $(call makelink,gcc,,cc)
+	  $(call makelink,g++,,c++)
+
+          # Get the first line of the compiler's '--version' output and put
+          # that into the target (so we know want compiler was used).
 	  ccinfo=$$(gcc --version | awk 'NR==1')
 	  echo "C compiler (""$$ccinfo"")" > $@
 
 	else
 
-          # We are building GCC, so to avoid any previous build in
-          # '.local/bin', we'll delete all the files that GCC builds from
-          # there.
+          # Mark the current directory.
 	  current_dir=$$(pwd)
-	  rm -f $(ibdir)/gcc* $(ibdir)/g++ $(ibdir)/gfortran $(ibdir)/gcov*
-	  rm -rf $(ildir)/gcc $(ildir)/libcc* $(ildir)/libgcc*
-	  rm -rf $(ildir)/libgfortran* $(ildir)/libstdc* rm $(idir)/x86_64*
 
           # We don't want '.local/lib' and '.local/lib64' to be separate.
 	  ln -fs $(ildir) $(idir)/lib64
@@ -1406,6 +1436,7 @@ $(ibidir)/gcc-$(gcc-version): $(ibidir)/binutils-$(binutils-version)
 
           # Set 'cc' to point to 'gcc'.
 	  ln -sf $(ibdir)/gcc $(ibdir)/cc
+	  ln -sf $(ibdir)/g++ $(ibdir)/c++
 
           # Write the final target.
 	  echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@
