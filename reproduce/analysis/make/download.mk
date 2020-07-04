@@ -58,7 +58,7 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 
         # Set the necessary parameters for this input file.
 	if   [ $* = wfpc2 ]; then
-	  localname=$(WFPC2IMAGE); url=$(WFPC2URL); mdf=$(WFPC2MD5);
+	  localname=$(DEMO-DATA); url=$(DEMO-URL); mdf=$(DEMO-MD5);
 	else
 	echo; echo; echo "Not recognized input dataset: '$*.fits'."
 	echo; echo; exit 1
@@ -84,6 +84,7 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	sum=$$(md5sum $$unchecked | awk '{print $$1}')
 	if [ $$sum = $$mdf ]; then
 	  mv $$unchecked $@
+	  echo "Integrity confirmed, using $@ in this project."
 	else
 	  echo; echo;
 	  echo "Wrong MD5 checksum for input file '$$localname':"
@@ -102,4 +103,4 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 # It is very important to mention the address where the data were
 # downloaded in the final report.
 $(mtexdir)/download.tex: $(pconfdir)/INPUTS.conf | $(mtexdir)
-	echo "\\newcommand{\\wfpctwourl}{$(WFPC2URL)}" > $@
+	echo "\\newcommand{\\wfpctwourl}{$(DEMO-URL)}" > $@

@@ -61,8 +61,8 @@ $(dm-squared): $(pconfdir)/delete-me-squared-num.conf | $(tex-publish-dir)
 
 
 
-# WFPC2 image PDF
-# -----------------
+# Demo image PDF
+# --------------
 #
 # For an example image, we'll make a PDF copy of the WFPC II image to
 # display in the paper.
@@ -82,8 +82,8 @@ $(dm-img-pdf): $(dm-histdir)/%.pdf: $(indir)/%.fits | $(dm-histdir)
 
 
 
-# Histogram of WFPC2 image
-# ------------------------
+# Histogram of demo image
+# -----------------------
 #
 # For an example plot, we'll show the pixel value histogram also. IMPORTANT
 # NOTE: because this histogram contains data that is included in a plot, we
@@ -103,7 +103,7 @@ $(dm-img-histogram): $(tex-publish-dir)/%-histogram.txt: $(indir)/%.fits \
         # metadata from '$@.data', and add copyright.
 	echo "# Histogram of example image to demonstrate Maneage (MANaging data linEAGE)." \
 	     > $@.tmp
-	echo "# Example image URL: $(WFPC2URL)/$(WFPC2IMAGE)" >> $@.tmp
+	echo "# Example image URL: $(DEMO-URL)" >> $@.tmp
 	echo "# " >> $@.tmp
 	awk '/^# Column .:/' $@.data >> $@.tmp
 	echo "# " >> $@.tmp
@@ -162,7 +162,7 @@ $(mtexdir)/delete-me.tex: $(dm-squared) $(dm-img-pdf) $(dm-img-histogram) \
 	v=$$(echo "$$mm" | awk '{printf "%.3f", $$2}');
 	echo "\newcommand{\deletememax}{$$v}"             >> $@
 
-        # Write the statistics of the WFPC2 image as a macro.
+        # Write the statistics of the demo image as a macro.
 	mean=$$(awk     '{printf("%.2f", $$1)}' $(dm-img-stats))
 	echo "\newcommand{\deletemewfpctwomean}{$$mean}"          >> $@
 	median=$$(awk   '{printf("%.2f", $$2)}' $(dm-img-stats))
