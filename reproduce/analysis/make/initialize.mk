@@ -465,3 +465,9 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
         # Version and title of project.
 	echo "\newcommand{\projecttitle}{$(metadata-title)}" > $@
 	echo "\newcommand{\projectversion}{$(project-commit-hash)}" >> $@
+
+        # Calculate the latest Maneage commit used to build this
+        # project. Note that the '--dirty' option isn't applicable to
+        # "commit-ishes" (direct quote from Git's error message!).
+	v=$$(git describe --always --long maneage)
+	echo "\newcommand{\maneageversion}{$$v}" >> $@
