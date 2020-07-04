@@ -71,6 +71,7 @@ print_help() {
     # Print the output.
     cat <<EOF
 Usage: $scriptname configure [OPTIONS]
+       $scriptname shell     [OPTIONS]
        $scriptname make      [OPTIONS]
 
 Top-level script to manage the reproducible project. The high-level
@@ -151,7 +152,7 @@ func_operation_set() {
     if [ x$operation = x ]; then
         operation=$1
     else
-        echo "Only one operation ('configure' or 'make') may be given."
+        echo "Only one operation ('configure', 'make' or 'shell') may be given."
         exit 1
     fi
 }
@@ -468,7 +469,7 @@ case $operation in
 No operation defined!
 
 Please run with '--help' for more information.
-(TIP: available operations are: 'configure' or 'make').
+(TIP: available operations are: 'configure', 'make', or 'shell').
 
 EOF
         exit 1
