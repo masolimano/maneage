@@ -52,6 +52,7 @@ ildir   = $(BDIR)/software/installed/lib
 ibidir  = $(BDIR)/software/installed/version-info/proglib
 
 # Basic directories (specific to this Makefile).
+il64dir  = $(BDIR)/software/installed/lib64
 iidir    = $(BDIR)/software/installed/include
 shsrcdir = $(shell pwd)/reproduce/software/shell
 dtexdir  = $(shell pwd)/reproduce/software/bibtex

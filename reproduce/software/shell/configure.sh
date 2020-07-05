@@ -186,35 +186,93 @@ free_space_warning()
 
 
 
+# See if we are on a Linux-based system
+# --------------------------------------
+#
+# Some features are tailored to GNU/Linux systems, while the BSD-based
+# behavior is different. Initially we only tested macOS (hence the name of
+# the variable), but as FreeBSD is also being inlucded in our tests. As
+# more systems get used, we need to tailor these kinds of things better.
+kernelname=$(uname -s)
+if [ x$kernelname = xLinux ]; then
+    on_mac_os=no
+
+    # Don't forget to add the respective C++ compiler below (leave 'cc' in
+    # the end).
+    c_compiler_list="gcc clang cc"
+else
+    host_cc=1
+    on_mac_os=yes
+
+    # Don't forget to add the respective C++ compiler below (leave 'cc' in
+    # the end).
+    c_compiler_list="clang gcc cc"
+fi
+
+
+
+
+
 # Check for C/C++ compilers
 # -------------------------
 #
-# To build the software, we'll need some basic tools (the compilers in
-# particular) to be present.
-hascc=0;
-if type cc > /dev/null 2>/dev/null; then
-    if type c++ > /dev/null 2>/dev/null; then export CC=cc; hascc=1; fi
-else
-    if type gcc > /dev/null 2>/dev/null; then
-        if type g++ > /dev/null 2>/dev/null; then export CC=gcc; hascc=1; fi
+# To build the software, we'll need some basic tools (the C/C++ compilers
+# in particular) to be present.
+has_compilers=no
+for c in $c_compiler_list; do
+
+    # Set the respective C++ compiler.
+    if   [ x$c = xcc    ]; then cplus=c++;
+    elif [ x$c = xgcc   ]; then cplus=g++;
+    elif [ x$c = xclang ]; then cplus=clang++;
     else
-        if type clang > /dev/null 2>/dev/null; then
-            if type clang++ > /dev/null 2>/dev/null; then export CC=clang; hascc=1; fi
+        cat <<EOF
+______________________________________________________
+!!!!!!!                   BUG                  !!!!!!!
+
+The respective C++ compiler executable name for the C compiler '$c' hasn't
+been set! You can add it in the 'reproduce/software/shell/configure.sh'
+script (just above this error message), or contact us with this web-form:
+
+    https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+        exit 1
+    fi
+
+    # Check if they exist.
+    if type $c > /dev/null 2>/dev/null; then
+        export CC=$c;
+        if type $cplus > /dev/null 2>/dev/null; then
+            export CXX=$cplus
+            has_compilers=yes
+            break
         fi
     fi
-fi
-if [ $hascc = 0 ]; then
+done
+if [ x$has_compilers = xno ]; then
     cat <<EOF
 ______________________________________________________
 !!!!!!!       C/C++ Compiler NOT FOUND         !!!!!!!
 
-To build the project's software, the host system needs to have basic C and
-C++ compilers. The executables that were checked are 'cc', 'gcc' and
-'clang' for a C compiler, and 'c++', 'g++' and 'clang++' for a C++
-compiler. If you have a relevant compiler that is not checked, please get
-in touch with us (with the form below) so we add it:
+To build this project's software, the host system needs to have both C and
+C++ compilers. The commands that were checked are listed below:
 
-  https://savannah.nongnu.org/support/?func=additem&group=reproduce
+    cc, c++            Generic C/C++ compiler (possibly links to below).
+    gcc, g++           Part of GNU Compiler Collection (GCC).
+    clang, clang++     Part of LLVM compiler infrastructure.
+
+If your compiler is not checked, please get in touch with the web-form
+below, so we add it. We will try our best to add it soon. Until then,
+please install at least one of these compilers on your system to proceed.
+
+    https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+NOTE: for macOS systems, the LLVM compilers that are provided in a native
+Xcode install are recommended. There are known problems with GCC on macOS.
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EOF
@@ -238,10 +296,9 @@ if ! [ -d $compilertestdir ]; then mkdir $compilertestdir; fi
 
 # Check C compiler
 # ----------------
-gcc_works=0
 testprog=$compilertestdir/test
 testsource=$compilertestdir/test.c
-echo; echo; echo "Checking host C compiler...";
+echo; echo; echo "Checking host C compiler ('$CC')...";
 cat > $testsource <<EOF
 #include <stdio.h>
 #include <stdlib.h>
@@ -257,7 +314,7 @@ else
 ______________________________________________________
 !!!!!!!        C compiler doesn't work         !!!!!!!
 
-Host C compiler ('gcc') can't build a simple program.
+Host C compiler ('$CC') can't build a simple program.
 
 A working C compiler is necessary for building the project's software.
 Please use the error message above to find a good solution and re-run the
@@ -268,38 +325,11 @@ link below and we'll try to help
 
 https://savannah.nongnu.org/support/?func=additem&group=reproduce
 
-TIP: Once you find the solution, you can use the '-e' option to use
-existing configuration:
-
-   $ ./project configure -e
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EOF
     exit 1
 fi
-
-
-
-
-
-# See if the linker accepts -Wl,-rpath-link
-# -----------------------------------------
-#
-# `-rpath-link' is used to write the information of the linked shared
-# library into the shared object (library or program). But some versions of
-# LLVM's linker don't accept it an can cause problems.
-cat > $testsource <<EOF
-#include <stdio.h>
-#include <stdlib.h>
-int main(void) {return EXIT_SUCCESS;}
-EOF
-if $CC $testsource -o$testprog -Wl,-rpath-link 2>/dev/null > /dev/null; then
-    export rpath_command="-Wl,-rpath-link=$instdir/lib"
-else
-    export rpath_command=""
-fi
-rm -f $testprog $testsource
 
 
 
@@ -326,7 +356,7 @@ if $CC $testsource -o$testprog 2>/dev/null > /dev/null; then
 else
     needs_ldl=yes;
 fi
-rm -f $testprog $testsource
+
 
 
 
@@ -346,25 +376,6 @@ rm -f $testprog $testsource
 # unless you follow the build closely, its not easy to see if the source of
 # the library came from the system or our build.
 static_build=no
-
-
-
-
-
-# See if we are on a Linux-based system
-# --------------------------------------
-#
-# Some features are tailored to GNU/Linux systems, while the BSD-based
-# behavior is different. Initially we only tested macOS (hence the name of
-# the variable), but as FreeBSD is also being inlucded in our tests. As
-# more systems get used, we need to tailor these kinds of things better.
-kernelname=$(uname -s)
-if [ x$kernelname = xLinux ]; then
-    on_mac_os=no
-else
-    host_cc=1
-    on_mac_os=yes
-fi
 
 
 
@@ -521,19 +532,19 @@ ______________________________________________________
 !!!!!!!      Fortran Compiler NOT FOUND        !!!!!!!
 
 The project won't be building its own GCC (which includes a Fortran
-compiler) on this system. If you need software that need a Fortran
-compiler, it will crash with an error. Fortran is necessary for many
-lower-level scientific programs, hence this warning. Currently we search
-for 'gfortran'. If you have a Fortran compiler that is not checked, please
-get in touch with us (with the form below) so we add it:
+compiler) on this system. If the project needs software that require a
+Fortran compiler, they will crash with a error. Fortran is necessary in
+some lower-level scientific programs (hence this warning!). Currently we
+search for 'gfortran'. If you have a Fortran compiler that is not checked,
+please get in touch with us (with the form below) so we add it:
 
   https://savannah.nongnu.org/support/?func=additem&group=reproduce
 
-Project's configuration will continue in 5 seconds.
+Project's configuration will continue in 2 seconds.
 ______________________________________________________
 
 EOF
-        sleep 5
+        sleep 2
     else
 
         # See if the Fortran compiler works
@@ -552,39 +563,23 @@ ______________________________________________________
 
 Host Fortran compiler ('gfortran') can't build a simple program.
 
-A working Fortran compiler is necessary for building some of the project's
-software.  Please use the error message above to find a good solution and
-re-run the project configuration.
+A working Fortran compiler is necessary for building some software (which
+may not be necessary for this project!). Please use the error message above
+to find a good solution and re-run the project configuration.
 
 If you can't find a solution, please send the error message above to the
 link below and we'll try to help
 
 https://savannah.nongnu.org/support/?func=additem&group=reproduce
 
-TIP: Once you find the solution, you can use the '-e' option to use
-existing configuration:
-
-   $ ./project configure -e
-
-Project's configuration will continue in 5 seconds.
+Project's configuration will continue in 2 seconds.
 ______________________________________________________
 
 EOF
-            sleep 5
+            sleep 2
         fi
     fi
 fi
-
-
-
-
-
-# Delete the compiler testing directory
-# -------------------------------------
-#
-# This directory was made above to make sure the necessary compilers can be
-# run.
-rm -rf $compilertestdir
 
 
 
@@ -1250,6 +1245,43 @@ if [ $jobs = 0 ]; then
 else
     numthreads=$jobs
 fi
+
+
+
+
+
+# See if the linker accepts -Wl,-rpath-link
+# -----------------------------------------
+#
+# `-rpath-link' is used to write the information of the linked shared
+# library into the shared object (library or program). But some versions of
+# LLVM's linker don't accept it an can cause problems.
+#
+# IMPORTANT NOTE: This test has to be done **AFTER** the definition of
+# 'instdir', otherwise, it is going to be used as an empty string.
+cat > $testsource <<EOF
+#include <stdio.h>
+#include <stdlib.h>
+int main(void) {return EXIT_SUCCESS;}
+EOF
+if $CC $testsource -o$testprog -Wl,-rpath-link 2>/dev/null > /dev/null; then
+    export rpath_command="-Wl,-rpath-link=$instdir/lib"
+else
+    export rpath_command=""
+fi
+
+
+
+
+
+# Delete the compiler testing directory
+# -------------------------------------
+#
+# This directory was made above to make sure the necessary compilers can be
+# run.
+rm -f $testprog $testsource
+rm -rf $compilertestdir
+
 
 
 
