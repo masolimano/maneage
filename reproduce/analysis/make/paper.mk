@@ -101,6 +101,12 @@ $(texbdir)/paper.bbl: tex/src/references.tex $(mtexdir)/dependencies-bib.tex \
 	  export TEXINPUTS=$$p:
 	  cd $(texbdir);
 
+          # Delete any possibly existing target (a '.bbl' file) to avoid
+          # complications with LaTeX being run before the command that
+          # generates it. Otherwise users will have to manually delete
+          # it. It will be built anyway once this rule is done.
+	  rm -f $@
+
           # The pdflatex option '-shell-escape' is "normally disallowed for
           # security reasons" according to the `info pdflatex' manual, but
           # is enabled here in order to allow the use of PGFPlots. If you
