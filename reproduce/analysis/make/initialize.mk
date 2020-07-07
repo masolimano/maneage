@@ -304,9 +304,14 @@ $(project-package-contents): paper.pdf | $(texdir)
         # Copy all the necessary `reproduce' and `tex' contents.
 	shopt -s extglob
 	cp -r tex/src                            $$dir/tex/src
-	cp tex/tikz/*.pdf                        $$dir/tex/tikz
 	cp -r reproduce/*                        $$dir/reproduce
 	cp -r tex/build/!($(project-package-name)) $$dir/tex/build
+
+        # If the project has any PDFs in its 'tex/tikz' directory (TiKZ or
+        # PGFPlots was used to generate them), copy them too.
+	if ls tex/tikz/*.pdf &> /dev/null; then
+	  cp tex/tikz/*.pdf $$dir/tex/tikz
+	fi
 
         # Clean up un-necessary/local files: 1) the $(texdir)/build*
         # directories (when building in a group structure, there will be
