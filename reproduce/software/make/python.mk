@@ -331,7 +331,7 @@ $(ipydir)/h5py-$(h5py-version): \
 # and just ask for `healpy'. To avoid confusion in such cases, we'll just
 # set `healpy' to be dependent on `healpix' and not download any tarball
 # for it, or write anything in the final target.
-$(ipydir)/healpy-$(healpy-version): $(ibidir)/healpix-$(healpy-version)
+$(ipydir)/healpy-$(healpy-version): $(ibidir)/healpix-$(healpix-version)
 	touch $@
 
 $(ipydir)/html5lib-$(html5lib-version): \
