@@ -188,6 +188,224 @@ analysis and finally create the final paper).
 
 
 
+### Building in Docker containers
+
+Docker containers are a common way to build projects in an independent
+filesystem, and an almost independent operating system. Containers thus
+allow using GNU/Linux operating systems within proprietary operating
+systems like macOS or Windows. But without the overhead and huge file size
+of virtual machines. Furthermore containers allow easy movement of built
+projects from one system to another without rebuilding. Just note that
+Docker images are large binary files (+1 Gigabytes) and may not be usable
+in the future (for example with new Docker versions not reading old
+images). Containers are thus good for temporary/testing phases of a
+project, but shouldn't be what you archive! Hence if you want to save and
+move your maneaged project within a Docker image, be sure to commit all
+your project's source files and push them to your external Git repository
+(you can do these within the Docker image as explained below). This way,
+you can always recreate the container with future technologies
+too. Generally, if you are developing within a container, its good practice
+to recreate it from scratch every once in a while, to make sure you haven't
+forgot to include parts of your work in your project's version-controlled
+source.
+
+#### Dockerfile for a Maneaged project, and building a Docker image
+
+Below is a series of recommendations on the various components of a
+`Dockerfile` optimized to store the *built state of a maneaged project* as
+a Docker image. Each component is also accompanied with
+explanations. Simply copy the code blocks under each item into a plain-text
+file called `Dockerfile`, in the same order of the items. Don't forget to
+implement the suggested corrections (in particular step 4).
+
+**NOTE: Internet for TeXLive installation:** If you have the project
+software tarballs and input data (optional features described below) you
+can disable internet. In this situation, the configuration and analysis
+will be exactly reproduced, the final LaTeX macros will be created, and all
+results will be verified successfully. However, no final `paper.pdf` will
+be created to visualize/combine everything in one easy-to-read file. Until
+[task 15267](https://savannah.nongnu.org/task/?15267) is complete, we need
+internet to install TeXLive packages (using TeXLive's own package manager
+`tlmgr`) in the `./project configure` phase. This won't stop the
+configuration, and it will finish successfully (since all the analysis can
+still be reproduced). We are working on completing this task as soon as
+possible, but until then, if you want to disable internet *and* you want to
+build the final PDF, please disable internet after the configuration
+phase. Note that only the necessary TeXLive packages are installed (~350
+MB), not the full TeXLive collection!
+
+ 1. **Choose the base operating system:** The first step is to select the
+    operating system that will be used in the docker image. Note that your
+    choice of operating system also determines the commands of the next
+    step to install core software.
+
+    ```shell
+    FROM debian:stable-slim
+    ```
+
+ 2. **Maneage dependencies:** By default the "slim" versions of the
+    operating systems don't contain a compiler, so you need to use the
+    selected operating system's package manager to import them. You can
+    optionally install two other programs: 1) To inspect/edit the project's
+    source files later, install your favorite text editor. 2) If you don't
+    have the project's software tarballs, and want the project to download
+    them automatically, you also need a downloader.
+
+    ```shell
+    # C and C++ compiler.
+    RUN apt-get update && apt-get install -y gcc g++
+
+    # Uncomment this to add a text editor (to modify source files later).
+    #RUN apt-get install -y nano
+
+    # Uncomment this if you don't have 'software-XXXX.tar.gz'
+    #RUN apt-get install -y wget
+    ```
+
+ 3. **Define a user:** Some core software packages will complain if you try
+    to install them as the default (root) user. Generally, it is also good
+    practice to avoid being the root user. After building the Docker image,
+    you can always run it as root with this command: `docker run -u 0 -it
+    XXXXXXX` (where `XXXXXXX` is the image identifier). Hence with the
+    commands below we define a `maneager` user and activate it for the next
+    steps.
+
+    ```shell
+    RUN useradd -ms /bin/sh maneager
+    USER maneager
+    WORKDIR /home/maneager
+    ```
+
+ 4. **Copy project files into the container:** these commands make the
+    following assumptions:
+
+    * The project's source is in the `maneaged/` sub-directory and this
+      directory is in the same directory as the `Dockerfile`. The source
+      can either be from cloned from Git (highly recommended!) or from a
+      tarball. Both are described above (note that arXiv's tarball needs to
+      be corrected as mentioned above).
+
+    * (OPTIONAL) By default the project's necessary software source
+      tarballs will be downloaded when necessary during the `./project
+      configure` phase. But if you already have the sources, its better to
+      use them and not waste network traffic (and resulting carbon
+      footprint!). Maneaged projects usually come with a
+      `software-XXXX.tar.gz` file that is published on Zenodo (link above).
+      If you have this file, put it in the same directory as your
+      `Dockerfile` and include the relevant lines below.
+
+    * (OPTIONAL) The project's input data. The `INPUT-FILES` depends on the
+      project, please look into the project's
+      `reproduce/analysis/config/INPUTS.conf` for the URLs and the file
+      names of input data. Similar to the software source files mentioned
+      above, if you don't have them, the project will attempt to download
+      its necessary data automatically in the `./project make` phase.
+
+    ```shell
+    # Make the project's build directory and copy the project source
+    RUN mkdir build
+    COPY --chown=maneager:maneager ./maneaged /home/maneager/source
+
+    # Optional (for software)
+    COPY --chown=maneager:maneager ./software-XXXX.tar.gz /home/maneager/
+    RUN tar xf software-XXXX.tar.gz && mv software-XXXX software && rm software-XXXX.tar.gz
+
+    # Optional (for data)
+    RUN mkdir data
+    COPY --chown=maneager:maneager ./INPUT-FILES /home/maneager/data
+    ```
+
+ 5. **Configure the project:** With this line, the Docker image will
+    configure the project (build all its necessary software). This will
+    usually take about an hour on an 8-core system. You can also optionally
+    avoid putting this step (and the next) in the `Dockerfile` and simply
+    execute them in the Docker image in interactive mode (as explained in
+    the sub-section below, in this case don't forget to preserve the build
+    container after you are done).
+
+    ```shell
+    # Configure project (build full software environment).
+    RUN cd /home/maneager/source \
+           && ./project configure --build-dir=/home/maneager/build \
+                                  --software-dir=/home/maneager/software \
+                                  --input-dir=/home/maneager/data
+    ```
+
+ 6. **Project's analysis:** With this line, the Docker image will do the
+    project's analysis and produce the final `paper.pdf`. The time it takes
+    for this step to finish, and the storage/memory requirements highly
+    depend on the particular project.
+
+    ```shell
+    # Run the project's analysis
+    RUN cd /home/maneager/source && ./project make
+    ```
+
+ 7. **Build the Docker image:** The `Dockerfile` is now ready! In the
+    terminal, go to its directory and run the command below to build the
+    Docker image. Just set a `NAME` for your project and note that Docker
+    only runs as root.
+
+    ```shell
+    docker build -t NAME ./
+    ```
+
+#### Interactive tests on built container
+
+If you later want to start a container with the built image and enter it in
+interactive mode (for example for temporary tests), please run the
+following command. Just replace `NAME` with the same name you specified
+when building the project. You can always exit the container with the
+`exit` command (note that all your changes will be discarded once you exit,
+see below if you want to preserve your changes after you exit).
+
+```shell
+docker run -it NAME
+```
+
+#### Running your own project's shell for same analysis environment
+
+The default operating system only has minimal features: not having many of
+the tools you are accustomed to in your daily command-line operations. But
+your maneaged project has a very complete (for the project!) environment
+which is fully built and ready to use interactively with the commands
+below. For example the project also builds Git within itself, as well as
+many other high-level tools that are used in your project and aren't
+present in the container's operating system.
+
+```shell
+# Once you are in the docker container
+cd source
+./project shell
+```
+
+#### Preserving the state of a built container
+
+All interactive changes in a container will be deleted as soon as you exit
+it. THIS IS A VERY GOOD FEATURE IN GENERAL! If you want to make persistent
+changes, you should do it in the project's plain-text source and commit
+them into your project's online Git repository. As described in the Docker
+introduction above, we strongly recommend to **not rely on a built container
+for archival purposes**.
+
+But for temporary tests it is sometimes good to preserve the state of an
+interactive container. To do this, you need to `commit` the container (and
+thus save it as a Docker "image"). To do this, while the container is still
+running, open another terminal and run these commands:
+
+```shell
+# These two commands should be done in another terminal
+docker container list
+
+# Get 'XXXXXXX' of your desired container from the first column above.
+# Give the new image a name by replacing 'NEW-IMAGE-NAME'.
+docker commit XXXXXXX NEW-IMAGE-NAME
+```
+
+
+
+
+
 ### Copyright information
 
 This file and `.file-metadata` (a binary file, used by Metastore to store
