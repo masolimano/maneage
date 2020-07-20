@@ -298,31 +298,45 @@ $(project-package-contents): paper.pdf | $(texdir)
 	sed -e's|\\newcommand{\\makepdf}{}|%\\newcommand{\\makepdf}{}|' \
 	    paper.tex > $$dir/paper.tex
 
-        # Build the top-level directories.
-	mkdir $$dir/reproduce $$dir/tex $$dir/tex/tikz $$dir/tex/build
+        # Copy ONLY the version-controlled files in 'reproduce' and
+        # 'tex/src'. This is important because files like 'LOCAL.conf' (in
+        # 'reproduce/software/config') should not be archived, they contain
+        # information about the host computer and are irrelevant for
+        # others. Also some project authors may have temporary files here
+        # that are not under version control and thus shouldn't be archived
+        # (although this is bad practice, but that is up to the user).
+        #
+        # To keep the sub-directory structure, we are packaging the files
+        # with Tar, piping it, and unpacking it in the archive
+        # directory. So afterwards we need to come back to the current
+        # directory.
+	tar -c -f - $$(git ls-files reproduce tex/src) \
+	    | (cd $$dir ; tar -x -f -)
+	cd $(curdir)
 
-        # Copy all the necessary `reproduce' and `tex' contents.
+        # Build the other two subdirectories of 'tex/' that we need in the
+        # archive (in the actual project, these are symbolic links to the
+        # build directory).
+	mkdir $$dir/tex/tikz $$dir/tex/build
+
+        # Copy the 'tex/build' directory into the archive (excluding the
+        # temporary archive directory that we are now copying to). We will
+        # be using Bash's extended globbing ('extglob') for excluding this
+        # directory.
 	shopt -s extglob
-	cp -r tex/src                            $$dir/tex/src
-	cp -r reproduce/*                        $$dir/reproduce
 	cp -r tex/build/!($(project-package-name)) $$dir/tex/build
+
+        # Clean up the $(texdir)/build* directories in the archive (when
+        # building in a group structure, there will be `build-user1',
+        # `build-user2' and etc). These are just temporary LaTeX build
+        # files and don't have any relevant/hand-written files in them.
+	rm -rf $$dir/tex/build/build*
 
         # If the project has any PDFs in its 'tex/tikz' directory (TiKZ or
         # PGFPlots was used to generate them), copy them too.
 	if ls tex/tikz/*.pdf &> /dev/null; then
 	  cp tex/tikz/*.pdf $$dir/tex/tikz
 	fi
-
-        # Clean up un-necessary/local files: 1) the $(texdir)/build*
-        # directories (when building in a group structure, there will be
-        # `build-user1', `build-user2' and etc), are just temporary LaTeX
-        # build files and don't have any relevant/hand-written files in
-        # them. 2) The `LOCAL.conf' and `gnuastro-local.conf' files just
-        # have this machine's local settings and are irrelevant for anyone
-        # else.
-	rm -rf $$dir/tex/build/build*
-	rm $$dir/reproduce/software/config/LOCAL.conf
-	rm $$dir/reproduce/analysis/config/gnuastro/gnuastro-local.conf
 
         # When submitting to places like arXiv, they will just run LaTeX
         # once and won't run `biber'. So we need to also keep the `.bbl'
