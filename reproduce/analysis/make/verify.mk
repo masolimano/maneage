@@ -22,7 +22,7 @@
 # Verification functions
 # ----------------------
 #
-# These functions are used by the final rule in this Makefil
+# These functions are used by the final rule in this Makefile
 verify-print-error-start = \
   echo; \
   echo "VERIFICATION ERROR"; \
@@ -87,7 +87,7 @@ verify-txt-no-comments-no-space = \
 # -------------------------------------------
 #
 # This is the FINAL analysis step (before going onto the paper. Please use
-# this step to veryify the contents of the figures/tables used in the paper
+# this step to verify the contents of the figures/tables used in the paper
 # and the LaTeX macros generated from all your processing. It should depend
 # on all the LaTeX macro files that are generated (their contents will be
 # checked), and any files that go into the tables/figures of the paper

@@ -678,7 +678,7 @@ First custom commit
        $ ./project make
        ```
 
- 7. **Ingore changes in some Maneage files**: One of the main advantages of
+ 7. **Ignore changes in some Maneage files**: One of the main advantages of
      Maneage is that you can later update your infra-structure by merging
      your `master` branch with the `maneage` branch. This is good for many
      low-level features that you will likely never modify yourself. But it
@@ -929,23 +929,29 @@ future.
  - **Reserve a DOI for your dataset**: There are multiple data servers that
    give this functionality, one of the most well known and (currently!)
    well-funded is [Zenodo](https://zenodo.org) so we'll focus on it
-   here. Ofcourse, you can use any other service that provides a similar
+   here. Of course, you can use any other service that provides a similar
    functionality. Once you complete these steps, you can start using/citing
    your dataset's DOI in the source of your project to finalize the rest of
-   the points. Note that with Zenodo, you can even use the given identifier
+   the points. With Zenodo, you can even use the given identifier
    for things like downloading.
 
-   * *Start new upload*: After you log-in to Zenodo, you can start a new
+   * *Start new upload*: After you log in to Zenodo, you can start a new
      upload by clicking on the "New Upload button".
 
    * *Reserve DOI*: Under the "Basic information" --> "Digital Object
      Identifier", click on the "Reserve DOI" button.
 
-   * *Fill basic info*: You need to atleast fill the "required fields"
-      (marked with a red star).
+   * *Fill basic info*: You need to at least fill in the "required fields"
+      (marked with a red star). You will always be able to change any
+      metadata (even after you "Publish"), so don't worry too much about
+      values in the fields, at this phase, its just important that they
+      are not empty.
 
-   * *Save your upload*: You should now be able to press the "Save" button
-      (at the top or bottom of the page) to finalize this step.
+   * *Save your project but do not yet publish*: Press the "Save" button
+      (at the top or bottom of the page). Do not yet press "Publish"
+      though, since that would make the project public, and freeze the DOI
+      with any possible file you may have uploaded already. We will get to
+      the publication phase in the next steps.
 
  - **Request archival on SoftwareHeritage**: [Software
    Heritage](https://archive.softwareheritage.org/save/) is an online
@@ -1169,6 +1175,15 @@ future.
    reproducible and provide the Zenodo and Software Heritage links (if they
    are public). If not, you can mention that everything is ready for such a
    submission after acceptance.
+
+ - **Future versions**: Both Zenodo and arXiv allow uploading new versions
+   after your first publication. So it is recommended to put more recent
+   versions of your published projects later (for example after applying
+   the changes suggested by the referee). In Zenodo (unlike arXiv), you
+   only need to publish a new version if the uploaded files have
+   changed. You can always update the project's metadata with no effect on
+   the DOI (so you don't need to upload a new version if you just want to
+   update the metadata).
 
 
 
