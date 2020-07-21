@@ -88,6 +88,7 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	else
 	  echo; echo;
 	  echo "Wrong MD5 checksum for input file '$$localname':"
+	  echo "  File location: $$unchecked"; \
 	  echo "  Expected MD5 checksum:   $$mdf"; \
 	  echo "  Calculated MD5 checksum: $$sum"; \
 	  echo; exit 1
