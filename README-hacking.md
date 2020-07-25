@@ -173,10 +173,21 @@ Published works using Maneage
 -----------------------------
 
 The list below shows some of the works that have already been published
-with (earlier versions of) Maneage. Previously it was simply called
-"Reproducible paper template". Note that Maneage is evolving, so some
-details may be different in them. The more recent ones can be used as a
-good working example.
+with (earlier versions of) Maneage, and some that have been recently
+submitted for peer review. The previous version of Maneage was called
+"Reproducible paper template", with a separate git tree. Maneage is
+evolving rapidly, so some details will differ between the different
+versions. The more recent papers will tend to be the most useful as good
+working examples.
+
+  - Roukema ([2020](https://arxiv.org/abs/2007.11779),
+   arXiv:2007.11779): The live version of the controlled source is [at
+   Codeberg](https://codeberg.org/boud/subpoisson); the main input
+   dataset, a software snapshot, the software tarballs, the project
+   outputs and editing history are available at
+   [zenodo.3951152](https://zenodo.org/record/3951152); and the
+   archived git history is also available at
+   [swh:1:dir:fcc9d6b111e319e51af88502fe6b233dc78d5166](https://archive.softwareheritage.org/swh:1:dir:fcc9d6b111e319e51af88502fe6b233dc78d5166).
 
  - Akhlaghi et al. ([2020](https://arxiv.org/abs/2006.03018),
    arXiv:2006.03018): The project's version controlled source is [on
