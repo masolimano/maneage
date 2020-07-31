@@ -641,7 +641,10 @@ $(ibidir)/openblas-$(openblas-version):
 $(ibidir)/openmpi-$(openmpi-version):
 	tarball=openmpi-$(openmpi-version).tar.gz
 	$(call import-source, $(openmpi-url), $(openmpi-checksum))
-	$(call gbuild, openmpi-$(openmpi-version), static, , \
+	$(call gbuild, openmpi-$(openmpi-version), static, \
+	               --with-pmix=internal \
+	               --with-hwloc=internal \
+	               --without-verbs, \
 	               -j$(numthreads) V=1)
 	echo "Open MPI $(openmpi-version)" > $@
 
