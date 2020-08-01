@@ -486,7 +486,12 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\projectversion}{$(project-commit-hash)}" >> $@
 
         # Calculate the latest Maneage commit used to build this
-        # project. Note that the '--dirty' option isn't applicable to
-        # "commit-ishes" (direct quote from Git's error message!).
-	v=$$(git describe --always --long maneage)
+        # project:
+        #  - The '--dirty' option (used in 'project-commit-hash') isn't
+        #    applicable to "commit-ishes" (direct quote from Git's error
+        #    message!).
+        #  - The project may not have the 'maneage' branch (for example
+        #    after cloning from a fork that didn't include it!). In this
+        #    case, we'll just return the string a clear string.
+	v=$$(git describe --always --long maneage) || v=maneage-ref-missing
 	echo "\newcommand{\maneageversion}{$$v}" >> $@
