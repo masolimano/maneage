@@ -44,7 +44,12 @@ import-source = final=$(tdir)/$$tarball; \
 	  unchecked="$$final.unchecked"; \
 	  rm -f "$$unchecked"; \
 	  if [ -f $(DEPENDENCIES-DIR)/$$tarball ]; then \
-	    cp $(DEPENDENCIES-DIR)/$$tarball "$$unchecked"; \
+	    if type realpath > /dev/null 2> /dev/null; then \
+	      ln -sf "$$(realpath $(DEPENDENCIES-DIR)/$$tarball)" \
+	             "$$unchecked"; \
+	    else \
+	      cp $(DEPENDENCIES-DIR)/$$tarball "$$unchecked"; \
+	    fi; \
 	  else \
 	    if [ x"$$url" = x ]; then \
 	      bservers="$(backupservers)"; \
@@ -70,7 +75,7 @@ import-source = final=$(tdir)/$$tarball; \
 	      if [ x"$$checksum" = x"$$exp_checksum" ]; then \
 	        mv "$$unchecked" "$$final"; \
 	      else \
-	        echo "ERROR: Non-matching checksum for '$$tarball'."; \
+	        echo "ERROR: Non-matching checksum: $$tarball"; \
 	        echo "Checksum should be: $$exp_checksum"; \
 	        echo "Checksum is:        $$checksum"; \
 	        exit 1; \

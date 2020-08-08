@@ -104,9 +104,17 @@ download_tarball() {
         tarballurl=$url/$tarball
     fi
 
-    # See if it is in the input software directory.
+    # See if it is in the input-software directory, if so, make a link, if
+    # not copy it. The only issue is that the file in the input-software
+    # directory may actually be a link itself. So to avoid complications
+    # with many links, we'll use 'realpath' (if it exists) to parse the
+    # link and link to an actual file.
     if [ -f "$ddir/$tarball" ]; then
-      cp $ddir/$tarball $ucname
+      if type realpath > /dev/null 2> /dev/null; then
+        ln -sf "$(realpath $ddir/$tarball)" "$ucname"
+      else
+        cp $ddir/$tarball $ucname
+      fi
     else
       $downloadwrapper "$downloader" nolock $tarballurl $ucname \
                        "$bservers"
@@ -118,7 +126,7 @@ download_tarball() {
       expectedchecksum=$(awk '/^'$progname'-checksum/{print $3}' $checksumsfile)
       if [ x$checksum = x$expectedchecksum ]; then mv "$ucname" "$maneagetar"
       else
-        echo "ERROR: Non-matching checksum for '$tarball'."
+        echo "ERROR: Non-matching checksum: $tarball"
         echo "Checksum should be: $expectedchecksum"
         echo "Checksum is:        $checksum"
         exit 1
