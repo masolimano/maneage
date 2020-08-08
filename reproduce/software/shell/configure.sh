@@ -30,6 +30,20 @@ set -e
 
 
 
+# Project-specific settings
+# -------------------------
+#
+# The variables defined here may be different between different
+# projects. Ideally, they should be detected automatically, but we haven't
+# had the chance to implement it yet (please help if you can!). Until then,
+# please set them based on your project (if they differ from the core
+# branch).
+need_gfortran=0
+
+
+
+
+
 # Internal directories
 # --------------------
 #
@@ -518,36 +532,40 @@ fi
 # ----------------
 #
 # If GCC is ultimately build within the project, the user won't need to
-# have a fortran compiler, we'll build it internally for high-level
-# programs. However, when the host C compiler is to be used, the user needs
-# to have a Fortran compiler available.
+# have a fortran compiler: we'll build it internally for high-level
+# programs with GCC. However, when the host C compiler is to be used, the
+# user needs to have a Fortran compiler available.
 if [ $host_cc = 1 ]; then
 
-    # See if a Fortran compiler exists.
-    hasfc=0;
-    if type gfortran > /dev/null 2>/dev/null; then hasfc=1; fi
-    if [ $hasfc = 0 ]; then
-        cat <<EOF
+    # If a Fortran compiler is necessary, see if 'gfortran' exists and can
+    # be used.
+    if [ "x$need_gfortran" = "x1" ]; then
+
+        # First, see if 'gfortran' exists.
+        hasfc=0;
+        if type gfortran > /dev/null 2>/dev/null; then hasfc=1; fi
+        if [ $hasfc = 0 ]; then
+            cat <<EOF
 ______________________________________________________
 !!!!!!!      Fortran Compiler NOT FOUND        !!!!!!!
 
-The project won't be building its own GCC (which includes a Fortran
-compiler) on this system. If the project needs software that require a
-Fortran compiler, they will crash with a error. Fortran is necessary in
-some lower-level scientific programs (hence this warning!). Currently we
-search for 'gfortran'. If you have a Fortran compiler that is not checked,
-please get in touch with us (with the form below) so we add it:
+This project requires a Fortran compiler. However, the project won't/can't
+build its own GCC on this system (GCC also builds the 'gfortran' Fortran
+compiler). Please install 'gfortran' using your operating system's package
+manager, then re-run this configure script to continue the configuration.
+
+Currently the only Fortran compiler we check is 'gfortran'. If you have a
+Fortran compiler that is not checked, please get in touch with us (with the
+form below) so we add it:
 
   https://savannah.nongnu.org/support/?func=additem&group=reproduce
-
-Project's configuration will continue in 2 seconds.
 ______________________________________________________
 
 EOF
-        sleep 2
-    else
+            exit 1
+        fi
 
-        # See if the Fortran compiler works
+        # Then, see if the Fortran compiler works
         testsource=$compilertestdir/test.f
         echo; echo; echo "Checking host Fortran compiler...";
         echo "      PRINT *, \"... Fortran Compiler works.\""  > $testsource
@@ -563,20 +581,18 @@ ______________________________________________________
 
 Host Fortran compiler ('gfortran') can't build a simple program.
 
-A working Fortran compiler is necessary for building some software (which
-may not be necessary for this project!). Please use the error message above
-to find a good solution and re-run the project configuration.
+A working Fortran compiler is necessary for this project. Please use the
+error message above to find a good solution in your operating system and
+re-run the project configuration.
 
 If you can't find a solution, please send the error message above to the
 link below and we'll try to help
 
 https://savannah.nongnu.org/support/?func=additem&group=reproduce
-
-Project's configuration will continue in 2 seconds.
 ______________________________________________________
 
 EOF
-            sleep 2
+            exit 1
         fi
     fi
 fi
