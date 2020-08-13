@@ -248,11 +248,62 @@ being built.
 
 EOF
 
-    # Run the infinite loop.
+    # Run the infinite loop. To be able to find the last built programs, we
+    # need to put all the Python programs and high-level program into one
+    # directory.
+    checkdir=.local/version-info/.for-check-config
     while true; do
+
+        # Make sure the '.build' directory has already been created.
         echo;
-        echo "$(date)    [[press CTRL-C to stop]]";
-        ls $coloropt .build/software/build-tmp || junk=1;
+        echo "========================"
+        if [ -d .build ]; then
+            echo "$(date)    [[press CTRL-C to stop]]";
+            echo "--- Currently being built:"
+            if [ -d .build/software/build-tmp ]; then
+                ls $coloropt .build/software/build-tmp || junk=1;
+            fi
+
+            # Make the temporary directory, delete its contents, then put new
+            # links of all built software.
+            if ! [ -d $checkdir ]; then mkdir $checkdir; fi
+            rm -f $checkdir/*
+
+            # Check if any programs exist in the given directory yet.
+            printresults=0
+            check=$(ls .local/version-info/python/)
+            if ! [ "x$check" = x ]; then
+                printresults=1
+                ln -s .local/version-info/python/*  $checkdir/
+            fi
+            check=$(ls .local/version-info/proglib/)
+            if ! [ "x$check" = x ]; then
+                printresults=1
+                ln -s $(pwd)/.local/version-info/proglib/* $checkdir/
+            fi
+
+            # If something was actually found, then print them.
+            if [ $printresults = 1 ]; then
+                echo "--- Last 5 packages that were built:"
+
+                # Then sort all the links based on the most recent dates of the
+                # files they link to (with '-L').
+                ls -Llt $checkdir \
+                    | awk '/^-/ && c++<5 {printf "[at %s] %s\n", $(NF-1), $NF}'
+            fi
+        else
+            cat <<EOF
+The connection to the build directory (.build) is not yet created.
+
+If you have just ran './project configure', it should be created and will
+be used in a few seconds to report the build status of various software.
+If not, please run './project configure' (in another terminal) and you will
+see the results shortly afterwards.
+EOF
+        fi
+        echo "========================"
+
+        # Wait for the next round of checks.
         sleep 1;
     done
     exit 0
