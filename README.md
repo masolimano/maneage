@@ -343,10 +343,14 @@ MB), not the full TeXLive collection!
 
  7. **Build the Docker image:** The `Dockerfile` is now ready! In the
     terminal, go to its directory and run the command below to build the
-    Docker image. Just set a `NAME` for your project and note that Docker
-    only runs as root.
+    Docker image. We recommend to keep the `Dockerfile` in **an empty
+    directory** and run it from inside that directory too. This is because
+    Docker considers that directories contents to be part of the
+    environment. Finally, just set a `NAME` for your project and note that
+    Docker only runs as root.
 
     ```shell
+    sudo su
     docker build -t NAME ./
     ```
 
@@ -400,6 +404,17 @@ docker container list
 # Get 'XXXXXXX' of your desired container from the first column above.
 # Give the new image a name by replacing 'NEW-IMAGE-NAME'.
 docker commit XXXXXXX NEW-IMAGE-NAME
+```
+
+#### Copying files from the Docker image to host operating system
+
+The Docker environment's file system is completely indepenent of your host
+operating system. One easy way to copy files to and from an open container
+is to use the `docker cp` command (very similar to the shell's `cp`
+command).
+
+```shell
+docker cp CONTAINER:/file/path/within/container /host/path/target
 ```
 
 
