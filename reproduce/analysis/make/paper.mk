@@ -47,8 +47,9 @@ $(mtexdir)/project.tex: $(mtexdir)/verify.tex
 	@if [ -f .local/bin/pdflatex ] && [ x"$(pdf-build-final)" != x ]; then
 
           # Put a LaTeX input command for all the necessary macro files.
+          # 'hardware-parameters.tex' is created in 'configure.sh'.
 	  rm -f $(mtexdir)/project.tex
-	  for t in $(subst paper,,$(makesrc)); do
+	  for t in $(subst paper,,$(makesrc)) hardware-parameters; do
 	    echo "\input{tex/build/macros/$$t.tex}" >> $(mtexdir)/project.tex
 	  done
 	else
@@ -113,7 +114,7 @@ $(texbdir)/paper.bbl: tex/src/references.tex $(mtexdir)/dependencies-bib.tex \
           # do not use PGFPlots, then you should remove the `-shell-escape'
           # option for better security. See
           # https://savannah.nongnu.org/task/?15694 for details.
-	  pdflatex -shell-escape -halt-on-error $$p/paper.tex
+	  pdflatex -shell-escape -halt-on-error "$$p"/paper.tex
 	  biber paper
 
 	fi
@@ -142,11 +143,11 @@ paper.pdf: $(mtexdir)/project.tex paper.tex $(texbdir)/paper.bbl
 	  cd $(texbdir)
           # See above for a warning and brief discussion on the the
           # pdflatex option `-shell-escape'.
-	  pdflatex -shell-escape -halt-on-error $$p/paper.tex
+	  pdflatex -shell-escape -halt-on-error "$$p"/paper.tex
 
           # Come back to the top project directory and copy the built PDF
           # file here.
-	  cd $$p
+	  cd "$$p"
 	  cp $(texbdir)/$@ $(final-paper)
 
 	fi

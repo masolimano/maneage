@@ -54,9 +54,9 @@ ibidir  = $(BDIR)/software/installed/version-info/proglib
 # Basic directories (specific to this Makefile).
 il64dir  = $(BDIR)/software/installed/lib64
 iidir    = $(BDIR)/software/installed/include
-shsrcdir = $(shell pwd)/reproduce/software/shell
-dtexdir  = $(shell pwd)/reproduce/software/bibtex
-patchdir = $(shell pwd)/reproduce/software/patches
+shsrcdir = "$(shell pwd)"/reproduce/software/shell
+dtexdir  = "$(shell pwd)"/reproduce/software/bibtex
+patchdir = "$(shell pwd)"/reproduce/software/patches
 itidir   = $(BDIR)/software/installed/version-info/tex
 ictdir   = $(BDIR)/software/installed/version-info/cite
 ipydir   = $(BDIR)/software/installed/version-info/python
@@ -1411,7 +1411,7 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf
 	tar xf $(tdir)/install-tl-unx.tar.gz
 	cd install-tl-*
 	sed -e's|@installdir[@]|$(idir)|g' \
-	    $$topdir/reproduce/software/config/texlive.conf \
+	    "$$topdir"/reproduce/software/config/texlive.conf \
 	    > texlive.conf
 
         # TeX Live's installation may fail due to any reason. But TeX Live

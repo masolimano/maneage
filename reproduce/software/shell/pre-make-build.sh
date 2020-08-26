@@ -30,32 +30,32 @@ set -e
 
 
 
-# Input arguments.
-bdir=$1
-ddir=$2
-downloader="$3"
-user_backup_urls="$4"
+# Input arguments (the 'IFS's are to allow space in the name).
+IFS='"' bdir="$1"
+IFS='"' ddir="$2"
+IFS='"' downloader="$3"
+IFS='"' user_backup_urls="$4"
 
 
 
 
 
 # Basic directories/files
-topdir=$(pwd)
-sdir=$bdir/software
-tardir=$sdir/tarballs
-instdir=$sdir/installed
-tmpblddir=$sdir/build-tmp
+topdir="$(pwd)"
+sdir="$bdir"/software
+tardir="$sdir"/tarballs
+instdir="$sdir"/installed
+tmpblddir="$sdir"/build-tmp
 confdir=reproduce/software/config
-ibidir=$instdir/version-info/proglib
+ibidir="$instdir"/version-info/proglib
 downloadwrapper=reproduce/analysis/bash/download-multi-try
 
 # Derived directories
-bindir=$instdir/bin
-urlfile=$confdir/urls.conf
-versionsfile=$confdir/versions.conf
-checksumsfile=$confdir/checksums.conf
-backupfile=$confdir/servers-backup.conf
+bindir="$instdir"/bin
+urlfile="$confdir"/urls.conf
+versionsfile="$confdir"/versions.conf
+checksumsfile="$confdir"/checksums.conf
+backupfile="$confdir"/servers-backup.conf
 
 
 
@@ -87,21 +87,21 @@ done
 # Download the necessary tarball.
 download_tarball() {
   # Basic definitions
-  maneagetar=$tardir/$tarball
+  maneagetar="$tardir"/"$tarball"
 
   # See if the tarball already exists in Maneage.
   if [ -f "$maneagetar" ]; then
     just_a_place_holder=1
   else
-    ucname=$tardir/$tarball.unchecked
+    ucname="$tardir"/"$tarball.unchecked"
 
     # If the URL is empty, use the top backup server
     if [ x$w = x ]; then
         bservers="$backupservers"
-        tarballurl=$topbackupserver/$tarball
+        tarballurl="$topbackupserver"/"$tarball"
     else
         bservers="$backupservers_all"
-        tarballurl=$url/$tarball
+        tarballurl="$url"/"$tarball"
     fi
 
     # See if it is in the input-software directory, if so, make a link, if
@@ -111,19 +111,19 @@ download_tarball() {
     # link and link to an actual file.
     if [ -f "$ddir/$tarball" ]; then
       if type realpath > /dev/null 2> /dev/null; then
-        ln -sf "$(realpath $ddir/$tarball)" "$ucname"
+        ln -sf "$(realpath "$ddir/$tarball")" "$ucname"
       else
-        cp $ddir/$tarball $ucname
+        cp "$ddir/$tarball" "$ucname"
       fi
     else
-      $downloadwrapper "$downloader" nolock $tarballurl $ucname \
+      $downloadwrapper "$downloader" nolock $tarballurl "$ucname" \
                        "$bservers"
     fi
 
     # Make sure this is the correct tarball.
     if type sha512sum > /dev/null 2> /dev/null; then
       checksum=$(sha512sum "$ucname" | awk '{print $1}')
-      expectedchecksum=$(awk '/^'$progname'-checksum/{print $3}' $checksumsfile)
+      expectedchecksum=$(awk '/^'$progname'-checksum/{print $3}' "$checksumsfile")
       if [ x$checksum = x$expectedchecksum ]; then mv "$ucname" "$maneagetar"
       else
         echo "ERROR: Non-matching checksum: $tarball"
@@ -137,9 +137,9 @@ download_tarball() {
 
   # If the tarball is newer than the (possibly existing) program (the version
   # has changed), then delete the program.
-  if [ -f $ibidir/$progname ]; then
-      if [ $maneagetar -nt $ibidir/$progname ]; then
-          rm $ibidir/$progname
+  if [ -f "$ibidir/$progname" ]; then
+      if [ "$maneagetar" -nt "$ibidir/$progname" ]; then
+          rm "$ibidir/$progname"
       fi
   fi
 }
@@ -151,39 +151,39 @@ download_tarball() {
 # Build the program from the tarball. This function takes one argument
 # which is the configure-time options.
 build_program() {
-  if ! [ -f $ibidir/$progname ]; then
+  if ! [ -f "$ibidir/$progname" ]; then
 
     # Options
     configoptions=$1
 
     # Go into the temporary building directory.
-    cd $tmpblddir
+    cd "$tmpblddir"
     unpackdir="$progname"-"$version"
 
     # Some implementations of 'tar' don't recognize Lzip, so we need to
     # manually call Lzip first, then call tar afterwards.
-    csuffix=$(echo $tarball | sed -e's/\./ /g' | awk '{print $NF}')
-    rm -rf $unpackdir
+    csuffix=$(echo "$tarball" | sed -e's/\./ /g' | awk '{print $NF}')
+    rm -rf "$unpackdir"
     if [ x$csuffix = xlz ]; then
       intarrm=1
-      intar=$(echo $tarball | sed -e's/.lz//')
-      lzip -c -d $tardir/$tarball > $intar
+      intar=$(echo "$tarball" | sed -e's/.lz//')
+      lzip -c -d "$tardir/$tarball" > $intar
     else
       intarrm=0
-      intar=$tardir/$tarball
+      intar="$tardir"/"$tarball"
     fi
 
     # Unpack the tarball and go into it.
-    tar xf $intar
-    if [ x$intarrm = x1 ]; then rm $intar; fi
-    cd $unpackdir
+    tar xf "$intar"
+    if [ x$intarrm = x1 ]; then rm "$intar"; fi
+    cd "$unpackdir"
 
     # build the project, either with Make and either without it.
     if [ x$progname = xlzip ]; then
-        ./configure --build --check --installdir=$instdir/bin $configoptions
+        ./configure --build --check --installdir="$instdir/bin" $configoptions
     else
         # All others accept the configure script.
-        ./configure --prefix=$instdir $configoptions
+        ./configure --prefix="$instdir" $configoptions
 
         # To build GNU Make, we don't want to assume the existance of a
         # Make program, so we use its 'build.sh' script and its own built
@@ -198,9 +198,9 @@ build_program() {
     fi
 
     # Clean up the source directory
-    cd $topdir
-    rm -rf $tmpblddir/$unpackdir
-    echo "$progname_tex $version" > $ibidir/$progname
+    cd "$topdir"
+    rm -rf "$tmpblddir/$unpackdir"
+    echo "$progname_tex $version" > "$ibidir/$progname"
   fi
 }
 
@@ -219,7 +219,7 @@ build_program() {
 progname="lzip"
 progname_tex="Lzip"
 url=$(awk '/^'$progname'-url/{print $3}' $urlfile)
-version=$(awk '/^'$progname'-version/{print $3}' $versionsfile)
+version=$(awk '/^'$progname'-version/{print $3}' "$versionsfile")
 tarball=$progname-$version.tar
 download_tarball
 build_program

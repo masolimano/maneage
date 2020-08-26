@@ -48,7 +48,7 @@ need_gfortran=0
 # --------------------
 #
 # These are defined to help make this script more readable.
-topdir=$(pwd)
+topdir="$(pwd)"
 optionaldir="/optional/path"
 adir=reproduce/analysis/config
 cdir=reproduce/software/config
@@ -96,7 +96,8 @@ create_file_with_notice ()
 # an absolute address. With this function we can make sure of that.
 absolute_dir ()
 {
-    if stat "$1" 1> /dev/null; then
+    address="$1"
+    if stat "$address" 1> /dev/null; then
         echo "$(cd "$(dirname "$1")" && pwd )/$(basename "$1")"
     else
         exit 1;
@@ -136,18 +137,18 @@ check_permission ()
 {
     # Make a `junk' file, activate its executable flag and record its
     # permissions generally.
-    local junkfile=$1/check_permission_tmp_file
-    rm -f $junkfile
-    echo "Don't let my short life go to waste" > $junkfile
-    chmod +x $junkfile
-    local perm_before=$(ls -l $junkfile | awk '{print $1}')
+    local junkfile="$1"/check_permission_tmp_file
+    rm -f "$junkfile"
+    echo "Don't let my short life go to waste" > "$junkfile"
+    chmod +x "$junkfile"
+    local perm_before=$(ls -l "$junkfile" | awk '{print $1}')
 
     # Now, remove the executable flag and record the permissions.
-    chmod -x $junkfile
-    local perm_after=$(ls -l $junkfile | awk '{print $1}')
+    chmod -x "$junkfile"
+    local perm_after=$(ls -l "$junkfile" | awk '{print $1}')
 
     # Clean up before leaving the function
-    rm -f $junkfile
+    rm -f "$junkfile"
 
     # If the permissions are equal, the filesystem doesn't allow
     # permissions.
@@ -187,8 +188,8 @@ check_permission ()
 free_space_warning()
 {
     fs_threshold=$1
-    fs_destpath=$2
-    return $(df $fs_destpath \
+    IFS='"' fs_destpath="$2"
+    return $(df "$fs_destpath" \
                 | awk 'FNR==2 {if($4>'$fs_threshold') print 1; \
                                else                   print 0; }')
 }
@@ -218,6 +219,62 @@ else
     # Don't forget to add the respective C++ compiler below (leave 'cc' in
     # the end).
     c_compiler_list="clang gcc cc"
+fi
+
+
+
+
+
+# Collect CPU information
+# -----------------------
+#
+# When the project is built, the type of a machine that built it also has
+# to to be documented. This way, if different results or behaviors are
+# observed in software-related or analysis-related phases of the project,
+# it would be easier to track down the root cause. So far this is just
+# later recorded as a LaTeX macro to be put in the final paper, but it
+# could be used in a more systematic way to optimize/revise project
+# workflow and build.
+hw_class=$(uname -m)
+if [ x$kernelname = xLinux ]; then
+    byte_order=$(lscpu \
+                     | grep 'Byte Order' \
+                     | awk '{ \
+                             for(i=3;i<NF;++i) \
+                             printf "%s ", $i; \
+                             printf "%s", $NF}')
+    address_sizes=$(lscpu \
+                     | grep 'Address sizes' \
+                     | awk '{ \
+                             for(i=3;i<NF;++i) \
+                             printf "%s ", $i; \
+                             printf "%s", $NF}')
+elif [ x$on_mac_os = xyes ]; then
+    hw_byteorder=$(sysctl -n hw.byteorder)
+    if   [ x$hw_byteorder = x1234 ]; then byte_order="Little Endian";
+    elif [ x$hw_byteorder = x4321 ]; then byte_order="Big Endian";
+    fi
+    address_size_physical=$(sysctl -n machdep.cpu.address_bits.phyiscal)
+    address_size_virtual=$(sysctl -n machdep.cpu.address_bits.virtual)
+    address_sizes="$address_size_physical bits physical, "
+    address_sizes+="$address_size_virtual bits virtual"
+else
+    byte_order="unrecognized"
+    address_sizes="unrecognized"
+    cat <<EOF
+______________________________________________________
+!!!!!!!                 WARNING                !!!!!!!
+
+Machine byte order and address sizes could not be recognized. You can add
+the necessary steps in the 'reproduce/software/shell/configure.sh' script
+(just above this error message), or contact us with this web-form:
+
+    https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    sleep 5
 fi
 
 
@@ -717,7 +774,7 @@ fi
 
 # Build directory
 # ---------------
-currentdir=$(pwd)
+currentdir="$(pwd)"
 if [ $rewritepconfig = yes ]; then
     cat <<EOF
 
@@ -746,7 +803,7 @@ directory). The build directory cannot be a subdirectory of the source.
 EOF
     bdir=
     junkname=pure-junk-974adfkj38
-    while [ x$bdir = x ]
+    while [ x"$bdir" = x ]
     do
         # Ask the user (if not already set on the command-line).
         if [ x"$build_dir" = x ]; then
@@ -761,31 +818,31 @@ EOF
         fi
 
         # If it exists, see if we can write in it. If not, try making it.
-        if [ -d $build_dir ]; then
-            if mkdir $build_dir/$junkname 2> /dev/null; then
+        if [ -d "$build_dir" ]; then
+            if echo "test" > "$build_dir"/$junkname ; then
+                rm -f "$build_dir"/$junkname
                 instring="the already existing"
-                bdir=$(absolute_dir $build_dir)
-                rm -rf $build_dir/$junkname
+                bdir="$(absolute_dir "$build_dir")"
             else
                 echo " ** Can't write in '$build_dir'";
             fi
         else
-            if mkdir $build_dir 2> /dev/null; then
+            if mkdir "$build_dir" 2> /dev/null; then
                 instring="the newly created"
-                bdir=$(absolute_dir $build_dir)
+                bdir="$(absolute_dir "$build_dir")"
             else
                 echo " ** Can't create '$build_dir'";
             fi
         fi
 
-        # If its given, make sure it isn't a subdirectory of the source
+        # If it is given, make sure it isn't a subdirectory of the source
         # directory.
         if ! [ x"$bdir" = x ]; then
             if echo "$bdir/" \
-                    | grep '^'$currentdir 2> /dev/null > /dev/null; then
+                    | grep '^'"$currentdir" 2> /dev/null > /dev/null; then
 
                 # If it was newly created, it will be empty, so delete it.
-                if ! [ "$(ls -A $bdir)" ]; then rm --dir $bdir; fi
+                if ! [ "$(ls -A $bdir)" ]; then rm --dir "$bdir"; fi
 
                 # Inform the user that this is not acceptable and reset `bdir'.
                 bdir=
@@ -793,10 +850,30 @@ EOF
             fi
         fi
 
-	# If everything is fine until now, see if we're able to manipulate
-	# file permissions.
+        # If things are fine so far, make sure it does not contain a space
+        # or other meta-characters which can cause problems during software
+        # building.
+        if ! [ x"$bdir" = x ]; then
+            hasmeta=0;
+            case $bdir in *['!'\@\#\$\%\^\&\*\(\)\+\;\ ]* ) hasmeta=1 ;; esac
+            if [ $hasmeta = 1 ]; then
+
+                # If it was newly created, it will be empty, so delete it.
+                if ! [ "$(ls -A "$bdir")" ]; then rm --dir "$bdir"; fi
+
+                # Inform the user and set 'bdir' to empty again.
+                bdir=
+                echo " ** Build directory should not contain meta-characters"
+                echo " ** (like SPACE, %, \$, !, ;, or parenthesis, among "
+                echo " ** others): they can interrup the build for some software."
+            fi
+        fi
+
+	# If everything is still fine so far, see if we're able to
+	# manipulate file permissions in the directory's filesystem and if
+	# so, see if there is atleast 5GB free space.
 	if ! [ x"$bdir" = x ]; then
-            if ! $(check_permission $bdir); then
+            if ! $(IFS='"' check_permission "$bdir"); then
                 # Unable to handle permissions well
                 bdir=
                 echo " ** File permissions can't be modified in this directory"
@@ -804,7 +881,7 @@ EOF
                 # Able to handle permissions, now check for 5GB free space
                 # in the given partition (note that the number is in units
                 # of 1024 bytes). If this is not the case, print a warning.
-                if $(free_space_warning 5000000 $bdir); then
+                if $(free_space_warning 5000000 "$bdir"); then
                     echo " !! LESS THAN 5GB FREE SPACE IN: $bdir"
                     echo " !! We recommend choosing another partition."
                     echo " !! Build will continue in 5 seconds..."
@@ -817,7 +894,7 @@ EOF
         # reset `build_dir' to blank, so it continues asking for another
         # directory and let the user know that they must select a new
         # directory.
-        if [ x$bdir = x ]; then
+        if [ x"$bdir" = x ]; then
             build_dir=
             echo " ** Please select another directory."
             echo ""
@@ -834,9 +911,9 @@ fi
 # Input directory
 # ---------------
 if [ x"$input_dir" = x ]; then
-    indir=$optionaldir
+    indir="$optionaldir"
 else
-    indir=$input_dir
+    indir="$input_dir"
 fi
 noninteractive_sleep=2
 if [ $rewritepconfig = yes ] && [ x"$input_dir" = x ]; then
@@ -878,7 +955,7 @@ EOF
 
     # In case an input-directory is given, write it in 'indir'.
     if [ x$inindir != x ]; then
-        indir=$(absolute_dir $inindir)
+        indir="$(absolute_dir "$inindir")"
         echo " -- Using '$indir'"
     fi
 fi
@@ -922,7 +999,7 @@ EOF
 
     # If given, write the software directory.
     if [ x"$tmpddir" != x ]; then
-        ddir=$(absolute_dir $tmpddir)
+        ddir="$(absolute_dir "$tmpddir")"
         echo " -- Using '$ddir'"
     fi
 fi
@@ -946,11 +1023,18 @@ if [ $rewritepconfig = yes ]; then
         -e's|@groupname[@]|'"$reproducible_paper_group_name"'|' \
         $pconf.in >> $pconf
 else
-    # Read the values from existing configuration file.
-    inbdir=$(awk '$1=="BDIR" {print $3}' $pconf)
+    # Read the values from existing configuration file. Note that the build
+    # directory may have space characters. Even though we currently check
+    # against it, we hope to be able to remove this condition in the
+    # future.
+    inbdir=$(awk '$1=="BDIR" { for(i=3; i<NF; i++) \
+                               printf "%s ", $i; \
+                               printf "%s", $NF }' $pconf)
 
-    # Read the software directory.
-    ddir=$(awk '$1=="DEPENDENCIES-DIR" {print $3}' $pconf)
+    # Read the software directory (same as 'inbdir' above about space).
+    ddir=$(awk '$1=="DEPENDENCIES-DIR" { for(i=3; i<NF; i++) \
+                                         printf "%s ", $i; \
+                                         printf "%s", $NF}' $pconf)
 
     # The downloader command may contain multiple elements, so we'll just
     # change the (in memory) first and second tokens to empty space and
@@ -968,9 +1052,9 @@ else
     # Make sure `bdir' is an absolute path and it exists.
     berr=0
     ierr=0
-    bdir=$(absolute_dir $inbdir)
+    bdir="$(absolute_dir "$inbdir")"
 
-    if ! [ -d $bdir  ]; then if ! mkdir $bdir; then berr=1; err=1; fi; fi
+    if ! [ -d "$bdir"  ]; then if ! mkdir "$bdir"; then berr=1; err=1; fi; fi
     if [ $err = 1 ]; then
         cat <<EOF
 
@@ -1013,10 +1097,10 @@ fi
 # (without the user noticing), in the end of this script we make a file and
 # we'll delete it here (at the start). Therefore if the script crashed in
 # the middle that file won't exist.
-sdir=$bdir/software
-finaltarget=$sdir/configuration-done.txt
-if ! [ -d $sdir ];  then mkdir $sdir; fi
-rm -f $finaltarget
+sdir="$bdir"/software
+finaltarget="$sdir"/configuration-done.txt
+if ! [ -d "$sdir" ];  then mkdir "$sdir"; fi
+rm -f "$finaltarget"
 
 
 
@@ -1030,56 +1114,56 @@ rm -f $finaltarget
 # analysis Makefiles (thus making them hard to read), we are just building
 # them here
 # Software tarballs
-tardir=$sdir/tarballs
-if ! [ -d $tardir ];  then mkdir $tardir; fi
+tardir="$sdir"/tarballs
+if ! [ -d "$tardir" ];  then mkdir "$tardir"; fi
 
 # Installed software
-instdir=$sdir/installed
-if ! [ -d $instdir ]; then mkdir $instdir; fi
+instdir="$sdir"/installed
+if ! [ -d "$instdir" ]; then mkdir "$instdir"; fi
 
 # To record software versions and citation.
-verdir=$instdir/version-info
-if ! [ -d $verdir ]; then mkdir $verdir; fi
+verdir="$instdir"/version-info
+if ! [ -d "$verdir" ]; then mkdir "$verdir"; fi
 
 # Program and library versions and citation.
-ibidir=$verdir/proglib
-if ! [ -d $ibidir ]; then mkdir $ibidir; fi
+ibidir="$verdir"/proglib
+if ! [ -d "$ibidir" ]; then mkdir "$ibidir"; fi
 
 # Python module versions and citation.
-ipydir=$verdir/python
-if ! [ -d $ipydir ]; then mkdir $ipydir; fi
+ipydir="$verdir"/python
+if ! [ -d "$ipydir" ]; then mkdir "$ipydir"; fi
 
 # Used software BibTeX entries.
-ictdir=$verdir/cite
-if ! [ -d $ictdir ]; then mkdir $ictdir; fi
+ictdir="$verdir"/cite
+if ! [ -d "$ictdir" ]; then mkdir "$ictdir"; fi
 
 # TeXLive versions.
-itidir=$verdir/tex
-if ! [ -d $itidir ]; then mkdir $itidir; fi
+itidir="$verdir"/tex
+if ! [ -d "$itidir" ]; then mkdir "$itidir"; fi
 
 # Top-level LaTeX.
-texdir=$bdir/tex
-if ! [ -d $texdir ]; then mkdir $texdir; fi
+texdir="$bdir"/tex
+if ! [ -d "$texdir" ]; then mkdir "$texdir"; fi
 
 # LaTeX macros.
-mtexdir=$texdir/macros
-if ! [ -d $mtexdir ]; then mkdir $mtexdir; fi
+mtexdir="$texdir"/macros
+if ! [ -d "$mtexdir" ]; then mkdir "$mtexdir"; fi
 
 
 # TeX build directory. If built in a group scenario, the TeX build
 # directory must be separate for each member (so they can work on their
 # relevant parts of the paper without conflicting with each other).
 if [ "x$reproducible_paper_group_name" = x ]; then
-    texbdir=$texdir/build
+    texbdir="$texdir"/build
 else
     user=$(whoami)
-    texbdir=$texdir/build-$user
+    texbdir="$texdir"/build-$user
 fi
-if ! [ -d $texbdir ]; then mkdir $texbdir; fi
+if ! [ -d "$texbdir" ]; then mkdir "$texbdir"; fi
 
 # TiKZ (for building figures within LaTeX).
-tikzdir=$texbdir/tikz
-if ! [ -d $tikzdir ]; then mkdir $tikzdir; fi
+tikzdir="$texbdir"/tikz
+if ! [ -d "$tikzdir" ]; then mkdir "$tikzdir"; fi
 
 
 # If 'tex/build' and 'tex/tikz' are symbolic links then 'rm -f' will delete
@@ -1107,14 +1191,14 @@ fi
 # safe, we are deleting all the links on each re-configure of the project.
 rm -f .build .local
 
-ln -s $bdir .build
-ln -s $instdir .local
-ln -s $texdir tex/build
-ln -s $tikzdir tex/tikz
+ln -s "$bdir" .build
+ln -s "$instdir" .local
+ln -s "$texdir" tex/build
+ln -s "$tikzdir" tex/tikz
 
 # --------- Delete for no Gnuastro ---------
 rm -f .gnuastro
-ln -s $topdir/reproduce/analysis/config/gnuastro .gnuastro
+ln -s "$topdir"/reproduce/analysis/config/gnuastro .gnuastro
 # ------------------------------------------
 
 
@@ -1130,8 +1214,8 @@ ln -s $topdir/reproduce/analysis/config/gnuastro .gnuastro
 # project names). Maybe later, we can use something like `mktemp' to add
 # random characters to this name and make it unique to every run (even for
 # a single user).
-tmpblddir=$sdir/build-tmp
-rm -rf $tmpblddir/* $tmpblddir  # If its a link, we need to empty its
+tmpblddir="$sdir"/build-tmp
+rm -rf "$tmpblddir"/* "$tmpblddir"  # If its a link, we need to empty its
                                 # contents first, then itself.
 
 # Set the top-level shared memory location.
@@ -1143,12 +1227,12 @@ fi
 # there (in RAM), build a temporary directory for this project.
 needed_space=2000000
 if [ x"$shmdir" != x ]; then
-    available_space=$(df $shmdir | awk 'NR==2{print $4}')
+    available_space=$(df "$shmdir" | awk 'NR==2{print $4}')
     if [ $available_space -gt $needed_space ]; then
         dirname=$(pwd | sed -e's/\// /g' \
                       | awk '{l=NF-1; printf("%s-%s",$l, $NF)}')
-        tbshmdir=$shmdir/"$dirname"-$(whoami)
-        if ! [ -d $tbshmdir ]; then mkdir $tbshmdir; fi
+        tbshmdir="$shmdir"/"$dirname"-$(whoami)
+        if ! [ -d "$tbshmdir" ]; then mkdir "$tbshmdir"; fi
     fi
 else
     tbshmdir=""
@@ -1157,8 +1241,8 @@ fi
 # If a shared memory directory was created set `build-tmp' to be a
 # symbolic link to it. Otherwise, just build the temporary build
 # directory under the project build directory.
-if [ x$tbshmdir = x ]; then mkdir $tmpblddir;
-else                        ln -s $tbshmdir $tmpblddir;
+if [ x"$tbshmdir" = x ]; then mkdir "$tmpblddir";
+else                        ln -s "$tbshmdir" "$tmpblddir";
 fi
 
 
@@ -1522,6 +1606,24 @@ if [ $hasentry = 1 ]; then
         awk '!/^%/{print} END{print ""}' $f >> $pkgbib
     done
 fi
+
+
+
+
+
+# Report machine architecture
+# ---------------------------
+#
+# Report hardware
+hwparam="$mtexdir/hardware-parameters.tex"
+
+# Add the text to the ${hwparam} file. Since harware class might include
+# underscore, it must be replaced with '\_', otherwise pdftex would
+# complain and break the build process when doing ./project make.
+hw_class_fixed="$(echo $hw_class | sed -e 's/_/\\_/')"
+.local/bin/echo "\\newcommand{\\machinearchitecture}{$hw_class_fixed}" > $hwparam
+.local/bin/echo "\\newcommand{\\machinebyteorder}{$byte_order}" >> $hwparam
+.local/bin/echo "\\newcommand{\\machineaddresssizes}{$address_sizes}" >> $hwparam
 
 
 

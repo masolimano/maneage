@@ -167,27 +167,27 @@ do
 
 
   # Configure options:
-  -b|--builddir)         build_dir="$2";                             check_v "$1" "$build_dir";    shift;shift;;
-  -b=*|--build-dir=*)    build_dir="${1#*=}";                        check_v "$1" "$build_dir";    shift;;
-  -b*)                   build_dir=$(echo    "$1" | sed -e's/-b//'); check_v "$1" "$build_dir";    shift;;
-  -e|--existing-conf)    existing_conf=1;                                                          shift;;
+  -b|--build-dir)        IFS='"' build_dir="$2";                             check_v "$1" "$build_dir";    shift;shift;;
+  -b=*|--build-dir=*)    IFS='"' build_dir="${1#*=}";                        check_v "$1" "$build_dir";    shift;;
+  -b*)                   IFS='"' build_dir=$(echo    "$1" | sed -e's/-b//'); check_v "$1" "$build_dir";    shift;;
+  -e|--existing-conf)    existing_conf=1;                                                                  shift;;
   -e*|--existing-conf=*) on_off_option_error --existing-conf -e;;
-  --host-cc)             host_cc=1;                                                                shift;;
+  --host-cc)             host_cc=1;                                                                        shift;;
   --host-cc=*)           on_off_option_error --host-cc;;
-  -i|--input-dir)        input_dir="$2";                             check_v "$1" "$input_dir";    shift;shift;;
-  -i=*|--input-dir=*)    input_dir="${1#*=}";                        check_v "$1" "$input_dir";    shift;;
-  -i*)                   input_dir=$(echo    "$1" | sed -e's/-i//'); check_v "$1" "$input_dir";    shift;;
-  -m|--minmapsize)       minmapsize="$2";                            check_v "$1" "$minmapsize";   shift;shift;;
-  -m=*|--minmapsize=*)   minmapsize="${1#*=}";                       check_v "$1" "$minmapsize";   shift;;
-  -m*)                   minmapsize=$(echo   "$1" | sed -e's/-m//'); check_v "$1" "$minmapsize";   shift;;
-  -s|--software-dir)     software_dir="$2";                          check_v "$1" "$software_dir"; shift;shift;;
-  -s=*|--software-dir=*) software_dir="${1#*=}";                     check_v "$1" "$software_dir"; shift;;
-  -s*)                   software_dir=$(echo "$1" | sed -e's/-s//'); check_v "$1" "$software_dir"; shift;;
-  --check-config)        check_config=1;                                                           shift;;
+  -i|--input-dir)        IFS='"' input_dir="$2";                             check_v "$1" "$input_dir";    shift;shift;;
+  -i=*|--input-dir=*)    IFS='"' input_dir="${1#*=}";                        check_v "$1" "$input_dir";    shift;;
+  -i*)                   input_dir=$(echo    "$1" | sed -e's/-i//');         check_v "$1" "$input_dir";    shift;;
+  -m|--minmapsize)       minmapsize="$2";                                    check_v "$1" "$minmapsize";   shift;shift;;
+  -m=*|--minmapsize=*)   minmapsize="${1#*=}";                               check_v "$1" "$minmapsize";   shift;;
+  -m*)                   minmapsize=$(echo   "$1" | sed -e's/-m//');         check_v "$1" "$minmapsize";   shift;;
+  -s|--software-dir)     IFS='"' software_dir="$2";                          check_v "$1" "$software_dir"; shift;shift;;
+  -s=*|--software-dir=*) IFS='"' software_dir="${1#*=}";                     check_v "$1" "$software_dir"; shift;;
+  -s*)                   IFS='"' software_dir=$(echo "$1" | sed -e's/-s//'); check_v "$1" "$software_dir"; shift;;
+  --check-config)        check_config=1;                                                                   shift;;
   --check-config=*)      on_off_option_error --check-config;;
-  --clean-texdir)        clean_texdir=1;                                                           shift;;
+  --clean-texdir)        clean_texdir=1;                                                                   shift;;
   --clean-texdir=*)      on_off_option_error --clean-texdir;;
-  --all-highlevel)       all_highlevel=1;                                                          shift;;
+  --all-highlevel)       all_highlevel=1;                                                                  shift;;
   --all-highlevel=*)     on_off_option_error --all-highlevel;;
 
   # Configure and Make options:
@@ -279,7 +279,7 @@ EOF
             check=$(ls .local/version-info/proglib/)
             if ! [ "x$check" = x ]; then
                 printresults=1
-                ln -s $(pwd)/.local/version-info/proglib/* $checkdir/
+                ln -s "$(pwd)"/.local/version-info/proglib/* $checkdir/
             fi
 
             # If something was actually found, then print them.
@@ -304,7 +304,7 @@ EOF
         echo "========================"
 
         # Wait for the next round of checks.
-        sleep 1;
+        sleep 1
     done
     exit 0
 fi
