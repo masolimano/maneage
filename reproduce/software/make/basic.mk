@@ -56,8 +56,13 @@ ibdir   = $(BDIR)/software/installed/bin
 ildir   = $(BDIR)/software/installed/lib
 ibidir  = $(BDIR)/software/installed/version-info/proglib
 
-# Ultimate Makefile target.
-targets-proglib = low-level-links gcc-$(gcc-version)
+# Ultimate Makefile target. GNU Nano (a simple and very light-weight text
+# editor) is installed by default, it is recommended to have it in the
+# 'basic.mk', so Maneaged projects can be edited on any system (even when
+# there is no command-line text editor is available).
+targets-proglib = low-level-links \
+                  gcc-$(gcc-version) \
+                  nano-$(nano-version)
 all: $(foreach p, $(targets-proglib), $(ibidir)/$(p))
 
 # Define the shell environment
@@ -852,7 +857,8 @@ $(ibidir)/diffutils-$(diffutils-version): \
 $(ibidir)/file-$(file-version): $(ibidir)/coreutils-$(coreutils-version)
 	tarball=file-$(file-version).tar.gz
 	$(call import-source, $(file-url), $(file-checksum))
-	$(call gbuild, file-$(file-version), static,,V=1)
+	$(call gbuild, file-$(file-version), static, \
+	               --disable-libseccomp, V=1)
 	echo "File $(file-version)" > $@
 
 $(ibidir)/findutils-$(findutils-version): \
@@ -1145,10 +1151,21 @@ $(ibidir)/texinfo-$(texinfo-version): \
 	echo "GNU Texinfo $(texinfo-version)" > $@
 
 $(ibidir)/which-$(which-version): $(ibidir)/coreutils-$(coreutils-version)
-	tarball=/which-$(which-version).tar.gz
+	tarball=which-$(which-version).tar.gz
 	$(call import-source, $(which-url), $(which-checksum))
 	$(call gbuild, which-$(which-version), static)
 	echo "GNU Which $(which-version)" > $@
+
+# GNU Nano is a very light-weight and small, command-line text editor (in
+# total around 3.5 Mb after installation!). It is top-level target in the
+# basic tools (nothing depends on it, it just depends on GCC). This is
+# because some projects may choose to not have it by manually removing it
+# from 'targets-proglib' above (it has no effect on processing after all!).
+$(ibidir)/nano-$(nano-version): $(ibidir)/gcc-$(gcc-version)
+	tarball=nano-$(nano-version).tar.xz
+	$(call import-source, $(nano-url), $(nano-checksum))
+	$(call gbuild, nano-$(nano-version), static)
+	echo "GNU Nano $(nano-version)" > $@
 
 
 

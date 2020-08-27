@@ -494,22 +494,24 @@ case $operation in
         fi
 
         # Run the project's own shell without inheriting any environment
-        # from the host.
+        # from the host. The 'TERM' environment variable is necessary for
+        # tools like some text editors.
         bdir=`.local/bin/realpath .build`
-        instdir=$bdir/software/installed
+        instdir="$bdir"/software/installed
         .local/bin/env -i \
-                       HOME=$bdir \
+                       HOME="$bdir" \
+                       TERM="$TERM" \
                        CCACHE_DISABLE=1 \
-                       PATH=$instdir/bin \
-                       LDFLAGS=-L$instdir/lib \
-                       SHELL=$instdir/bin/bash \
-                       CPPFLAGS=-I$instdir/include \
-                       LD_LIBRARY_PATH=$instdir/lib \
+                       PATH="$instdir"/bin \
+                       LDFLAGS=-L"$instdir"/lib \
+                       SHELL="$instdir"/bin/bash \
+                       CPPFLAGS=-I"$instdir"/include \
+                       LD_LIBRARY_PATH="$instdir"/lib \
                        OMPI_MCA_plm_rsh_agent=/bin/false \
-                       PYTHONPATH=$instdir/lib/python/site-packages \
-                       PYTHONPATH3=$instdir/lib/python/site-packages \
+                       PYTHONPATH="$instdir"/lib/python/site-packages \
+                       PYTHONPATH3="$instdir"/lib/python/site-packages \
                        PS1="[\[\033[32m\](maneage)\[\033[00m\] \u@\h \W]$ " \
-                       $instdir/bin/bash
+                       "$instdir"/bin/bash
         ;;
 
 

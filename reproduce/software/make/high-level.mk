@@ -449,6 +449,25 @@ $(ibidir)/eigen-$(eigen-version):
 	rm -rf $(ddir)/eigen-eigen-*
 	echo "Eigen $(eigen-version)" > $@
 
+# GNU Emacs is an advanced text editor (among many other things!), so it
+# isn't directly related to the analysis phase of a project. However, it
+# can be useful during the development of a project on systems that don't
+# have it natively. So probably after the project is finished and is ready
+# for publication, you can remove it from 'TARGETS.conf'.
+#
+# However, the full Emacs build has a very large number of dependencies
+# which aren't necessary in many scenarios so we are disabling everything
+# except the core Emacs functionality (using '--without-all') and we are
+# also disabling all graphic user interface features (using '--without-x').
+$(ibidir)/emacs-$(emacs-version):
+	tarball=emacs-$(emacs-version).tar.xz
+	$(call import-source, $(emacs-url), $(emacs-checksum))
+	$(call gbuild, emacs-$(emacs-version), static, \
+	               --without-all --without-x \
+	               --without-gnutls --with-ns=no, \
+	               -j$(numthreads) V=1)
+	echo "GNU Emacs $(emacs-version)" > $@
+
 $(ibidir)/expat-$(expat-version):
 	tarball=expat-$(expat-version).tar.lz
 	$(call import-source, $(expat-url), $(expat-checksum))
@@ -1374,8 +1393,30 @@ $(ibidir)/xlsxio-$(xlsxio-version): \
 	rm $(ibdir)/example_xlsxio_*
 	echo "XLSX I/O $(xlsxio-version)" > $@
 
-
-
+# VIM is a text editor which doesn't directly affect processing but can be
+# useful in projects during its development, for more see the comment above
+# GNU Emacs.
+$(ibidir)/vim-$(vim-version):
+	tarball=vim-$(vim-version).tar.bz2
+	$(call import-source, $(vim-url), $(vim-checksum))
+	cd $(ddir)
+	tar xf $(tdir)/$$tarball
+	n=$$(echo $(vim-version) | sed -e's|\.||')
+	cd $(ddir)/vim$$n
+	./configure --prefix=$(idir) \
+	            --disable-canberra \
+	            --enable-multibyte \
+	            --disable-netbeans \
+	            --disable-fontset \
+	            --disable-gpm \
+	            --disable-acl \
+	            --disable-gui \
+	            --with-x=no
+	make -j$(numthreads)
+	make install
+	cd ..
+	rm -rf vim$$n
+	echo "VIM $(vim-version)" > $@
 
 
 

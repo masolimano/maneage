@@ -254,7 +254,7 @@ elif [ x$on_mac_os = xyes ]; then
     if   [ x$hw_byteorder = x1234 ]; then byte_order="Little Endian";
     elif [ x$hw_byteorder = x4321 ]; then byte_order="Big Endian";
     fi
-    address_size_physical=$(sysctl -n machdep.cpu.address_bits.phyiscal)
+    address_size_physical=$(sysctl -n machdep.cpu.address_bits.physical)
     address_size_virtual=$(sysctl -n machdep.cpu.address_bits.virtual)
     address_sizes="$address_size_physical bits physical, "
     address_sizes+="$address_size_virtual bits virtual"
