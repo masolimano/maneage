@@ -244,21 +244,18 @@ MB), not the full TeXLive collection!
     ```
 
  2. **Maneage dependencies:** By default the "slim" versions of the
-    operating systems don't contain a compiler, so you need to use the
-    selected operating system's package manager to import them. You can
-    optionally install two other programs: 1) To inspect/edit the project's
-    source files later, install your favorite text editor. 2) If you don't
-    have the project's software tarballs, and want the project to download
-    them automatically, you also need a downloader.
+    operating systems don't contain a compiler (needed by Maneage to
+    compile precise versions of all the tools). You thus need to use the
+    selected operating system's package manager to import them (below is
+    the command for Debian). Optionally, if you don't have the project's
+    software tarballs, and want the project to download them automatically,
+    you also need a downloader.
 
     ```shell
     # C and C++ compiler.
     RUN apt-get update && apt-get install -y gcc g++
 
-    # Uncomment this to add a text editor (to modify source files later).
-    #RUN apt-get install -y nano
-
-    # Uncomment this if you don't have 'software-XXXX.tar.gz'
+    # Uncomment this if you don't have 'software-XXXX.tar.gz' (below).
     #RUN apt-get install -y wget
     ```
 
