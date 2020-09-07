@@ -31,10 +31,10 @@ set -e
 
 
 # Input arguments (the 'IFS's are to allow space in the name).
-IFS='"' bdir="$1"
-IFS='"' ddir="$2"
-IFS='"' downloader="$3"
-IFS='"' user_backup_urls="$4"
+bdir="$1"
+ddir="$2"
+downloader="$3"
+user_backup_urls="$4"
 
 
 
