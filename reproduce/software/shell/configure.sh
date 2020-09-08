@@ -188,7 +188,7 @@ check_permission ()
 free_space_warning()
 {
     fs_threshold=$1
-    IFS='"' fs_destpath="$2"
+    fs_destpath="$2"
     return $(df "$fs_destpath" \
                 | awk 'FNR==2 {if($4>'$fs_threshold') print 1; \
                                else                   print 0; }')
@@ -873,7 +873,7 @@ EOF
 	# manipulate file permissions in the directory's filesystem and if
 	# so, see if there is atleast 5GB free space.
 	if ! [ x"$bdir" = x ]; then
-            if ! $(IFS='"' check_permission "$bdir"); then
+            if ! $(check_permission "$bdir"); then
                 # Unable to handle permissions well
                 bdir=
                 echo " ** File permissions can't be modified in this directory"

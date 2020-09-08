@@ -167,22 +167,22 @@ do
 
 
   # Configure options:
-  -b|--build-dir)        IFS='"' build_dir="$2";                             check_v "$1" "$build_dir";    shift;shift;;
-  -b=*|--build-dir=*)    IFS='"' build_dir="${1#*=}";                        check_v "$1" "$build_dir";    shift;;
-  -b*)                   IFS='"' build_dir=$(echo    "$1" | sed -e's/-b//'); check_v "$1" "$build_dir";    shift;;
+  -b|--build-dir)        build_dir="$2";                                     check_v "$1" "$build_dir";    shift;shift;;
+  -b=*|--build-dir=*)    build_dir="${1#*=}";                                check_v "$1" "$build_dir";    shift;;
+  -b*)                   build_dir=$(echo    "$1" | sed -e's/-b//');         check_v "$1" "$build_dir";    shift;;
   -e|--existing-conf)    existing_conf=1;                                                                  shift;;
   -e*|--existing-conf=*) on_off_option_error --existing-conf -e;;
   --host-cc)             host_cc=1;                                                                        shift;;
   --host-cc=*)           on_off_option_error --host-cc;;
-  -i|--input-dir)        IFS='"' input_dir="$2";                             check_v "$1" "$input_dir";    shift;shift;;
-  -i=*|--input-dir=*)    IFS='"' input_dir="${1#*=}";                        check_v "$1" "$input_dir";    shift;;
+  -i|--input-dir)        input_dir="$2";                                     check_v "$1" "$input_dir";    shift;shift;;
+  -i=*|--input-dir=*)    input_dir="${1#*=}";                                check_v "$1" "$input_dir";    shift;;
   -i*)                   input_dir=$(echo    "$1" | sed -e's/-i//');         check_v "$1" "$input_dir";    shift;;
   -m|--minmapsize)       minmapsize="$2";                                    check_v "$1" "$minmapsize";   shift;shift;;
   -m=*|--minmapsize=*)   minmapsize="${1#*=}";                               check_v "$1" "$minmapsize";   shift;;
   -m*)                   minmapsize=$(echo   "$1" | sed -e's/-m//');         check_v "$1" "$minmapsize";   shift;;
-  -s|--software-dir)     IFS='"' software_dir="$2";                          check_v "$1" "$software_dir"; shift;shift;;
-  -s=*|--software-dir=*) IFS='"' software_dir="${1#*=}";                     check_v "$1" "$software_dir"; shift;;
-  -s*)                   IFS='"' software_dir=$(echo "$1" | sed -e's/-s//'); check_v "$1" "$software_dir"; shift;;
+  -s|--software-dir)     software_dir="$2";                                  check_v "$1" "$software_dir"; shift;shift;;
+  -s=*|--software-dir=*) software_dir="${1#*=}";                             check_v "$1" "$software_dir"; shift;;
+  -s*)                   software_dir=$(echo "$1" | sed -e's/-s//');         check_v "$1" "$software_dir"; shift;;
   --check-config)        check_config=1;                                                                   shift;;
   --check-config=*)      on_off_option_error --check-config;;
   --clean-texdir)        clean_texdir=1;                                                                   shift;;

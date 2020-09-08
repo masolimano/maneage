@@ -30,7 +30,7 @@ set -e
 
 
 
-# Input arguments (the 'IFS's are to allow space in the name).
+# Input arguments.
 bdir="$1"
 ddir="$2"
 downloader="$3"
