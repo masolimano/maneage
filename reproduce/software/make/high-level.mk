@@ -1181,6 +1181,24 @@ $(ibidir)/pcre-$(pcre-version):
 	               , V=1 -j$(numthreads))
 	echo "Perl Compatible Regular Expressions $(pcre-version)" > $@
 
+# Comment on building R without GUI support ('--without-tcltlk')
+#
+# Tcl/Tk are a set of tools to provide Graphic User Interface (GUI) support
+# in some software. But they are not yet natively built within Maneage,
+# primarily because we have higher-priority work right now (if anyone is
+# interested, they can ofcourse contribute!). GUI tools in general aren't
+# high on our priority list right now because they are generally good for
+# human interaction (which is contrary to the reproducible philosophy:
+# there will always be human-error and frustration, for example in GUI
+# tools the best level of reproducibility is statements like this: "move
+# your mouse to button XXX, then click on menu YYY and etc"). A robust
+# reproducible solution must be done automatically.
+#
+# If someone wants to use R's GUI functionalities while investigating for
+# their analysis, they can do the GUI part on their host OS
+# implementation. Later, they can bring the finalized source into Maneage
+# to be automatically run in Maneage. This will also be the recommended way
+# to deal with GUI tools later when we do install them within Maneage.
 $(ibidir)/R-$(R-version): \
             $(ibidir)/pcre-$(pcre-version) \
             $(ibidir)/cairo-$(cairo-version) \
@@ -1204,6 +1222,7 @@ $(ibidir)/R-$(R-version): \
 	            --with-pcre1 \
 	            --disable-java \
 	            --with-readline \
+	            --without-tcltk \
 	            --disable-openmp
 	make -j$(numthreads)
 	make install
