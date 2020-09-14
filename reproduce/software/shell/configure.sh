@@ -212,13 +212,31 @@ if [ x$kernelname = xLinux ]; then
     # Don't forget to add the respective C++ compiler below (leave 'cc' in
     # the end).
     c_compiler_list="gcc clang cc"
-else
+elif [ x$kernelname = xDarwin ]; then
     host_cc=1
     on_mac_os=yes
 
     # Don't forget to add the respective C++ compiler below (leave 'cc' in
     # the end).
     c_compiler_list="clang gcc cc"
+else
+    on_mac_os=no
+    cat <<EOF
+______________________________________________________
+!!!!!!!                 WARNING                !!!!!!!
+
+Maneage has been tested on GNU/Linux and Darwin (macOS) systems. But, it
+seems that the current system is not GNU/Linux or Darwin (macOS). If you
+notice any problem during the configure phase, please contact us with this
+web-form:
+
+    https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+The configuration will continue in 10 seconds...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    sleep 10
 fi
 
 
@@ -275,6 +293,47 @@ the necessary steps in the 'reproduce/software/shell/configure.sh' script
 
 EOF
     sleep 5
+fi
+
+
+
+
+
+# Check for Xcode in macOS systems
+# --------------------------------
+#
+# When trying to build Maneage on macOS systems, there are some problems
+# related with the Xcode and Command Line Tools. As a consequnce, in order to
+# avoid these error it is highly recommended to install Xcode in the host
+# system.  Here, it is checked that this is the case, and if not, warn the user
+# about not having Xcode already installed.
+if [ x$on_mac_os = xyes ]; then
+  xcode=$(which xcodebuild)
+  if [ x$xcode != x ]; then
+    xcode_version=$(xcodebuild -version | grep Xcode)
+    echo "                                              "
+    echo "$xcode_version already installed in the system"
+    echo "                                              "
+  else
+    cat <<EOF
+______________________________________________________
+!!!!!!!                 WARNING                !!!!!!!
+
+Maneage has been tested Darwin (macOS) systems with host Xcode
+installation.  However, Xcode cannot be found in this system. As a
+consequence, the configure step may fail at some point. If this is the
+case, please install Xcode and try to run again the configure step. If the
+problem still persist after installing Xcode, please contact us with this
+web-form:
+
+    https://savannah.nongnu.org/support/?func=additem&group=reproduce
+
+The configuration will continue in 5 seconds ...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+    sleep 5
+  fi
 fi
 
 
