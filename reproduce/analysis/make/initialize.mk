@@ -38,9 +38,6 @@ mtexdir     = $(texdir)/macros
 bashdir     = reproduce/analysis/bash
 pconfdir    = reproduce/analysis/config
 installdir  = $(BDIR)/software/installed
-# --------- Delete for no Gnuastro ---------
-gconfdir    = reproduce/analysis/config/gnuastro
-# ------------------------------------------
 
 
 
@@ -239,7 +236,7 @@ clean: clean-mmap
         # features like ignoring the listing of a file with `!()' that we
         # are using afterwards.
 	shopt -s extglob
-	rm -rf $(BDIR)/tex/macros/!(dependencies.tex|dependencies-bib.tex)
+	rm -rf $(BDIR)/tex/macros/!(dependencies.tex|dependencies-bib.tex|hardware-parameters.tex)
 	rm -rf $(BDIR)/!(software|tex) $(BDIR)/tex/!(macros|$(texbtopdir))
 	rm -rf $(BDIR)/tex/build/!(tikz) $(BDIR)/tex/build/tikz/*
 	rm -rf $(BDIR)/software/preparation-done.mk
@@ -254,8 +251,8 @@ distclean: clean
         # `rm' program. So for this recipe, we'll use the host system's
         # `rm', not our own.
 	$$sys_rm -rf $(BDIR)
+	$$sys_rm -f $(pconfdir)/LOCAL.conf
 	$$sys_rm -f Makefile .gnuastro .local .build
-	$$sys_rm -f $(pconfdir)/LOCAL.conf $(gconfdir)/gnuastro-local.conf
 
 
 

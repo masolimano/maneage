@@ -1254,11 +1254,9 @@ for the benefit of others.
    - *Configuration files*: If your research uses special programs as part
       of the processing, put all their configuration files in a devoted
       directory (with the program's name) within
-      `reproduce/software/config`. Similar to the
-      `reproduce/software/config/gnuastro` directory (which is put in
-      Maneage as a demo in case you use GNU Astronomy Utilities). It is
-      much cleaner and readable (thus less buggy) to avoid mixing the
-      configuration files, even if there is no technical necessity.
+      `reproduce/software/config`. It is much cleaner and readable (thus
+      less buggy) to avoid mixing the configuration files, even if there is
+      no technical necessity.
 
 
  - **Contents**: It is good practice to follow the following

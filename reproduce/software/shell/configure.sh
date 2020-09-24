@@ -1257,7 +1257,6 @@ ln -s "$tikzdir" tex/tikz
 
 # --------- Delete for no Gnuastro ---------
 rm -f .gnuastro
-ln -s "$topdir"/reproduce/analysis/config/gnuastro .gnuastro
 # ------------------------------------------
 
 
