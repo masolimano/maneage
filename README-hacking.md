@@ -180,13 +180,22 @@ evolving rapidly, so some details will differ between the different
 versions. The more recent papers will tend to be the most useful as good
 working examples.
 
-  - Roukema ([2020](https://arxiv.org/abs/2007.11779),
+ - Peper & Roukema ([2020](https://arxiv.org/abs/2010.03742),
+   arXiv:2010.03742): The live version of the controlled source is [at
+   Codeberg](https://codeberg.org/boud/elaphrocentre); the main input
+   dataset, a software snapshot, the software tarballs, the project
+   outputs and editing history are available at
+   [zenodo.4062461](https://zenodo.org/record/4062461); and the
+   archived git history is available at
+   [swh:1:dir:c4770e81288f340083dd8aa9fe017103c4eaf476](https://archive.softwareheritage.org/swh:1:dir:c4770e81288f340083dd8aa9fe017103c4eaf476).
+
+ - Roukema ([2020](https://arxiv.org/abs/2007.11779),
    arXiv:2007.11779): The live version of the controlled source is [at
    Codeberg](https://codeberg.org/boud/subpoisson); the main input
    dataset, a software snapshot, the software tarballs, the project
    outputs and editing history are available at
    [zenodo.3951152](https://zenodo.org/record/3951152); and the
-   archived git history is also available at
+   archived git history is available at
    [swh:1:dir:fcc9d6b111e319e51af88502fe6b233dc78d5166](https://archive.softwareheritage.org/swh:1:dir:fcc9d6b111e319e51af88502fe6b233dc78d5166).
 
  - Akhlaghi et al. ([2020](https://arxiv.org/abs/2006.03018),
