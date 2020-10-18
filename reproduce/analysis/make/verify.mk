@@ -114,8 +114,12 @@ verify-dep = $(subst verify,,$(subst paper,,$(makesrc)))
 verify-check = $(subst initialize,,$(verify-dep))
 $(mtexdir)/verify.tex: $(foreach s, $(verify-dep), $(mtexdir)/$(s).tex)
 
-        # Make sure that verification is actually requested.
-	if [ x"$(verify-outputs)" = xyes ]; then
+        # Make sure that verification is actually requested, the '@' at the
+        # start of the recipe is added so Make doesn't print the commands
+        # on the standard output because this recipe is run on every call
+        # to the project and can be annoying (get mixed in the middle of
+        # the analysis outputs or the LaTeX outputs).
+	@if [ x"$(verify-outputs)" = xyes ]; then
 
           # Make sure the temporary output doesn't exist (because we want
           # to append to it). We are making a temporary output target so if

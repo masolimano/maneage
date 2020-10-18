@@ -478,8 +478,11 @@ print-copyright = \
 # actually exists, it is also aded as a `.PHONY' target above.
 $(mtexdir)/initialize.tex: | $(mtexdir)
 
-        # Version and title of project.
-	echo "\newcommand{\projecttitle}{$(metadata-title)}" > $@
+        # Version and title of project. About the starting '@': since these
+        # commands are run every time with './project make', it is annoying
+        # to print them on the standard output every time. With the '@',
+        # make will not print the commands that it runs in this recipe.
+	@echo "\newcommand{\projecttitle}{$(metadata-title)}" > $@
 	echo "\newcommand{\projectversion}{$(project-commit-hash)}" >> $@
 
         # Calculate the latest Maneage commit used to build this
