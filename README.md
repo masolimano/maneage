@@ -414,6 +414,18 @@ command).
 docker cp CONTAINER:/file/path/within/container /host/path/target
 ```
 
+#### Deleting all Docker images
+
+After doing your tests/work, you may no longer need the multi-gigabyte
+files images, so its best to just delete them. To do this, just run the two
+commands below to first stop all running containers and then to delete all
+the images:
+
+```shell
+docker ps -a -q | xargs docker rm
+docker images -a -q | xargs docker rmi -f
+```
+
 
 
 
