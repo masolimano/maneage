@@ -62,8 +62,8 @@ include reproduce/software/config/LOCAL.conf
 # -----------------------------
 #
 # If you are just interested in the processing and don't want to build the
-# PDF, you can skip the creatation of the final PDF by removing the value
-# of `pdf-build-final' in `reproduce/analysis/config/pdf-build.conf'.
+# PDF, you can skip the creation of the final PDF by giving a value of
+# `yes' to `pdf-build-final' in `reproduce/analysis/config/pdf-build.conf'.
 ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
 all: paper.pdf
 else

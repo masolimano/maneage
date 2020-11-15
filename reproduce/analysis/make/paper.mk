@@ -37,14 +37,14 @@
 # completed.
 #
 # Note that if you don't want the final PDF and just want the processing
-# and file outputs, you can remove the value of `pdf-build-final' in
-# `reproduce/analysis/config/pdf-build.conf'.
+# and file outputs, you can give any value other than 'yes' to
+# 'pdf-build-final' in `reproduce/analysis/config/pdf-build.conf'.
 $(mtexdir)/project.tex: $(mtexdir)/verify.tex
 
         # If no PDF is requested, or if LaTeX isn't available, don't
         # continue to building the final PDF. Otherwise, merge all the TeX
         # macros into one for building the PDF.
-	@if [ -f .local/bin/pdflatex ] && [ x"$(pdf-build-final)" != x ]; then
+	@if [ -f .local/bin/pdflatex ] && [ x"$(pdf-build-final)" = xyes ]; then
 
           # Put a LaTeX input command for all the necessary macro files.
           # 'hardware-parameters.tex' is created in 'configure.sh'.
@@ -59,11 +59,11 @@ $(mtexdir)/project.tex: $(mtexdir)/verify.tex
 	  echo "LaTeX-built PDF paper will not be built."
 	  echo
 	  if [ x$(more-on-building-pdf) = x1 ]; then
-	    echo "To do so, make sure you have LaTeX within the project (you"
-	    echo "can check by running './.local/bin/latex --version'), _AND_"
-	    echo "make sure that the 'pdf-build-final' variable has a value."
-	    echo "'pdf-build-final' is defined in: "
-	    echo     "'reproduce/analysis/config/pdf-build.conf'."
+	    echo "To build the PDF, make sure you have LaTeX within the "
+	    echo "project (you can check by running "
+	    echo "'./.local/bin/latex --version'), _AND_ make sure that "
+	    echo "the 'pdf-build-final' variable has a value of 'yes', it "
+	    echo "is defined in: 'reproduce/analysis/config/pdf-build.conf'."
 	    echo
 	    echo "If you don't have LaTeX within the project, please re-run"
 	    echo "'./project configure -e' when you have internet access."
