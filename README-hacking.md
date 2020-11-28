@@ -249,10 +249,9 @@ working examples.
 Citation
 --------
 
-A paper to fully describe Maneage has been submitted. Until then, if you
-used it in your work, please cite the paper that implemented its first
-version: Akhlaghi & Ichikawa
-([2015](http://adsabs.harvard.edu/abs/2015ApJS..220....1A), ApJS, 220, 1).
+If you use Maneage in your project please cite Akhlaghi et
+al. ([2020](https://arxiv.org/abs/2006.03018), arXiv:2006.03018). It has
+been submitted and is under peer review.
 
 Also, when your paper is published, don't forget to add a notice in your
 own paper (in coordination with the publishing editor) that the paper is
