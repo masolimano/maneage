@@ -1,0 +1,75 @@
+%% Necessary macros for this project.
+%%
+%% These are a set of packages that have been commonly necessary in most
+%% LaTeX usages. However, if any are not needed in your work, please feel
+%% free to remove them.
+%
+%% Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+%% Copyright (C) YYYY Your Name <your@email.address>
+%
+%% This file is free software: you can redistribute it and/or modify it
+%% under the terms of the GNU General Public License as published by the
+%% Free Software Foundation, either version 3 of the License, or (at your
+%% option) any later version.
+%
+%% This file is distributed in the hope that it will be useful, but WITHOUT
+%% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+%% FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+%% for more details.
+%
+%% You should have received a copy of the GNU General Public License along
+%% with this file.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+%% Packages you need in your project
+%% ---------------------------------
+%
+%% Here you can add/remove any custom LaTeX package that you need for this
+%% project that aren't provided by the journal's style.
+
+% Better than verbatim for displaying typed text.
+\usepackage{alltt}
+
+% For arithmetic opertions within LaTeX
+\usepackage[nomessages]{fp}
+
+%To add a code font to the text:
+\usepackage{courier}
+
+%To add some enumerating styles
+\usepackage{enumerate}
+
+%Including images if necessary
+\usepackage{graphicx}
+
+
+
+
+
+%% BibLaTeX or PGFPlots templates
+%% ------------------------------
+%
+%% These are ready-made customizations of these two commonly used packages
+%% that you can use as a template for your own project: BibLaTeX (advanced
+%% bibliography management) or PGFPlots (for drawing plots within LaTeX
+%% directly from tables of data). If you don't use them, you can just
+%% delete these two lines and also delete their files from your branch (to
+%% keep the 'tex/src' directory on your branch clean).
+\input{tex/src/preamble-biblatex.tex}
+\input{tex/src/preamble-pgfplots.tex}
+
+
+
+
+
+%% Style of default paper (DELETE IF USING JOURNAL STYLES)
+%% -------------------------------------------------------
+%
+%% This is primarily defined for the default Maneage paper style. So when
+%% you later import your journal's style, delete this line (and these
+%% comments). Also delete the file (to keep your project source branch
+%% clean from files you don't need/use).
+\input{tex/src/preamble-maneage-default-style.tex}

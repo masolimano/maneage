@@ -1,0 +1,35 @@
+%% Preamble for Maneage-related features.
+%
+%% Copyright (C) 2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+%
+%% This LaTeX file is part of Maneage. Maneage is free software: you can
+%% redistribute it and/or modify it under the terms of the GNU General
+%% Public License as published by the Free Software Foundation, either
+%% version 3 of the License, or (at your option) any later version.
+%
+%% Maneage is distributed in the hope that it will be useful, but WITHOUT
+%% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+%% FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+%% for more details. See <http://www.gnu.org/licenses/>.
+
+
+
+
+
+%% Highlighting
+%% ------------
+%
+%% Maneage feature for highlighting changes they can be set activated
+%% directly on the command-line with the '--highlight-new' or
+%% '--highlight-notes' options
+\ifdefined\highlightnew
+\newcommand{\new}[1]{\textcolor{green!50!black}{#1}}
+\else
+\newcommand{\new}[1]{\textcolor{black}{#1}}
+\fi
+
+\ifdefined\highlightnotes
+\newcommand{\tonote}[1]{\textcolor{red!60!black}{[#1]}}
+\else
+\newcommand{\tonote}[1]{{}}
+\fi

@@ -48,10 +48,23 @@ $(mtexdir)/project.tex: $(mtexdir)/verify.tex
 
           # Put a LaTeX input command for all the necessary macro files.
           # 'hardware-parameters.tex' is created in 'configure.sh'.
-	  rm -f $(mtexdir)/project.tex
+	  projecttex=$(mtexdir)/project.tex
+	  rm -f $$projecttex
 	  for t in $(subst paper,,$(makesrc)) hardware-parameters; do
-	    echo "\input{tex/build/macros/$$t.tex}" >> $(mtexdir)/project.tex
+	    echo "\input{tex/build/macros/$$t.tex}" >> $$projecttex
 	  done
+
+          # Possibly highlight the '\new' parts of the text.
+	  if [ x"$(highlightnew)" = x1 ]; then
+	    echo "\newcommand{\highlightnew}{}" >> $$projecttex
+	  fi
+
+          # Possibly show the text within '\tonote'.
+	  if [ x"$(highlightnotes)" = x1 ]; then
+	    echo "\newcommand{\highlightnotes}{}" >> $$projecttex
+	  fi
+
+        # The paper shouldn't be built.
 	else
 	  echo
 	  echo "-----"

@@ -150,3 +150,66 @@
   \end{@twocolumnfalse}%
   ]%
 }
+
+
+
+
+
+%% Basic header style
+%% ------------------
+%
+%% The steps below are to use the necessary LaTeX packages to get the demo
+%% Maneage paper running with a reasonably looking, custom paper style. If
+%% you are using a custom journal style, feel free to delete these.
+
+%% General page header settings.
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{\footnotesize{\scshape Draft paper}, {\footnotesize nnn:i (pp), Year Month day}}
+\rhead{\scshape\footnotesize YOUR-NAME et al.}
+\cfoot{\thepage}
+\setlength{\voffset}{0.75cm}
+\setlength{\headsep}{0.2cm}
+\setlength{\footskip}{0.75cm}
+\renewcommand{\headrulewidth}{0pt}
+
+%% Specific style for first page.
+\fancypagestyle{firststyle}
+{
+  \lhead{\footnotesize{\scshape Draft paper}, nnn:i (pp), YYYY Month day\\
+  \scriptsize \textcopyright YYYY, Your name. All rights reserved.}
+  \rhead{\footnotesize \footnotesize \today, \currenttime\\}
+}
+
+%To set the style of the titles:
+\usepackage{titlesec}
+\titleformat{\section}
+  {\centering\normalfont\uppercase}
+  {\thesection.}
+  {0em}
+  { }
+\titleformat{\subsection}
+  {\centering\normalsize\slshape}
+  {\thesubsection.}
+  {0em}
+  { }
+\titleformat{\subsubsection}
+  {\centering\small\slshape}
+  {\thesubsubsection.}
+  {0em}
+  { }
+
+% Basic Document information that goes into the PDF meta-data.
+\hypersetup
+{
+    pdfauthor={YOUR NAME},
+    pdfsubject={\projecttitle},
+    pdftitle={\projecttitle},
+    pdfkeywords={SOME, KEYWORDS, FOR, THE, PDF}
+}
+
+%% Title and author information
+\usepackage{authblk}
+\renewcommand\Authfont{\small\scshape}
+\renewcommand\Affilfont{\footnotesize\normalfont}
+\setlength{\affilsep}{0.2cm}
