@@ -482,7 +482,9 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
         # commands are run every time with './project make', it is annoying
         # to print them on the standard output every time. With the '@',
         # make will not print the commands that it runs in this recipe.
-	@echo "\newcommand{\projecttitle}{$(metadata-title)}" > $@
+	@d=$$(git show -s --format=%aD HEAD | awk '{print $$2, $$3, $$4}')
+	echo "\newcommand{\projectdate}{$$d}" > $@
+	echo "\newcommand{\projecttitle}{$(metadata-title)}" >> $@
 	echo "\newcommand{\projectversion}{$(project-commit-hash)}" >> $@
 
         # Calculate the latest Maneage commit used to build this
@@ -494,4 +496,6 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
         #    after cloning from a fork that didn't include it!). In this
         #    case, we'll just return the string a clear string.
 	v=$$(git describe --always --long maneage) || v=maneage-ref-missing
+	d=$$(git show -s --format=%aD $$v | awk '{print $$2, $$3, $$4}')
+	echo "\newcommand{\maneagedate}{$$d}" >> $@
 	echo "\newcommand{\maneageversion}{$$v}" >> $@

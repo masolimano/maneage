@@ -180,11 +180,13 @@ Also, just as another reminder, before publication, don't forget to follow the `
 
 
 \section{Acknowledgments}
-\new{Please include the following two paragraphs in the Acknowledgement section of your paper.
-  Maneage was developed in parallel with Gnuastro, so it benefited from the same grants.
-  If you don't use Gnuastro in your final/customized project, please remove it from the paragraph below, only mentioning the reproducible paper template.}
+\new{Please include the following paragraph in the Acknowledgement section of your paper.
+  In order to get more funding to continue working on Maneage, we need to to cite it and its funding institutions in your papers.
+  Also note that at the start, it includes version and date information for the most recent Maneage commit you merged with (which can be very helpful for others) as well as very basic information about your CPU architecture (which was extracted during configuration).
+  This CPU information is very important for reproducibility because some software may not be buildable on other CPU architectures, so it is necessary to publish CPU information with the results and software versions.}
 
-This project was developed in the reproducible framework of Maneage \citep[\emph{Man}aging data lin\emph{eage},][latest Maneage commit of \maneageversion, and built on an {\machinearchitecture} machine with {\machinebyteorder} byte-order]{maneage}.
+This project was developed in the reproducible framework of Maneage \citep[\emph{Man}aging data lin\emph{eage},][latest Maneage commit \maneageversion{}, from \maneagedate]{maneage}.
+The project was built on an {\machinearchitecture} machine with {\machinebyteorder} byte-order, see Appendix \ref{appendix:software} for the used software and their versions.
 Maneage has been funded partially by the following grants: Japanese Ministry of Education, Culture, Sports, Science, and Technology (MEXT) PhD scholarship to M. Akhlaghi and its Grant-in-Aid for Scientific Research (21244012, 24253003).
 The European Research Council (ERC) advanced grant 339659-MUSICOS.
 The European Union (EU) Horizon 2020 (H2020) research and innovation programmes No 777388 under RDA EU 4.0 project, and Marie Sk\l{}odowska-Curie grant agreement No 721463 to the SUNDIAL ITN.
@@ -199,6 +201,7 @@ The IAC project P/300724, financed by the MCIU, through the Canary Islands Depar
 
 %% Mention all used software in an appendix.
 \section{Software acknowledgement}
+\label{appendix:software}
 \input{tex/build/macros/dependencies.tex}
 
 %% Finish LaTeX
