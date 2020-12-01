@@ -572,8 +572,16 @@ $(ibidir)/bash-$(bash-version): \
 
 
 
-# The `-shared' flag will cause problems while building Perl on macOS, so
-# we'll only use this configuration option when we are GNU/Linux
+
+
+
+
+
+# Level 4: Most other programs
+# ----------------------------
+
+# In Perl, The `-shared' flag will cause problems while building on macOS,
+# so we'll only use this configuration option when we are GNU/Linux
 # systems. However, since the whole option must be used (which includes `='
 # and empty space), its easier to define the variable as a Make variable
 # outside the recipe, not as a shell variable inside it.
@@ -993,7 +1001,11 @@ $(ibidir)/libbsd-$(libbsd-version): $(ibidir)/coreutils-$(coreutils-version)
 #
 # [1] https://raw.githubusercontent.com/macports/macports-ports/edf0ee1e2cf/devel/m4/files/secure_snprintf.patch
 # [2] https://github.com/Homebrew/homebrew-core/blob/master/Formula/m4.rb
-$(ibidir)/m4-$(m4-version): $(ibidir)/texinfo-$(texinfo-version)
+#
+# M4 doesn't depend on PatchELF, but just to be consistent with the
+# levels/phases introduced here (where the compressors are level 1,
+# PatchELF is level 2, and ...), we'll set it as a dependency.
+$(ibidir)/m4-$(m4-version): $(ibidir)/patchelf-$(patchelf-version)
 	tarball=m4-$(m4-version).tar.gz
 	$(call import-source, $(m4-url), $(m4-checksum))
 	cd $(ddir)
@@ -1140,7 +1152,8 @@ $(ibidir)/sed-$(sed-version): $(ibidir)/coreutils-$(coreutils-version)
 	echo "GNU Sed $(sed-version)" > $@
 
 $(ibidir)/texinfo-$(texinfo-version): \
-                  $(ibidir)/perl-$(perl-version)
+                  $(ibidir)/perl-$(perl-version) \
+                  $(ibidir)/gettext-$(gettext-version)
 	tarball=texinfo-$(texinfo-version).tar.xz
 	$(call import-source, $(texinfo-url), $(texinfo-checksum))
 	$(call gbuild, texinfo-$(texinfo-version), static)
@@ -1156,28 +1169,7 @@ $(ibidir)/which-$(which-version): $(ibidir)/coreutils-$(coreutils-version)
 	$(call gbuild, which-$(which-version), static)
 	echo "GNU Which $(which-version)" > $@
 
-# GNU Nano is a very light-weight and small, command-line text editor (in
-# total around 3.5 Mb after installation!). It is top-level target in the
-# basic tools (nothing depends on it, it just depends on GCC). This is
-# because some projects may choose to not have it by manually removing it
-# from 'targets-proglib' above (it has no effect on processing after all!).
-$(ibidir)/nano-$(nano-version): $(ibidir)/gcc-$(gcc-version)
-	tarball=nano-$(nano-version).tar.xz
-	$(call import-source, $(nano-url), $(nano-checksum))
-	$(call gbuild, nano-$(nano-version), static)
-	echo "GNU Nano $(nano-version)" > $@
-
-
-
-
-
-
-
-
-
-
-# GCC and its prerequisites
-# -------------------------
+# GNU ISL is necessary to build GCC.
 $(ibidir)/isl-$(isl-version): $(ibidir)/gmp-$(gmp-version)
 	tarball=isl-$(isl-version).tar.bz2
 	$(call import-source, $(isl-url), $(isl-checksum))
@@ -1189,6 +1181,7 @@ $(ibidir)/isl-$(isl-version): $(ibidir)/gmp-$(gmp-version)
 	  echo "GNU Integer Set Library $(isl-version)" > $@
 	fi
 
+# GNU MPC is necessary to build GCC.
 $(ibidir)/mpc-$(mpc-version): $(ibidir)/mpfr-$(mpfr-version)
 	tarball=mpc-$(mpc-version).tar.gz
 	$(call import-source, $(mpc-url), $(mpc-checksum))
@@ -1200,10 +1193,23 @@ $(ibidir)/mpc-$(mpc-version): $(ibidir)/mpfr-$(mpfr-version)
 	  echo "GNU Multiple Precision Complex library" > $@
 	fi
 
+
+
+
+
+
+
+
+
+
+# Level 5: Binutils & GCC
+# -----------------------
+#
 # The installation of Binutils can cause problems during the build of other
-# programs (http://savannah.nongnu.org/bugs/?56294). Therefore, we'll set
-# all other basic programs as Binutils prerequisite and GCC (the final
-# basic target) ultimately just depends on Binutils.
+# programs (http://savannah.nongnu.org/bugs/?56294), but its necessary for
+# GCC. Therefore, we'll set all other basic programs as Binutils
+# prerequisite and GCC (the final basic target) ultimately just depends on
+# Binutils.
 $(ibidir)/binutils-$(binutils-version): \
                    $(ibidir)/sed-$(sed-version) \
                    $(ibidir)/isl-$(isl-version) \
@@ -1213,6 +1219,7 @@ $(ibidir)/binutils-$(binutils-version): \
                    $(ibidir)/file-$(file-version) \
                    $(ibidir)/gawk-$(gawk-version) \
                    $(ibidir)/which-$(which-version) \
+                   $(ibidir)/texinfo-$(texinfo-version) \
                    $(ibidir)/libtool-$(libtool-version) \
                    $(ibidir)/metastore-$(metastore-version) \
                    $(ibidir)/findutils-$(findutils-version) \
@@ -1463,3 +1470,34 @@ $(ibidir)/gcc-$(gcc-version): $(ibidir)/binutils-$(binutils-version)
           # Write the final target.
 	  echo "GNU Compiler Collection (GCC) $(gcc-version)" > $@
 	fi
+
+
+
+
+
+
+
+
+
+
+# Level 6: Basic text editor
+# --------------------------
+#
+# If the project is built in a minimal environment, there is no text
+# editor, making it hard to work on the project. By default a minimal
+# (relatively user-friendly: GNU Nano) text editor will thus also be built
+# at the end of the "basic" tools. More advanced editors are available as
+# optional high-level programs. GNU Nano is a very light-weight and small
+# command-line text editor (around 3.5 Mb after installation!).
+#
+# The editor is a top-level target in the basic tools (given to
+# 'targets-proglib' above). Hence nothing depends on it, and it just
+# depends on GCC. This is done because some projects may choose to not have
+# nano (and use their own optional high-level text editor). To do this,
+# they just have to manually remove 'nano' from 'targets-proglib' above and
+# add their optional text editor in 'TARGETS.conf'.
+$(ibidir)/nano-$(nano-version): $(ibidir)/gcc-$(gcc-version)
+	tarball=nano-$(nano-version).tar.xz
+	$(call import-source, $(nano-url), $(nano-checksum))
+	$(call gbuild, nano-$(nano-version), static)
+	echo "GNU Nano $(nano-version)" > $@
