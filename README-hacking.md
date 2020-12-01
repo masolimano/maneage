@@ -1522,13 +1522,20 @@ for the benefit of others.
         # conflicts" (not detected as a conflict by Git, but may cause a
         # crash in your project). You can backup your build directory
         # before running the 'distclean' target.
-
-        # Any error in the build will be due to changes in Maneage, so look
-        # closely at the commits (especially the
-
+        #
+        # Any error in the build will be due to low-level changes in
+        # Maneage, so look closely at the commit messages in the Maneage
+        # branch and especially those where the title starts with
+        # 'IMPORTANT'.
         ./project make distclean  # will DELETE ALL your build-directory!!
         ./project configure -e
         ./project make
+
+        # When everything is OK, before continuing with your project's
+        # work, don't forget to push both your 'master' branch and your
+        # updated 'maneage' branch to your remote server.
+        git push
+        git push origin maneage
         ```
 
    - *Adding Maneage to a fork of your project*: As you and your colleagues
