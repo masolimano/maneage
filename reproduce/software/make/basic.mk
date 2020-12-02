@@ -947,6 +947,7 @@ $(ibidir)/gettext-$(gettext-version): \
 	echo "GNU gettext $(gettext-version)" > $@
 
 $(ibidir)/git-$(git-version): \
+              $(ibidir)/less-$(less-version) \
               $(ibidir)/curl-$(curl-version) \
               $(ibidir)/gettext-$(gettext-version) \
               $(ibidir)/libiconv-$(libiconv-version)
@@ -969,6 +970,15 @@ $(ibidir)/gmp-$(gmp-version): \
 	               --enable-cxx --enable-fat, \
 	               -j$(numthreads) ,make check)
 	echo "GNU Multiple Precision Arithmetic Library $(gmp-version)" > $@
+
+# Less is useful with Git (to view the diffs within a minimal container)
+# and generally to view large files easily when the project is built in a
+# container with a minimal OS.
+$(ibidir)/less-$(less-version): $(ibidir)/patchelf-$(patchelf-version)
+	tarball=less-$(less-version).tar.gz
+	$(call import-source, $(less-url), $(less-checksum))
+	$(call gbuild, less-$(less-version), static,,-j$(numthreads))
+	echo "Less $(less-version)" > $@
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
 # prefix GNU's libtool executables with `glibtool'.
