@@ -135,10 +135,17 @@ export PKG_CONFIG_PATH := $(ildir)/pkgconfig:$(idir)/share/pkgconfig
 export CC := $(ibdir)/gcc
 export CXX := $(ibdir)/g++
 export F77 := $(ibdir)/gfortran
-export C_INCLUDE_PATH := $(iidir)
-export CPLUS_INCLUDE_PATH := $(iidir)
 export LD_RUN_PATH := $(ildir):$(il64dir)
 export LD_LIBRARY_PATH := $(ildir):$(il64dir)
+
+# In macOS, if a directory exists in both 'C_INCLUDE_PATH' and 'CPPFLAGS'
+# it will be ignored in 'CPPFLAGS' (which has higher precedence). So, we
+# should not define 'C_INCLUDE_PATH' on macOS. This happened with clang
+# (Apple LLVM version 10.0.0, clang-1000.11.45.5)
+ifneq ($(on_mac_os),yes)
+export C_INCLUDE_PATH     := $(iidir)
+export CPLUS_INCLUDE_PATH := $(iidir)
+endif
 
 # Recipe startup script, see `reproduce/software/shell/bashrc.sh'.
 export PROJECT_STATUS := configure_highlevel
