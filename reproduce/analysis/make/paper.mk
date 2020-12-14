@@ -72,14 +72,15 @@ $(mtexdir)/project.tex: $(mtexdir)/verify.tex
 	  echo "LaTeX-built PDF paper will not be built."
 	  echo
 	  if [ x$(more-on-building-pdf) = x1 ]; then
-	    echo "To build the PDF, make sure you have LaTeX within the "
-	    echo "project (you can check by running "
-	    echo "'./.local/bin/latex --version'), _AND_ make sure that "
-	    echo "the 'pdf-build-final' variable has a value of 'yes', it "
-	    echo "is defined in: 'reproduce/analysis/config/pdf-build.conf'."
+	    echo "To build the PDF, make sure that the 'pdf-build-final' "
+	    echo "variable has a value of 'yes' (it is defined in this file)"
+	    echo "    reproduce/analysis/config/pdf-build.conf"
 	    echo
-	    echo "If you don't have LaTeX within the project, please re-run"
-	    echo "'./project configure -e' when you have internet access."
+	    echo "If you still see this message, there was a problem with "
+	    echo "building LaTeX within the project. You can re-try building"
+	    echo "it when you have internet access with the two commands below:"
+	    echo "    $ rm .local/version-info/tex/texlive*"
+	    echo "    $./project configure -e"
 	  else
 	    echo "For more, run './project make more-on-building-pdf=1'"
 	  fi

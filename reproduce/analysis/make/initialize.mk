@@ -489,13 +489,31 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 
         # Calculate the latest Maneage commit used to build this
         # project:
+        #  - The project may not have the 'maneage' branch (for example
+        #    after cloning from a fork that didn't include it!). In this
+        #    case, we'll print a descriptive warning, telling the user what
+        #    should be done (reporting the last merged commit and its date
+        #    is very useful for the future).
         #  - The '--dirty' option (used in 'project-commit-hash') isn't
         #    applicable to "commit-ishes" (direct quote from Git's error
         #    message!).
-        #  - The project may not have the 'maneage' branch (for example
-        #    after cloning from a fork that didn't include it!). In this
-        #    case, we'll just return the string a clear string.
-	v=$$(git describe --always --long maneage) || v=maneage-ref-missing
-	d=$$(git show -s --format=%aD $$v | awk '{print $$2, $$3, $$4}')
+	if git log maneage -1 &> /dev/null; then
+	  c=$$(git merge-base HEAD maneage)
+	  v=$$(git describe --always --long $$c)
+	  d=$$(git show -s --format=%aD $$v | awk '{print $$2, $$3, $$4}')
+	else
+	  echo
+	  echo "WARNING: no 'maneage' branch found! Without it, the latest merge of "
+	  echo "this project with Maneage can't be reported in the paper (which is bad "
+	  echo "for your readers; that includes yourself in a few years). Please run "
+	  echo "the commands below to fetch the 'maneage' branch from its own server "
+	  echo "and remove this warning (these commands will not affect your project):"
+	  echo "   $ git remote add origin-maneage http://git.maneage.org/project.git"
+	  echo "   $ git fetch origin-maneage"
+	  echo "   $ git branch maneage --track origin-maneage/maneage"
+	  echo
+	  v="\textcolor{red}{NO-MANEAGE-BRANCH (see printed warning to fix this)}"
+	  d="\textcolor{red}{NO-MANEAGE-DATE}"
+	fi
 	echo "\newcommand{\maneagedate}{$$d}" >> $@
 	echo "\newcommand{\maneageversion}{$$v}" >> $@
