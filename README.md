@@ -1,7 +1,7 @@
 Reproducible source for XXXXXXXXXXXXXXXXX
 -------------------------------------------------------------------------
 
-Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
+Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
 See the end of the file for license conditions.
 
 This is the reproducible project source for the paper titled "**XXX XXXXX

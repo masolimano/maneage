@@ -4,7 +4,7 @@
 # controlled files (with each commit) using the `metastore' program.
 #
 # Copyright (C) 2016 Przemyslaw Pawelczyk <przemoc@gmail.com>
-# Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This script is taken from the `examples/hooks/pre-commit' file of the
 # `metastore' package (installed within the project, with an MIT license

@@ -1,6 +1,6 @@
 # Build the final PDF paper/report.
 #
-# Copyright (C) 2018-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

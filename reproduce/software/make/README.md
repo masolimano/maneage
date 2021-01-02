@@ -1,7 +1,7 @@
 Software building instructions
 ------------------------------
 
-Copyright (C) 2019-2020 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
+Copyright (C) 2019-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
 See the end of the file for license conditions.
 
 This directory contains Makefiles that are called by the high-level
