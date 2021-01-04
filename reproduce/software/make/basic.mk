@@ -978,6 +978,9 @@ $(ibidir)/less-$(less-version): $(ibidir)/ncurses-$(ncurses-version)
 	tarball=less-$(less-version).tar.gz
 	$(call import-source, $(less-url), $(less-checksum))
 	$(call gbuild, less-$(less-version), static,,-j$(numthreads))
+	if [ -f $(ibdir)/patchelf ]; then
+	  $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/less;
+	fi
 	echo "Less $(less-version)" > $@
 
 # On Mac OS, libtool does different things, so to avoid confusion, we'll
