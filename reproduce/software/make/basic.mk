@@ -974,7 +974,7 @@ $(ibidir)/gmp-$(gmp-version): \
 # Less is useful with Git (to view the diffs within a minimal container)
 # and generally to view large files easily when the project is built in a
 # container with a minimal OS.
-$(ibidir)/less-$(less-version): $(ibidir)/patchelf-$(patchelf-version)
+$(ibidir)/less-$(less-version): $(ibidir)/ncurses-$(ncurses-version)
 	tarball=less-$(less-version).tar.gz
 	$(call import-source, $(less-url), $(less-checksum))
 	$(call gbuild, less-$(less-version), static,,-j$(numthreads))
