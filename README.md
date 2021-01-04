@@ -234,6 +234,32 @@ build the final PDF, please disable internet after the configuration
 phase. Note that only the necessary TeXLive packages are installed (~350
 MB), not the full TeXLive collection!
 
+ 0. **Summary:** If you are already familiar with Docker, then the full
+    Dockerfile to get the project environment setup is shown here (without
+    any comments or explanations, because explanations are done in the next
+    items). Note that the last two `COPY` lines (to copy the directory
+    containing software tarballs used by the project and the possible input
+    databases) are optional because they will be downloaded if not
+    available. Once you build the Docker image, your project's environment
+    is setup and you can go into it to run `./project make` manually.
+
+    ```shell
+    FROM debian:stable-slim
+    RUN apt-get update && apt-get install -y gcc g++ wget
+    RUN useradd -ms /bin/sh maneager
+    USER maneager
+    WORKDIR /home/maneager
+    RUN mkdir build
+    RUN mkdir software
+    COPY --chown=maneager:maneager ./project-source /home/maneager/source
+    COPY --chown=maneager:maneager ./software-dir   /home/maneager/software
+    COPY --chown=maneager:maneager ./data-dir       /home/maneager/data
+    RUN cd /home/maneager/source \
+        && ./project configure --build-dir=/home/maneager/build \
+                               --software-dir=/home/maneager/software \
+                               --input-dir=/home/maneager/data
+    ```
+
  1. **Choose the base operating system:** The first step is to select the
     operating system that will be used in the docker image. Note that your
     choice of operating system also determines the commands of the next
