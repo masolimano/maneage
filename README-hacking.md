@@ -1010,14 +1010,17 @@ future.
 
    * *In plain-text*: If the data are in tabular form (for example the X
      and Y values in your plots), store them as a simple plain-text file
-     (for example with columns separated by white-space characters or in
+     (for example with columns separated by white-space characters) or in
      the more formal [Comma-separated
-     values](https://en.wikipedia.org/wiki/Comma-separated_values), or CSV,
-     format). If you have other types of data (for example images, or very
-     large tables with millions of rows/columns that can be inconvenient in
-     plain-text), feel free to use custom binary formats, but later, in the
-     description of your project on the server, tell people what software
-     they should use to open them.
+     values](https://en.wikipedia.org/wiki/Comma-separated_values) or CSV,
+     format). In the former case, its best to set the suffixes to `.txt`
+     (because most browsers/OSs will automatically know they are plain-text
+     and open them without needing any other software. If you have other
+     types of data (for example images, or very large tables with millions
+     of rows/columns that can be inconvenient in plain-text), feel free to
+     use custom binary formats, but later, in the description of your
+     project on the server, add a note, explaining what software they
+     should use to open them.
 
    * *Descriptive names*: In some papers there are many files and having
      cryptic names will only confuse your readers (actually, yourself in
@@ -1052,7 +1055,16 @@ future.
        is defined in `initialize.mk`. So you can use it anywhere in your
        project.
 
-     * *Copyright as metadata*: people need to know if they can use the
+     * *Same commit hashes*: each dataset may have been created at
+       different phases of your project's history. If you simply upload the
+       produced datasets, they may therefore have different commits on
+       them. To avoid confusing your readers (and your self in the future),
+       it is best that they all have the same commit hash (which will also
+       be the commit hash printed in the paper). So upon publication, we
+       recommend deleting all of them and running `./project make` to build
+       them all with the same commit hash.
+
+     * *Copyright as metadata*: people need to know if they can "use" the
        dataset (i.e., modify it), or possibly re-distribute it and their
        derived products. They also need to know how they can contact the
        creator of the datset (who is usually also the copyright owner). So
@@ -1065,10 +1077,11 @@ future.
    the plots should be uploaded directly to Zenodo so they can be
    viewed/downloaded with a simple link in the caption. For example see the
    last sentence of the caption of Figure 1 in
-   [arXiv:2006.03018](https://arxiv.org/pdf/2006.03018.pdf), it points to
-   [the data](https://zenodo.org/record/3872248/files/tools-per-year.txt)
-   that was used to create that figure's top plot. As you see, this will
-   allow your paper's readers (again, most probably your future-self!) to
+   [arXiv:2006.03018v1](https://arxiv.org/pdf/2006.03018v1.pdf), it points
+   to [the
+   data](https://zenodo.org/record/3872248/files/tools-per-year.txt) that
+   was used to create that figure's top plot. As you see, this will allow
+   your paper's readers (again, most probably your future-self!) to
    directly access the numbers of each visualization (plot/figure) with a
    simple click in a trusted server. This also shows the major advantage of
    having your data as simple plain-text where possible, as described
@@ -1104,20 +1117,24 @@ future.
 
  - **Fill `README.md`**: The `README.md` is *the first place* your readers
    are going to look into. It already has a default text with place-holders
-   in the form of `XXXXXX`. Please go through it and replace the
-   place-holders with the relevant information/links or feel free to
-   add/remove anything else. Just don't forget to tell your readers in
-   `README.md` that they can learn about this system in the
-   `README-hacking.md` file (ideally close to the top, like it is now).
+   in the form of `XXXXXX`. Please go through its first few paragraphs and
+   replace the place-holders with the relevant information/links or feel
+   free to add/remove anything else. The rest is just basic information
+   that is useful for any Maneage'd project. Just don't forget to tell your
+   readers in `README.md` that they can learn about this system in the
+   `README-hacking.md` file (ideally close to the top).
 
  - **Confirm if your project builds from scratch**: Before publishing
    anything, you should see if your project can indeed reproduce itself!
-   So, go to a temporary directory, clone your project from its repository
-   and try configuring and building it from scratch in a new-temporary
-   build-directory. It is important to ignore the directory you developed
-   your project on (source and build): you may have files there that you
-   forgot to import into Git or depended on in the build (it
-   happens!). Ideally, it would be good to try it on a different computer.
+   You may be mistakenly using temporarily created files that aren't built
+   when teh project is built from scratch (this happens a lot and is very
+   dangerous for the integrity of your project!). So, go to a temporary
+   directory, clone your project from its repository and try configuring
+   and building it from scratch in a new-temporary build-directory. It is
+   important to ignore the original directory you developed your project on
+   (source and build): you may have files there that you forgot to import
+   into Git or depended on in the build (it happens!). Ideally, it would be
+   good to try it on a different computer.
 
  - **Confirm if `./project make dist` works**: The special target `dist`
    tells the project to build a tarball that is ready to compile the LaTeX
