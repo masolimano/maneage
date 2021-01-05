@@ -1274,7 +1274,7 @@ $(ibidir)/binutils-$(binutils-version): \
 	  if ! [ x"$(sys_library_path)" = x ]; then
 	    for f in $(sys_library_path)/*crt*.o; do
 	      b=$$($(ibdir)/basename $$f)
-	      ln -s $$f $(ildir)/$$b
+	      ln -sf $$f $(ildir)/$$b
 	    done
 	  fi
 
