@@ -30,14 +30,24 @@
 # parallel. Also, some programs may not be thread-safe, therefore it will
 # be necessary to put a lock on them. This project uses the `flock' program
 # to achieve this.
-texdir      = $(BDIR)/tex
-lockdir     = $(BDIR)/locks
-indir       = $(BDIR)/inputs
-prepdir     = $(BDIR)/prepare
+#
+# To help with modularity and clarity of the build directory (not mixing
+# software-environment built-products with products built by the analysis),
+# it is recommended to put all your analysis outputs in the 'analysis'
+# subdirectory of the top-level build directory.
+badir=$(BDIR)/analysis
+bsdir=$(BDIR)/software
+
+# Derived directories (the locks directory can be shared with software
+# which already has this directory.).
+texdir      = $(badir)/tex
+lockdir     = $(bsdir)/locks
+indir       = $(badir)/inputs
+prepdir     = $(padir)/prepare
 mtexdir     = $(texdir)/macros
+installdir  = $(bsdir)/installed
 bashdir     = reproduce/analysis/bash
 pconfdir    = reproduce/analysis/config
-installdir  = $(BDIR)/software/installed
 
 
 
@@ -56,7 +66,7 @@ installdir  = $(BDIR)/software/installed
 ifeq (x$(project-phase),xprepare)
 $(prepdir):; mkdir $@
 else
-include $(BDIR)/software/preparation-done.mk
+include $(bsdir)/preparation-done.mk
 ifeq (x$(include-prepare-results),xyes)
 include $(prepdir)/*.mk
 endif
@@ -193,7 +203,7 @@ export MPI_PYTHON3_SITEARCH   :=
 # option: they add too many extra checks that make it hard to find what you
 # are looking for in the outputs.
 .SUFFIXES:
-$(lockdir): | $(BDIR); mkdir $@
+$(lockdir): | $(bsdir); mkdir $@
 
 
 
@@ -228,8 +238,8 @@ clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
 
 texclean:
 	rm *.pdf
-	rm -rf $(BDIR)/tex/build/*
-	mkdir $(BDIR)/tex/build/tikz # 'tikz' is assumed to already exist.
+	rm -rf $(texdir)/build/*
+	mkdir $(texdir)/build/tikz # 'tikz' is assumed to already exist.
 
 clean: clean-mmap
         # Delete the top-level PDF file.
@@ -241,10 +251,10 @@ clean: clean-mmap
         # features like ignoring the listing of a file with `!()' that we
         # are using afterwards.
 	shopt -s extglob
-	rm -rf $(BDIR)/tex/macros/!(dependencies.tex|dependencies-bib.tex|hardware-parameters.tex)
-	rm -rf $(BDIR)/!(software|tex) $(BDIR)/tex/!(macros|$(texbtopdir))
-	rm -rf $(BDIR)/tex/build/!(tikz) $(BDIR)/tex/build/tikz/*
-	rm -rf $(BDIR)/software/preparation-done.mk
+	rm -rf $(texdir)/macros/!(dependencies.tex|dependencies-bib.tex|hardware-parameters.tex)
+	rm -rf $(badir)/!(tex) $(texdir)/!(macros|$(texbtopdir))
+	rm -rf $(texdir)/build/!(tikz) $(texdir)/build/tikz/*
+	rm -rf $(bsdir)/preparation-done.mk
 
 distclean: clean
         #  Without cleaning the Git hooks, we won't be able to easily
@@ -403,14 +413,15 @@ dist-zip: $(project-package-contents)
 dist-software:
 	curdir=$$(pwd)
 	dirname=software-$(project-commit-hash)
-	cd $(BDIR)
+	cd $(bsdir)
+	if [ -d $$dirname ]; then rm -rf $$dirname; fi
 	mkdir $$dirname
-	cp -L software/tarballs/* $$dirname/
+	cp -L tarballs/* $$dirname/
 	tar -cf $$dirname.tar $$dirname
 	gzip -f --best $$dirname.tar
 	rm -rf $$dirname
 	cd $$curdir
-	mv $(BDIR)/$$dirname.tar.gz ./
+	mv $(bsdir)/$$dirname.tar.gz ./
 
 
 
@@ -427,9 +438,11 @@ dist-software:
 #
 #  1. Those data that also go into LaTeX (for example to give to LateX's
 #     PGFPlots package to create the plot internally) should be under the
-#     '$(BDIR)/tex' directory (because other LaTeX producers may also need
-#     it for example when using './project make dist'). The contents of
-#     this directory are directly taken into the tarball.
+#     '$(texdir)' directory (because other LaTeX producers may also need it
+#     for example when using './project make dist', or you may want to
+#     publish the raw data behind the plots, like:
+#     https://zenodo.org/record/4291207/files/tools-per-year.txt). The
+#     contents of this directory are also directly taken into the tarball.
 #
 #  2. The data that aren't included directly in the LaTeX run of the paper,
 #     can be seen as supplements. A good place to keep them is under your
@@ -441,7 +454,7 @@ dist-software:
 # (or paper's tex/appendix), you will put links to the dataset on servers
 # like Zenodo (see the "Publication checklist" in 'README-hacking.md').
 tex-publish-dir = $(texdir)/to-publish
-data-publish-dir = $(BDIR)/data-to-publish
+data-publish-dir = $(badir)/data-to-publish
 $(tex-publish-dir):; mkdir $@
 $(data-publish-dir):; mkdir $@
 

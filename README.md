@@ -199,15 +199,18 @@ projects from one system to another without rebuilding. Just note that
 Docker images are large binary files (+1 Gigabytes) and may not be usable
 in the future (for example with new Docker versions not reading old
 images). Containers are thus good for temporary/testing phases of a
-project, but shouldn't be what you archive! Hence if you want to save and
-move your maneaged project within a Docker image, be sure to commit all
-your project's source files and push them to your external Git repository
-(you can do these within the Docker image as explained below). This way,
-you can always recreate the container with future technologies
-too. Generally, if you are developing within a container, its good practice
-to recreate it from scratch every once in a while, to make sure you haven't
-forgot to include parts of your work in your project's version-controlled
-source.
+project, but shouldn't be what you archive for the long term!
+
+Hence if you want to save and move your maneaged project within a Docker
+image, be sure to commit all your project's source files and push them to
+your external Git repository (you can do these within the Docker image as
+explained below). This way, you can always recreate the container with
+future technologies too. Generally, if you are developing within a
+container, its good practice to recreate it from scratch every once in a
+while, to make sure you haven't forgot to include parts of your work in
+your project's version-controlled source. In the sections below we also
+describe how you can use the container **only for the software
+environment** and keep your data and project source on your host.
 
 #### Dockerfile for a Maneaged project, and building a Docker image
 
@@ -240,8 +243,11 @@ MB), not the full TeXLive collection!
     items). Note that the last two `COPY` lines (to copy the directory
     containing software tarballs used by the project and the possible input
     databases) are optional because they will be downloaded if not
-    available. Once you build the Docker image, your project's environment
-    is setup and you can go into it to run `./project make` manually.
+    available. You can also avoid copying over all, and simply mount your
+    host directories within the image, we have a separate section on doing
+    this below ("Only software environment in the Docker image"). Once you
+    build the Docker image, your project's environment is setup and you can
+    go into it to run `./project make` manually.
 
     ```shell
     FROM debian:stable-slim
@@ -300,7 +306,10 @@ MB), not the full TeXLive collection!
     ```
 
  4. **Copy project files into the container:** these commands make the
-    following assumptions:
+    assumptions listed below. IMPORTANT: you can also avoid copying over
+    all, and simply mount your host directories within the image, we have a
+    separate section on doing this below ("Only software environment in the
+    Docker image").
 
     * The project's source is in the `maneaged/` sub-directory and this
       directory is in the same directory as the `Dockerfile`. The source
@@ -377,6 +386,8 @@ MB), not the full TeXLive collection!
     docker build -t NAME ./
     ```
 
+
+
 #### Interactive tests on built container
 
 If you later want to start a container with the built image and enter it in
@@ -389,6 +400,8 @@ see below if you want to preserve your changes after you exit).
 ```shell
 docker run -it NAME
 ```
+
+
 
 #### Running your own project's shell for same analysis environment
 
@@ -405,6 +418,8 @@ present in the container's operating system.
 cd source
 ./project shell
 ```
+
+
 
 #### Preserving the state of a built container
 
@@ -429,6 +444,8 @@ docker container list
 docker commit XXXXXXX NEW-IMAGE-NAME
 ```
 
+
+
 #### Copying files from the Docker image to host operating system
 
 The Docker environment's file system is completely indepenent of your host
@@ -439,6 +456,110 @@ command).
 ```shell
 docker cp CONTAINER:/file/path/within/container /host/path/target
 ```
+
+
+
+#### Only software environment in the Docker image
+
+You can set the docker image to only contain the software environment and
+keep the project source and built analysis files (data and PDF) on your
+host operating system. This enables you to keep the size of the Docker
+image to a minimum (only containing the built software environment) to
+easily move it from one computer to another. Below we'll summarize the
+steps.
+
+1. Get your user ID with this command: `id -u`.
+
+2. Put the following lines into a `Dockerfile` of an otherwise empty
+directory. Just replacing `UID` with your user ID (found in the step
+above). This will build the basic directory structure. for the next steps.
+
+```shell
+FROM debian:stable-slim
+RUN apt-get update && apt-get install -y gcc g++ wget
+RUN useradd -ms /bin/sh --uid UID maneager
+USER maneager
+WORKDIR /home/maneager
+RUN mkdir build
+```
+
+3. Create an image based on the `Dockerfile` above. Just replace `PROJECT`
+with your desired name.
+
+```shell
+docker build -t PROJECT ./
+```
+
+4. Run the command below to create a container based on the image and mount
+the desired directories on your host into the special directories of your
+container. Just don't forget to replace `PROJECT` and set the `/PATH`s to
+the respective paths in your host operating system.
+
+```shell
+docker run -v /PATH/TO/PROJECT/SOURCE:/home/maneager/source \
+           -v /PATH/TO/PROJECT/ANALYSIS/OUTPUTS:/home/maneager/build/analysis \
+           -v /PATH/TO/SOFTWARE/SOURCE/CODE/DIR:/home/maneager/software \
+           -v /PATH/TO/RAW/INPUT/DATA:/home/maneager/data \
+           -it PROJECT
+```
+
+5. After running the command above, you are within the container. Go into
+the project source directory and run these commands to build the software
+environment.
+
+```shell
+cd /home/maneager/source
+./project configure --build-dir=/home/maneager/build \
+                    --software-dir=/home/maneager/software \
+                    --input-dir=/home/maneager/data
+```
+
+6. After the configuration finishes successfully, it will say so and ask
+you to run `./project make`. But don't do that yet. Keep this Docker
+container open and don't exit the container or terminal. Open a new
+terminal, and follow the steps described in the sub-section above to
+preserve the built container as a Docker image. Let's assume you call it
+`PROJECT-ENV`. After the new image is made, you should be able to see the
+new image in the list of images with this command (in the same terminal
+that you created the image):
+
+```shell
+docker image list      # In the other terminal.
+```
+
+7. Now you can run `./project make` in the initial container. You will see
+that all the built products (temporary or final datasets or PDFs), will be
+written in the `/PATH/TO/PROJECT/ANALYSIS/OUTPUTS` directory of your
+host. You can even change the source of your project on your host operating
+system an re-run Make to see the effect on the outputs and add/commit the
+changes to your Git history within your host. You can also exit the
+container any time. You can later load the `PROJECT-ENV` environment image
+into a new container with the same `docker run -v ...` command above, just
+use `PROJECT-ENV` instead of `PROJECT`.
+
+8. In case you want to store the image as a single file as backup or to
+move to another computer, you can run the commands below. They will produce
+a single `project-env.tar.gz` file.
+
+```shell
+docker save -o project-env.tar PROJECT-ENV
+gzip --best project-env.tar
+```
+
+9. To load the tarball above into a clean docker environment (either on the
+same system or in another system), and create a new container from the
+image like above (the `docker run -v ...` command). Just don't forget that
+if your `/PATH/TO/PROJECT/ANALYSIS/OUTPUTS` directory is empty on the
+new/clean system, you should first run `./project configure -e` in the
+docker image so it builds the core file structure there. Don't worry, it
+won't build any software and should finish in a second or two. Afterwards,
+you can safely run `./project make`.
+
+```shell
+docker load --input project-env.tar.gz
+```
+
+
 
 #### Deleting all Docker images
 

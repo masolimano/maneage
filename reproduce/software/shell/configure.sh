@@ -44,8 +44,8 @@ need_gfortran=0
 
 
 
-# Internal directories
-# --------------------
+# Internal source directories
+# ---------------------------
 #
 # These are defined to help make this script more readable.
 topdir="$(pwd)"
@@ -679,14 +679,14 @@ EOF
         fi
 
         # Then, see if the Fortran compiler works
-        testsource=$compilertestdir/test.f
+        testsourcef=$compilertestdir/test.f
         echo; echo; echo "Checking host Fortran compiler...";
-        echo "      PRINT *, \"... Fortran Compiler works.\""  > $testsource
-        echo "      END"                                      >> $testsource
-        if gfortran $testsource -o$testprog && $testprog; then
-            rm $testsource $testprog
+        echo "      PRINT *, \"... Fortran Compiler works.\""  > $testsourcef
+        echo "      END"                                      >> $testsourcef
+        if gfortran $testsourcef -o$testprog && $testprog; then
+            rm $testsourcef $testprog
         else
-            rm $testsource
+            rm $testsourcef
             cat <<EOF
 
 ______________________________________________________
@@ -1165,8 +1165,8 @@ rm -f "$finaltarget"
 
 
 
-# Project's top-level directories
-# -------------------------------
+# Project's top-level built software directories
+# ----------------------------------------------
 #
 # These directories are possibly needed by many steps of process, so to
 # avoid too many directory dependencies throughout the software and
@@ -1200,14 +1200,40 @@ if ! [ -d "$ictdir" ]; then mkdir "$ictdir"; fi
 itidir="$verdir"/tex
 if ! [ -d "$itidir" ]; then mkdir "$itidir"; fi
 
+# Temporary software un-packing/build directory: if the host has the
+# standard `/dev/shm' mounting-point, we'll do it in shared memory (on the
+# RAM), to avoid harming/over-using the HDDs/SSDs. The RAM of most systems
+# today (>8GB) is large enough for the parallel building of the software.
+#
+# For the name of the directory under `/dev/shm' (for this project), we'll
+# use the names of the two parent directories to the current/running
+# directory, separated by a `-' instead of `/'. We'll then appended that
+# with the user's name (in case multiple users may be working on similar
+# project names). Maybe later, we can use something like `mktemp' to add
+# random characters to this name and make it unique to every run (even for
+# a single user).
+tmpblddir="$sdir"/build-tmp
+rm -rf "$tmpblddir"/* "$tmpblddir"  # If its a link, we need to empty its
+                                    # contents first, then itself.
+
+
+
+
+
+# Project's top-level built analysis directories
+# ----------------------------------------------
+
+# Top-level built analysis directories.
+badir="$bdir"/analysis
+if ! [ -d "$badir" ]; then mkdir "$badir"; fi
+
 # Top-level LaTeX.
-texdir="$bdir"/tex
+texdir="$badir"/tex
 if ! [ -d "$texdir" ]; then mkdir "$texdir"; fi
 
 # LaTeX macros.
 mtexdir="$texdir"/macros
 if ! [ -d "$mtexdir" ]; then mkdir "$mtexdir"; fi
-
 
 # TeX build directory. If built in a group scenario, the TeX build
 # directory must be separate for each member (so they can work on their
@@ -1224,7 +1250,6 @@ if ! [ -d "$texbdir" ]; then mkdir "$texbdir"; fi
 tikzdir="$texbdir"/tikz
 if ! [ -d "$tikzdir" ]; then mkdir "$tikzdir"; fi
 
-
 # If 'tex/build' and 'tex/tikz' are symbolic links then 'rm -f' will delete
 # them and we can continue. However, when the project is being built from
 # the tarball, these two are not symbolic links but actual directories with
@@ -1239,7 +1264,6 @@ else
     mv tex/build tex/build-from-tarball
 fi
 
-
 # Set the symbolic links for easy access to the top project build
 # directories. Note that these are put in each user's source/cloned
 # directory, not in the build directory (which can be shared between many
@@ -1247,7 +1271,9 @@ fi
 #
 # Note: if we don't delete them first, it can happen that an extra link
 # will be created in each directory that points to its parent. So to be
-# safe, we are deleting all the links on each re-configure of the project.
+# safe, we are deleting all the links on each re-configure of the
+# project. Note that at this stage, we are using the host's 'ln', not our
+# own, so its best not to assume anything (like 'ln -sf').
 rm -f .build .local
 
 ln -s "$bdir" .build
@@ -1260,21 +1286,6 @@ rm -f .gnuastro
 # ------------------------------------------
 
 
-# Temporary software un-packing/build directory: if the host has the
-# standard `/dev/shm' mounting-point, we'll do it in shared memory (on the
-# RAM), to avoid harming/over-using the HDDs/SSDs. The RAM of most systems
-# today (>8GB) is large enough for the parallel building of the software.
-#
-# For the name of the directory under `/dev/shm' (for this project), we'll
-# use the names of the two parent directories to the current/running
-# directory, separated by a `-' instead of `/'. We'll then appended that
-# with the user's name (in case multiple users may be working on similar
-# project names). Maybe later, we can use something like `mktemp' to add
-# random characters to this name and make it unique to every run (even for
-# a single user).
-tmpblddir="$sdir"/build-tmp
-rm -rf "$tmpblddir"/* "$tmpblddir"  # If its a link, we need to empty its
-                                # contents first, then itself.
 
 # Set the top-level shared memory location.
 if [ -d /dev/shm ]; then     shmdir=/dev/shm
@@ -1300,7 +1311,7 @@ fi
 # symbolic link to it. Otherwise, just build the temporary build
 # directory under the project build directory.
 if [ x"$tbshmdir" = x ]; then mkdir "$tmpblddir";
-else                        ln -s "$tbshmdir" "$tmpblddir";
+else                          ln -s "$tbshmdir" "$tmpblddir";
 fi
 
 

@@ -23,7 +23,7 @@
 #
 # Without this file, `./project make' won't work.
 prepare-dep = $(subst prepare, ,$(makesrc))
-$(BDIR)/software/preparation-done.mk: \
+$(bsdir)/preparation-done.mk: \
                 $(foreach s, $(prepare-dep), $(mtexdir)/$(s).tex)
 
         # If you need to add preparations define targets above to do the

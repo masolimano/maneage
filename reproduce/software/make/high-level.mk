@@ -43,7 +43,7 @@ include reproduce/software/config/TARGETS.conf
 include reproduce/software/config/texlive-packages.conf
 
 # Basic directories (similar to 'basic.mk').
-lockdir = $(BDIR)/locks
+lockdir = $(BDIR)/software/locks
 tdir    = $(BDIR)/software/tarballs
 ddir    = $(BDIR)/software/build-tmp
 idir    = $(BDIR)/software/installed

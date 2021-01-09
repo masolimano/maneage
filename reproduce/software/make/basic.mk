@@ -48,7 +48,7 @@ include reproduce/software/config/checksums.conf
 include reproduce/software/config/urls.conf
 
 # Basic directories
-lockdir = $(BDIR)/locks
+lockdir = $(BDIR)/software/locks
 tdir    = $(BDIR)/software/tarballs
 ddir    = $(BDIR)/software/build-tmp
 idir    = $(BDIR)/software/installed
