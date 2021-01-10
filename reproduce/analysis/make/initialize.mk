@@ -374,15 +374,16 @@ $(project-package-contents): paper.pdf | $(texdir)
 	sed -e's|{tikz/}|{tex/tikz/}|' $$pgfsettings > $$pgfsettings.new
 	mv $$pgfsettings.new $$pgfsettings
 
-        # Clean temporary (currently those ending in `~') files.
+        # PROJECT SPECIFIC
+        # ----------------
+        # Put any project-specific distribution steps here.
+
+        # ----------------
+
+        # Clean temporary files that may have been created by text editors.
 	cd $(texdir)
 	find $(project-package-name) -name \*~ -delete
 	find $(project-package-name) -name \*.swp -delete
-
-        # PROJECT SPECIFIC
-        # ----------------
-        # Put any project specific distribution steps here.
-        # ----------------
 
 # Package into `.tar.gz' or '.tar.lz'.
 dist dist-lzip: $(project-package-contents)
