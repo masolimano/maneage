@@ -237,7 +237,7 @@ clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
 # ------------------------------------------
 
 texclean:
-	rm *.pdf
+	rm -f *.pdf
 	rm -rf $(texdir)/build/*
 	mkdir $(texdir)/build/tikz # 'tikz' is assumed to already exist.
 
@@ -505,6 +505,8 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\projectdate}{$$d}" > $@
 	echo "\newcommand{\projecttitle}{$(metadata-title)}" >> $@
 	echo "\newcommand{\projectversion}{$(project-commit-hash)}" >> $@
+	echo "\newcommand{\projectgitrepo}{$(metadata-git-repository)}" >> $@
+	echo "\newcommand{\projectcopyrightowner}{$(metadata-copyright-owner)}" >> $@
 
         # Calculate the latest Maneage commit used to build this
         # project:

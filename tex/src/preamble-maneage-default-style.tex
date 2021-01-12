@@ -64,37 +64,6 @@
 
 
 
-%% Color related settings:
-\usepackage{xcolor}
-\color{black}                   % Text color
-\definecolor{DarkBlue}{RGB}{0,0,90}
-
-
-
-
-
-
-% figure and figure* ordering correction:
-\usepackage{fixltx2e}
-
-
-
-
-
-%% For editing the caption appearence. The `setspace' package defines
-%% the `stretch' variable. `abovecaptionskip' is the distance between
-%% the figure and the caption.
-\usepackage{setspace, caption}
-\captionsetup{font=footnotesize, labelfont={color=DarkBlue,bf}, skip=1pt}
-\captionsetup[figure]{font={stretch=1, small}}
-\setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
-\setlength{\belowcaptionskip}{-1.25em}
-
-
-
-
-
-
 %% To make the footnotes align:
 \usepackage[hang]{footmisc}
 \setlength\footnotemargin{10pt}
@@ -105,20 +74,6 @@
 
 %For including time in the title:
 \usepackage{datetime}
-
-
-
-
-
-%To make links to webpages and include document information in the
-%properties of the PDF
-\usepackage[
-  colorlinks,
-  urlcolor=blue,
-  citecolor=blue,
-  linkcolor=blue,
-  linktocpage]{hyperref}
-\renewcommand\UrlFont{\rmfamily}
 
 
 
@@ -198,15 +153,6 @@
   {\thesubsubsection.}
   {0em}
   { }
-
-% Basic Document information that goes into the PDF meta-data.
-\hypersetup
-{
-    pdfauthor={YOUR NAME},
-    pdfsubject={\projecttitle},
-    pdftitle={\projecttitle},
-    pdfkeywords={SOME, KEYWORDS, FOR, THE, PDF}
-}
 
 %% Title and author information
 \usepackage{authblk}

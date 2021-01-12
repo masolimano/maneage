@@ -24,26 +24,50 @@
 
 
 
-%% Packages you need in your project
-%% ---------------------------------
+%% Packages you may need in your project
+%% -------------------------------------
 %
 %% Here you can add/remove any custom LaTeX package that you need for this
 %% project that aren't provided by the journal's style.
 
-% Better than verbatim for displaying typed text.
-\usepackage{alltt}
-
-% For arithmetic opertions within LaTeX
-\usepackage[nomessages]{fp}
-
-%To add a code font to the text:
-\usepackage{courier}
-
-%To add some enumerating styles
-\usepackage{enumerate}
-
-%Including images if necessary
+%% For loading images into the output (with '\includegraphics').
 \usepackage{graphicx}
+
+%% Ordering correction between 'figure' and 'figure*' ('figure*' is
+%% commonly used in two-column documents, where the figure should span both
+%% columns).
+\usepackage{fixltx2e}
+
+%% Color management.
+\usepackage{xcolor}
+\color{black} % Color of main text.
+\definecolor{DarkBlue}{RGB}{0,0,90}
+
+%% Caption management: The `setspace' package defines the `stretch'
+%% variable. `abovecaptionskip' is the distance between the figure and the
+%% caption. You can use 'captionof{figure}{...}' to use these custom
+%% 'figure' caption that is defined here.
+\usepackage{setspace, caption}
+\captionsetup{font=footnotesize, labelfont={color=DarkBlue,bf}, skip=1pt}
+\captionsetup[figure]{font={stretch=1, small}}
+\setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowcaptionskip}{-1.25em}
+
+%% Manage links in the produced paper (for example their colors), and
+%% include document information in the "Properties" of the PDF.
+\usepackage[
+  colorlinks,
+  urlcolor=blue,
+  citecolor=blue,
+  linkcolor=blue,
+  linktocpage]{hyperref}
+\renewcommand\UrlFont{\rmfamily}
+\hypersetup{
+    pdftitle={\projecttitle},
+    pdfauthor={\projectcopyrightowner},
+    pdfsubject={\projectgitrepo{} (commit \projectversion)},
+    pdfkeywords={Reproducible research, Maneage, ADD YOUR OWN}
+}
 
 
 
