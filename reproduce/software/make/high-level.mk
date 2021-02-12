@@ -428,7 +428,8 @@ $(ibidir)/cfitsio-$(cfitsio-version):
 	export gbuild_tar=$(ddir)/$$customtar
 	$(call gbuild, cfitsio-$(cfitsio-version), , \
 	               --enable-sse2 --enable-reentrant \
-	               --with-bzip2=$(idir), , make shared fpack funpack)
+	               --with-bzip2=$(idir), , \
+	               make shared fpack funpack)
 	rm $$customtar
 	echo "CFITSIO $(cfitsio-version)" > $@
 

@@ -210,7 +210,10 @@ $(ibidir)/low-level-links: $(ibidir)/grep-$(grep-version) \
         #   POSIX Threads library for multi-threaded programs.
 	for l in dl pthread; do
 	  if [ -f /usr/lib/lib$$l.a ]; then
-	    ln -sf /usr/lib/lib$$l.* $(ildir)/
+	    for f in /usr/lib/lib$$l.*; do
+	      ln -sf $$(realpath $$f) \
+	         $$(echo $$f | sed -e's|/usr/lib|$(ildir)|')
+	    done
 	  fi
 	done
 
