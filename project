@@ -4,6 +4,7 @@
 # Run `./project --help' for a description of how to use it.
 #
 # Copyright (C) 2019-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2021      Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -117,12 +118,13 @@ Configure options:
       --all-highlevel      Build all high-level software (for development).
 
 Configure and Make options:
+  -d, --debug[=FLAGS]      In configure: use -j1, no -k, and no Zenodo check.
+                           In make: 'FLAGS' will be directly passed to 'make'.
   -g, --group=STR          Build and run with write permissions for a group.
   -j, --jobs=INT           Number of threads to build/run the software.
   -?, --help               Print this help list.
 
 Make (analysis) options:
-  -d, --debug=FLAGS        Print various types of debugging information.
   -p, --prepare-redo       Re-do preparation (only done automatically once).
 
 Make (final PDF) options:
@@ -439,6 +441,7 @@ case $operation in
 
         # Variables to pass to the configuration script.
         export jobs=$jobs
+        export debug=$debug
         export host_cc=$host_cc
         export build_dir=$build_dir
         export input_dir=$input_dir

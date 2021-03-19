@@ -3,6 +3,7 @@
 # Necessary preparations/configurations for the reproducible project.
 #
 # Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2021      Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1458,18 +1459,19 @@ fi
 # which will download the DOI-resolved webpage, and extract the Zenodo-URL
 # of the most recent version from there (using the 'coreutils' tarball as
 # an example, the directory part of the URL for all the other software are
-# the same).
+# the same). This is not done if the option `--debug' is used.
+zenodourl=""
 user_backup_urls=""
 zenodocheck=.build/software/zenodo-check.html
-if $downloader $zenodocheck https://doi.org/10.5281/zenodo.3883409; then
-    zenodourl=$(sed -n -e'/coreutils/p' $zenodocheck \
-                    | sed -n -e'/http/p' \
-                    | tr ' ' '\n' \
-                    | grep http \
-                    | sed -e 's/href="//' -e 's|/coreutils| |' \
-                    | awk 'NR==1{print $1}')
-else
-    zenodourl=""
+if [ x$debug = x ]; then
+  if $downloader $zenodocheck https://doi.org/10.5281/zenodo.3883409; then
+      zenodourl=$(sed -n -e'/coreutils/p' $zenodocheck \
+                      | sed -n -e'/http/p' \
+                      | tr ' ' '\n' \
+                      | grep http \
+                      | sed -e 's/href="//' -e 's|/coreutils| |' \
+                      | awk 'NR==1{print $1}')
+  fi
 fi
 rm -f $zenodocheck
 
@@ -1497,6 +1499,28 @@ user_backup_urls="$user_backup_urls $zenodourl"
 
 
 
+# Corrections for debugging mode
+# ------------------------------
+#
+# If the user wants to debug the software configuration, they are usually
+# focused on the building of the single problematic software. Therefore,
+# the default multi-threaded execution of Make with the '--keep-going'
+# option are very annoying and can even hide important warnings. Recall
+# that with '--keep-going', Make will continue building other targets, even
+# if one target fails. When the user runs './project configure --debug',
+# the 'debug' variable will not be empty and this mode will be activated.
+if [ x$debug = x ]; then
+  keepgoing="--keep-going"
+else
+  jobs=1
+  numthreads=1
+  keepgoing=""
+fi
+
+
+
+
+
 # Build other basic tools our own GNU Make
 # ----------------------------------------
 #
@@ -1504,7 +1528,7 @@ user_backup_urls="$user_backup_urls $zenodourl"
 # Bash, Make, or AWK. In this step, we'll install such low-level basic
 # tools, but we have to be very portable (and use minimal features in all).
 echo; echo "Building necessary software (if necessary)..."
-.local/bin/make -k -f reproduce/software/make/basic.mk \
+.local/bin/make $keepgoing -f reproduce/software/make/basic.mk \
      user_backup_urls="$user_backup_urls" \
      sys_library_path=$sys_library_path \
      rpath_command=$rpath_command \
@@ -1532,7 +1556,7 @@ else
     numthreads=$jobs
 fi
 .local/bin/env -i HOME=$bdir \
-     .local/bin/make -k -f reproduce/software/make/high-level.mk \
+     .local/bin/make $keepgoing -f reproduce/software/make/high-level.mk \
           user_backup_urls="$user_backup_urls" \
           sys_library_path=$sys_library_path \
           rpath_command=$rpath_command \
