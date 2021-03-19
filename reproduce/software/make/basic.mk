@@ -86,7 +86,8 @@ export SHELL := $(ibdir)/dash
 export PATH := $(ibdir):$(PATH)
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
-export CPPFLAGS := -I$(idir)/include $(CPPFLAGS)
+export CPPFLAGS := -I$(idir)/include $(CPPFLAGS) \
+                   -Wno-nullability-completeness
 export LDFLAGS := $(rpath_command) -L$(ildir) $(LDFLAGS)
 
 # This is the "basic" tools where we are relying on the host operating

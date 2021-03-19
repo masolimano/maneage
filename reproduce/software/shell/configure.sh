@@ -424,8 +424,17 @@ if ! [ -d $compilertestdir ]; then mkdir $compilertestdir; fi
 
 # Check C compiler
 # ----------------
+#
+# Here we check if the C compiler works properly. About the "no warning"
+# variable ('nowarnings'):
+#
+#   -Wno-nullability-completeness: on macOS Big Sur 11.2.3 and Xcode 12.4,
+#    hundreds of 'nullability-completeness' warnings are printed which can
+#    be very annoying and even hide important errors or warnings. It is
+#    also harmless for our test here, so it is generally added.
 testprog=$compilertestdir/test
 testsource=$compilertestdir/test.c
+noccwarnings="-Wno-nullability-completeness"
 echo; echo; echo "Checking host C compiler ('$CC')...";
 cat > $testsource <<EOF
 #include <stdio.h>
@@ -433,7 +442,7 @@ cat > $testsource <<EOF
 int main(void){printf("...C compiler works.\n");
                return EXIT_SUCCESS;}
 EOF
-if $CC $testsource -o$testprog && $testprog; then
+if $CC $noccwarnings $testsource -o$testprog && $testprog; then
     rm $testsource $testprog
 else
     rm $testsource

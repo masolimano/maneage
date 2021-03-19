@@ -125,10 +125,10 @@ all: $(foreach p, $(targets-proglib), $(ibidir)/$(p)) \
 export PATH := $(ibdir)
 export CCACHE_DISABLE := 1
 export SHELL := $(ibdir)/bash
-export CPPFLAGS := -I$(idir)/include
 .SHELLFLAGS := --noprofile --norc -ec
 export LDFLAGS := $(rpath_command) -L$(ildir)
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
+export CPPFLAGS := -I$(idir)/include -Wno-nullability-completeness
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig:$(idir)/share/pkgconfig
 
 # Settings specific to this Makefile.
