@@ -1317,7 +1317,8 @@ $(ibidir)/swig-$(swig-version):
         # pcr is a dependency of swig
 	tarball=swig-$(swig-version).tar.gz
 	$(call import-source, $(swig-url), $(swig-checksum))
-	$(call gbuild, swig-$(swig-version), static, --without-pcre)
+	$(call gbuild, swig-$(swig-version), static, \
+	               --without-pcre --without-tcl)
 	echo "Swig $(swig-version)" > $@
 
 # The disables:
