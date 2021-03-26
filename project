@@ -47,7 +47,6 @@ all_highlevel=0
 existing_conf=0
 highlightnotes=0
 scriptname="./project"
-minmapsize=10000000000
 
 
 
@@ -109,7 +108,6 @@ Configure options:
   -e, --existing-conf      Use (possibly existing) local configuration.
       --host-cc            Use host system's C compiler, don't build GCC.
   -i, --input-dir=STR      Directory containing input datasets (optional).
-  -m, --minmapsize=INT     [Gnuastro] Minimum number of bytes to use RAM.
   -s, --software-dir=STR   Directory containing necessary software tarballs.
       --check-config       During configuration, show what is being built.
       --clean-texdir       Remove possibly existing build-time subdirectories
@@ -186,9 +184,6 @@ do
   -i|--input-dir)        input_dir="$2";                                     check_v "$1" "$input_dir";    shift;shift;;
   -i=*|--input-dir=*)    input_dir="${1#*=}";                                check_v "$1" "$input_dir";    shift;;
   -i*)                   input_dir=$(echo    "$1" | sed -e's/-i//');         check_v "$1" "$input_dir";    shift;;
-  -m|--minmapsize)       minmapsize="$2";                                    check_v "$1" "$minmapsize";   shift;shift;;
-  -m=*|--minmapsize=*)   minmapsize="${1#*=}";                               check_v "$1" "$minmapsize";   shift;;
-  -m*)                   minmapsize=$(echo   "$1" | sed -e's/-m//');         check_v "$1" "$minmapsize";   shift;;
   -s|--software-dir)     software_dir="$2";                                  check_v "$1" "$software_dir"; shift;shift;;
   -s=*|--software-dir=*) software_dir="${1#*=}";                             check_v "$1" "$software_dir"; shift;;
   -s*)                   software_dir=$(echo "$1" | sed -e's/-s//');         check_v "$1" "$software_dir"; shift;;
@@ -446,7 +441,6 @@ case $operation in
         export build_dir=$build_dir
         export input_dir=$input_dir
         export scriptname=$scriptname
-        export minmapsize=$minmapsize
         export software_dir=$software_dir
         export existing_conf=$existing_conf
         export all_highlevel=$all_highlevel
