@@ -229,19 +229,15 @@ project-package-contents = $(texdir)/$(project-package-name)
 # we want to ensure that the file is always built in every run: it contains
 # the project version which may change between two separate runs, even when
 # no file actually differs.
-.PHONY: all clean dist dist-zip dist-lzip texclean distclean clean-mmap \
+.PHONY: all clean dist dist-zip dist-lzip texclean distclean \
         $(project-package-contents) $(mtexdir)/initialize.tex
-
-# --------- Delete for no Gnuastro ---------
-clean-mmap:; rm -f reproduce/config/gnuastro/mmap*
-# ------------------------------------------
 
 texclean:
 	rm -f *.pdf
 	rm -rf $(texdir)/build/*
 	mkdir $(texdir)/build/tikz # 'tikz' is assumed to already exist.
 
-clean: clean-mmap
+clean:
         # Delete the top-level PDF file.
 	rm -f *.pdf
 
@@ -266,8 +262,7 @@ distclean: clean
         # `rm' program. So for this recipe, we'll use the host system's
         # `rm', not our own.
 	$$sys_rm -rf $(BDIR)
-	$$sys_rm -f $(pconfdir)/LOCAL.conf
-	$$sys_rm -f Makefile .gnuastro .local .build
+	$$sys_rm -f .local .build $(pconfdir)/LOCAL.conf
 
 
 
