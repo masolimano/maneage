@@ -51,7 +51,7 @@ include reproduce/software/config/LOCAL.conf
 # Controlling this requires two variables that are available at this stage:
 #
 #   - `GROUP-NAME': from `LOCAL.conf' (which was built by `./project configure').
-#   - `reproducible_paper_group_name': value to the `--group' option.
+#   - `maneage_group_name': value to the `--group' option.
 #
 # The analysis is only done when both have the same group name. Note that
 # when the project isn't being built for a group, both variables will be an
@@ -64,7 +64,7 @@ include reproduce/software/config/LOCAL.conf
 # If you are just interested in the processing and don't want to build the
 # PDF, you can skip the creation of the final PDF by giving a value of
 # `yes' to `pdf-build-final' in `reproduce/analysis/config/pdf-build.conf'.
-ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
+ifeq (x$(maneage_group_name),x$(GROUP-NAME))
 all: paper.pdf
 else
 all:

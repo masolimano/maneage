@@ -771,7 +771,7 @@ fi
 # exists and we don't want to re-write it).
 if [ $rewritepconfig = no ]; then
     oldgroupname=$(awk '/GROUP-NAME/ {print $3; exit 0}' $pconf)
-    if [ "x$oldgroupname" = "x$reproducible_paper_group_name" ]; then
+    if [ "x$oldgroupname" = "x$maneage_group_name" ]; then
         just_a_place_holder_to_avoid_not_equal_test=1;
     else
         echo "-----------------------------"
@@ -1089,7 +1089,7 @@ if [ $rewritepconfig = yes ]; then
         -e's|@ddir[@]|'"$ddir"'|' \
         -e's|@sys_cpath[@]|'"$sys_cpath"'|' \
         -e's|@downloader[@]|'"$downloader"'|' \
-        -e's|@groupname[@]|'"$reproducible_paper_group_name"'|' \
+        -e's|@groupname[@]|'"$maneage_group_name"'|' \
         $pconf.in >> $pconf
 else
     # Read the values from existing configuration file. Note that the build
@@ -1248,7 +1248,7 @@ if ! [ -d "$mtexdir" ]; then mkdir "$mtexdir"; fi
 # TeX build directory. If built in a group scenario, the TeX build
 # directory must be separate for each member (so they can work on their
 # relevant parts of the paper without conflicting with each other).
-if [ "x$reproducible_paper_group_name" = x ]; then
+if [ "x$maneage_group_name" = x ]; then
     texbdir="$texdir"/build
 else
     user=$(whoami)
@@ -1758,10 +1758,10 @@ echo `.local/bin/date` > $finaltarget
 #
 # The configuration is now complete, we can inform the user on the next
 # step(s) to take.
-if [ x$reproducible_paper_group_name = x ]; then
+if [ x$maneage_group_name = x ]; then
     buildcommand="./project make -j8"
 else
-    buildcommand="./project make --group=$reproducible_paper_group_name -j8"
+    buildcommand="./project make --group=$maneage_group_name -j8"
 fi
 cat <<EOF
 

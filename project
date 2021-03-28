@@ -326,14 +326,14 @@ fi
 if ! [ x$group = x ]; then
 
     # Check if group is usable.
-    if ! sg "$group" "echo test &> /dev/null" &> /dev/null; then
+    if ! sg "$group" "echo Group \'$group\' exists"; then
         echo "$scriptname: '$group' is not a usable group name on this system.";
         echo "(TIP: you can use the 'groups' command to see your groups)"
         exit 1
     fi
 
     # Set the group option for running Make.
-    gopt="reproducible_paper_group_name=$group"
+    gopt="maneage_group_name=$group"
 fi
 
 
@@ -441,10 +441,10 @@ case $operation in
         export build_dir=$build_dir
         export input_dir=$input_dir
         export scriptname=$scriptname
+        export maneage_group_name=$group
         export software_dir=$software_dir
         export existing_conf=$existing_conf
         export all_highlevel=$all_highlevel
-        export reproducible_paper_group_name=$group
 
         # Run the configuration script
         if [ x"$group" = x ]; then

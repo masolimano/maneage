@@ -35,7 +35,7 @@ include reproduce/software/config/LOCAL.conf
 # -------------------------------
 #
 # See `top-make.mk' for complete explanation.
-ifeq (x$(reproducible_paper_group_name),x$(GROUP-NAME))
+ifeq (x$(maneage_group_name),x$(GROUP-NAME))
 all: $(BDIR)/software/preparation-done.mk
 	@echo "Project preparation is complete.";
 else
