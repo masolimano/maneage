@@ -48,7 +48,7 @@ $(dm-squared): $(pconfdir)/delete-me-squared-num.conf | $(tex-publish-dir)
 	echo "# Column 2: X_POW2  [arbitrary, f32] The horizontal axis to the power of two." \
 	     >> $@.tmp
 	echo "# " >> $@.tmp
-	$(call print-copyright, $@.tmp)
+	$(call print-general-metadata, $@.tmp)
 
         # Generate the table of random values.
 	awk 'BEGIN {for(i=1;i<=$(delete-me-squared-num);i+=0.5) \
@@ -107,7 +107,7 @@ $(dm-img-histogram): $(tex-publish-dir)/%-histogram.txt: $(indir)/%.fits \
 	echo "# " >> $@.tmp
 	awk '/^# Column .:/' $@.data >> $@.tmp
 	echo "# " >> $@.tmp
-	$(call print-copyright, $@.tmp)
+	$(call print-general-metadata, $@.tmp)
 
         # Add the column numbers in a formatted manner, rename it to the
         # output and clean up.

@@ -461,19 +461,27 @@ $(data-publish-dir):; mkdir $@
 # Print Copyright statement
 # -------------------------
 #
-# This statement can be used in published datasets that are in plain-text
-# format. It assumes you have already put the data-specific statements in
-# its first argument, it will supplement them with general project links.
-print-copyright = \
+# The 'print-general-metadata' can be used to print the general metadata in
+# published datasets that are in plain-text format. It should be called
+# with make's 'call' function like this (where 'FILENAME' is the name of
+# the file it will append this content to):
+#
+#    $(call print-general-metadata, FILENAME)
+#
+# See 'reproduce/analysis/make/delete-me.mk' (in the Maneage branch) for a
+# real-world usage of this variable.
+doi-prefix-url   = https://doi.org
+arxiv-prefix-url = https://arxiv.org/abs
+print-general-metadata = \
 	echo "\# Project title: $(metadata-title)" >> $(1); \
 	echo "\# Git commit (that produced this dataset): $(project-commit-hash)" >> $(1); \
-	echo "\# Project's Git repository: $(metadata-git-repository)" >> $(1); \
+	echo "\# Git repository: $(metadata-git-repository)" >> $(1); \
 	if [ x$(metadata-arxiv) != x ]; then \
-	  echo "\# Pre-print server: https://arxiv.org/abs/$(metadata-arxiv)" >> $(1); fi; \
+	  echo "\# Pre-print: $(arxiv-prefix-url)/abs/$(metadata-arxiv)" >> $(1); fi; \
 	if [ x$(metadata-doi-journal) != x ]; then \
-	  echo "\# DOI (Journal): $(metadata-doi-journal)" >> $(1); fi; \
+	  echo "\# DOI (Journal): $(doi-prefix-url)/$(metadata-doi-journal)" >> $(1); fi; \
 	if [ x$(metadata-doi-zenodo) != x ]; then \
-	echo "\# DOI (Zenodo): $(metadata-doi-zenodo)" >> $(1); fi; \
+	echo "\# DOI (Zenodo): $(doi-prefix-url)/$(metadata-doi-zenodo)" >> $(1); fi; \
 	echo "\#" >> $(1); \
 	echo "\# Copyright (C) $$(date +%Y) $(metadata-copyright-owner)" >> $(1); \
 	echo "\# Dataset is available under $(metadata-copyright)." >> $(1); \

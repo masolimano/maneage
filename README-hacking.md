@@ -945,14 +945,14 @@ effectively no cost in keeping multiple redundancies on different servers,
 just in case one (or more) of them are discontinued in the (near/far)
 future.
 
- - **Reserve a DOI for your dataset**: There are multiple data servers that
-   give this functionality, one of the most well known and (currently!)
-   well-funded is [Zenodo](https://zenodo.org) so we'll focus on it
-   here. Of course, you can use any other service that provides a similar
-   functionality. Once you complete these steps, you can start using/citing
-   your dataset's DOI in the source of your project to finalize the rest of
-   the points. With Zenodo, you can even use the given identifier
-   for things like downloading.
+ - **Reserve a DOI for your datasets**: There are multiple data servers
+   that give this functionality, one of the most well known and
+   (currently!) well-funded is [Zenodo](https://zenodo.org) so we'll focus
+   on it here. Of course, you can use any other service that provides a
+   similar functionality. Once you complete these steps, you can start
+   using/citing your dataset's DOI in the source of your project to
+   finalize the rest of the points. With Zenodo, you can even use the given
+   identifier for things like downloading.
 
    * *Start new upload*: After you log in to Zenodo, you can start a new
      upload by clicking on the "New Upload button".
@@ -961,16 +961,23 @@ future.
      Identifier", click on the "Reserve DOI" button.
 
    * *Fill basic info*: You need to at least fill in the "required fields"
-      (marked with a red star). You will always be able to change any
-      metadata (even after you "Publish"), so don't worry too much about
-      values in the fields, at this phase, its just important that they
-      are not empty.
+     (marked with a red star). You will always be able to change any
+     metadata (even after you "Publish"), so don't worry too much about
+     values in the fields, at this phase, its just important that they are
+     not empty.
 
    * *Save your project but do not yet publish*: Press the "Save" button
-      (at the top or bottom of the page). Do not yet press "Publish"
-      though, since that would make the project public, and freeze the DOI
-      with any possible file you may have uploaded already. We will get to
-      the publication phase in the next steps.
+     (at the top or bottom of the page). Do not yet press "Publish" though,
+     since that would make the project public, and freeze the DOI with any
+     possible file you may have uploaded already. We will get to the
+     publication phase in the next steps.
+
+ - **Record the metadata**: Maneage comes with a file to store all the
+   project's metadata: `reproduce/analysis/config/metadata.conf`. Open this
+   file and store all the information that you currently have: for example
+   the Zenodo DOI, project's Git repository, Copyright owner and license of
+   the data after it becomes public. Keep the empty fields in mind and
+   after obtaining them, don't forget to fill them up.
 
  - **Request archival on SoftwareHeritage**: [Software
    Heritage](https://archive.softwareheritage.org/save/) is an online
@@ -989,7 +996,7 @@ future.
 
  - **Zenodo/SoftwareHeritage links in paper**: put links to the Zenodo-DOI
    (and SoftwareHeritage source when you make it public) in your
-   paper. Somewhere close the start, maybe under the keywords/abstract,
+   paper. Somewhere close to the start, maybe under the keywords/abstract,
    highlighting that they are supplements for reproducibility. These help
    readers easily access these resources for supplementary material
    directly from your PDF paper (sources on SoftwareHeritage and
@@ -1013,14 +1020,14 @@ future.
      (for example with columns separated by white-space characters) or in
      the more formal [Comma-separated
      values](https://en.wikipedia.org/wiki/Comma-separated_values) or CSV,
-     format). In the former case, its best to set the suffixes to `.txt`
-     (because most browsers/OSs will automatically know they are plain-text
-     and open them without needing any other software. If you have other
-     types of data (for example images, or very large tables with millions
-     of rows/columns that can be inconvenient in plain-text), feel free to
-     use custom binary formats, but later, in the description of your
-     project on the server, add a note, explaining what software they
-     should use to open them.
+     format). Generally, its best to set the suffixes to `.txt` (because
+     most browsers/OSs will automatically know they are plain-text and open
+     them without needing any other software). If you have other types of
+     data (for example images, or very large tables with millions of
+     rows/columns that can be inconvenient in plain-text), feel free to use
+     custom binary formats, but later, in the description of your project
+     on the server, add a note, explaining what software they should use to
+     open them.
 
    * *Descriptive names*: In some papers there are many files and having
      cryptic names will only confuse your readers (actually, yourself in
@@ -1033,45 +1040,23 @@ future.
      to rename everything related to each figure (which is very frustrating
      and prone to errors).
 
-   * *Good metadata*: Raw data are not too useful merely as a series of
+   * *Good metadata*: Raw data are not too useful merely as a series of raw
      numbers! So don't forget to have **good metadata in every file**. If
      its a plain-text file, usually lines starting with a `#` are
      ignored. So in the command that generates each dataset, add some extra
-     information about the dataset as lines starting with `#`. A minimal
-     set of recommended metadata are listed below. Feel free to add
-     more. You can use a configuration file to keep this information in one
-     place and automatically include them in all your output files.
-
-     * *Project Title and authors*: This is very important to give a
-        general perspective of the figure.
-
-     * *Links to project*: For example Zenodo-DOI, Journal-DOI (after it is
-       accepted), SoftwareHeritage page, arXiv-ID (or any other pre-print
-       server) and ofcourse, your Git repository.
-
-     * *Commit hash* of the project that produced the dataset. This
-       directly links the dataset to a particular point in your project's
-       history. It is stored in the `$(project-commit-hash)` variable that
-       is defined in `initialize.mk`. So you can use it anywhere in your
-       project.
-
-     * *Same commit hashes*: each dataset may have been created at
-       different phases of your project's history. If you simply upload the
-       produced datasets, they may therefore have different commits on
-       them. To avoid confusing your readers (and your self in the future),
-       it is best that they all have the same commit hash (which will also
-       be the commit hash printed in the paper). So upon publication, we
-       recommend deleting all of them and running `./project make` to build
-       them all with the same commit hash.
-
-     * *Copyright as metadata*: people need to know if they can "use" the
-       dataset (i.e., modify it), or possibly re-distribute it and their
-       derived products. They also need to know how they can contact the
-       creator of the datset (who is usually also the copyright owner). So
-       as another metadata element, also add your name and email-address
-       (or the name of the person and email of the person who was in charge
-       of that part of the project), and the copyright license name and
-       standard link to the fully copyright license.
+     information (the more the better!) about the dataset as lines starting
+     with `#`. Based on `reproduce/analysis/config/metadata.conf`, in
+     `initialize.mk`, Maneage will produce a default set of basic
+     information for plain-text data and will put it in the
+     `$(print-general-metadata)` variable. It is thus recommended to print
+     this variable into your plain-text file before printing the actual
+     data (so it shows on top of the file). For a real-world example, see
+     its usage in `reproduce/analysis/make/delete-me.mk` (in the `maneage`
+     branch). If you are publishing your data in binary formats, please add
+     all the metadata you see in `$(print-general-metadata)` into each
+     dataset file (for example keywords in the FITS format). If there are
+     many files, its easy to define a tiny shell-script to do the job on
+     each dataset.
 
  - **Link to figure datasets in caption**: all the datasets that go into
    the plots should be uploaded directly to Zenodo so they can be
@@ -1201,9 +1186,12 @@ future.
    initial/final submission to your desired journal. But we'll just add the
    necessary points for arXiv submission here:
 
-   * *Necessary links in comments*: put a link to your project's Git
-     repository, Zenodo-DOI (this is not your paper's DOI, its the
-     data/resources DOI), and/or SoftwareHeritage link in the comments.
+     * *Necessary links in comments*: put a link to your project's Git
+       repository, Zenodo-DOI (this is not your paper's DOI, its the
+       data/resources DOI), and/or SoftwareHeritage link in the comments.
+
+ - *Update `metadata.conf`*: Once you have your final arXiv ID (formated
+    as: `1234.56789`) put it in `reproduce/analysis/config/metadata.conf`.
 
  - **Submission to a journal**: different journals accept submissions in
    different formats, some accept LaTeX, some only want a PDF, or etc. It
@@ -1221,6 +1209,33 @@ future.
    the DOI (so you don't need to upload a new version if you just want to
    update the metadata).
 
+ - **After acceptance (before publication)**: Congratulations on the
+   acceptance! The main science content of your paper can't be changed any
+   more, but the paper will now go to the publication editor (for language
+   and style). Your approval of the final proof is necessary before the
+   paper is finally published. Use this period to finalize the final
+   metadata of your project: the journal's DOI. Some journals associate
+   your paper's DOI during this process. So before approving the final
+   proof do these steps:
+
+     * Add the Journal DOI in `reproduce/analysis/config/metadata.conf`,
+       and re-build your final data products, so this important metadata is
+       added.
+
+     * Once you get the final proof, and if everything is OK for you,
+       implement all the good language corrections/edits they have made
+       inside your own copy here and commit it into your project. This will
+       be the final commit of your project before publication.
+
+     * Submit your final project as a new version to Zenodo (and
+       arXiv). The Zenodo one is most important because your plots will
+       link to it and you want the commit hash in the data files that
+       readers will get from Zenodo to be the same hash as the paper.
+
+     * Tell the journal's publication editor to correct the hash and Zenodo
+       ID in your final proof confirmation (so the links point to the
+       correct place). Recall that on every new version upload in Zenodo,
+       you get a new DOI (or Zenodo ID).
 
 
 
