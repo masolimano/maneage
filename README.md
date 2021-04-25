@@ -459,6 +459,8 @@ docker cp CONTAINER:/file/path/within/container /host/path/target
 
 
 
+
+
 #### Only software environment in the Docker image
 
 You can set the docker image to only contain the software environment and
@@ -468,96 +470,168 @@ image to a minimum (only containing the built software environment) to
 easily move it from one computer to another. Below we'll summarize the
 steps.
 
-1. Get your user ID with this command: `id -u`.
+ 1.  Get your user ID with this command: `id -u`.
 
-2. Put the following lines into a `Dockerfile` of an otherwise empty
-directory. Just replacing `UID` with your user ID (found in the step
-above). This will build the basic directory structure. for the next steps.
+ 2.  Make a new (empty) directory called `docker` temporarily (will be
+     deleted later).
 
-```shell
-FROM debian:stable-slim
-RUN apt-get update && apt-get install -y gcc g++ wget
-RUN useradd -ms /bin/sh --uid UID maneager
-USER maneager
-WORKDIR /home/maneager
-RUN mkdir build
-```
+     ```shell
+     mkdir docker
+     cd docker
+     ```
 
-3. Create an image based on the `Dockerfile` above. Just replace `PROJECT`
-with your desired name.
+ 3.  Make a `Dockerfile` (within the new/empty directory) with the
+     following contents. Just replacing `UID` with your user ID (found in
+     step 1 above).
 
-```shell
-docker build -t PROJECT ./
-```
+     ```
+     FROM debian:stable-slim
+     RUN apt-get update && apt-get install -y gcc g++ wget
+     RUN useradd -ms /bin/sh --uid UID maneager
+     USER maneager
+     WORKDIR /home/maneager
+     RUN mkdir build
+     ```
 
-4. Run the command below to create a container based on the image and mount
-the desired directories on your host into the special directories of your
-container. Just don't forget to replace `PROJECT` and set the `/PATH`s to
-the respective paths in your host operating system.
+ 4.  Create a Docker image based on the `Dockerfile` above. Just replace
+     `MANEAGEBASE` with your desired name (this won't be your final image,
+     so you can safely use a name like `maneage-base`). Note that you need
+     to have root/administrator previlages when running it, so
 
-```shell
-docker run -v /PATH/TO/PROJECT/SOURCE:/home/maneager/source \
-           -v /PATH/TO/PROJECT/ANALYSIS/OUTPUTS:/home/maneager/build/analysis \
-           -v /PATH/TO/SOFTWARE/SOURCE/CODE/DIR:/home/maneager/software \
-           -v /PATH/TO/RAW/INPUT/DATA:/home/maneager/data \
-           -it PROJECT
-```
+     ```shell
+     sudo su
+     docker build -t MANEAGEBASE ./
+     exit
+     ```
 
-5. After running the command above, you are within the container. Go into
-the project source directory and run these commands to build the software
-environment.
+ 5.  You don't need the temporary directory any more (the docker image is
+     saved in Docker's own location, and accessible from anywhere).
 
-```shell
-cd /home/maneager/source
-./project configure --build-dir=/home/maneager/build \
-                    --software-dir=/home/maneager/software \
-                    --input-dir=/home/maneager/data
-```
+     ```shell
+     cd ..
+     rm -rf docker
+     ```
 
-6. After the configuration finishes successfully, it will say so and ask
-you to run `./project make`. But don't do that yet. Keep this Docker
-container open and don't exit the container or terminal. Open a new
-terminal, and follow the steps described in the sub-section above to
-preserve the built container as a Docker image. Let's assume you call it
-`PROJECT-ENV`. After the new image is made, you should be able to see the
-new image in the list of images with this command (in the same terminal
-that you created the image):
+ 6.  Put the following contents into a newly created plain-text file called
+     `docker-run`, while setting the initial variables based on your system
+     (the `software_dir` and `data_dir` can point to empty directories: if
+     you don't already have the necessary software or data, they
+     will/should be downloaded automatically).
 
-```shell
-docker image list      # In the other terminal.
-```
+     ```
+     #!/bin/sh
+     # Create Docker container from existing image. This script be run in the
+     # top project source directory (that has 'README.md' and 'paper.tex'). If
+     # not, replace the '$(pwd)' with the project source directory.
+     docker_name=MANEAGEBASE
+     data_dir=/PATH/TO/DATA/DIRECTORY
+     analysis_dir=/PATH/TO/ANALYSIS/DIRECTORY
+     software_dir=/PATH/TO/SOFTWARE/DIRECTORY
+     sudo docker run -v $(pwd):/home/maneager/source \
+                     -v $analysis_dir:/home/maneager/build/analysis \
+                     -v $software_dir:/home/maneager/software \
+                     -v $data_dir:/home/maneager/data \
+                     -it $docker_name
+     ```
 
-7. Now you can run `./project make` in the initial container. You will see
-that all the built products (temporary or final datasets or PDFs), will be
-written in the `/PATH/TO/PROJECT/ANALYSIS/OUTPUTS` directory of your
-host. You can even change the source of your project on your host operating
-system an re-run Make to see the effect on the outputs and add/commit the
-changes to your Git history within your host. You can also exit the
-container any time. You can later load the `PROJECT-ENV` environment image
-into a new container with the same `docker run -v ...` command above, just
-use `PROJECT-ENV` instead of `PROJECT`.
+ 7.  Make the `docker-run` script executable and **put its name in your
+     `.gitignore`**. It is important that this file doesn't go into your
+     project's history because it contains directory names only for this
+     particular system (you can always recreate it and update the directory
+     values for another system, by looking at this `README.md` and
+     copy-pasting). If you use the standard `docker-run` name for this tiny
+     script, it is already included in Maneage's `.gitignore`, so you don't
+     need to re-insert it there.
 
-8. In case you want to store the image as a single file as backup or to
-move to another computer, you can run the commands below. They will produce
-a single `project-env.tar.gz` file.
+     ```shell
+     chmod docker-run
+     emacs .gitignore
+     ```
 
-```shell
-docker save -o project-env.tar PROJECT-ENV
-gzip --best project-env.tar
-```
+ 8.  You can now start the Docker image by executing your newly added
+     script like below (it will ask for your root password). You will
+     notice that you are in the Docker container with the changed prompt.
 
-9. To load the tarball above into a clean docker environment (either on the
-same system or in another system), and create a new container from the
-image like above (the `docker run -v ...` command). Just don't forget that
-if your `/PATH/TO/PROJECT/ANALYSIS/OUTPUTS` directory is empty on the
-new/clean system, you should first run `./project configure -e` in the
-docker image so it builds the core file structure there. Don't worry, it
-won't build any software and should finish in a second or two. Afterwards,
-you can safely run `./project make`.
+     ```shell
+     ./docker-run
+     ```
 
-```shell
-docker load --input project-env.tar.gz
-```
+ 9.  You are now within the container. Go into the project source directory
+     and run these commands to build the software environment.
+
+     ```shell
+     cd source
+     ./project configure --build-dir=/home/maneager/build \
+                         --software-dir=/home/maneager/software \
+                         --input-dir=/home/maneager/data
+     ```
+
+ 10. After the configuration finishes successfully, it will say so. It will
+     then ask you to run `./project make`. **But don't do that yet**. Keep
+     this Docker container open and don't exit the container or
+     terminal. Open a new terminal, and follow the steps described in the
+     sub-section above to preserve (or "commit") the built container as a
+     Docker image. Let's assume you call it `MY-PROJECT-ENV`. After the new
+     image is made, you should be able to see the new image in the list of
+     images with this command (in yet another terminal):
+
+     ```shell
+     docker image list      # In the other terminal.
+     ```
+
+ 11. Now that you have safely "committed" your current Docker container
+     into a separate Docker image, you can **exit the container** safely
+     with the `exit` command. Don't worry, you won't loose the built
+     software environment: it is all now saved separately within the Docker
+     image.
+
+ 12. Re-open your `docker-run` script and change `MANEAGEBASE` to
+     `MY-PROJECT-ENV` (or any other name you set for the environment you
+     committed above).
+
+     ```shell
+     emacs docker-run
+     ```
+
+ 13. That is it! You can now always easily enter your container (only for
+     the software environemnt) with the command below. Within the
+     container, any file you save/edit in the `source` directory of the
+     docker container is the same file on your host OS and any file you
+     build in your `build/analysis` directory (within the Maneage'd
+     project) will be on your host OS. You can even use your container's
+     Git to store the history of your project in your host OS. See the next
+     step in case you want to move your built software environment to
+     another computer.
+
+     ```shell
+     ./docker-run
+     ```
+
+ 14. In case you want to store the image as a single file as backup or to
+     move to another computer, you can run the commands below. They will
+     produce a single `project-env.tar.gz` file.
+
+     ```shell
+     docker save -o my-project-env.tar MY-PROJECT-ENV
+     gzip --best project-env.tar
+     ```
+
+ 15. To load the tarball above into a clean docker environment (for example
+     on another system) copy the `my-project-env.tar.gz` file there and run
+     the command below. You can then create the `docker-run` script for
+     that system and run it to enter. Just don't forget that if your
+     `analysis_dir` directory is empty on the new/clean system. So you
+     should first run the same `./project configure ...` command above in
+     the docker image so it connects the environment to your source. Don't
+     worry, it won't build any software and should finish in a second or
+     two. Afterwards, you can safely run `./project make` and continue
+     working like you did on the old system.
+
+     ```shell
+     docker load --input my-project-env.tar.gz
+     ```
+
+
 
 
 

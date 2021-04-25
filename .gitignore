@@ -39,6 +39,7 @@ tex/tikz
 .DS_Store
 .texlive*
 LOCAL.conf
+docker-run
 tex/pipeline
 LOCAL_tmp.mk
 LOCAL_old.mk
