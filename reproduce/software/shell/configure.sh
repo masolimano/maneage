@@ -158,7 +158,7 @@ check_permission ()
         return 1
     else
         # Setting permission SUCCESSFUL
-	return 0
+        return 0
     fi
 }
 
@@ -938,10 +938,10 @@ EOF
             fi
         fi
 
-	# If everything is still fine so far, see if we're able to
-	# manipulate file permissions in the directory's filesystem and if
-	# so, see if there is atleast 5GB free space.
-	if ! [ x"$bdir" = x ]; then
+        # If everything is still fine so far, see if we're able to
+        # manipulate file permissions in the directory's filesystem and if
+        # so, see if there is atleast 5GB free space.
+        if ! [ x"$bdir" = x ]; then
             if ! $(check_permission "$bdir"); then
                 # Unable to handle permissions well
                 bdir=
@@ -1610,17 +1610,21 @@ is not used at all during the analysis.
 Therefore, if you don't need the final PDF, and just want to do the
 analysis, you can safely ignore this warning and continue.
 
-If you later have internet access and would like to add TeX live to your
-project, please delete the respective files, then re-run configure as shown
-below.
+If you later have internet access and would like to add TeX Live to your
+project, then please delete the following two files:
 
     rm .local/version-info/tex/texlive-ready-tlmgr
+    rm .build/software/tarballs/install-tl-unx.tar.gz
+
+and re-run configure:
+
     ./project configure -e
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EOF
+  sleep 10 # increase the chance that an interactive user reads this message
 fi
 
 
