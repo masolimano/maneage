@@ -180,29 +180,33 @@ evolving rapidly, so some details will differ between the different
 versions. The more recent papers will tend to be the most useful as good
 working examples.
 
- - Peper & Roukema ([2020](https://arxiv.org/abs/2010.03742),
-   arXiv:2010.03742): The live version of the controlled source is [at
-   Codeberg](https://codeberg.org/boud/elaphrocentre); the main input
+ - Peper & Roukema ([2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.tmp.1317P),
+   MNRAS, 505, 1223, DOI:10.1093/mnras/stab1342, arXiv:2010.03742):
+   The live version of the controlled source is
+   [at Codeberg](https://codeberg.org/boud/elaphrocentre); the main input
    dataset, a software snapshot, the software tarballs, the project
    outputs and editing history are available at
-   [zenodo.4062461](https://zenodo.org/record/4062461); and the
+   [zenodo.4699702](https://zenodo.org/record/4699702); and the
    archived git history is available at
-   [swh:1:dir:c4770e81288f340083dd8aa9fe017103c4eaf476](https://archive.softwareheritage.org/swh:1:dir:c4770e81288f340083dd8aa9fe017103c4eaf476).
+   [swh:1:rev:a029edd32d5cd41dbdac145189d9b1a08421114e](https://archive.softwareheritage.org/swh:1:rev:a029edd32d5cd41dbdac145189d9b1a08421114e).
 
- - Roukema ([2020](https://arxiv.org/abs/2007.11779),
-   arXiv:2007.11779): The live version of the controlled source is [at
-   Codeberg](https://codeberg.org/boud/subpoisson); the main input
+ - Roukema ([2021](https://ui.adsabs.harvard.edu/abs/2020arXiv200711779R),
+   arXiv:2007.11779): The live version of the controlled source is
+   [at Codeberg](https://codeberg.org/boud/subpoisson); the main input
    dataset, a software snapshot, the software tarballs, the project
    outputs and editing history are available at
-   [zenodo.3951152](https://zenodo.org/record/3951152); and the
+   [zenodo.4765705](https://zenodo.org/record/4765705); and the
    archived git history is available at
-   [swh:1:dir:fcc9d6b111e319e51af88502fe6b233dc78d5166](https://archive.softwareheritage.org/swh:1:dir:fcc9d6b111e319e51af88502fe6b233dc78d5166).
+   [swh:1:rev:72242ca8eade9659031ea00394a30e0cc5cc1c37](https://archive.softwareheritage.org/swh:1:rev:72242ca8eade9659031ea00394a30e0cc5cc1c37).
 
- - Akhlaghi et al. ([2020](https://arxiv.org/abs/2006.03018),
-   arXiv:2006.03018): The project's version controlled source is [on
-   Gitlab](https://gitlab.com/makhlaghi/maneage-paper), necessary software,
-   outputs and backup of history is available in
-   [zenodo.3872248](https://doi.org/10.5281/zenodo.3872248).
+ - Akhlaghi et al. ([2021](https://arxiv.org/abs/2006.03018),
+   CiSE, in press, DOI:10.1109/MCSE.2021.3072860
+   arXiv:2006.03018): The project's version controlled source is
+   [on Gitlab](https://gitlab.com/makhlaghi/maneage-paper), necessary software,
+   outputs and backup of history are available at
+   [zenodo.3872248](https://doi.org/10.5281/zenodo.3872248); and the
+   archived git history is available at
+   [swh:1:dir:45a9e282a86145fe9babef529c8fce52ffe8d717](https://archive.softwareheritage.org/swh:1:dir:45a9e282a86145fe9babef529c8fce52ffe8d717).
 
  - Infante-Sainz et
    al. ([2020](https://ui.adsabs.harvard.edu/abs/2020MNRAS.491.5317I),
@@ -212,8 +216,8 @@ working examples.
    [zenodo.3524937](https://zenodo.org/record/3524937).
 
  - Akhlaghi ([2019](https://arxiv.org/abs/1909.11230), IAU Symposium
-   355). The version controlled project source is available [on
-   GitLab](https://gitlab.com/makhlaghi/iau-symposium-355) and is also
+   355). The version controlled project source is available
+   [on GitLab](https://gitlab.com/makhlaghi/iau-symposium-355) and is also
    archived on Zenodo with all the necessary software tarballs:
    [zenodo.3408481](https://doi.org/10.5281/zenodo.3408481).
 
