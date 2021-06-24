@@ -1210,22 +1210,6 @@ if ! [ -d "$ictdir" ]; then mkdir "$ictdir"; fi
 itidir="$verdir"/tex
 if ! [ -d "$itidir" ]; then mkdir "$itidir"; fi
 
-# Temporary software un-packing/build directory: if the host has the
-# standard `/dev/shm' mounting-point, we'll do it in shared memory (on the
-# RAM), to avoid harming/over-using the HDDs/SSDs. The RAM of most systems
-# today (>8GB) is large enough for the parallel building of the software.
-#
-# For the name of the directory under `/dev/shm' (for this project), we'll
-# use the names of the two parent directories to the current/running
-# directory, separated by a `-' instead of `/'. We'll then appended that
-# with the user's name (in case multiple users may be working on similar
-# project names). Maybe later, we can use something like `mktemp' to add
-# random characters to this name and make it unique to every run (even for
-# a single user).
-tmpblddir="$sdir"/build-tmp
-rm -rf "$tmpblddir"/* "$tmpblddir"  # If its a link, we need to empty its
-                                    # contents first, then itself.
-
 
 
 
@@ -1297,29 +1281,75 @@ rm -f .gnuastro
 
 
 
-# Set the top-level shared memory location.
+
+
+# Software building directory (possibly in RAM)
+# ---------------------------------------------
+#
+# Building the software for the project will need the creation of many
+# small temporary files that will ultimately be deleted. To avoid harming
+# HDDs/SSDs and improve speed, it is therefore better to build them in the
+# RAM when possible. The RAM of most systems today (>8GB) is large enough
+# for the parallel building of the software.
+
+# Set the top-level shared memory location. Currently there is only one
+# standard location (for GNU/Linux OSs), so doing this check here and the
+# main job below may seem redundant. However, it is written separately from
+# the main code below because later, we expect to add more possible
+# mounting locations (for other OSs).
 if [ -d /dev/shm ]; then     shmdir=/dev/shm
 else                         shmdir=""
 fi
 
-# If a shared memory mounted directory exists and there is enough space
-# there (in RAM), build a temporary directory for this project.
-needed_space=2000000
+# If a shared memory mounted directory exists and has the necessary
+# conditions, set that directory to build software.
 if [ x"$shmdir" != x ]; then
+
+    # Make sure it has enough space.
+    needed_space=2000000
     available_space=$(df "$shmdir" | awk 'NR==2{print $4}')
     if [ $available_space -gt $needed_space ]; then
+
+        # Set the Maneage-specific directory within the shared
+        # memory. We'll use the names of the two parent directories to the
+        # current/running directory, separated by a `-' instead of
+        # `/'. We'll then appended that with the user's name (in case
+        # multiple users may be working on similar project names).
+        #
+        # Maybe later, we can use something like `mktemp' to add random
+        # characters to this name and make it unique to every run (even for
+        # a single user).
         dirname=$(pwd | sed -e's/\// /g' \
-                      | awk '{l=NF-1; printf("%s-%s",$l, $NF)}')
+                      | awk '{l=NF-1; printf("%s-%s", $l, $NF)}')
         tbshmdir="$shmdir"/"$dirname"-$(whoami)
         if ! [ -d "$tbshmdir" ]; then mkdir "$tbshmdir"; fi
+
+        # Some systems may protect '/dev/shm' against the right to execute
+        # programs by ordinary users. We thus need to check that the device
+        # allows execution within this directory by this user.
+        shmexecfile="$tbshmdir"/shm-execution-check.sh
+        rm -f $shmexecfile      # We also don't want any existing flags.
+        cat > "$shmexecfile" <<EOF
+#!/bin/sh
+printf "This file successfully executed.\n"
+EOF
+        # Make the file executable and see if it runs. If not, set
+        # 'tbshmdir' to an empty string so it is not used in later steps.
+        # In any case, delete the temporary file afterwards.
+        chmod u+x "$shmexecfile"
+        if ! "$shmexecfile" &> /dev/null; then tbshmdir=""; fi
+        rm "$shmexecfile"
     fi
 else
     tbshmdir=""
 fi
 
-# If a shared memory directory was created set `build-tmp' to be a
-# symbolic link to it. Otherwise, just build the temporary build
-# directory under the project build directory.
+# If a shared memory directory was created, set the software building
+# directory to be a symbolic link to it. Otherwise, just build the
+# temporary build directory under the project's build directory.
+tmpblddir="$sdir"/build-tmp
+rm -rf "$tmpblddir"/* "$tmpblddir"  # If it is a link, we need to empty
+                                    # its contents first, then itself.
 if [ x"$tbshmdir" = x ]; then mkdir "$tmpblddir";
 else                          ln -s "$tbshmdir" "$tmpblddir";
 fi
@@ -1330,6 +1360,9 @@ fi
 
 # Inform the user that the build process is starting
 # -------------------------------------------------
+#
+# Everything is ready, let the user know that the building is going to
+# start.
 if [ $printnotice = yes ]; then
     tsec=10
     cat <<EOF
@@ -1338,12 +1371,13 @@ if [ $printnotice = yes ]; then
 Building dependencies ...
 -------------------------
 
-Necessary dependency programs and libraries will be built in
+Necessary dependency programs and libraries will be installed in
 
   $sdir/installed
 
-NOTE: the built software will NOT BE INSTALLED on your system (no root
-access is required). They are only for local usage by this project.
+NOTE: the built software will NOT BE INSTALLED in standard places of your
+OS (so no root access is required). They are only for local usage by this
+project.
 
 **TIP**: you can see which software are being installed at every moment
 with the following command. See "Inspecting status" section of
