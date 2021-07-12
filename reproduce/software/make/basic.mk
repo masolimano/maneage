@@ -743,9 +743,10 @@ $(ibidir)/openssl-$(openssl-version): $(ibidir)/perl-$(perl-version) \
 	               --with-zlib-include=$(idir)/include, \
 	               -j$(numthreads), , ./config )
 
-        # Manually insert RPATH inside the OpenSSL library.
+        # Manually insert RPATH inside the two created libraries.
 	if [ -f $(ibdir)/patchelf ]; then
-	   patchelf --set-rpath $(ildir) $(ildir)/libssl.so; \
+	   patchelf --set-rpath $(ildir) $(ildir)/libssl.so
+	   patchelf --set-rpath $(ildir) $(ildir)/libcrypto.so
 	fi
 
         # Bug 58263 (https://savannah.nongnu.org/bugs/?58263): In OpenSSL
@@ -946,8 +947,8 @@ $(ibidir)/gettext-$(gettext-version): \
                   $(ibidir)/libunistring-$(libunistring-version)
 	tarball=gettext-$(gettext-version).tar.lz
 	$(call import-source, $(gettext-url), $(gettext-checksum))
-	$(call gbuild, gettext-$(gettext-version), static,, \
-	               V=1 -j$(numthreads))
+	$(call gbuild, gettext-$(gettext-version), static, \
+	               --without-emacs, V=1 -j$(numthreads))
 	echo "GNU gettext $(gettext-version)" > $@
 
 $(ibidir)/git-$(git-version): \
