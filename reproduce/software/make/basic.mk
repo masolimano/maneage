@@ -461,9 +461,10 @@ $(ibidir)/ncurses-$(ncurses-version): $(ibidir)/patchelf-$(patchelf-version)
 	if [ x$(on_mac_os) = xyes ]; then so="dylib"; else so="so"; fi
 	if [ -f $(ildir)/libncursesw.$$so ]; then
 
+	  unalias ls || true # avoid decorated 'ls' commands with extra characters
 	  sov=$$(ls -l $(ildir)/libncursesw* \
 	               | awk '/^-/{print $$NF}' \
-	               | sed -e's|'$(ildir)/libncursesw.'||')
+	               | sed -e "s;$(ildir)/libncursesw\.;;")
 
 	  cd "$(ildir)"
 	  for lib in ncurses ncurses++ form panel menu; do
@@ -690,6 +691,7 @@ $(ibidir)/coreutils-$(coreutils-version): \
         # Fix RPATH if necessary.
 	if [ -f $(ibdir)/patchelf ]; then
 	  make SHELL=$(ibdir)/bash install DESTDIR=junkinst
+	  unalias ls || true # avoid decorated 'ls' commands with extra characters
 	  instprogs=$$(ls junkinst/$(ibdir))
 	  for f in $$instprogs; do
 	    $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/$$f
@@ -1415,6 +1417,13 @@ $(ibidir)/gcc-$(gcc-version): $(ibidir)/binutils-$(binutils-version)
 	    ln -s $$odir/gcc-$(gcc-version) $(ddir)/gcc-$(gcc-version)
 	  fi
 	  cd gcc-$(gcc-version)
+
+          # Handle bug https://savannah.nongnu.org/bugs/index.php?61240 in
+          # which gcc preferentially uses a system-level 'unwind' library
+          # rather than using its own one.
+	  ln -sf ../../libgcc/unwind-generic.h libstdc++-v3/libsupc++/unwind.h
+	  ln -sf ../libgcc/unwind-generic.h libitm/unwind.h
+
 	  mkdir build
 	  cd build
 
