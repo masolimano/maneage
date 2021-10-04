@@ -3,10 +3,10 @@
 # To have better control over the environment of each analysis step (Make
 # recipe), besides having environment variables (directly included from
 # Make), it may also be useful to have a Bash startup file (this file). All
-# of the Makefiles set this file as the `BASH_ENV' environment variable, so
+# of the Makefiles set this file as the 'BASH_ENV' environment variable, so
 # it is loaded into all the Make recipes within the project.
 #
-# The special `PROJECT_STATUS' environment variable is defined in every
+# The special 'PROJECT_STATUS' environment variable is defined in every
 # top-level Makefile of the project. It defines the the state of the Make
 # that is calling this script. It can have three values:
 #
@@ -29,7 +29,7 @@
 #       versions.
 #
 #
-# Copyright (C) 2019-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

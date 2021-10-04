@@ -1,8 +1,8 @@
 Maneage: managing data lineage
 ==============================
 
-Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
-Copyright (C) 2020-2021 Raul Infante-Sainz <infantesainz@gmail.com>\
+Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
+Copyright (C) 2020-2022 Raul Infante-Sainz <infantesainz@gmail.com>\
 See the end of the file for license conditions.
 
 Maneage is a **fully working template** for doing reproducible research (or
@@ -180,29 +180,40 @@ evolving rapidly, so some details will differ between the different
 versions. The more recent papers will tend to be the most useful as good
 working examples.
 
- - Peper & Roukema ([2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.tmp.1317P),
-   MNRAS, 505, 1223, DOI:10.1093/mnras/stab1342, arXiv:2010.03742):
-   The live version of the controlled source is
-   [at Codeberg](https://codeberg.org/boud/elaphrocentre); the main input
-   dataset, a software snapshot, the software tarballs, the project
-   outputs and editing history are available at
-   [zenodo.4699702](https://zenodo.org/record/4699702); and the
-   archived git history is available at
+ - Borkowska & Roukema
+   ([2022](https://ui.adsabs.harvard.edu/abs/2021arXiv211214174B), MNRAS
+   Submitted, arXiv:2112.14174): The live version of the controlled source
+   is [at Codeberg](https://codeberg.org/boud/gevcurvtest); the main input
+   dataset, a software snapshot, the software tarballs, the project outputs
+   and editing history are available at
+   [zenodo.5806027](https://doi.org/10.5281/zenodo.5806027); and the
+   archived git history is available at [swh:1:rev:54398b720ddbac269ede30bf1e27fe27f07567f7](https://archive.softwareheritage.org/browse/revision/54398b720ddbac269ede30bf1e27fe27f07567f7).
+
+ - Peper & Roukema
+   ([2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.1223P), MNRAS,
+   505, 1223, DOI:10.1093/mnras/stab1342, arXiv:2010.03742): The live
+   version of the controlled source is [at
+   Codeberg](https://codeberg.org/boud/elaphrocentre); the main input
+   dataset, a software snapshot, the software tarballs, the project outputs
+   and editing history are available at
+   [zenodo.4699702](https://zenodo.org/record/4699702); and the archived
+   git history is available at
    [swh:1:rev:a029edd32d5cd41dbdac145189d9b1a08421114e](https://archive.softwareheritage.org/swh:1:rev:a029edd32d5cd41dbdac145189d9b1a08421114e).
 
- - Roukema ([2021](https://ui.adsabs.harvard.edu/abs/2020arXiv200711779R),
-   arXiv:2007.11779): The live version of the controlled source is
-   [at Codeberg](https://codeberg.org/boud/subpoisson); the main input
-   dataset, a software snapshot, the software tarballs, the project
+ - Roukema ([2021](https://ui.adsabs.harvard.edu/abs/2021PeerJ...911856R),
+   PeerJ, 9:e11856, arXiv:2007.11779): The live version of the controlled
+   source is [at Codeberg](https://codeberg.org/boud/subpoisson); the main
+   input dataset, a software snapshot, the software tarballs, the project
    outputs and editing history are available at
-   [zenodo.4765705](https://zenodo.org/record/4765705); and the
-   archived git history is available at
+   [zenodo.4765705](https://zenodo.org/record/4765705); and the archived
+   git history is available at
    [swh:1:rev:72242ca8eade9659031ea00394a30e0cc5cc1c37](https://archive.softwareheritage.org/swh:1:rev:72242ca8eade9659031ea00394a30e0cc5cc1c37).
 
- - Akhlaghi et al. ([2021](https://arxiv.org/abs/2006.03018),
-   CiSE, in press, DOI:10.1109/MCSE.2021.3072860
-   arXiv:2006.03018): The project's version controlled source is
-   [on Gitlab](https://gitlab.com/makhlaghi/maneage-paper), necessary software,
+ - Akhlaghi et
+   al. ([2021](https://ui.adsabs.harvard.edu/abs/2021CSE....23c..82A),
+   CiSE, 23(3), 82 DOI:10.1109/MCSE.2021.3072860 arXiv:2006.03018): The
+   project's version controlled source is [on
+   Gitlab](https://gitlab.com/makhlaghi/maneage-paper), necessary software,
    outputs and backup of history are available at
    [zenodo.3872248](https://doi.org/10.5281/zenodo.3872248); and the
    archived git history is available at
@@ -751,8 +762,8 @@ First custom commit
      and generally, all the files you modified in the previous step.
 
      ```
-     Copyright (C) 2018-2021 Existing Name <existing@email.address>
-     Copyright (C) 2021 YOUR NAME <YOUR@EMAIL.ADDRESS>
+     Copyright (C) 2018-2022 Existing Name <existing@email.address>
+     Copyright (C) 2022 YOUR NAME <YOUR@EMAIL.ADDRESS>
      ```
 
  9. **Configure Git for fist time**: If this is the first time you are

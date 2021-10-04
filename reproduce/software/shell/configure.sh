@@ -2,8 +2,9 @@
 #
 # Necessary preparations/configurations for the reproducible project.
 #
-# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Copyright (C) 2021      Raul Infante-Sainz <infantesainz@gmail.com>
+# Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2021-2022 Raul Infante-Sainz <infantesainz@gmail.com>
+# Copyright (C) 2022      Pedram Ashofteh Ardakani <pedramardakani@pm.me>
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -112,7 +113,7 @@ absolute_dir ()
 # Check file permission handling (POSIX-compatibility)
 # ----------------------------------------------------
 #
-# Check if a `given' directory handles permissions as expected.
+# Check if a 'given' directory handles permissions as expected.
 #
 # This is to prevent a known bug in the NTFS filesystem that prevents
 # proper installation of Perl, and probably some other packages. This
@@ -120,15 +121,15 @@ absolute_dir ()
 # file, and examines whether the given directory handles the file
 # permissions as expected.
 #
-# Returns `0' if everything is fine, and `255' otherwise. Choosing `0' is
-# to mimic the `$ echo $?' behavior, while choosing `255' is to prevent
+# Returns '0' if everything is fine, and '255' otherwise. Choosing '0' is
+# to mimic the '$ echo $?' behavior, while choosing '255' is to prevent
 # misunderstanding 0 and 1 as true and false.
 #
 # ===== CAUTION! ===== #
 #
-# Since there is a `set -e' before running this function, the whole script
-# stops and exits IF the `check_permission' (or any other function) returns
-# anything OTHER than `0'! So, only use this function as a test. Here's a
+# Since there is a 'set -e' before running this function, the whole script
+# stops and exits IF the 'check_permission' (or any other function) returns
+# anything OTHER than '0'! So, only use this function as a test. Here's a
 # minimal example:
 #
 #     if $(check_permission $some_directory) ; then
@@ -136,7 +137,7 @@ absolute_dir ()
 #     fi ;
 check_permission ()
 {
-    # Make a `junk' file, activate its executable flag and record its
+    # Make a 'junk' file, activate its executable flag and record its
     # permissions generally.
     local junkfile="$1"/check_permission_tmp_file
     rm -f "$junkfile"
@@ -309,7 +310,9 @@ fi
 # system.  Here, it is checked that this is the case, and if not, warn the user
 # about not having Xcode already installed.
 if [ x$on_mac_os = xyes ]; then
-  xcode=$(which xcodebuild)
+
+  # 'which' isn't in POSIX, so we are using 'command -v' instead.
+  xcode=$(command -v xcodebuild)
   if [ x$xcode != x ]; then
     xcode_version=$(xcodebuild -version | grep Xcode)
     echo "                                              "
@@ -475,8 +478,8 @@ fi
 # See if we need the dynamic-linker (-ldl)
 # ----------------------------------------
 #
-# Some programs (like Wget) need dynamic loading (using `libdl'). On
-# GNU/Linux systems, we'll need the `-ldl' flag to link such programs.  But
+# Some programs (like Wget) need dynamic loading (using 'libdl'). On
+# GNU/Linux systems, we'll need the '-ldl' flag to link such programs.  But
 # Mac OS doesn't need any explicit linking. So we'll check here to see if
 # it is present (thus necessary) or not.
 cat > $testsource <<EOF
@@ -508,7 +511,7 @@ fi
 # programs will go and find their necessary libraries on the host system.
 #
 # Another good advantage of shared libraries is that we can actually use
-# the shared library tool of the system (`ldd' with GNU C Library) and see
+# the shared library tool of the system ('ldd' with GNU C Library) and see
 # exactly where each linked library comes from. But in static building,
 # unless you follow the build closely, its not easy to see if the source of
 # the library came from the system or our build.
@@ -545,7 +548,7 @@ fi
 #
 # On some systems (in particular Debian-based OSs), the static C library
 # and necessary headers in a non-standard place, and we can't build GCC. So
-# we need to find them first. The `sys/cdefs.h' header is also in a
+# we need to find them first. The 'sys/cdefs.h' header is also in a
 # similarly different location.
 sys_cpath=""
 sys_library_path=""
@@ -576,7 +579,7 @@ fi
 # See if a link-able static C library exists
 # ------------------------------------------
 #
-# A static C library and the `sys/cdefs.h' header are necessary for
+# A static C library and the 'sys/cdefs.h' header are necessary for
 # building GCC.
 if [ x"$host_cc" = x0 ]; then
     echo; echo; echo "Checking if static C library is available...";
@@ -752,9 +755,9 @@ EOF
 # What to do with possibly existing configuration file
 # ----------------------------------------------------
 #
-# `LOCAL.conf' is the top-most local configuration for the project. If it
+# 'LOCAL.conf' is the top-most local configuration for the project. If it
 # already exists when this script is run, we'll make a copy of it as backup
-# (for example the user might have ran `./project configure' by mistake).
+# (for example the user might have ran './project configure' by mistake).
 printnotice=yes
 rewritepconfig=yes
 if [ -f $pconf ]; then
@@ -807,16 +810,18 @@ fi
 # need to check the host's available tool for downloading at this step.
 if [ $rewritepconfig = yes ]; then
     if type wget > /dev/null 2>/dev/null; then
-        name=$(which wget)
+
+        # 'which' isn't in POSIX, so we are using 'command -v' instead.
+        name=$(command -v wget)
 
         # By default Wget keeps the remote file's timestamp, so we'll have
         # to disable it manually.
         downloader="$name --no-use-server-timestamps -O";
     elif type curl > /dev/null 2>/dev/null; then
-        name=$(which curl)
+        name=$(command -v curl)
 
         # - cURL doesn't keep the remote file's timestamp by default.
-        # - With the `-L' option, we tell cURL to follow redirects.
+        # - With the '-L' option, we tell cURL to follow redirects.
         downloader="$name -L -o"
     else
         cat <<EOF
@@ -913,7 +918,7 @@ EOF
                 # If it was newly created, it will be empty, so delete it.
                 if ! [ "$(ls -A $bdir)" ]; then rm --dir "$bdir"; fi
 
-                # Inform the user that this is not acceptable and reset `bdir'.
+                # Inform the user that this is not acceptable and reset 'bdir'.
                 bdir=
                 echo " ** The build-directory cannot be under the source-directory."
             fi
@@ -960,7 +965,7 @@ EOF
         fi
 
         # If the build directory was good, the loop will stop, if not,
-        # reset `build_dir' to blank, so it continues asking for another
+        # reset 'build_dir' to blank, so it continues asking for another
         # directory and let the user know that they must select a new
         # directory.
         if [ x"$bdir" = x ]; then
@@ -1118,7 +1123,7 @@ else
     if [ x"$downloader" = x ]; then novalue="$novalue"DOWNLOADER;  fi
     if [ x"$novalue"   != x ]; then verr=1; err=1;                 fi
 
-    # Make sure `bdir' is an absolute path and it exists.
+    # Make sure 'bdir' is an absolute path and it exists.
     berr=0
     ierr=0
     bdir="$(absolute_dir "$inbdir")"
@@ -1202,6 +1207,10 @@ if ! [ -d "$ibidir" ]; then mkdir "$ibidir"; fi
 ipydir="$verdir"/python
 if ! [ -d "$ipydir" ]; then mkdir "$ipydir"; fi
 
+# R module versions and citation.
+ircrandir="$verdir"/r-cran
+if ! [ -d "$ircrandir" ]; then mkdir "$ircrandir"; fi
+
 # Used software BibTeX entries.
 ictdir="$verdir"/cite
 if ! [ -d "$ictdir" ]; then mkdir "$ictdir"; fi
@@ -1209,6 +1218,15 @@ if ! [ -d "$ictdir" ]; then mkdir "$ictdir"; fi
 # TeXLive versions.
 itidir="$verdir"/tex
 if ! [ -d "$itidir" ]; then mkdir "$itidir"; fi
+
+# Some software install their libraries in '$(idir)/lib64'. But all other
+# libraries are in '$(idir)/lib'. Since Maneage's build is only for a
+# single architecture, we can set the '$(idir)/lib64' as a symbolic link to
+# '$(idir)/lib' so all the libraries are always available in the same
+# place.
+instlibdir="$instdir"/lib
+if ! [ -d "$instlibdir" ]; then mkdir "$instlibdir"; fi
+ln -fs "$instlibdir" "$instdir"/lib64
 
 
 
@@ -1312,37 +1330,68 @@ if [ x"$shmdir" != x ]; then
 
         # Set the Maneage-specific directory within the shared
         # memory. We'll use the names of the two parent directories to the
-        # current/running directory, separated by a `-' instead of
-        # `/'. We'll then appended that with the user's name (in case
+        # current/running directory, separated by a '-' instead of
+        # '/'. We'll then appended that with the user's name (in case
         # multiple users may be working on similar project names).
         #
-        # Maybe later, we can use something like `mktemp' to add random
+        # Maybe later, we can use something like 'mktemp' to add random
         # characters to this name and make it unique to every run (even for
         # a single user).
         dirname=$(pwd | sed -e's/\// /g' \
                       | awk '{l=NF-1; printf("%s-%s", $l, $NF)}')
         tbshmdir="$shmdir"/"$dirname"-$(whoami)
-        if ! [ -d "$tbshmdir" ]; then mkdir "$tbshmdir"; fi
+
+        # Try to make the directory if it does not yet exist. A failed
+        # directory creation will be tested for a few lines later, when
+        # testing for the existence and executability of a test file.
+        if ! [ -d "$tbshmdir" ]; then (mkdir "$tbshmdir" || true); fi
 
         # Some systems may protect '/dev/shm' against the right to execute
         # programs by ordinary users. We thus need to check that the device
         # allows execution within this directory by this user.
         shmexecfile="$tbshmdir"/shm-execution-check.sh
         rm -f $shmexecfile      # We also don't want any existing flags.
-        cat > "$shmexecfile" <<EOF
+
+        # Create the file to be executed, but do not fail fatally if it
+        # cannot be created. We will check a few lines later if the file
+        # really exists.
+        (cat > "$shmexecfile" <<EOF || true)
 #!/bin/sh
-printf "This file successfully executed.\n"
+echo "This file successfully executed."
 EOF
-        # Make the file executable and see if it runs. If not, set
-        # 'tbshmdir' to an empty string so it is not used in later steps.
-        # In any case, delete the temporary file afterwards.
-        chmod u+x "$shmexecfile"
-        if ! "$shmexecfile" &> /dev/null; then tbshmdir=""; fi
-        rm "$shmexecfile"
+
+        # If the file was successfully created, then make the file
+        # executable and see if it runs. If not, set 'tbshmdir' to an empty
+        # string so it is not used in later steps.  In any case, delete the
+        # temporary file afterwards.
+        #
+        # We aren't adding '&> /dev/null' after the execution command
+        # because it can produce false failures randomly on some systems.
+        if [ -e "$shmexecfile" ]; then
+
+            # Add the executable flag.
+            chmod +x "$shmexecfile"
+
+            # The following line tries to execute the file.
+            if "$shmexecfile"; then
+                # Successful execution. The colon is a "no-op" (no
+                # operation) shell command.
+                :
+            else
+                tbshmdir=""
+            fi
+            rm "$shmexecfile"
+        else
+            tbshmdir=""
+        fi
     fi
 else
     tbshmdir=""
 fi
+
+
+
+
 
 # If a shared memory directory was created, set the software building
 # directory to be a symbolic link to it. Otherwise, just build the
@@ -1426,7 +1475,7 @@ fi
 # See if the linker accepts -Wl,-rpath-link
 # -----------------------------------------
 #
-# `-rpath-link' is used to write the information of the linked shared
+# '-rpath-link' is used to write the information of the linked shared
 # library into the shared object (library or program). But some versions of
 # LLVM's linker don't accept it an can cause problems.
 #
@@ -1459,13 +1508,13 @@ rm -rf $compilertestdir
 
 
 
-# Paths needed by the host compiler (only for `basic.mk')
+# Paths needed by the host compiler (only for 'basic.mk')
 # -------------------------------------------------------
 #
 # At the end of the basic build, we need to build GCC. But GCC will build
 # in multiple phases, making its own simple compiler in order to build
 # itself completely. The intermediate/simple compiler doesn't recognize
-# some system specific locations like `/usr/lib/ARCHITECTURE' that some
+# some system specific locations like '/usr/lib/ARCHITECTURE' that some
 # operating systems use. We thus need to tell the intermediate compiler
 # where its necessary libraries and headers are.
 if [ x"$sys_library_path" != x ]; then
@@ -1502,7 +1551,7 @@ fi
 # which will download the DOI-resolved webpage, and extract the Zenodo-URL
 # of the most recent version from there (using the 'coreutils' tarball as
 # an example, the directory part of the URL for all the other software are
-# the same). This is not done if the option `--debug' is used.
+# the same). This is not done if the option '--debug' is used.
 zenodourl=""
 user_backup_urls=""
 zenodocheck=.build/software/zenodo-check.html
@@ -1535,6 +1584,7 @@ user_backup_urls="$user_backup_urls $zenodourl"
 # (compression program), GNU Make (that 'basic.mk' is written in), Dash
 # (minimal Bash-like shell) and Flock (to lock files and enable serial
 # download).
+export on_mac_os
 ./reproduce/software/shell/pre-make-build.sh \
     "$bdir" "$ddir" "$downloader" "$user_backup_urls"
 
@@ -1672,7 +1722,7 @@ fi
 # software.
 prepare_name_version ()
 {
-    # First see if the (possible) `*' in the input arguments corresponds to
+    # First see if the (possible) '*' in the input arguments corresponds to
     # anything. Note that some of the given directories may be empty (no
     # software installed).
     hasfiles=0
@@ -1773,9 +1823,9 @@ hw_class_fixed="$(echo $hw_class | sed -e 's/_/\\_/')"
 # ---------------------------------
 #
 # By the time the script reaches here the temporary software build
-# directory should be empty, so just delete it. Note `tmpblddir' may be a
+# directory should be empty, so just delete it. Note 'tmpblddir' may be a
 # symbolic link to shared memory. So, to work in any scenario, first delete
-# the contents of the directory (if it has any), then delete `tmpblddir'.
+# the contents of the directory (if it has any), then delete 'tmpblddir'.
 .local/bin/rm -rf $tmpblddir/* $tmpblddir
 
 

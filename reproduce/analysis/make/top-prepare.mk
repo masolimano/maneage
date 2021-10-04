@@ -1,10 +1,10 @@
 # Do basic preparations to optimize the project's running.
 #
-# NOTE: This file is very similar to `top-make.mk', so the large comments
+# NOTE: This file is very similar to 'top-make.mk', so the large comments
 # are not included here. Please see that file for thorough comments on each
 # step.
 #
-# Copyright (C) 2019-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 
 # Load the local configuration (created after running
-# `./project configure').
+# './project configure').
 include reproduce/software/config/LOCAL.conf
 
 
@@ -34,7 +34,7 @@ include reproduce/software/config/LOCAL.conf
 # Ultimate target of this project
 # -------------------------------
 #
-# See `top-make.mk' for complete explanation.
+# See 'top-make.mk' for complete explanation.
 ifeq (x$(maneage_group_name),x$(GROUP-NAME))
 all: $(BDIR)/software/preparation-done.mk
 	@echo "Project preparation is complete.";
@@ -57,12 +57,12 @@ endif
 # Define source Makefiles
 # -----------------------
 #
-# See `top-make.mk' for complete explanation.
+# See 'top-make.mk' for complete explanation.
 #
-# To ensure that `prepare' and `make' have the same basic definitions and
-# environment and that all `downloads' are managed in one place, both
-# `./project prepare' and `./project make' will first read `initialize.mk'
-# and `downloads.mk'.
+# To ensure that 'prepare' and 'make' have the same basic definitions and
+# environment and that all 'downloads' are managed in one place, both
+# './project prepare' and './project make' will first read 'initialize.mk'
+# and 'downloads.mk'.
 makesrc = initialize \
           download \
           prepare
@@ -74,7 +74,7 @@ makesrc = initialize \
 # Include all analysis Makefiles
 # ------------------------------
 #
-# See `top-make.mk' for complete explanation.
+# See 'top-make.mk' for complete explanation.
 project-phase = prepare
 include reproduce/analysis/config/*.conf
 include $(foreach s,$(makesrc), reproduce/analysis/make/$(s).mk)

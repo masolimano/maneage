@@ -4,7 +4,7 @@
 #                      !!!!! IMPORTANT NOTES !!!!!
 #
 # This Makefile will be loaded into 'high-level.mk', which is called by the
-# `./project configure' script. It is not included into the project
+# './project configure' script. It is not included into the project
 # afterwards.
 #
 # This Makefile contains instructions to build all the Xorg-related
@@ -14,8 +14,8 @@
 #
 # ------------------------------------------------------------------------
 #
-# Copyright (C) 2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Copyright (C) 2021 Raul Infante-Sainz <infantesainz@gmail.com>
+# Copyright (C) 2021-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2021-2022 Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ $(idir)/etc/profile.d/xorg.sh: | $(idir)/etc/profile.d
 $(ibidir)/util-macros-$(util-macros-version): \
                       $(idir)/etc/profile.d/xorg.sh \
                       $(ibidir)/automake-$(automake-version)
-	tarball=util-macros-$(util-macros-version).tar.bz2
+	tarball=util-macros-$(util-macros-version).tar.lz
 	$(call import-source, $(util-macros-url), $(util-macros-checksum))
 	$(call gbuild, util-macros-$(util-macros-version),,$(XORG_CONFIG),V=1)
 	echo "util-macros (Xorg) $(util-macros-version)" > $@
@@ -65,14 +65,14 @@ $(ibidir)/util-macros-$(util-macros-version): \
 # Necessaary headers to define the Xorg protocols.
 $(ibidir)/xorgproto-$(xorgproto-version): \
                     $(ibidir)/util-macros-$(util-macros-version)
-	tarball=xorgproto-$(xorgproto-version).tar.bz2
+	tarball=xorgproto-$(xorgproto-version).tar.lz
 	$(call import-source, $(xorg-proto-url), $(xorgproto-checksum))
 	$(call gbuild, xorgproto-$(xorgproto-version),,$(XORG_CONFIG),V=1)
 	echo "xorgproto $(xorgproto-version)" > $@
 
 # Necessaary headers to define the Xorg protocols.
 $(ibidir)/libxau-$(libxau-version): $(ibidir)/xorgproto-$(xorgproto-version)
-	tarball=libXau-$(libxau-version).tar.bz2
+	tarball=libXau-$(libxau-version).tar.lz
 	$(call import-source, $(libaxu-url), $(libxau-checksum))
 	$(call gbuild, libXau-$(libxau-version),,$(XORG_CONFIG), V=1)
 	echo "libXau (Xorg) $(libxau-version)" > $@
@@ -88,7 +88,7 @@ $(ibidir)/libxdmcp-$(libxdmcp-version): $(ibidir)/libxau-$(libxau-version)
 $(ibidir)/xcb-proto-$(xcb-proto-version): \
                     $(ibidir)/python-$(python-version) \
                     $(ibidir)/libxml2-$(libxml2-version)
-	tarball=xcb-proto-$(xcb-proto-version).tar.xz
+	tarball=xcb-proto-$(xcb-proto-version).tar.lz
 	$(call import-source, $(xcb-proto-url), $(xcb-proto-checksum))
 	$(call gbuild, xcb-proto-$(xcb-proto-version),,$(XORG_CONFIG), V=1)
 	echo "XCB-proto (Xorg) $(xcb-proto-version)" > $@
@@ -98,7 +98,7 @@ $(ibidir)/libxcb-$(libxcb-version): \
                  $(ibidir)/libxdmcp-$(libxdmcp-version) \
                  $(ibidir)/xcb-proto-$(xcb-proto-version) \
                  $(ibidir)/libpthread-stubs-$(libpthread-stubs-version)
-	tarball=libxcb-$(libxcb-version).tar.xz
+	tarball=libxcb-$(libxcb-version).tar.lz
 	$(call import-source, $(libxcb-url), $(libxcb-checksum))
 	$(call gbuild, libxcb-$(libxcb-version),, \
 	               $(XORG_CONFIG) --without-doxygen, \
@@ -107,7 +107,7 @@ $(ibidir)/libxcb-$(libxcb-version): \
 
 $(ibidir)/libpthread-stubs-$(libpthread-stubs-version): \
                       $(ibidir)/automake-$(automake-version)
-	tarball=libpthread-stubs-$(libpthread-stubs-version).tar.gz
+	tarball=libpthread-stubs-$(libpthread-stubs-version).tar.lz
 	$(call import-source, $(libpthread-stubs-url), $(libpthread-stubs-checksum))
 	$(call gbuild, libpthread-stubs-$(libpthread-stubs-version),, V=1)
 	echo "libpthread-stubs (Xorg) $(libpthread-stubs-version)" > $@
@@ -116,11 +116,12 @@ $(ibidir)/libpthread-stubs-$(libpthread-stubs-version): \
 $(ibidir)/fontconfig-$(fontconfig-version): \
                      $(ibidir)/gperf-$(gperf-version) \
                      $(ibidir)/expat-$(expat-version) \
+                     $(ibidir)/python-$(python-version) \
                      $(ibidir)/libxml2-$(libxml2-version) \
                      $(ibidir)/freetype-$(freetype-version) \
                      $(ibidir)/util-linux-$(util-linux-version)
         # Import the source.
-	tarball=fontconfig-$(fontconfig-version).tar.bz2
+	tarball=fontconfig-$(fontconfig-version).tar.lz
 	$(call import-source, $(fontconfig-url), $(fontconfig-checksum))
 
         # Add the extra environment variables for using 'libuuid' of
@@ -139,27 +140,27 @@ $(ibidir)/fontconfig-$(fontconfig-version): \
 $(ibidir)/xtrans-$(xtrans-version): \
                  $(ibidir)/libxcb-$(libxcb-version) \
                  $(ibidir)/fontconfig-$(fontconfig-version)
-	tarball=xtrans-$(xtrans-version).tar.bz2
+	tarball=xtrans-$(xtrans-version).tar.lz
 	$(call import-source, $(xtrans-url), $(xtrans-checksum))
 	$(call gbuild, xtrans-$(xtrans-version),,$(XORG_CONFIG), V=1)
 	echo "xtrans (Xorg) $(xtrans-version)" > $@
 
 $(ibidir)/libx11-$(libx11-version): $(ibidir)/xtrans-$(xtrans-version)
-	tarball=libX11-$(libx11-version).tar.bz2
+	tarball=libX11-$(libx11-version).tar.lz
 	$(call import-source, $(libx11-url), $(libx11-checksum))
 	$(call gbuild, libX11-$(libx11-version),,$(XORG_CONFIG), \
 	               -j$(numthreads) V=1)
 	echo "X11 library $(libx11-version)" > $@
 
 $(ibidir)/libxext-$(libxext-version): $(ibidir)/libx11-$(libx11-version)
-	tarball=libXext-$(libxext-version).tar.bz2
+	tarball=libXext-$(libxext-version).tar.lz
 	$(call import-source, $(libxext-url), $(libxext-checksum))
 	$(call gbuild, libXext-$(libxext-version),,$(XORG_CONFIG), \
 	               -j$(numthreads) V=1)
 	echo "libXext $(libxext-version)" > $@
 
 $(ibidir)/libice-$(libice-version): $(ibidir)/libxext-$(libxext-version)
-	tarball=libICE-$(libice-version).tar.bz2
+	tarball=libICE-$(libice-version).tar.lz
 	$(call import-source, $(libice-url), $(libice-checksum))
 	$(call gbuild, libICE-$(libice-version),, \
 	               $(XORG_CONFIG) ICE_LIBS=-lpthread, \
@@ -167,14 +168,14 @@ $(ibidir)/libice-$(libice-version): $(ibidir)/libxext-$(libxext-version)
 	echo "libICE $(libice-version)" > $@
 
 $(ibidir)/libsm-$(libsm-version): $(ibidir)/libice-$(libice-version)
-	tarball=libSM-$(libsm-version).tar.bz2
+	tarball=libSM-$(libsm-version).tar.lz
 	$(call import-source, $(libsm-url), $(libsm-checksum))
 	$(call gbuild, libSM-$(libsm-version),, \
 	               $(XORG_CONFIG), -j$(numthreads) V=1)
 	echo "libSM $(libsm-version)" > $@
 
 $(ibidir)/libxt-$(libxt-version): $(ibidir)/libsm-$(libsm-version)
-	tarball=libXt-$(libxt-version).tar.bz2
+	tarball=libXt-$(libxt-version).tar.lz
 	$(call import-source, $(libxt-url), $(libxt-checksum))
 	$(call gbuild, libXt-$(libxt-version),, \
 	               $(XORG_CONFIG), -j$(numthreads) V=1)

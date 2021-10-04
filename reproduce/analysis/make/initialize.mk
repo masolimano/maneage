@@ -1,6 +1,6 @@
 # Project initialization.
 #
-# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,10 +25,10 @@
 # Basic directories that are used throughout the project.
 #
 # Locks are used to make sure that an operation is done in series not in
-# parallel (even if Make is run in parallel with the `-j' option). The most
+# parallel (even if Make is run in parallel with the '-j' option). The most
 # common case is downloads which are better done in series and not in
 # parallel. Also, some programs may not be thread-safe, therefore it will
-# be necessary to put a lock on them. This project uses the `flock' program
+# be necessary to put a lock on them. This project uses the 'flock' program
 # to achieve this.
 #
 # To help with modularity and clarity of the build directory (not mixing
@@ -56,10 +56,10 @@ pconfdir    = reproduce/analysis/config
 # Preparation phase
 # -----------------
 #
-# This Makefile is loaded both for the `prepare' phase and the `make'
+# This Makefile is loaded both for the 'prepare' phase and the 'make'
 # phase. But the preparation files should be dealt with differently
-# (depending on the phase). In the `prepare' phase, the main directory
-# should be created, and in the `make' phase, its contents should be
+# (depending on the phase). In the 'prepare' phase, the main directory
+# should be created, and in the 'make' phase, its contents should be
 # loaded.
 #
 # If you don't need any preparation, please simply comment these lines.
@@ -89,9 +89,9 @@ endif
 # create a separate LaTeX build directory for each user.
 #
 # The same logic applies to the final paper PDF: each user will create a
-# separte final PDF (for example `paper-user1.pdf' and `paper-user2.pdf')
-# and no `paper.pdf' will be built. This isn't a problem because
-# `initialize.tex' is a .PHONY prerequisite, so the rule to build the final
+# separte final PDF (for example 'paper-user1.pdf' and 'paper-user2.pdf')
+# and no 'paper.pdf' will be built. This isn't a problem because
+# 'initialize.tex' is a .PHONY prerequisite, so the rule to build the final
 # paper is always executed (even if it is present and nothing has
 # changed). So in terms of over-all efficiency and processing steps, this
 # doesn't change anything.
@@ -114,7 +114,7 @@ tikzdir     = $(texbdir)/tikz
 # ---------------------------
 #
 # Before defining the local sub-environment here, we'll need to save the
-# system's environment for some scenarios (for example after `clean'ing the
+# system's environment for some scenarios (for example after 'clean'ing the
 # built programs).
 curdir   := $(shell echo $$(pwd))
 
@@ -127,16 +127,16 @@ curdir   := $(shell echo $$(pwd))
 #
 # We want the full recipe to be executed in one call to the shell. Also we
 # want Make to run the specific version of Bash that we have installed
-# during `./project configure' time.
+# during './project configure' time.
 #
 # Regarding the directories, this project builds its major dependencies
 # itself and doesn't use the local system's default tools. With these
 # environment variables, we are setting it to prefer the software we have
 # build here.
 #
-# `TEXINPUTS': we have to remove all possible user-specified directories to
-# avoid conflicts with existing TeX Live solutions. Later (in `paper.mk'),
-# we are also going to overwrite `TEXINPUTS' just before `pdflatex'.
+# 'TEXINPUTS': we have to remove all possible user-specified directories to
+# avoid conflicts with existing TeX Live solutions. Later (in 'paper.mk'),
+# we are also going to overwrite 'TEXINPUTS' just before 'pdflatex'.
 .ONESHELL:
 .SHELLFLAGS = -ec
 export TEXINPUTS :=
@@ -153,12 +153,12 @@ export LD_LIBRARY_PATH := $(installdir)/lib
 # will be empty.
 export CPATH := $(SYS_CPATH)
 
-# RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
+# RPATH is automatically written in macOS, so 'DYLD_LIBRARY_PATH' is
 # ultimately redundant. But on some systems, even having a single value
 # causes crashs (see bug #56682). So we'll just give it no value at all.
 export DYLD_LIBRARY_PATH :=
 
-# OpenMPI can depend on an existing `ssh' or `rsh' binary. However, because
+# OpenMPI can depend on an existing 'ssh' or 'rsh' binary. However, because
 # of security reasons, its best to not install them, disable any
 # remote-shell accesss through this environment variable.
 export OMPI_MCA_plm_rsh_agent=/bin/false
@@ -172,7 +172,7 @@ export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 # Python enviroment
 # -----------------
 #
-# The main Python environment variable is `PYTHONPATH'. However, so far we
+# The main Python environment variable is 'PYTHONPATH'. However, so far we
 # have found several other Python-related environment variables on some
 # systems which might interfere. To be safe, we are removing all their
 # values.
@@ -196,10 +196,10 @@ export MPI_PYTHON3_SITEARCH   :=
 # directories (or possible sub-directories) for individual steps will be
 # defined and added within their own Makefiles.
 #
-# The `.SUFFIXES' rule with no prerequisite is defined to eliminate all the
+# The '.SUFFIXES' rule with no prerequisite is defined to eliminate all the
 # default implicit rules. The default implicit rules are to do with
-# programming (for example converting `.c' files to `.o' files). The
-# problem they cause is when you want to debug the make command with `-d'
+# programming (for example converting '.c' files to '.o' files). The
+# problem they cause is when you want to debug the make command with '-d'
 # option: they add too many extra checks that make it hard to find what you
 # are looking for in the outputs.
 .SUFFIXES:
@@ -222,10 +222,10 @@ project-package-contents = $(texdir)/$(project-package-name)
 # High-level Makefile management
 # ------------------------------
 #
-# About `.PHONY': these are targets that must be built even if a file with
+# About '.PHONY': these are targets that must be built even if a file with
 # their name exists.
 #
-# Only `$(mtexdir)/initialize.tex' corresponds to a file. This is because
+# Only '$(mtexdir)/initialize.tex' corresponds to a file. This is because
 # we want to ensure that the file is always built in every run: it contains
 # the project version which may change between two separate runs, even when
 # no file actually differs.
@@ -238,14 +238,14 @@ texclean:
 	mkdir $(texdir)/build/tikz # 'tikz' is assumed to already exist.
 
 clean:
-        # Delete the top-level PDF file.
+#	Delete the top-level PDF file.
 	rm -f *.pdf
 
-        # Delete all the built outputs except the dependency
-        # programs. We'll use Bash's extended options builtin (`shopt') to
-        # enable "extended glob" (for listing of files). It allows extended
-        # features like ignoring the listing of a file with `!()' that we
-        # are using afterwards.
+#	Delete all the built outputs except the dependency programs. We'll
+#	use Bash's extended options builtin ('shopt') to enable "extended
+#	glob" (for listing of files). It allows extended features like
+#	ignoring the listing of a file with '!()' that we are using
+#	afterwards.
 	shopt -s extglob
 	rm -rf $(texdir)/macros/!(dependencies.tex|dependencies-bib.tex|hardware-parameters.tex)
 	rm -rf $(badir)/!(tex) $(texdir)/!(macros|$(texbtopdir))
@@ -253,14 +253,13 @@ clean:
 	rm -rf $(bsdir)/preparation-done.mk
 
 distclean: clean
-        #  Without cleaning the Git hooks, we won't be able to easily
-        #  commit or checkout after this task is done. So we'll remove them
-        #  first.
+#	Without cleaning the Git hooks, we won't be able to easily commit
+#	or checkout after this task is done. So we'll remove them first.
 	rm -f .git/hooks/post-checkout .git/hooks/pre-commit
 
-        # We'll be deleting the built environent programs and just need the
-        # `rm' program. So for this recipe, we'll use the host system's
-        # `rm', not our own.
+#	We'll be deleting the built environent programs and just need the
+#	'rm' program. So for this recipe, we'll use the host system's 'rm',
+#	not our own.
 	$$sys_rm -rf $(BDIR)
 	$$sys_rm -f .local .build $(pconfdir)/LOCAL.conf
 
@@ -277,14 +276,14 @@ distclean: clean
 # without having to worry about the technicalities of the analysis.
 $(project-package-contents): paper.pdf | $(texdir)
 
-        # Set up the output directory, delete it if it exists and remake it
-        # to fill with new contents.
+#	Set up the output directory, delete it if it exists and remake it
+#	to fill with new contents.
 	dir=$@
 	rm -rf $$dir
 	mkdir $$dir
 
-        # Build a small Makefile to help in automatizing the paper building
-        # (including the bibliography).
+#	Build a small Makefile to help in automatizing the paper building
+#	(including the bibliography).
 	m=$$dir/Makefile
 	echo   "paper.pdf: paper.tex paper.bbl"                   > $$m
 	printf "\tpdflatex -shell-escape -halt-on-error paper\n" >> $$m
@@ -296,91 +295,89 @@ $(project-package-contents): paper.pdf | $(texdir)
 	printf "\trm -f *.aux *.auxlock *.bbl *.bcf\n"           >> $$m
 	printf "\trm -f *.blg *.log *.out *.run.xml\n"           >> $$m
 
-        # Copy the top-level contents (see next step for `paper.tex').
+#	Copy the top-level contents (see next step for 'paper.tex').
 	cp COPYING project README.md README-hacking.md $$dir/
 
-        # Since the packaging is mainly intended for high-level building of
-        # the PDF with LaTeX, we'll comment the `makepdf' LaTeX macro in
-        # the paper. This will disable usage of TiKZ.
+#	Since the packaging is mainly intended for high-level building of
+#	the PDF with LaTeX, we'll comment the 'makepdf' LaTeX macro in the
+#	paper. This will disable usage of TiKZ.
 	sed -e's|\\newcommand{\\makepdf}{}|%\\newcommand{\\makepdf}{}|' \
 	    paper.tex > $$dir/paper.tex
 
-        # Copy ONLY the version-controlled files in 'reproduce' and
-        # 'tex/src'. This is important because files like 'LOCAL.conf' (in
-        # 'reproduce/software/config') should not be archived, they contain
-        # information about the host computer and are irrelevant for
-        # others. Also some project authors may have temporary files here
-        # that are not under version control and thus shouldn't be archived
-        # (although this is bad practice, but that is up to the user).
-        #
-        # To keep the sub-directory structure, we are packaging the files
-        # with Tar, piping it, and unpacking it in the archive
-        # directory. So afterwards we need to come back to the current
-        # directory.
+#	Copy ONLY the version-controlled files in 'reproduce' and
+#	'tex/src'. This is important because files like 'LOCAL.conf' (in
+#	'reproduce/software/config') should not be archived, they contain
+#	information about the host computer and are irrelevant for
+#	others. Also some project authors may have temporary files here
+#	that are not under version control and thus shouldn't be archived
+#	(although this is bad practice, but that is up to the user).
+#
+#	To keep the sub-directory structure, we are packaging the files
+#	with Tar, piping it, and unpacking it in the archive directory. So
+#	afterwards we need to come back to the current directory.
 	tar -c -f - $$(git ls-files reproduce tex/src) \
 	    | (cd $$dir ; tar -x -f -)
 	cd $(curdir)
 
-        # Build the other two subdirectories of 'tex/' that we need in the
-        # archive (in the actual project, these are symbolic links to the
-        # build directory).
+#	Build the other two subdirectories of 'tex/' that we need in the
+#	archive (in the actual project, these are symbolic links to the
+#	build directory).
 	mkdir $$dir/tex/tikz $$dir/tex/build
 
-        # Copy the 'tex/build' directory into the archive (excluding the
-        # temporary archive directory that we are now copying to). We will
-        # be using Bash's extended globbing ('extglob') for excluding this
-        # directory.
+#	Copy the 'tex/build' directory into the archive (excluding the
+#	temporary archive directory that we are now copying to). We will be
+#	using Bash's extended globbing ('extglob') for excluding this
+#	directory.
 	shopt -s extglob
 	cp -r tex/build/!($(project-package-name)) $$dir/tex/build
 
-        # Clean up the $(texdir)/build* directories in the archive (when
-        # building in a group structure, there will be `build-user1',
-        # `build-user2' and etc). These are just temporary LaTeX build
-        # files and don't have any relevant/hand-written files in them.
+#	Clean up the $(texdir)/build* directories in the archive (when
+#	building in a group structure, there will be 'build-user1',
+#	'build-user2' and etc). These are just temporary LaTeX build files
+#	and don't have any relevant/hand-written files in them.
 	rm -rf $$dir/tex/build/build*
 
-        # If the project has any PDFs in its 'tex/tikz' directory (TiKZ or
-        # PGFPlots was used to generate them), copy them too.
+#	If the project has any PDFs in its 'tex/tikz' directory (TiKZ or
+#	PGFPlots was used to generate them), copy them too.
 	if ls tex/tikz/*.pdf &> /dev/null; then
 	  cp tex/tikz/*.pdf $$dir/tex/tikz
 	fi
 
-        # When submitting to places like arXiv, they will just run LaTeX
-        # once and won't run `biber'. So we need to also keep the `.bbl'
-        # file into the distributing tarball. However, BibLaTeX is
-        # particularly sensitive to versioning (a `.bbl' file has to be
-        # read by the same BibLaTeX version that created it). This is hard
-        # to do with non-up-to-date places like arXiv. Therefore, we thus
-        # just copy the whole of BibLaTeX's source (the version we are
-        # using) into the top tarball directory. In this way, arXiv's LaTeX
-        # engine will use the same BibLaTeX version to interpret the `.bbl'
-        # file. TIP: you can use the same strategy for other LaTeX packages
-        # that may cause problems on the arXiv server.
+#	When submitting to places like arXiv, they will just run LaTeX once
+#	and won't run 'biber'. So we need to also keep the '.bbl' file into
+#	the distributing tarball. However, BibLaTeX is particularly
+#	sensitive to versioning (a '.bbl' file has to be read by the same
+#	BibLaTeX version that created it). This is hard to do with
+#	non-up-to-date places like arXiv. Therefore, we thus just copy the
+#	whole of BibLaTeX's source (the version we are using) into the top
+#	tarball directory. In this way, arXiv's LaTeX engine will use the
+#	same BibLaTeX version to interpret the '.bbl' file. TIP: you can
+#	use the same strategy for other LaTeX packages that may cause
+#	problems on the arXiv server.
 	cp tex/build/build/paper.bbl $$dir/
 	tltopdir=.local/texlive/maneage/texmf-dist/tex/latex
 	find $$tltopdir/biblatex/ -maxdepth 1 -type f -print0 \
 	     | xargs -0 cp -t $$dir
 
-        # Just in case the package users want to rebuild some of the
-        # figures (manually un-comment the `makepdf' command we commented
-        # above), correct the TikZ external directory, so the figures can
-        # be rebuilt.
+#	Just in case the package users want to rebuild some of the figures
+#	(manually un-comment the 'makepdf' command we commented above),
+#	correct the TikZ external directory, so the figures can be rebuilt.
 	pgfsettings="$$dir/tex/src/preamble-pgfplots.tex"
 	sed -e's|{tikz/}|{tex/tikz/}|' $$pgfsettings > $$pgfsettings.new
 	mv $$pgfsettings.new $$pgfsettings
 
-        # PROJECT SPECIFIC
-        # ----------------
-        # Put any project-specific distribution steps here.
+#	PROJECT SPECIFIC
+#	----------------
+#	Put any project-specific distribution steps here.
 
-        # ----------------
+#	----------------
 
-        # Clean temporary files that may have been created by text editors.
+#	Clean temporary files that may have been created by text editors.
 	cd $(texdir)
 	find $(project-package-name) -name \*~ -delete
 	find $(project-package-name) -name \*.swp -delete
 
-# Package into `.tar.gz' or '.tar.lz'.
+# Package into '.tar.gz' or '.tar.lz'.
 dist dist-lzip: $(project-package-contents)
 	curdir=$$(pwd)
 	cd $(texdir)
@@ -396,7 +393,7 @@ dist dist-lzip: $(project-package-contents)
 	cd $$curdir
 	mv $(texdir)/$(project-package-name).tar.$$suffix ./
 
-# Package into `.zip'.
+# Package into '.zip'.
 dist-zip: $(project-package-contents)
 	curdir=$$(pwd)
 	cd $(texdir)
@@ -497,13 +494,13 @@ print-general-metadata = \
 # This file will store some basic info about the project that is necessary
 # for the final PDF. Since these are not version controlled, it must be
 # calculated everytime the project is run. So even though this file
-# actually exists, it is also aded as a `.PHONY' target above.
+# actually exists, it is also aded as a '.PHONY' target above.
 $(mtexdir)/initialize.tex: | $(mtexdir)
 
-        # Version and title of project. About the starting '@': since these
-        # commands are run every time with './project make', it is annoying
-        # to print them on the standard output every time. With the '@',
-        # make will not print the commands that it runs in this recipe.
+#	Version and title of project. About the starting '@': since these
+#	commands are run every time with './project make', it is annoying
+#	to print them on the standard output every time. With the '@', make
+#	will not print the commands that it runs in this recipe.
 	@d=$$(git show -s --format=%aD HEAD | awk '{print $$2, $$3, $$4}')
 	echo "\newcommand{\projectdate}{$$d}" > $@
 	echo "\newcommand{\projecttitle}{$(metadata-title)}" >> $@
@@ -511,16 +508,15 @@ $(mtexdir)/initialize.tex: | $(mtexdir)
 	echo "\newcommand{\projectgitrepo}{$(metadata-git-repository)}" >> $@
 	echo "\newcommand{\projectcopyrightowner}{$(metadata-copyright-owner)}" >> $@
 
-        # Calculate the latest Maneage commit used to build this
-        # project:
-        #  - The project may not have the 'maneage' branch (for example
-        #    after cloning from a fork that didn't include it!). In this
-        #    case, we'll print a descriptive warning, telling the user what
-        #    should be done (reporting the last merged commit and its date
-        #    is very useful for the future).
-        #  - The '--dirty' option (used in 'project-commit-hash') isn't
-        #    applicable to "commit-ishes" (direct quote from Git's error
-        #    message!).
+#	Calculate the latest Maneage commit used to build this project:
+#	  - The project may not have the 'maneage' branch (for example
+#	    after cloning from a fork that didn't include it!). In this
+#	    case, we'll print a descriptive warning, telling the user what
+#	    should be done (reporting the last merged commit and its date
+#	    is very useful for the future).
+#	  - The '--dirty' option (used in 'project-commit-hash') isn't
+#	    applicable to "commit-ishes" (direct quote from Git's error
+#	    message!).
 	if git log maneage -1 &> /dev/null; then
 	  c=$$(git merge-base HEAD maneage)
 	  v=$$(git describe --always --long $$c)

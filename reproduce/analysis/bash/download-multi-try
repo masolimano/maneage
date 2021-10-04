@@ -6,7 +6,7 @@
 #
 #   $ /path/to/download-multi-try downloader lockfile input-url downloaded-name
 #
-# NOTE: The `downloader' must contain the option to specify the output name
+# NOTE: The 'downloader' must contain the option to specify the output name
 # in its end. For example "wget -O". Any other option can also be placed in
 # the middle.
 #
@@ -20,13 +20,13 @@
 # world, downloading is done much faster in serial, not in parallel. But
 # the project's processing may be done in parallel (with multiple threads
 # needing to download different files at the same time). Therefore, this
-# script uses the `flock' program to only do one download at a time. To
+# script uses the 'flock' program to only do one download at a time. To
 # benefit from it, any call to this script must be given the same lock
 # file. If your system has multiple ports to the internet, or for any
-# reason, you don't want to use a lock file, set the `lockfile' name to
-# `nolock'.
+# reason, you don't want to use a lock file, set the 'lockfile' name to
+# 'nolock'.
 #
-# Copyright (C) 2019-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -114,9 +114,9 @@ while [ ! -f "$outname" ]; do
         sleep $tstep
     fi
 
-    # Attempt downloading the file. Note that the `downloader' ends with
+    # Attempt downloading the file. Note that the 'downloader' ends with
     # the respective option to specify the output name. For example "wget
-    # -O" (so `outname', that comes after it) will be the name of the
+    # -O" (so 'outname', that comes after it) will be the name of the
     # downloaded file.
     if [ x"$lockfile" = xnolock ]; then
         if ! $downloader $outname $inurl; then rm -f $outname; fi

@@ -3,7 +3,7 @@
 # imported into 'basic.mk' and 'high-level.mk'. They should be activated
 # with Make's 'Call' function.
 #
-# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,8 +29,13 @@
 # its checksum and if it is correct, remove the extra suffix.
 #
 # Arguments:
-#   1: The optional URL to use for this tarball.
-#   2: The expeced checksum of the tarball.
+#   1: The optional base URL (directory) to use for this tarball.
+#   2: The expected checksum of the tarball.
+#   3: The upstream name of the tarball file, if not automatically derived
+#        from the version number.
+#   4: [Optional]: Alternative upstream base URL (directory) for the
+#        tarball, to be used in preference to user or Maneage backup
+#        servers.
 #
 # Necessary shell variables
 #   'tarball': This is the name of the actual tarball file without a
@@ -56,7 +61,14 @@ import-source = final=$(tdir)/$$tarball; \
 	      tarballurl=$(topbackupserver)/$$tarball; \
 	    else \
 	      bservers="$(backupservers_all)"; \
-	      tarballurl=$$url/$$tarball; \
+	      if [ "x$(strip $(3))" = "x" ]; then \
+	          tarballurl=$$url/$$tarball; \
+	      else \
+	          tarballurl=$$url/$(strip $(3)); \
+	      fi; \
+	    fi; \
+	    if [ x"$(4)" != x ]; then \
+	      bservers="$(strip $(4)) $$bservers"; \
 	    fi; \
 	    if [ -f $(ibdir)/wget ]; then \
 	      downloader="wget --no-use-server-timestamps -O"; \
@@ -89,6 +101,48 @@ import-source = final=$(tdir)/$$tarball; \
 
 
 
+# Double-check an already downloaded R source
+# -------------------------------------------
+#
+# It is probably too late to protect the system if you have already
+# installed an insecure or wrong R package. However, it's still useful
+# to check that the source package is the one that you think it is.
+#
+# Calculate the checksum and exit with a non-zero error code if
+# there's a mismatch, after informing the user.
+#
+# Arguments:
+#   1: The expected checksum of the tarball.
+#
+# Necessary shell variables
+#   'tarball': This is the name of the actual tarball file without a
+#   directory.
+double-check-R-source = final=$(tdir)/R-project/$$tarball; \
+	exp_checksum="$(strip $(1))"; \
+	if [ x"$$exp_checksum" = x"NO-CHECK-SUM" ]; then \
+	  result=0; \
+	else \
+	  if type sha512sum > /dev/null 2>/dev/null; then \
+	    checksum=$$(sha512sum "$$final" | awk '{print $$1}'); \
+	    if [ x"$$checksum" = x"$$exp_checksum" ]; then \
+	      result=0; \
+	    else \
+	      echo "ERROR: Non-matching checksum: $$final"; \
+	      echo "Checksum should be: $$exp_checksum"; \
+	      echo "Checksum is:        $$checksum"; \
+	      result=1; \
+	      exit 1; \
+	    fi; \
+	  else \
+	    echo "ERROR: sha512sum is unavailable."; \
+	    exit 1; \
+	  fi; \
+	fi
+
+
+
+
+
 # Unpack a tarball
 # ----------------
 #
@@ -106,7 +160,7 @@ uncompress = csuffix=$$(echo $$utarball \
 	  intarrm=0; \
 	  intar=$$utarball; \
 	fi; \
-	if tar xf $$intar; then \
+	if tar -xf $$intar; then \
 	  if [ x$$intarrm = x1 ]; then rm $$intar; fi; \
 	else \
 	  echo; echo "Tar error"; exit 1; \
@@ -166,10 +220,13 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(2)" = xstatic ]; then \
 	 else shellop="SHELL=/bin/sh"; \
 	 fi; \
 	     \
+	 if [ x$$gbuild_prefix = x ]; then prefixdir="$(idir)"; \
+	 else prefixdir="$$gbuild_prefix"; fi; \
+	                                       \
 	 if [ -f "$$confscript" ]; then \
 	   if [ x"$(strip $(1))" = x"zlib-$(zlib-version)" ]; then \
-	     configop="--prefix=$(idir)"; \
-	   else configop="$$shellop --prefix=$(idir)"; \
+	     configop="--prefix=$$prefixdir"; \
+	   else configop="$$shellop --prefix=$$prefixdir"; \
 	   fi; \
 	 fi; \
 	     \
@@ -190,7 +247,7 @@ gbuild = if [ x$(static_build) = xyes ] && [ "x$(2)" = xstatic ]; then \
 	   make "$$shellop" install $(7); \
 	   cd ..; \
 	 fi; \
-	 rm -rf $(1)
+	 rm -rf $(1);
 
 
 

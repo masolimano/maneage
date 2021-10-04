@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!
 #
-# This Makefile will be run by the initial `./project configure' script. It
+# This Makefile will be run by the initial './project configure' script. It
 # is not included into the project afterwards.
 #
 # This Makefile builds the high-level (optional) software in Maneage that
@@ -12,8 +12,8 @@
 #
 # ------------------------------------------------------------------------
 #
-# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Copyright (C) 2019-2021 Raul Infante-Sainz <infantesainz@gmail.com>
+# Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019-2022 Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -60,6 +60,9 @@ patchdir = "$(shell pwd)"/reproduce/software/patches
 itidir   = $(BDIR)/software/installed/version-info/tex
 ictdir   = $(BDIR)/software/installed/version-info/cite
 ipydir   = $(BDIR)/software/installed/version-info/python
+ircrandir    = $(BDIR)/software/installed/version-info/r-cran
+ilibrcrandir = $(BDIR)/software/installed/lib/R/library
+
 
 # Targets to build.
 ifeq ($(strip $(all_highlevel)),1)
@@ -75,7 +78,7 @@ ifeq ($(strip $(all_highlevel)),1)
   # included here because there is no explicit target for them: they will
   # be built as part of the other package.
   targets-proglib := $(filter-out minizip-% lapack-% ghostscript-fonts-%, \
-      $(shell awk '/^# CLASS:PYTHON/{good=0} \
+      $(shell awk '/^# CLASS:(PYTHON|R-CRAN)/{good=0} \
                    good==1 && !/^#/ && $$1 ~ /-version$$/ { \
                        printf("%s %s ", $$1, $$3)} \
                    /^# CLASS:HIGHLEVEL/{good=1}' \
@@ -85,14 +88,25 @@ ifeq ($(strip $(all_highlevel)),1)
 
   # List all existing Python packages.
   targets-python := $(shell \
-    awk '/^# CLASS:PYTHON/{good=1} \
-         good==1 && !/^#/ && $$1 ~ /-version$$/ {printf("%s %s ",$$1,$$3)}' \
-        reproduce/software/config/versions.conf | sed 's/version //g')
+    awk '/^# CLASS:PYTHON-START/{good=1} good; \
+         /^# CLASS:PYTHON-END/{good=0}' \
+         reproduce/software/config/versions.conf \
+        | awk '!/^#/' \
+        | sed 's/-version = /-/g')
+
+  # List all existing R-CRAN packages.
+  targets-r-cran := $(shell \
+    awk '/^# CLASS:R-CRAN-START/{good=1} good; \
+         /^# CLASS:R-CRAN-END/{good=0}' \
+         reproduce/software/config/versions.conf \
+        | awk '!/^#/' \
+        | sed 's/-version = /-/g')
 else
 
-  # Append the version of each software to its name. We are using a Make
+  # Append the version of each software package to its name. We are using a Make
   # feature where a variable name is defined with another variable.
   targets-python := $(foreach p,$(top-level-python),$(p)-$($(p)-version))
+  targets-r-cran := $(foreach p,$(top-level-r-cran),$(p)-$($(p)-version))
   targets-proglib := $(foreach p,$(top-level-programs),$(p)-$($(p)-version))
 
 endif
@@ -100,6 +114,7 @@ endif
 # Ultimate Makefile target.
 all: $(foreach p, $(targets-proglib), $(ibidir)/$(p)) \
      $(foreach p, $(targets-python), $(ipydir)/$(p)) \
+     $(foreach p, $(targets-r-cran),  $(ircrandir)/$(p)) \
      $(itidir)/texlive
 
 # Define the shell environment
@@ -112,13 +127,17 @@ all: $(foreach p, $(targets-proglib), $(ibidir)/$(p)) \
 #
 # To investigate:
 #
-#    1) Set SHELL to `$(ibdir)/env - NAME=VALUE $(ibdir)/bash' and set all
-#       the parameters defined bellow as `NAME=VALUE' statements before
+#    1) Set SHELL to '$(ibdir)/env - NAME=VALUE $(ibdir)/bash' and set all
+#       the parameters defined bellow as 'NAME=VALUE' statements before
 #       calling Bash. This will enable us to completely ignore the user's
 #       native environment.
 #
-#    2) Add `--noprofile --norc' to `.SHELLFLAGS' so doesn't load the
+#    2) Add '--noprofile --norc' to '.SHELLFLAGS' so doesn't load the
 #       user's environment.
+#
+#    3) Add the '-u' flag so that an error occurs if an environment
+#       variable is empty; this reduces the chance of catastrophic
+#       file removal with 'rm -fr ../../$${FORGOT_TO_DEFINE_THIS}'.
 #
 # Shell settings similar to 'basic.mk':
 .ONESHELL:
@@ -130,6 +149,9 @@ export LDFLAGS := $(rpath_command) -L$(ildir)
 export PKG_CONFIG_LIBDIR := $(ildir)/pkgconfig
 export CPPFLAGS := -I$(idir)/include -Wno-nullability-completeness
 export PKG_CONFIG_PATH := $(ildir)/pkgconfig:$(idir)/share/pkgconfig
+
+# Disable built-in rules (which are not needed here!)
+.SUFFIXES:
 
 # Settings specific to this Makefile.
 export CC := $(ibdir)/gcc
@@ -147,16 +169,16 @@ export C_INCLUDE_PATH     := $(iidir)
 export CPLUS_INCLUDE_PATH := $(iidir)
 endif
 
-# Recipe startup script, see `reproduce/software/shell/bashrc.sh'.
+# Recipe startup script, see 'reproduce/software/shell/bashrc.sh'.
 export PROJECT_STATUS := configure_highlevel
 export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
 
 # Until we build our own C library, without this, our GCC won't be able to
 # compile anything! Note that on most systems (in particular
-# non-Debian-based), `sys_cpath' will be empty.
+# non-Debian-based), 'sys_cpath' will be empty.
 export CPATH := $(sys_cpath)
 
-# RPATH is automatically written in macOS, so `DYLD_LIBRARY_PATH' is
+# RPATH is automatically written in macOS, so 'DYLD_LIBRARY_PATH' is
 # ultimately redundant. But on some systems, even having a single value
 # causes crashs (see bug #56682). So we'll just give it no value at all.
 export DYLD_LIBRARY_PATH :=
@@ -164,8 +186,8 @@ export DYLD_LIBRARY_PATH :=
 # On Debian-based OSs, the basic C libraries are in a target-specific
 # location, not in standard places. Until we merge the building of the C
 # library, it is thus necessary to include this location here. On systems
-# that don't need it, `sys_library_path' is just empty. This is necessary
-# for `ld'.
+# that don't need it, 'sys_library_path' is just empty. This is necessary
+# for 'ld'.
 #
 # If this variable is not defined, it will be interpretted as the current
 # directory. In this case, when the program source has a 'specs' directory,
@@ -179,11 +201,17 @@ endif
 # Building flags:
 #
 # C++ flags: when we build GCC, the C++ standard library needs to link with
-# libiconv. So it is necessary to generically include `-liconv' for all C++
+# libiconv. So it is necessary to generically include '-liconv' for all C++
 # builds.
 ifeq ($(host_cc),0)
 export CXXFLAGS          := -liconv
 endif
+
+# Custom installation prefix for software that can cause conflicts with
+# others, to avoid crowding the to Maneage installed software directory,
+# we'll put them all in a 'custom' directory.
+idircustom = $(idir)/custom
+$(idircustom):; mkdir $@
 
 # Servers to use as backup. Maneage already has some fixed servers that can
 # be used to download software tarballs. They are in a configuation
@@ -211,6 +239,8 @@ backupservers = $(filter-out $(topbackupserver),$(backupservers_all))
 # Import rules to build specialized software
 include reproduce/software/make/xorg.mk
 include reproduce/software/make/python.mk
+include reproduce/software/make/r-cran.mk
+
 
 
 
@@ -226,61 +256,27 @@ include reproduce/software/make/python.mk
 #
 # We would prefer to build static libraries, but some compilers like LLVM
 # don't have static capabilities, so they'll only build dynamic/shared
-# libraries. Therefore, we can't use the easy `.a' suffix for static
+# libraries. Therefore, we can't use the easy '.a' suffix for static
 # libraries as targets and there are different conventions for shared
 # library names.
-
-# Until version 0.11.0 is released, we are using the version corresponding
-# to commit 014954db (603 commits after version 0.10.0, most recent when
-# first importing log4cxx into this project).
-#
-# Note that after cloning the project, the following changes are necessary
-# in `configure.ac'.
-#  - Update the final name of the tarball and its version (from `git
-#  - describe') by modifying the `AC_INIT' line:
-#        AC_INIT([apachelog4cxx], [0.10.0-603-014954db])
-#  - Because of the long file names in the project, some files will not be
-#    packaged by default, so pass the `tar-ustar' option to Automake (the
-#    `AM_INIT_AUTOMAKE' line of `configure.ac':
-#        AM_INIT_AUTOMAKE([foreign subdir-objects -Wall tar-ustar])
-#
-# You can then simply bootstrap the project and make the distribution
-# tarball like this:
-#        ./autogen.sh && ./configure && make -j8 && make dist-lzip
-#
-# Unfortunately we have to re-run the `autogen.sh' script on the tarball to
-# build it because it will complain about the version of libtool, so until
-# the version 0.11.0 of log4cxx, we'll have to run `autogen.sh' on the
-# unpacked source also.
 $(ibidir)/apachelog4cxx-$(apachelog4cxx-version): \
+                        $(ibidir)/cmake-$(cmake-version) \
                         $(ibidir)/expat-$(expat-version) \
                         $(ibidir)/apr-util-$(apr-util-version) \
                         $(ibidir)/automake-$(automake-version)
-	tarball=apachelog4cxx-$(apachelog4cxx-version).tar.lz
+	tarball=apache-log4cxx-$(apachelog4cxx-version).tar.lz
 	$(call import-source, $(apachelog4cxx-url), $(apachelog4cxx-checksum))
-	pdir=apachelog4cxx-$(apachelog4cxx-version)
-	rm -rf $(ddir)/$$pdir
-	topdir=$(pwd)
-	cd $(ddir)
-	tar xf $(tdir)/$$tarball
-	cd $$pdir
-	./autogen.sh
-	./configure SHELL=$(ibdir)/bash --prefix=$(idir)
-	make -j$(numthreads) SHELL=$(ibdir)/bash
-	make install
-	cd ..
-	rm -rf $$pdir
-	cd $$topdir
+	$(call cbuild, apache-log4cxx-$(apachelog4cxx-version), static)
 	echo "Apache log4cxx $(apachelog4cxx-version)" > $@
 
 $(ibidir)/apr-$(apr-version):
-	tarball=apr-$(apr-version).tar.gz
+	tarball=apr-$(apr-version).tar.lz
 	$(call import-source, $(apr-url), $(apr-checksum))
 	$(call gbuild, apr-$(apr-version), ,--disable-static)
 	echo "Apache Portable Runtime $(apr-version)" > $@
 
 $(ibidir)/apr-util-$(apr-util-version): $(ibidir)/apr-$(apr-version)
-	tarball=apr-util-$(apr-util-version).tar.gz
+	tarball=apr-util-$(apr-util-version).tar.lz
 	$(call import-source, $(apr-util-url), $(apr-util-checksum))
 	$(call gbuild, apr-util-$(apr-util-version), , \
 	               --disable-static \
@@ -291,20 +287,19 @@ $(ibidir)/apr-util-$(apr-util-version): $(ibidir)/apr-$(apr-version)
 
 $(ibidir)/atlas-$(atlas-version):
 
-	tarball=lapack-$(lapack-version).tar.gz
+	tarball=lapack-$(lapack-version).tar.lz
 	$(call import-source, $(lapack-url), $(lapack-checksum))
 
-	tarball=atlas-$(atlas-version).tar.bz2
+	tarball=atlas-$(atlas-version).tar.lz
 	$(call import-source, $(atlas-url), $(atlas-checksum))
 
-        # Get the operating system specific features (how to get
-        # CPU frequency and the library suffixes). To make the steps
-        # more readable, the different library version suffixes are
-        # named with a single character: `s' for no version in the
-        # name, `m' for the major version suffix, and `f' for the
-        # full version suffix.
-        # GCC in Mac OS doesn't work. To work around this issue, on Mac
-        # systems we force ATLAS to use `clang' instead of `gcc'.
+#	Get the operating system specific features (how to get CPU
+#	frequency and the library suffixes). To make the steps more
+#	readable, the different library version suffixes are named with a
+#	single character: 's' for no version in the name, 'm' for the major
+#	version suffix, and 'f' for the full version suffix.  GCC in Mac OS
+#	doesn't work. To work around this issue, on Mac systems we force
+#	ATLAS to use 'clang' instead of 'gcc'.
 	if [ x$(on_mac_os) = xyes ]; then
 	  s=dylib
 	  m=3.dylib
@@ -321,8 +316,8 @@ $(ibidir)/atlas-$(atlas-version):
 	              | sed "s/.*: \([0-9.]*\).*/\1/")
 	fi
 
-        # See if the shared libraries should be build for a single CPU
-        # thread or multiple threads.
+#	See if the shared libraries should be build for a single CPU thread
+#	or multiple threads.
 	N=$$(nproc)
 	srcdir=$$(pwd)/reproduce/software/make
 	if [ $$N = 1 ]; then
@@ -331,25 +326,25 @@ $(ibidir)/atlas-$(atlas-version):
 	  sharedmk=$$srcdir/atlas-multiple.mk
 	fi
 
-        # The linking step here doesn't recognize the `-Wl' in the
-        # `rpath_command'.
+#	The linking step here doesn't recognize the '-Wl' in the
+#	'rpath_command'.
 	export LDFLAGS=-L$(ildir)
 	cd $(ddir)
-	tar xf $(tdir)/atlas-$(atlas-version).tar.bz2
+	tar -xf $(tdir)/atlas-$(atlas-version).tar.lz
 	cd ATLAS
 	rm -rf build
 	mkdir build
 	cd build
 	../configure -b 64 -D c -DPentiumCPS=$$core \
-	             --with-netlib-lapack-tarfile=$(tdir)/lapack-$(lapack-version).tar.gz \
+	             --with-netlib-lapack-tarfile=$(tdir)/lapack-$(lapack-version).tar.lz \
 	             --cripple-atlas-performance \
 	             -Fa alg -fPIC --shared $$clangflag \
 	             --prefix=$(idir)
 
-        # Static build.
+#	Static build.
 	make
 
-        # Currently the shared libraries have problems on macOS.
+#	Currently the shared libraries have problems on macOS.
 	if [ "x$(on_mac_os)" != xyes ]; then
 	     cd lib
 	     make -f $$sharedmk
@@ -362,21 +357,21 @@ $(ibidir)/atlas-$(atlas-version):
 	     ln -fs $(ildir)/liblapack.$$f  $(ildir)/liblapack.$$m
 	   fi
 
-        # Install the libraries.
+#	Install the libraries.
 	make install
 
-        # We need to check the existance of `libptlapack.a', but we can't
-        # do this in the `&&' steps above (it will conflict). So we'll do
-        # the check after seeing if `libtatlas.so' is installed, then we'll
-        # finalize the build (delete the untarred directory).
+#	We need to check the existance of 'libptlapack.a', but we can't do
+#	this in the '&&' steps above (it will conflict). So we'll do the
+#	check after seeing if 'libtatlas.so' is installed, then we'll
+#	finalize the build (delete the untarred directory).
 	if [ "x$(on_mac_os)" != xyes ]; then \
 	  [ -e lib/libptlapack.a ] && cp lib/libptlapack.a $(ildir); \
 	  cd $(ddir); \
 	  rm -rf ATLAS; \
 	fi
 
-        # We'll check the full installation with the static library (not
-        # currently building shared library on Mac.
+#	We'll check the full installation with the static library (not
+#	currently building shared library on Mac.
 	if [ -f $(ildir)/libatlas.a ]; then \
 	  echo "ATLAS $(atlas-version)" > $@; \
 	fi
@@ -391,7 +386,7 @@ $(ibidir)/boost-$(boost-version): \
 	rm -rf $(ddir)/$$unpackdir
 	topdir=$(pwd)
 	cd $(ddir)
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd $$unpackdir
 	./bootstrap.sh --prefix=$(idir) --with-libraries=all \
 	               --with-python=python3
@@ -404,15 +399,15 @@ $(ibidir)/boost-$(boost-version): \
 
 $(ibidir)/cfitsio-$(cfitsio-version):
 
-        # Download the tarball
-	tarball=cfitsio-$(cfitsio-version).tar.gz
+#	Download the tarball
+	tarball=cfitsio-$(cfitsio-version).tar.lz
 	$(call import-source, $(cfitsio-url), $(cfitsio-checksum))
 
-        # CFITSIO hard-codes '@rpath' inside the shared library on
-        # Mac systems. So we need to change it to our library
-        # installation path. It doesn't affect GNU/Linux, so we'll
-        # just do it in any case to keep things clean.
-	topdir=$(pwd); cd $(ddir); tar xf $(tdir)/$$tarball
+#	CFITSIO hard-codes '@rpath' inside the shared library on Mac
+#	systems. So we need to change it to our library installation
+#	path. It doesn't affect GNU/Linux, so we'll just do it in any case
+#	to keep things clean.
+	topdir=$(pwd); cd $(ddir); tar -xf $(tdir)/$$tarball
 	customtar=cfitsio-$(cfitsio-version)-custom.tar.gz
 	cd cfitsio-$(cfitsio-version)
 	sed configure -e's|@rpath|$(ildir)|g' > configure_tmp
@@ -422,9 +417,9 @@ $(ibidir)/cfitsio-$(cfitsio-version):
 	tar cf $$customtar cfitsio-$(cfitsio-version)
 	cd $$topdir
 
-        # Continue the standard build on the customized tarball. Note that
-        # with the installation of CFITSIO, `fpack' and `funpack' are not
-        # installed by default. Because of that, they are added explicity.
+#	Continue the standard build on the customized tarball. Note that
+#	with the installation of CFITSIO, 'fpack' and 'funpack' are not
+#	installed by default. Because of that, they are added explicity.
 	export gbuild_tar=$(ddir)/$$customtar
 	$(call gbuild, cfitsio-$(cfitsio-version), , \
 	               --enable-sse2 --enable-reentrant \
@@ -437,24 +432,25 @@ $(ibidir)/cairo-$(cairo-version): \
                 $(ibidir)/pixman-$(pixman-version) \
                 $(ibidir)/libpng-$(libpng-version) \
                 $(ibidir)/freetype-$(freetype-version)
-	tarball=cairo-$(cairo-version).tar.xz
+	tarball=cairo-$(cairo-version).tar.lz
 	$(call import-source, $(cairo-url), $(cairo-checksum))
 	$(call gbuild, cairo-$(cairo-version), static, \
 	               --with-x=yes, -j$(numthreads) V=1)
 	echo "Cairo $(cairo-version)" > $@
 
 # Eigen is just headers! So it doesn't need to be compiled. Once unpacked
-# it has a checksum after `eigen-eigen', so we'll just use a `*' to choose
+# it has a checksum after 'eigen-eigen', so we'll just use a '*' to choose
 # the unpacked directory.
 $(ibidir)/eigen-$(eigen-version):
-	tarball=eigen-$(eigen-version).tar.gz
+	tarball=eigen-$(eigen-version).tar.lz
 	$(call import-source, $(eigen-url), $(eigen-checksum))
 	rm -rf $(ddir)/eigen-eigen-*
-	topdir=$(pwd); cd $(ddir); tar xf $(tdir)/$$tarball
-	cd eigen-eigen-*
-	cp -r Eigen $(iidir)/eigen3
+	topdir=$(pwd); cd $(ddir); tar -xf $(tdir)/$$tarball
+	cd eigen-$(eigen-version)
+	if ! [ -d $(iidir)/eigen3 ]; then mkdir $(iidir)/eigen3; fi
+	cp -r Eigen/* $(iidir)/eigen3/
 	cd $$topdir
-	rm -rf $(ddir)/eigen-eigen-*
+	rm -rf $(ddir)/eigen-$(eigen-version)
 	echo "Eigen $(eigen-version)" > $@
 
 # GNU Emacs is an advanced text editor (among many other things!), so it
@@ -468,7 +464,7 @@ $(ibidir)/eigen-$(eigen-version):
 # except the core Emacs functionality (using '--without-all') and we are
 # also disabling all graphic user interface features (using '--without-x').
 $(ibidir)/emacs-$(emacs-version):
-	tarball=emacs-$(emacs-version).tar.xz
+	tarball=emacs-$(emacs-version).tar.lz
 	$(call import-source, $(emacs-url), $(emacs-checksum))
 	$(call gbuild, emacs-$(emacs-version), static, \
 	               --without-all --without-x \
@@ -483,15 +479,28 @@ $(ibidir)/expat-$(expat-version):
 	echo "Expat $(expat-version)" > $@
 
 $(ibidir)/fftw-$(fftw-version):
-        # Prepare the source tarball.
-	tarball=fftw-$(fftw-version).tar.gz
+
+#	Prepare the source tarball.
+	tarball=fftw-$(fftw-version).tar.lz
 	$(call import-source, $(fftw-url), $(fftw-checksum))
 
-        # FFTW's single and double precission libraries must be built
-        # independently: for the the single-precision library, we need to
-        # add the `--enable-float' option. We will build this first, then
-        # the default double-precision library.
-	confop="--enable-shared --enable-threads --enable-avx --enable-sse2"
+#	FFTW's single and double precision libraries must be built
+#	independently: for the the single-precision library, we need to add
+#	the '--enable-float' option. We will build this first, then the
+#	default double-precision library.
+#
+#	There are Intel-specific optimizations that can be enabled by
+#	adding the following two options to 'confop'
+#
+#           --enable-avx --enable-sse2
+#
+#	However, they cause crashs on non-Intel processors (has been
+#	confirmed in ARM's aarch64). So in the generic scenario they are
+#	removed. Checking how these optimizations affect the numeric
+#	accuracy of the result (and thus optionally adding them for
+#	Intel-based processors) should be studied before they are
+#	optionally added for Intel-based CPUs (and ignored for others).
+	confop="--enable-shared --enable-threads"
 	$(call gbuild, fftw-$(fftw-version), static, \
 	               $$confop --enable-float)
 	$(call gbuild, fftw-$(fftw-version), static, \
@@ -500,19 +509,19 @@ $(ibidir)/fftw-$(fftw-version):
 	echo "FFTW $(fftw-version) \citep{fftw}" > $@
 
 $(ibidir)/freetype-$(freetype-version): $(ibidir)/libpng-$(libpng-version)
-	tarball=freetype-$(freetype-version).tar.gz
+	tarball=freetype-$(freetype-version).tar.lz
 	$(call import-source, $(freetype-url), $(freetype-checksum))
 	$(call gbuild, freetype-$(freetype-version), static)
 	echo "FreeType $(freetype-version)" > $@
 
 $(ibidir)/gperf-$(gperf-version):
-	tarball=gperf-$(gperf-version).tar.gz
+	tarball=gperf-$(gperf-version).tar.lz
 	$(call import-source, $(gperf-url), $(gperf-checksum))
 	$(call gbuild, gperf-$(gperf-version), static)
 	echo "GNU gperf $(gperf-version)" > $@
 
 $(ibidir)/gsl-$(gsl-version):
-	tarball=gsl-$(gsl-version).tar.gz
+	tarball=gsl-$(gsl-version).tar.lz
 	$(call import-source, $(gsl-url), $(gsl-checksum))
 	$(call gbuild, gsl-$(gsl-version), static)
 	echo "GNU Scientific Library $(gsl-version)" > $@
@@ -531,14 +540,14 @@ $(ibidir)/hdf5-$(hdf5-version): $(ibidir)/openmpi-$(openmpi-version)
 # HEALPix includes the source of its C, C++, Python (and several other
 # languages) libraries within one tarball. We will include the Python
 # installation only when any other Python module is requested (in
-# `TARGETS.conf').
+# 'TARGETS.conf').
 #
-# Note that the default `./configure' script is an interactive script which
-# is hard to automate. So we need to go into the `autotools' directory of
-# the `C' and `cxx' directories and configure the GNU Build System (with
-# `autoreconf', which uses `autoconf' and `automake') to easily build the
+# Note that the default './configure' script is an interactive script which
+# is hard to automate. So we need to go into the 'autotools' directory of
+# the 'C' and 'cxx' directories and configure the GNU Build System (with
+# 'autoreconf', which uses 'autoconf' and 'automake') to easily build the
 # HEALPix C/C++ libraries in batch mode.
-ifeq ($(strip $(top-level-python)),)
+ifeq ($(strip $(targets-python)),)
 healpix-python-dep =
 else
 healpix-python-dep = $(ipydir)/matplotlib-$(matplotlib-version) \
@@ -548,7 +557,7 @@ $(ibidir)/healpix-$(healpix-version): $(healpix-python-dep) \
                   $(ibidir)/cfitsio-$(cfitsio-version) \
                   $(ibidir)/autoconf-$(autoconf-version) \
                   $(ibidir)/automake-$(automake-version)
-	tarball=healpix-$(healpix-version).tar.gz
+	tarball=healpix-$(healpix-version).tar.lz
 	$(call import-source, $(healpix-url), $(healpix-checksum))
 	if [ x"$(healpix-python-dep)" = x ]; then
 	   pycommand1="echo no-healpy-because-no-other-python"
@@ -559,7 +568,7 @@ $(ibidir)/healpix-$(healpix-version): $(healpix-python-dep) \
 	fi
 	rm -rf $(ddir)/Healpix_$(healpix-version)
 	topdir=$(pwd); cd $(ddir);
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd Healpix_$(healpix-version)/src/C/autotools/
 	autoreconf --install
 	./configure --prefix=$(idir)
@@ -568,6 +577,13 @@ $(ibidir)/healpix-$(healpix-version): $(healpix-python-dep) \
 	cd ../../cxx/autotools/
 	autoreconf --install
 	./configure --prefix=$(idir)
+
+#	With CFITSIO 4.0, the 'CFITSIO_VERSION' macro has three
+#	components. But this version of Healpix doesn't yet account for
+#	this.
+	sed -i -e's/CFITSIO_VERSION/fitsversion/' cxxsupport/fitshandle.cc
+
+#	Continue with the building.
 	make V=1 -j$(numthreads) SHELL=$(ibdir)/bash
 	make install
 	cd ../../healpy
@@ -578,18 +594,51 @@ $(ibidir)/healpix-$(healpix-version): $(healpix-python-dep) \
 	cp $(dtexdir)/healpix.tex $(ictdir)/
 	echo "HEALPix $(healpix-version) \citep{healpix}" > $@
 
+$(ibidir)/libbsd-$(libbsd-version): $(ibidir)/libmd-$(libmd-version)
+	tarball=libbsd-$(libbsd-version).tar.lz
+	$(call import-source, $(libbsd-url), $(libbsd-checksum))
+	if [ x$(on_mac_os) = xyes ]; then
+	  echo "" > $@
+	else
+	  export LDFLAGS="-L$(idirlibmd)/lib $$LDFLAGS"
+	  export CPPFLAGS="-I$(idirlibmd)/include $$CPPFLAGS"
+	  $(call gbuild, libbsd-$(libbsd-version), static,,V=1)
+	  echo "Libbsd $(libbsd-version)" > $@
+	fi
+
 $(ibidir)/libidn-$(libidn-version):
-	tarball=libidn-$(libidn-version).tar.gz
+	tarball=libidn-$(libidn-version).tar.lz
 	$(call import-source, $(libidn-url), $(libidn-checksum))
 	$(call gbuild, libidn-$(libidn-version), static, \
 	               --disable-doc, -j$(numthreads) V=1)
 	echo "Libidn $(libidn-version)" > $@
 
 $(ibidir)/libjpeg-$(libjpeg-version):
-	tarball=jpegsrc.$(libjpeg-version).tar.gz
+	tarball=libjpeg-$(libjpeg-version).tar.lz
 	$(call import-source, $(libjpeg-url), $(libjpeg-checksum))
-	$(call gbuild, jpeg-9b, static,,V=1)
+	$(call gbuild, libjpeg-$(libjpeg-version), static,,V=1)
 	echo "Libjpeg $(libjpeg-version)" > $@
+
+# libmd is a set of "message digest" functions that are available in in the
+# C library of BSD-based systems, but not others (like GNU-based
+# systems). It includes hash functions like MD5 and SHAs.
+#
+# Libmd is being installed in a non-standard location because its headers
+# (like 'md5.h') will conflict with similarly named headers by the system
+# during the building of Binutils later! So any program that needs libmd's
+# headers or libraries (like 'libbsd'), should add this special location to
+# its CPPFLAGS and LDFLAGS.
+idirlibmd=$(idircustom)/libmd
+$(ibidir)/libmd-$(libmd-version): | $(idircustom)
+	tarball=libmd-$(libmd-version).tar.lz
+	$(call import-source, $(libmd-url), $(libmd-checksum))
+	if [ x$(on_mac_os) = xyes ]; then
+	  echo "" > $@
+	else
+	  export gbuild_prefix=$(idirlibmd)
+	  $(call gbuild, libmd-$(libmd-version), static,,V=1)
+	  echo "Libmd $(libmd-version)" > $@
+	fi
 
 $(ibidir)/libnsl-$(libnsl-version): \
                  $(ibidir)/libtirpc-$(libtirpc-version) \
@@ -603,11 +652,11 @@ $(ibidir)/libnsl-$(libnsl-version): \
 $(ibidir)/libpaper-$(libpaper-version): \
                    $(ibidir)/automake-$(automake-version)
 
-        # Download the tarball.
-	tarball=libpaper-$(libpaper-version).tar.gz
+#	Download the tarball.
+	tarball=libpaper-$(libpaper-version).tar.lz
 	$(call import-source, $(libpaper-url), $(libpaper-checksum))
 
-        # Unpack, build the configure system, build and install.
+#	Unpack, build the configure system, build and install.
 	cd $(ddir)
 	tar -xf $(tdir)/$$tarball
 	unpackdir=libpaper-$(libpaper-version)
@@ -620,10 +669,10 @@ $(ibidir)/libpaper-$(libpaper-version): \
 	cd ..
 	rm -rf $$unpackdir
 
-        # Post-processing: according to Linux From Scratch, libpaper
-        # expects that packages will install files into this directory and
-        # 'paperconfig' is a script which will invoke 'run-parts' if
-        # '/etc/libpaper.d' exists
+#	Post-processing: according to Linux From Scratch, libpaper expects
+#	that packages will install files into this directory and
+#	'paperconfig' is a script which will invoke 'run-parts' if
+#	'/etc/libpaper.d' exists
 	mkdir -vp $(idir)/etc/libpaper.d
 	sed -e's|MANEAGESHELL|$(SHELL)|' $(shsrcdir)/run-parts.in \
 	    > $(ibdir)/run-parts
@@ -631,15 +680,19 @@ $(ibidir)/libpaper-$(libpaper-version): \
 	echo "Libpaper $(libpaper-version)" > $@
 
 $(ibidir)/libpng-$(libpng-version):
-	tarball=libpng-$(libpng-version).tar.xz
+
+#	The option '-DPNG_ARM_NEON_OPT=0' prevents an arm64 'neon' library
+#	from being required at compile time.
+	tarball=libpng-$(libpng-version).tar.lz
 	$(call import-source, $(libpng-url), $(libpng-checksum))
-	$(call gbuild, libpng-$(libpng-version), static)
+	$(call gbuild, libpng-$(libpng-version), static, \
+	               CFLAGS="-DPNG_ARM_NEON_OPT=0")
 	echo "Libpng $(libpng-version)" > $@
 
 $(ibidir)/libtiff-$(libtiff-version): $(ibidir)/libjpeg-$(libjpeg-version)
-	tarball=tiff-$(libtiff-version).tar.gz
+	tarball=libtiff-$(libtiff-version).tar.lz
 	$(call import-source, $(libtiff-url), $(libtiff-checksum))
-	$(call gbuild, tiff-$(libtiff-version), static, \
+	$(call gbuild, libtiff-$(libtiff-version), static, \
 	               --disable-jbig \
 	               --disable-webp \
 	               --disable-zstd)
@@ -652,12 +705,90 @@ $(ibidir)/libtirpc-$(libtirpc-version):
 	               --disable-gssapi, V=1)
 	echo "libtirpc $(libtirpc-version)" > $@
 
+# Metastore is used (through a Git hook) to restore the source modification
+# dates of files after a Git checkout. Another Git hook saves all file
+# metadata just before a commit (to allow restoration after a
+# checkout). Since this project is managed in Makefiles, file modification
+# dates are critical to not having to redo the whole analysis after
+# checking out between branches.
+#
+# Note that we aren't using the standard version of Metastore, but a fork
+# of it that is maintained in this repository:
+#    https://gitlab.com/makhlaghi/metastore-fork
+#
+# Libbsd is not necessary on macOS systems, because macOS is already a
+# BSD-based distribution. But on GNU/Linux systems, it is necessary.
+$(ibidir)/metastore-$(metastore-version): \
+                    $(ibidir)/libbsd-$(libbsd-version)
+
+#	Download the tarball.
+	tarball=metastore-$(metastore-version).tar.lz
+	$(call import-source, $(metastore-url), $(metastore-checksum))
+
+#	Metastore doesn't have any './configure' script. So we'll just call
+#	'pwd' as a place-holder for the './configure' command.
+#
+#	File attributes are also not available on some systems, since the
+#	main purpose here is modification dates (and not attributes), we'll
+#	also set the 'NO_XATTR' flag.
+#
+#	After installing Metastore, write the relevant hooks into this
+#	system's Git hooks, while setting the system-specific
+#	directories/files.
+#
+#	Note that the metastore -O and -G options used in this template are
+#	currently only available in a fork of 'metastore' hosted at:
+#	https://github.com/mohammad-akhlaghi/metastore
+#
+#	Checking for presence of '.git'. When the project source is
+#	downloaded from a non-Git source (for example from arXiv), there is
+#	no '.git' directory to work with. So until we find a better
+#	solution, avoid the step to to add the Git hooks.
+	current_dir=$$(pwd); \
+	$(call gbuild, metastore-$(metastore-version), static,, \
+	               NO_XATTR=1 V=1,,pwd,PREFIX=$(idir))
+
+#	Correct RPATH when necessary.
+	if [ -f $(ibdir)/patchelf ]; then
+	  $(ibdir)/patchelf --set-rpath $(ildir) $(ibdir)/metastore
+	fi
+
+#	If this project is being built in a directory version controlled
+#	by Git, copy the hooks into the Git configuation.
+	if [ -f $(ibdir)/metastore ]; then
+	  if [ -d .git ]; then
+	    user=$$(whoami)
+	    group=$$(groups | awk '{print $$1}')
+	    cd $$current_dir
+	    for f in pre-commit post-checkout; do
+	       sed -e's|@USER[@]|'$$user'|g' \
+	           -e's|@GROUP[@]|'$$group'|g' \
+	           -e's|@BINDIR[@]|$(ibdir)|g' \
+	           -e's|@TOP_PROJECT_DIR[@]|'$$current_dir'|g' \
+	           reproduce/software/shell/git-$$f > .git/hooks/$$f
+	       chmod +x .git/hooks/$$f
+	    done
+	  fi
+	  echo "Metastore (forked) $(metastore-version)" > $@
+	else
+	  echo; echo; echo
+	  echo "*****************"
+	  echo "metastore couldn't be installed!"
+	  echo
+	  echo "Its used for preserving timestamps on Git commits."
+	  echo "Its useful for development, not simple running of "
+	  echo "the project. So we won't stop the configuration "
+	  echo "because it wasn't built."
+	  echo "*****************"
+	  echo "" > $@
+	fi
+
 $(ibidir)/openblas-$(openblas-version):
-	tarball=OpenBLAS-$(openblas-version).tar.gz
+	tarball=OpenBLAS-$(openblas-version).tar.lz
 	$(call import-source, $(openblas-url), $(openblas-checksum))
 	if [ x$(on_mac_os) = xyes ]; then export CC=clang; fi
 	cd $(ddir)
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd OpenBLAS-$(openblas-version)
 	make -j$(numthreads)
 	make PREFIX=$(idir) install
@@ -666,7 +797,7 @@ $(ibidir)/openblas-$(openblas-version):
 	echo "OpenBLAS $(openblas-version)" > $@
 
 $(ibidir)/openmpi-$(openmpi-version):
-	tarball=openmpi-$(openmpi-version).tar.gz
+	tarball=openmpi-$(openmpi-version).tar.lz
 	$(call import-source, $(openmpi-url), $(openmpi-checksum))
 	$(call gbuild, openmpi-$(openmpi-version), static, \
 	               --with-pmix=internal \
@@ -692,22 +823,22 @@ $(ibidir)/openssh-$(openssh-version):
 	echo "OpenSSH $(openssh-version)" > $@
 
 $(ibidir)/pixman-$(pixman-version):
-	tarball=pixman-$(pixman-version).tar.gz
+	tarball=pixman-$(pixman-version).tar.lz
 	$(call import-source, $(pixman-url), $(pixman-checksum))
 	$(call gbuild, pixman-$(pixman-version), static, , \
 	               -j$(numthreads) V=1)
 	echo "Pixman $(pixman-version)" > $@
 
 $(ibidir)/rpcsvc-proto-$(rpcsvc-proto-version):
-        # 'libintl' is installed as part of GNU Gettext in
-        # 'basic.mk'. rpcsvc-proto needs to link with it on macOS.
+#	'libintl' is installed as part of GNU Gettext in
+#	'basic.mk'. rpcsvc-proto needs to link with it on macOS.
 	if [ x$(on_mac_os) = xyes ]; then
 	  export CC=clang
 	  export CXX=clang++
 	  export LDFLAGS="-lintl $$LDFLAGS"
 	fi
 
-        # Download the tarball and build rpcsvc-proto.
+#	Download the tarball and build rpcsvc-proto.
 	tarball=rpcsvc-proto-$(rpcsvc-proto-version).tar.xz
 	$(call import-source, $(rpcsvc-proto-url), $(rpcsvc-proto-checksum))
 	$(call gbuild, rpcsvc-proto-$(rpcsvc-proto-version), static)
@@ -721,35 +852,10 @@ $(ibidir)/tides-$(tides-version):
 	cp $(dtexdir)/tides.tex $(ictdir)/
 	echo "TIDES $(tides-version) \citep{tides}" > $@
 
-$(ibidir)/valgrind-$(valgrind-version): \
-                   $(ibidir)/patch-$(patch-version) \
-                   $(ibidir)/autoconf-$(autoconf-version) \
-                   $(ibidir)/automake-$(automake-version)
-        # Import the tarball
-	tarball=valgrind-$(valgrind-version).tar.bz2
+$(ibidir)/valgrind-$(valgrind-version):
+	tarball=valgrind-$(valgrind-version).tar.lz
 	$(call import-source, $(valgrind-url), $(valgrind-checksum))
-
-        # For valgrind-3.15.0, see
-        # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=946329 for a
-        # report on an MPI-related compile bug and the two patches
-        # below. These two patches and `automake` should allow valgrind to
-        # compile with gcc-9.2.0.
-	cd $(ddir)
-	tar -xf $(tdir)/$$tarball
-	valgrinddir=valgrind-$(valgrind-version)
-	cd $${valgrinddir}
-	printf "valgrindir=$${valgrinddir} ; pwd = %s .\n" $$($(ibdir)/pwd)
-	if [ "x$(valgrind-version)" = "x3.15.0" ]; then
-	  patch --verbose -p1 < $(patchdir)/valgrind-3.15.0-mpi-fix1.patch
-	  patch --verbose -p1 < $(patchdir)/valgrind-3.15.0-mpi-fix2.patch
-	fi
-	autoreconf
-	./configure --prefix=$(idir)
-	make -j$(numthreads)
-	if ! make check -j$(numthreads); then
-	  echo; echo "Valgrind's 'make check' failed!"; echo
-	fi
-	make install
+	$(call gbuild, valgrind-$(valgrind-version), static)
 	echo "Valgrind $(valgrind-version)" > $@
 
 $(ibidir)/yaml-$(yaml-version):
@@ -773,47 +879,48 @@ $(ibidir)/yaml-$(yaml-version):
 # manually.
 #
 # For example, Libgit2 page recommends doing a static build, especially for
-# Mac systems (with `-DBUILD_SHARED_LIBS=OFF'): "It’s highly recommended
+# Mac systems (with '-DBUILD_SHARED_LIBS=OFF'): "It’s highly recommended
 # that you build libgit2 as a static library for Xcode projects. This
 # simplifies distribution significantly, as the resolution of dynamic
 # libraries at runtime can be extremely problematic.". This is a major
 # problem we have been having so far with Mac systems:
 # https://libgit2.org/docs/guides/build-and-link
-# On macOS system, `libgit2' complains about not finding `_iconv*'
-# functions! But apparently `libgit2' has its own implementation of libiconv
+# On macOS system, 'libgit2' complains about not finding '_iconv*'
+# functions! But apparently 'libgit2' has its own implementation of libiconv
 # that it uses if it can't find libiconv on macOS. So, to fix this problem
-# it is necessary to use the option `-DUSE_ICONV=OFF` in the configure step.
+# it is necessary to use the option '-DUSE_ICONV=OFF' in the configure step.
 $(ibidir)/libgit2-$(libgit2-version): $(ibidir)/cmake-$(cmake-version)
-	tarball=libgit2-$(libgit2-version).tar.gz
+	tarball=libgit2-$(libgit2-version).tar.lz
 	$(call import-source, $(libgit2-url), $(libgit2-checksum))
 	$(call cbuild, libgit2-$(libgit2-version), static, \
 	              -DUSE_SSH=OFF -DBUILD_CLAR=OFF \
 	              -DTHREADSAFE=ON -DUSE_ICONV=OFF )
 	if [ x$(on_mac_os) = xyes ]; then
-	  install_name_tool -id $(ildir)/libgit2.1.0.dylib \
-	                        $(ildir)/libgit2.1.0.dylib
+	  install_name_tool -id $(ildir)/libgit2.1.3.dylib \
+	                        $(ildir)/libgit2.1.3.dylib
 	fi
 	echo "Libgit2 $(libgit2-version)" > $@
 
 $(ibidir)/wcslib-$(wcslib-version): $(ibidir)/cfitsio-$(cfitsio-version)
-        # Import the tarball.
-	tarball=wcslib-$(wcslib-version).tar.bz2
+
+#	Import the tarball.
+	tarball=wcslib-$(wcslib-version).tar.lz
 	$(call import-source, $(wcslib-url), $(wcslib-checksum))
 
-        # If Fortran isn't present, don't build WCSLIB with it.
+#	If Fortran isn't present, don't build WCSLIB with it.
 	if type gfortran &> /dev/null; then fortranopt="";
 	else fortranopt="--disable-fortran"
 	fi
 
-        # Build WCSLIB.
+#	Build WCSLIB.
 	$(call gbuild, wcslib-$(wcslib-version), , \
 	               LIBS="-pthread -lcurl -lm" \
                        --with-cfitsiolib=$(ildir) \
                        --with-cfitsioinc=$(idir)/include \
                        --without-pgplot $$fortranopt)
 	if [ x$(on_mac_os) = xyes ]; then
-	  install_name_tool -id $(ildir)/libwcs.7.3.dylib \
-	                        $(ildir)/libwcs.7.3.dylib
+	  install_name_tool -id $(ildir)/libwcs.7.7.dylib \
+	                        $(ildir)/libwcs.7.7.dylib
 	fi
 	echo "WCSLIB $(wcslib-version)" > $@
 
@@ -843,17 +950,17 @@ $(ibidir)/astrometrynet-$(astrometrynet-version): \
                         $(ibidir)/cfitsio-$(cfitsio-version) \
                         $(ibidir)/libjpeg-$(libjpeg-version)
 
-        # Import the tarball
-	tarball=astrometry.net-$(astrometrynet-version).tar.gz
+#	Import the tarball
+	tarball=astrometry.net-$(astrometrynet-version).tar.lz
 	$(call import-source, $(astrometrynet-url), $(astrometrynet-checksum))
 
-        # We are modifying the Makefile in two steps because on Mac OS
-        # system we do not have `/proc/cpuinfo' nor `free'. Since this is
-        # only for the `report.txt', this changes do not causes problems in
-        # running `astrometrynet'
+#	We are modifying the Makefile in two steps because on Mac OS system
+#	we do not have '/proc/cpuinfo' nor 'free'. Since this is only for
+#	the 'report.txt', this changes do not causes problems in running
+#	'astrometrynet'
 	cd $(ddir)
 	rm -rf astrometry.net-$(astrometrynet-version)
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd astrometry.net-$(astrometrynet-version)
 	sed -e 's|cat /proc/cpuinfo|echo "Ignoring CPU info"|' \
 	    -e 's|-free|echo "Ignoring RAM info"|' Makefile > Makefile.tmp
@@ -874,7 +981,7 @@ $(ibidir)/autoconf-$(autoconf-version):
 	echo "GNU Autoconf $(autoconf-version)" > $@
 
 $(ibidir)/automake-$(automake-version): $(ibidir)/autoconf-$(autoconf-version)
-	tarball=automake-$(automake-version).tar.gz
+	tarball=automake-$(automake-version).tar.lz
 	$(call import-source, $(automake-url), $(automake-checksum))
 	$(call gbuild, automake-$(automake-version), static, ,V=1)
 	echo "GNU Automake $(automake-version)" > $@
@@ -886,17 +993,18 @@ $(ibidir)/bison-$(bison-version): $(ibidir)/help2man-$(help2man-version)
 	echo "GNU Bison $(bison-version)" > $@
 
 # cdsclient is a set of software written in c to interact with astronomical
-# database servers. It is a dependency of `scamp' to be able to download
+# database servers. It is a dependency of 'scamp' to be able to download
 # reference catalogues.
-# NOTE: we do not use a convencional `gbuild' installation because the
+#
+# NOTE: we do not use a convencional 'gbuild' installation because the
 # programs are scripts and we need to touch them before installing.
 # Otherwise this software will be re-built each time the configure step is
 # invoked.
 $(ibidir)/cdsclient-$(cdsclient-version):
-	tarball=cdsclient-$(cdsclient-version).tar.gz
+	tarball=cdsclient-$(cdsclient-version).tar.lz
 	$(call import-source, $(cdsclient-url), $(cdsclient-checksum))
 	cd $(ddir)
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd cdsclient-$(cdsclient-version)
 	touch *
 	./configure --prefix=$(idir)
@@ -906,25 +1014,27 @@ $(ibidir)/cdsclient-$(cdsclient-version):
 	rm -rf cdsclient-$(cdsclient-version)
 	echo "cdsclient $(cdsclient-version)" > $@
 
-# CMake can be built with its custom `./bootstrap' script.
-$(ibidir)/cmake-$(cmake-version): $(ibidir)/curl-$(curl-version)
-        # Import the tarball
-	tarball=cmake-$(cmake-version).tar.gz
+# CMake can be built with its custom './bootstrap' script and has no
+# dependencies beyond the basic Maneage software.
+$(ibidir)/cmake-$(cmake-version):
+
+#	Import the tarball
+	tarball=cmake-$(cmake-version).tar.lz
 	$(call import-source, $(cmake-url), $(cmake-checksum))
 
-        # After searching in `bootstrap', I couldn't find `LIBS', only
-        # `LDFLAGS'. So the extra libraries are being added to `LDFLAGS',
-        # not `LIBS'.
-        #
-        # On Mac systems, the build complains about `clang' specific
-        # features, so we can't use our own GCC build here.
+#	After searching in 'bootstrap', I couldn't find 'LIBS', only
+#	'LDFLAGS'. So the extra libraries are being added to 'LDFLAGS', not
+#	'LIBS'.
+#
+#	On Mac systems, the build complains about 'clang' specific
+#	features, so we can't use our own GCC build here.
 	if [ x$(on_mac_os) = xyes ]; then
 	  export CC=clang
 	  export CXX=clang++
 	fi
 	cd $(ddir)
 	rm -rf cmake-$(cmake-version)
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd cmake-$(cmake-version)
 	./bootstrap --prefix=$(idir) --system-curl --system-zlib \
 	            --system-bzip2 --system-liblzma --no-qt-gui \
@@ -942,7 +1052,7 @@ $(ibidir)/flex-$(flex-version): $(ibidir)/bison-$(bison-version)
 	echo "Flex $(flex-version)" > $@
 
 $(ibidir)/gdb-$(gdb-version): $(ibidir)/python-$(python-version)
-	tarball=gdb-$(gdb-version).tar.gz
+	tarball=gdb-$(gdb-version).tar.lz
 	export configure_in_different_directory=1;
 	$(call import-source, $(gdb-url), $(gdb-checksum))
 	$(call gbuild, gdb-$(gdb-version),,,V=1 -j$(numthreads))
@@ -956,49 +1066,51 @@ $(ibidir)/ghostscript-$(ghostscript-version): \
                       $(ibidir)/libtiff-$(libtiff-version) \
                       $(ibidir)/libpaper-$(libpaper-version)
 
-        # Download the standard collection of Ghostscript fonts.
-	tarball=ghostscript-fonts-std-$(ghostscript-fonts-std-version).tar.gz
+#	Download the standard collection of Ghostscript fonts.
+	tarball=ghostscript-fonts-std-$(ghostscript-fonts-std-version).tar.lz
 	$(call import-source, $(ghostscript-fonts-std-url), \
 	                      $(ghostscript-fonts-std-checksum))
 
-        # Download the extra GNU fonts for Ghostscript.
-	tarball=ghostscript-fonts-gnu-$(ghostscript-fonts-gnu-version).tar.gz
+#	Download the extra GNU fonts for Ghostscript.
+	tarball=ghostscript-fonts-gnu-$(ghostscript-fonts-gnu-version).tar.lz
 	$(call import-source, $(ghostscript-fonts-gnu-url), \
 	                      $(ghostscript-fonts-gnu-checksum))
 
-        # Download the tarball
-	tarball=ghostscript-$(ghostscript-version).tar.gz
+#	Download the tarball
+	tarball=ghostscript-$(ghostscript-version).tar.lz
 	$(call import-source, $(ghostscript-url), $(ghostscript-checksum))
 
-        # Unpack it and configure Ghostscript.
+#	Unpack it and configure Ghostscript. The option
+#	'-DPNG_ARM_NEON_OPT=0' prevents an arm64 'neon' library from being
+#	required at compile time.
 	cd $(ddir)
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd ghostscript-$(ghostscript-version)
 	./configure --prefix=$(idir) \
 	            --disable-cups \
 	            --enable-dynamic \
-	            --with-system-libtiff \
-	            --disable-compile-inits
+	            --disable-compile-inits \
+	            CFLAGS="-DPNG_ARM_NEON_OPT=0"
 
-        # Build and install the program and the shared libraries.
+#	Build and install the program and the shared libraries.
 	make    V=1 -j$(numthreads)
 	make so V=1 -j$(numthreads)
 	make install
 	make soinstall
 
-        # Install headers and set PostScript (PS) headers to point there.
+#	Install headers and set PostScript (PS) headers to point there.
 	install -v -m644 base/*.h $(iidir)/ghostscript
 	ln -sfvn $(iidir)/ghostscript $(iidir)/ps
 
-        # Install the fonts.
-	tar -xvf $(tdir)/ghostscript-fonts-std-$(ghostscript-fonts-std-version).tar.gz \
+#	Install the fonts.
+	tar -xvf $(tdir)/ghostscript-fonts-std-$(ghostscript-fonts-std-version).tar.lz \
 	    -C $(idir)/share/ghostscript
-	tar -xvf $(tdir)/ghostscript-fonts-gnu-$(ghostscript-fonts-gnu-version).tar.gz \
+	tar -xvf $(tdir)/ghostscript-fonts-gnu-$(ghostscript-fonts-gnu-version).tar.lz \
 	    -C $(idir)/share/ghostscript
 	fc-cache -v $(idir)/share/ghostscript/fonts/
 	echo; echo "Ghostscript fonts added to Fontconfig."; echo;
 
-        # Clean up and write the output target.
+#	Clean up and write the output target.
 	cd ..
 	rm -rf ghostscript-$(ghostscript-version)
 	echo "GPL Ghostscript $(ghostscript-version)" > $@
@@ -1018,48 +1130,74 @@ $(ibidir)/gnuastro-$(gnuastro-version): \
 	echo "GNU Astronomy Utilities $(gnuastro-version) \citep{gnuastro}" > $@
 
 $(ibidir)/help2man-$(help2man-version):
-	tarball=help2man-$(help2man-version).tar.xz
+	tarball=help2man-$(help2man-version).tar.lz
 	$(call import-source, $(help2man-url), $(help2man-checksum))
 	$(call gbuild, help2man-$(help2man-version), static, ,V=1)
 	echo "Help2man $(Help2man-version)" > $@
+
+$(ibidir)/icu-$(icu-version): $(ibidir)/python-$(python-version)
+
+#	First, we need to remove any possibly existing ICU installation
+#	because it can cause conflicts during a new configuration
+#	(especially if a new version is to replace the old one).
+	for i in data i18n io test tu uc; do
+	  rm -fv $(ildir)/libicu$$i.*;
+	done
+
+#	Prepare the tarball, unpack, build and install ICU (some
+#	customizations are necessary, so we're not using 'gbuild').
+	tarball=icu-$(icu-version).tar.lz
+	$(call import-source, $(icu-url), $(icu-checksum))
+	cd $(ddir)
+	tar -xf $(tdir)/$$tarball
+	unpackdir=icu-$(icu-version)
+	cd $$unpackdir/icu4c/source
+	./configure --enable-static --prefix=$(idir)
+	make -j$(numthreads) V=1
+	make install
+	cd $(ddir)
+	rm -rf $$unpackdir
+	echo "ICU $(icu-version)" > $@
 
 $(ibidir)/imagemagick-$(imagemagick-version): \
                       $(ibidir)/zlib-$(zlib-version) \
                       $(ibidir)/libjpeg-$(libjpeg-version) \
                       $(ibidir)/libtiff-$(libtiff-version)
-	tarball=imagemagick-$(imagemagick-version).tar.xz
+	tarball=ImageMagick-$(imagemagick-version).tar.lz
 	$(call import-source, $(imagemagick-url), $(imagemagick-checksum))
 	$(call gbuild, ImageMagick-$(imagemagick-version), static, \
 		       --without-x --disable-openmp, V=1 -j$(numthreads))
 	echo "ImageMagick $(imagemagick-version)" > $@
 
-# `imfit' doesn't use the traditional `configure' and `make' to install
-# itself.  Instead of that, it uses `scons'. As a consequence, the
+# 'imfit' doesn't use the traditional 'configure' and 'make' to install
+# itself.  Instead of that, it uses 'scons'. As a consequence, the
 # installation is manually done by decompressing the tarball, and running
-# `scons' with the necessary flags. Despite of that, it is necessary to
+# 'scons' with the necessary flags. Despite of that, it is necessary to
 # replace the default searching paths in this script by our installation
-# paths. This is done with `sed', replacing each ocurrence of `/usr/local'
-# by `$(idir)'. After that, each compiled program (`imfit', `imfit-mcmc'
-# and `makeimage') is copied into the installation directory and an `rpath'
+# paths. This is done with 'sed', replacing each ocurrence of '/usr/local'
+# by '$(idir)'. After that, each compiled program ('imfit', 'imfit-mcmc'
+# and 'makeimage') is copied into the installation directory and an 'rpath'
 # is added.
 $(ibidir)/imfit-$(imfit-version): \
                 $(ibidir)/gsl-$(gsl-version) \
                 $(ibidir)/fftw-$(fftw-version) \
                 $(ibidir)/scons-$(scons-version) \
                 $(ibidir)/cfitsio-$(cfitsio-version)
+
+#	Prepare the source.
 	tarball=imfit-$(imfit-version).tar.gz
 	$(call import-source, $(imfit-url), $(imfit-checksum))
 
-        # If the C library is in a non-standard location.
+#	If the C library is in a non-standard location.
 	if ! [ x$(SYS_CPATH) = x ]; then
 	  headerpath="--header-path=$(SYS_CPATH)"
 	fi
 
-        # Unpack and build imfit and its accompanying programs.
+#	Unpack and build imfit and its accompanying programs.
 	cd $(ddir)
 	unpackdir=imfit-$(imfit-version)
 	rm -rf $$unpackdir
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd $$unpackdir
 	sed -i 's|/usr/local|$(idir)|g' SConstruct
 	sed -i 's|/usr/include|$(idir)/include|g' SConstruct
@@ -1086,6 +1224,8 @@ $(ibidir)/imfit-$(imfit-version): \
 	  done
 	fi
 	cp $(dtexdir)/imfit.tex $(ictdir)/
+	cd ..
+	rm -rf $$unpackdir
 	echo "Imfit $(imfit-version) \citep{imfit2015}" > $@
 
 # Minizip 1.x is actually distributed within zlib. It doesn't have its own
@@ -1098,13 +1238,13 @@ $(ibidir)/imfit-$(imfit-version): \
 # About deleting the final crypt.h file after installation, see
 # https://bugzilla.redhat.com/show_bug.cgi?id=1424609
 $(ibidir)/minizip-$(minizip-version): $(ibidir)/automake-$(automake-version)
-	tarball=zlib-$(zlib-version).tar.gz
-	$(call import-source, $(minizip-url), $(minizip-checksum))
+	tarball=zlib-$(zlib-version).tar.lz
+	$(call import-source, $(zlib-url), $(zlib-checksum))
 	cd $(ddir)
 	unpackdir=minizip-$(minizip-version)
 	rm -rf $$unpackdir
 	mkdir $$unpackdir
-	tar xf $(tdir)/$$tarball -C$$unpackdir --strip-components=1
+	tar -xf $(tdir)/$$tarball -C$$unpackdir --strip-components=1
 	cd $$unpackdir
 	./configure --prefix=$(idir)
 	make
@@ -1140,16 +1280,18 @@ $(ibidir)/missfits-$(missfits-version):
 
 # Netpbm is a prerequisite of Astrometry-net, it contains a lot of programs.
 # This program has a crazy dialogue installation which is override using the
-# printf statment. Each `\n' is a new question that the installation process
+# printf statment. Each '\n' is a new question that the installation process
 # ask to the user. We give all answers with a pipe to the scripts (configure
 # and install). The questions are different depending on the system (tested
 # on GNU/Linux and Mac OS).
 $(ibidir)/netpbm-$(netpbm-version): \
+                 $(ibidir)/flex-$(flex-version) \
                  $(ibidir)/libpng-$(libpng-version) \
+                 $(ibidir)/libx11-$(libx11-version) \
                  $(ibidir)/libjpeg-$(libjpeg-version) \
                  $(ibidir)/libtiff-$(libtiff-version) \
                  $(ibidir)/libxml2-$(libxml2-version)
-	tarball=netpbm-$(netpbm-version).tar.gz
+	tarball=netpbm-$(netpbm-version).tar.lz
 	$(call import-source, $(netpbm-url), $(netpbm-checksum))
 	if [ x$(on_mac_os) = xyes ]; then
 	  answers='\n\n$(ildir)\n\n\n\n\n\n$(ildir)/include\n\n$(ildir)/include\n\n$(ildir)/include\nnone\n\n'
@@ -1159,7 +1301,7 @@ $(ibidir)/netpbm-$(netpbm-version): \
 	cd $(ddir)
 	unpackdir=netpbm-$(netpbm-version)
 	rm -rf $$unpackdir
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd $$unpackdir
 	printf "$$answers" | ./configure
 	make
@@ -1189,60 +1331,15 @@ $(ibidir)/pcre-$(pcre-version):
 	               , V=1 -j$(numthreads))
 	echo "Perl Compatible Regular Expressions $(pcre-version)" > $@
 
-# Comment on building R without GUI support ('--without-tcltlk')
-#
-# Tcl/Tk are a set of tools to provide Graphic User Interface (GUI) support
-# in some software. But they are not yet natively built within Maneage,
-# primarily because we have higher-priority work right now (if anyone is
-# interested, they can ofcourse contribute!). GUI tools in general aren't
-# high on our priority list right now because they are generally good for
-# human interaction (which is contrary to the reproducible philosophy:
-# there will always be human-error and frustration, for example in GUI
-# tools the best level of reproducibility is statements like this: "move
-# your mouse to button XXX, then click on menu YYY and etc"). A robust
-# reproducible solution must be done automatically.
-#
-# If someone wants to use R's GUI functionalities while investigating for
-# their analysis, they can do the GUI part on their host OS
-# implementation. Later, they can bring the finalized source into Maneage
-# to be automatically run in Maneage. This will also be the recommended way
-# to deal with GUI tools later when we do install them within Maneage.
-$(ibidir)/R-$(R-version): \
-            $(ibidir)/pcre-$(pcre-version) \
-            $(ibidir)/cairo-$(cairo-version) \
-            $(ibidir)/libpng-$(libpng-version) \
-            $(ibidir)/libjpeg-$(libjpeg-version) \
-            $(ibidir)/libtiff-$(libtiff-version) \
-            $(ibidir)/libpaper-$(libpaper-version)
-	tarball=R-$(R-version).tar.gz
-	$(call import-source, $(R-url), $(R-checksum))
-	cd $(ddir)
-	tar xf $(tdir)/$$tarball
-	cd R-$(R-version)
-
-        # We need to manually remove the lines with '~autodetect~', they
-        # cause the configure script to crash in version 4.0.2. They are
-        # used in relation to Java, and we don't use Java anyway.
-	sed -i -e '/\~autodetect\~/ s/^/#/g' configure
-	export R_SHELL=$(SHELL)
-	./configure --prefix=$(idir) \
-	            --without-x \
-	            --with-pcre1 \
-	            --disable-java \
-	            --with-readline \
-	            --without-tcltk \
-	            --disable-openmp
-	make -j$(numthreads)
-	make install
-	cd ..
-	rm -rf R-$(R-version)
-	echo "R $(R-version)" > $@
+# 2022-01-01 The rules for building R - identified as r-cran to avoid the
+# difficulties in searching text for a one-letter string - were shifted to
+# 'r-cran.mk'.
 
 # SCAMP documentation says ATLAS is a mandatory prerequisite for using
 # SCAMP. We have ATLAS into the project but there are some problems with the
 # libraries that are not yet solved. However, we tried to install it with
 # the option --enable-openblas and it worked (same issue happened with
-# `sextractor'.
+# 'sextractor'.
 $(ibidir)/scamp-$(scamp-version): \
                 $(ibidir)/fftw-$(fftw-version) \
                 $(ibidir)/openblas-$(openblas-version) \
@@ -1250,7 +1347,7 @@ $(ibidir)/scamp-$(scamp-version): \
 	tarball=scamp-$(scamp-version).tar.lz
 	$(call import-source, $(scamp-url), $(scamp-checksum))
 
-        # See comment above 'missfits' for '-fcommon'.
+#	See comment above 'missfits' for '-fcommon'.
 	$(call gbuild, scamp-$(scamp-version), static, \
 	           CFLAGS="-fcommon" \
                    --enable-threads \
@@ -1263,17 +1360,19 @@ $(ibidir)/scamp-$(scamp-version): \
 	cp $(dtexdir)/scamp.tex $(ictdir)/
 	echo "SCAMP $(scamp-version) \citep{scamp}" > $@
 
-# Since `scons' doesn't use the traditional GNU installation with
-# `configure' and `make' it is installed manually using `python'.
+# Since 'scons' doesn't use the traditional GNU installation with
+# 'configure' and 'make' it is installed manually using 'python'.
 $(ibidir)/scons-$(scons-version): $(ibidir)/python-$(python-version)
 	tarball=scons-$(scons-version).tar.gz
 	$(call import-source, $(scons-url), $(scons-checksum))
 	cd $(ddir)
 	unpackdir=scons-$(scons-version)
 	rm -rf $$unpackdir
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd $$unpackdir
 	python setup.py install
+	cd ..
+	rm -rf $$unpackdir
 	echo "SCons $(scons-version)" > $@
 
 # Sextractor crashes complaining about not linking with some ATLAS
@@ -1289,7 +1388,7 @@ $(ibidir)/sextractor-$(sextractor-version): \
 	tarball=sextractor-$(sextractor-version).tar.lz
 	$(call import-source, $(sextractor-url), $(sextractor-checksum))
 
-        # See comment above 'missfits' for '-fcommon'.
+#	See comment above 'missfits' for '-fcommon'.
 	$(call gbuild, sextractor-$(sextractor-version), static, \
 	               CFLAGS="-fcommon" \
 	               --enable-threads \
@@ -1304,7 +1403,7 @@ $(ibidir)/swarp-$(swarp-version): $(ibidir)/fftw-$(fftw-version)
 	tarball=swarp-$(swarp-version).tar.gz
 	$(call import-source, $(swarp-url), $(swarp-checksum))
 
-        # See comment above 'missfits' for '-fcommon'.
+#	See comment above 'missfits' for '-fcommon'.
 	$(call gbuild, swarp-$(swarp-version), static, \
 	               CFLAGS="-fcommon" \
                        --enable-threads)
@@ -1312,10 +1411,11 @@ $(ibidir)/swarp-$(swarp-version): $(ibidir)/fftw-$(fftw-version)
 	echo "SWarp $(swarp-version) \citep{swarp}" > $@
 
 $(ibidir)/swig-$(swig-version):
-        # Option --without-pcre was a suggestion once the configure step
-        # was tried and it failed. It was not recommended but it works!
-        # pcr is a dependency of swig
-	tarball=swig-$(swig-version).tar.gz
+
+#	Option --without-pcre was a suggestion once the configure step was
+#	tried and it failed. It was not recommended but it works!  pcr is a
+#	dependency of swig
+	tarball=swig-$(swig-version).tar.lz
 	$(call import-source, $(swig-url), $(swig-checksum))
 	$(call gbuild, swig-$(swig-version), static, \
 	               --without-pcre --without-tcl)
@@ -1345,19 +1445,19 @@ $(ibidir)/swig-$(swig-version):
 # '$(ibdir)'. If any program does need 'util-linux' libraries, they can
 # simply add the proper directories to the environment variables, see
 # 'fontconfig' for example.
-$(ibidir)/util-linux-$(util-linux-version):
+$(ibidir)/util-linux-$(util-linux-version): | $(idircustom)
 
-        # Import the source.
-	tarball=util-linux-$(util-linux-version).tar.xz
+#	Import the source.
+	tarball=util-linux-$(util-linux-version).tar.lz
 	$(call import-source, $(util-linux-url), $(util-linux-checksum))
 
-        # Unpack the source and set it to install in a special directory
-        # (as explained above). As shown below, later, we'll put a symbolic
-        # link of all the necessary binaries in the main '$(idir)/bin'.
+#	Unpack the source and set it to install in a special directory (as
+#	explained above). As shown below, later, we'll put a symbolic link
+#	of all the necessary binaries in the main '$(idir)/bin'.
 	cd $(ddir)
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	cd util-linux-$(util-linux-version)
-	./configure --prefix=$(idir)/util-linux \
+	./configure --prefix=$(idircustom)/util-linux \
 	            --disable-dependency-tracking \
 	            --disable-silent-rules \
 	            --without-systemd \
@@ -1368,21 +1468,21 @@ $(ibidir)/util-linux-$(util-linux-version):
 	            --disable-wall \
 	            --disable-su
 
-        # Build and install it.
+#	Build and install it.
 	make V=1 -j$(numthreads)
 	make install
 
-        # Put a symbolic link to installed programs in main installation
-        # directory. If 'sbin' exists in the main installation directory,
-        # put util-linux's 'sbin/' directory there too.
-	ln -sf $(idir)/util-linux/bin/* $(ibdir)/
+#	Put a symbolic link to installed programs in main installation
+#	directory. If 'sbin' exists in the main installation directory, put
+#	util-linux's 'sbin/' directory there too.
+	ln -sf $(idircustom)/util-linux/bin/* $(ibdir)/
 	if [ -d $(idir)/sbin ]; then
-	  ln -sf $(idir)/util-linux/sbin/* $(idir)/sbin
+	  ln -sf $(idircustom)/util-linux/sbin/* $(idir)/sbin
 	else
-	  ln -sf $(idir)/util-linux/sbin/* $(idir)/bin
+	  ln -sf $(idircustom)/util-linux/sbin/* $(idir)/bin
 	fi
 
-        # Clean up and write the main target.
+#	Clean up and write the main target.
 	cd ../
 	rm -rf util-linux-$(util-linux-version)
 	echo "util-Linux $(util-linux-version)" > $@
@@ -1428,7 +1528,7 @@ $(ibidir)/vim-$(vim-version):
 	tarball=vim-$(vim-version).tar.bz2
 	$(call import-source, $(vim-url), $(vim-checksum))
 	cd $(ddir)
-	tar xf $(tdir)/$$tarball
+	tar -xf $(tdir)/$$tarball
 	n=$$(echo $(vim-version) | sed -e's|\.||')
 	cd $(ddir)/vim$$n
 	./configure --prefix=$(idir) \
@@ -1455,7 +1555,7 @@ $(ibidir)/vim-$(vim-version):
 # hard to track for Make (as a target). Also, TeX in general is optional
 # for the project (the processing is the main target, not the generation of
 # the final PDF). So we'll make a simple ASCII file called
-# `texlive-ready-tlmgr' and use its contents to mark if we can use it or
+# 'texlive-ready-tlmgr' and use its contents to mark if we can use it or
 # not.
 #
 # TeX Live mirror
@@ -1463,8 +1563,8 @@ $(ibidir)/vim-$(vim-version):
 #
 # The automatic mirror finding fails sometimes. So we'll manually set it to
 # use a fixed mirror. I first tried the LaTeX root webpage
-# (`ftp.dante.de'), however, it is far too slow (when I tested it). The
-# `rit.edu' server seems to be a good alternative (given the importance of
+# ('ftp.dante.de'), however, it is far too slow (when I tested it). The
+# 'rit.edu' server seems to be a good alternative (given the importance of
 # NY on the internet infrastructure).
 texlive-url=http://mirrors.rit.edu/CTAN/systems/texlive/tlnet
 $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf
@@ -1472,81 +1572,81 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf
 	tarball=install-tl-unx.tar.gz
 	$(call import-source, $(texlive-url), NO-CHECK-SUM)
 
-        # Unpack, enter the directory, and install based on the given
-        # configuration (prerequisite of this rule).
+#	Unpack, enter the directory, and install based on the given
+#	configuration (prerequisite of this rule).
 	@topdir=$$(pwd)
 	cd $(ddir)
 	rm -rf install-tl-*
-	tar xf $(tdir)/install-tl-unx.tar.gz
+	tar -xf $(tdir)/install-tl-unx.tar.gz
 	cd install-tl-*
 	sed -e's|@installdir[@]|$(idir)|g' \
 	    "$$topdir"/reproduce/software/config/texlive.conf \
 	    > texlive.conf
 
-        # TeX Live's installation may fail due to any reason. But TeX Live
-        # is optional (only necessary for building the final PDF). So we
-        # don't want the configure script to fail if it can't run.
-        # Possible error messages will be saved into `log.txt' and if it
-        # fails, 'log.txt' will be checked to see if the error is due to
-        # the different version of the current tarball and the TeXLive
-        # server or something else.
-        #
-        # The problem with versions is this: each installer tarball (that
-        # is downloaded and a user may backup) is for a specific version of
-        # TeXLive (specified by year, usually around April). So if a user
-        # has an old tarball, but the CTAN server has been updated, the
-        # script will fail with a message like this:
-        #
-        #     =============================================================
-        #     ./install-tl: The TeX Live versions of the local installation
-        #     and the repository being accessed are not compatible:
-        #           local: 2019
-        #      repository: 2020
-        #     Perhaps you need to use a different CTAN mirror?
-        #     (For more, see the output of install-tl --help, especially the
-        #     -repository option.  Online via https://tug.org/texlive/doc.)
-        #     =============================================================
-        #
-        # To address this problem, when this happens, we simply download a
-        # the most recent tarball, and if it succeeds, we will build
-        # TeXLive using that. The old tarball will be preserved, but will
-        # have an '-OLD' suffix after it.
+#	TeX Live's installation may fail due to any reason. But TeX Live is
+#	optional (only necessary for building the final PDF). So we don't
+#	want the configure script to fail if it can't run.  Possible error
+#	messages will be saved into 'log.txt' and if it fails, 'log.txt'
+#	will be checked to see if the error is due to the different version
+#	of the current tarball and the TeXLive server or something else.
+#
+#	The problem with versions is this: each installer tarball (that is
+#	downloaded and a user may backup) is for a specific version of
+#	TeXLive (specified by year, usually around April). So if a user has
+#	an old tarball, but the CTAN server has been updated, the script
+#	will fail with a message like this:
+#
+#	      =============================================================
+#	      ./install-tl: The TeX Live versions of the local installation
+#	      and the repository being accessed are not compatible:
+#	              local: 2019
+#	         repository: 2020
+#	      Perhaps you need to use a different CTAN mirror?
+#	      (For more, see the output of install-tl --help, especially the
+#	      -repository option.  Online via https://tug.org/texlive/doc.)
+#	      =============================================================
+#
+#	To address this problem, when this happens, we simply download a
+#	the most recent tarball, and if it succeeds, we will build TeXLive
+#	using that. The old tarball will be preserved, but will have an
+#	'-OLD' suffix after it.
 	if ./install-tl --profile=texlive.conf -repository \
 	                $(texlive-url) 2> log.txt; then
 
-          # Put a symbolic link of the TeX Live executables in `ibdir' to
-          # avoid all the complexities of its sub-directories and additions
-          # to PATH.
+#	  Put a symbolic link of the TeX Live executables in 'ibdir' to
+#	  avoid all the complexities of its sub-directories and additions
+#	  to PATH.
 	  ln -fs $(idir)/texlive/maneage/bin/*/* $(ibdir)/
 
-          # Register that the build was successful.
+#	  Register that the build was successful.
 	  echo "TeX Live is ready." > $@
 
-        # The build failed!
+#	The build failed!
 	else
-	  # Print on the command line the error messages during the
-	  # installation.
+#	  Print on the command line the error messages during the
+#	  installation.
 	  cat log.txt
 
-	  # Look for words `repository:' and `local:' in `log.txt' and make
-	  # sure that two lines are returned. Note that we need to check
-	  # for two lines because one of them may exist, but another may
-	  # not (in this case, its not a version conflict scenario).
+#	  Look for words 'repository:' and 'local:' in 'log.txt' and make
+#	  sure that two lines are returned. Note that we need to check for
+#	  two lines because one of them may exist, but another may not (in
+#	  this case, its not a version conflict scenario).
 	  version_check=$$(grep -w 'repository:\|local:' log.txt | wc -l)
 
-	  # If these words exists and two lines are found, there is a
-	  # conflict with the main TeXLive version in the tarball and on
-	  # the server. So it is necessary to move the old tarball and
-	  # download the new one to install it.
+#	  If these words exists and two lines are found, there is a
+#	  conflict with the main TeXLive version in the tarball and on the
+#	  server. So it is necessary to move the old tarball and download
+#	  the new one to install it.
 	  if [ x"$$version_check" = x2 ]; then
-            # Go back to the top project directory, don't remove the
-            # tarball, just rename it.
+
+#	    Go back to the top project directory, don't remove the tarball,
+#	    just rename it.
 	    cd $$topdir
 	    mv $(tdir)/install-tl-unx.tar.gz $(tdir)/install-tl-unx-OLD.tar.gz
 
-            # Download using the script specially defined for this job. If
-            # the download of new tarball success, install it (same lines
-            # than above). If not, record the fail into the target.
+#	    Download using the script specially defined for this job. If
+#	    the download of new tarball success, install it (same lines
+#	    than above). If not, record the fail into the target.
 	    url=http://mirror.ctan.org/systems/texlive/tlnet
 	    tarballurl=$$url/install-tl-unx.tar.gz
 	    touch $(lockdir)/download
@@ -1556,7 +1656,7 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf
 	                          "$(backupservers)"; then
 	      cd $(ddir)
 	      rm -rf install-tl-*
-	      tar xf $(tdir)/install-tl-unx.tar.gz
+	      tar -xf $(tdir)/install-tl-unx.tar.gz
 	      cd install-tl-*
 	      sed -e's|@installdir[@]|$(idir)|g' \
 	          $$topdir/reproduce/software/config/texlive.conf \
@@ -1576,7 +1676,7 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf
 	  fi
 	fi
 
-        # Clean up
+#	Clean up
 	cd ..
 	rm -rf install-tl-*
 
@@ -1590,49 +1690,50 @@ $(itidir)/texlive-ready-tlmgr: reproduce/software/config/texlive.conf
 #
 # Note that Biber needs to link with libraries like libnsl. However, we
 # don't currently build biber from source. So we can't choose the library
-# version. But we have the source and build instructions for the `nsl'
+# version. But we have the source and build instructions for the 'nsl'
 # library. When we later build biber from source, we can easily use them.
 $(itidir)/texlive: reproduce/software/config/texlive-packages.conf \
                    $(itidir)/texlive-ready-tlmgr
 
-        # To work with TeX live installation, we'll need the internet.
+#	To work with TeX live installation, we'll need the internet.
 	@res=$$(cat $(itidir)/texlive-ready-tlmgr)
 	if [ x"$$res" = x"NOT!" ]; then
 	  echo "" > $@
 	else
-          # To update itself, tlmgr needs a backup directory.
+
+#	  To update itself, tlmgr needs a backup directory.
 	  backupdir=$(idir)/texlive/backups
 	  mkdir -p $$backupdir
 
-          # Before checking LaTeX packages, update tlmgr itself.
+#	  Before checking LaTeX packages, update tlmgr itself.
 	  tlmgr option backupdir $$backupdir
 	  tlmgr -repository $(texlive-url) update --self
 
-          # Install all the extra necessary packages. If LaTeX complains
-          # about not finding a command/file/what-ever/XXXXXX, simply run
-          # the following command to find which package its in, then add it
-          # to the `texlive-packages' variable of the first prerequisite.
-          #
-          #     ./.local/bin/tlmgr info XXXXXX
-          #
-          # We are putting a notice, because if there is no internet,
-          # `tlmgr' just hangs waiting.
+#	  Install all the extra necessary packages. If LaTeX complains
+#	  about not finding a command/file/what-ever/XXXXXX, simply run the
+#	  following command to find which package its in, then add it to
+#	  the 'texlive-packages' variable of the first prerequisite.
+#
+#	      ./.local/bin/tlmgr info XXXXXX
+#
+#	  We are putting a notice, because if there is no internet, 'tlmgr'
+#	  just hangs waiting.
 	  tlmgr install $(texlive-packages)
 
-          # Make a symbolic link of all the TeX Live executables in the bin
-          # directory so we don't have to modify `PATH'.
+#	  Make a symbolic link of all the TeX Live executables in the bin
+#	  directory so we don't have to modify 'PATH'.
 	  ln -fs $(idir)/texlive/maneage/bin/*/* $(ibdir)/
 
-          # Get all the necessary versions.
+#	  Get all the necessary versions.
 	  texlive=$$(pdflatex --version \
 	                      | awk 'NR==1' \
 	                      | sed 's/.*(\(.*\))/\1/' \
 	                      | awk '{print $$NF}');
 
-          # Package names and versions. Note that all TeXLive packages
-          # don't have a version unfortunately! So we need to also read the
-          # `revision' and `cat-date' elements and print them incase
-          # version isn't available.
+#	  Package names and versions. Note that all TeXLive packages
+#	  don't have a version unfortunately! So we need to also read the
+#	  'revision' and 'cat-date' elements and print them incase
+#	  version isn't available.
 	  tlmgr info $(texlive-packages) --only-installed | awk \
 	       '$$1=="package:" { \
 	           if(name!=0) \

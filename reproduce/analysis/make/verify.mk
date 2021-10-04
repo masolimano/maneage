@@ -1,6 +1,6 @@
 # Verify the project outputs before building the paper.
 #
-# Copyright (C) 2020-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2020-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ verify-txt-no-comments-no-space = \
 # (generated in various stages of the analysis.
 #
 # Since each analysis step's data files are already prerequisites of their
-# respective TeX macro file, its enough for `verify.tex' to depend on the
+# respective TeX macro file, its enough for 'verify.tex' to depend on the
 # final TeX macro.
 #
 # USEFUL TIP: during the early phases of your research (when you are
@@ -103,40 +103,40 @@ verify-txt-no-comments-no-space = \
 #
 # Here is a description of the variables defined here.
 #
-#   verify-dep: The major step dependencies of `verify.tex', this includes
+#   verify-dep: The major step dependencies of 'verify.tex', this includes
 #               all the steps that must be finished before it.
 #
 #   verify-changes: The files whose contents are important. This is
-#               essentially the same as `verify-dep', but it has removed
-#               the `initialize' step (which is information about the
+#               essentially the same as 'verify-dep', but it has removed
+#               the 'initialize' step (which is information about the
 #               pipeline, not the results).
 verify-dep = $(subst verify,,$(subst paper,,$(makesrc)))
 verify-check = $(subst initialize,,$(verify-dep))
 $(mtexdir)/verify.tex: $(foreach s, $(verify-dep), $(mtexdir)/$(s).tex)
 
-        # Make sure that verification is actually requested, the '@' at the
-        # start of the recipe is added so Make doesn't print the commands
-        # on the standard output because this recipe is run on every call
-        # to the project and can be annoying (get mixed in the middle of
-        # the analysis outputs or the LaTeX outputs).
+#	Make sure that verification is actually requested, the '@' at the
+#	start of the recipe is added so Make doesn't print the commands on
+#	the standard output because this recipe is run on every call to the
+#	project and can be annoying (get mixed in the middle of the
+#	analysis outputs or the LaTeX outputs).
 	@if [ x"$(verify-outputs)" = xyes ]; then
 
-          # Make sure the temporary output doesn't exist (because we want
-          # to append to it). We are making a temporary output target so if
-          # there is a crash in the middle, Make will not continue. If we
-          # write in the final target progressively, the file will exist,
-          # and its date will be more recent than all prerequisites, so
-          # next time the project is run, Make will continue and ignore the
-          # rest of the checks.
+#	  Make sure the temporary output doesn't exist (because we want to
+#	  append to it). We are making a temporary output target so if
+#	  there is a crash in the middle, Make will not continue. If we
+#	  write in the final target progressively, the file will exist, and
+#	  its date will be more recent than all prerequisites, so next time
+#	  the project is run, Make will continue and ignore the rest of the
+#	  checks.
 	  rm -f $@.tmp
 
-          # Verify the figure datasets.
+#	  Verify the figure datasets.
 	  $(call verify-txt-no-comments-no-space, \
 	         $(dm-squared), 6b6d3b0f9c351de53606507b59bca5d1, $@.tmp)
 	  $(call verify-txt-no-comments-no-space, \
 	         $(dm-img-histogram), b1f9c413f915a1ad96078fee8767b16c, $@.tmp)
 
-          # Verify TeX macros (the values that go into the PDF text).
+#	  Verify TeX macros (the values that go into the PDF text).
 	  for m in $(verify-check); do
 	    file=$(mtexdir)/$$m.tex
 	    if   [ $$m == download  ]; then s=49e4e9f049aa9da0453a67203d798587
@@ -146,7 +146,7 @@ $(mtexdir)/verify.tex: $(foreach s, $(verify-dep), $(mtexdir)/$(s).tex)
 	    $(call verify-txt-no-comments-no-space, $$file, $$s, $@.tmp)
 	  done
 
-          # Move temporary file to final target.
+#	  Move temporary file to final target.
 	  mv $@.tmp $@
 	else
 	  echo "% Verification was DISABLED!" > $@

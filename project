@@ -1,10 +1,10 @@
 #!/bin/sh
 #
 # High-level script to manage the project.
-# Run `./project --help' for a description of how to use it.
+# Run './project --help' for a description of how to use it.
 #
-# Copyright (C) 2019-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Copyright (C) 2021      Raul Infante-Sainz <infantesainz@gmail.com>
+# Copyright (C) 2019-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2021-2022 Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ set -e
 
 
 # Default option values
-jobs=0     # 0 is for the default for the `configure.sh' script.
+jobs=0     # 0 is for the default for the 'configure.sh' script.
 group=
 debug=
 host_cc=0
@@ -59,9 +59,9 @@ scriptname="./project"
 # into the respective variable.
 #
 # Each option has two lines because we want to process both these formats:
-# `--name=value' and `--name value'. The former (with `=') is a single
+# '--name=value' and '--name value'. The former (with '=') is a single
 # command-line argument, so we just need to shift the counter by one. The
-# latter (without `=') is two arguments, so we'll need two shifts.
+# latter (without '=') is two arguments, so we'll need two shifts.
 #
 # Note on the case strings: for every option, we need three lines: one when
 # the option name and value are separate. Another when there is an equal
@@ -172,7 +172,6 @@ do
   make)         func_operation_set $1; shift;;
   shell)        func_operation_set $1; shift;;
 
-
   # Configure options:
   -b|--build-dir)        build_dir="$2";                                     check_v "$1" "$build_dir";    shift;shift;;
   -b=*|--build-dir=*)    build_dir="${1#*=}";                                check_v "$1" "$build_dir";    shift;;
@@ -207,14 +206,21 @@ do
   # Make options
   # ------------
   #
-  # Note that Make's `debug' can take values, but when called without any
-  # value, it is like giving it a value of `a'):
+  # Note that Make's 'debug' can take values, but when called without any
+  # value, it is like giving it a value of 'a'):
   --highlight-new)        highlightnew=1;                                                  shift;;
   --highlight-new=*)      on_off_option_error --highlight-new;;
   --highlight-notes)      highlightnotes=1;                                                shift;;
   --highlight-notes=*)    on_off_option_error --highlight-notes;;
-  -d|--debug)             if [ x"$2" = x ]; then debug=a;          shift;
-                          else debug="$2"; check_v debug "$debug"; shift;shift; fi;;
+  -d|--debug)             if [ x$operation = x ]; then
+                              echo "Please set the operation before calling '--debug'"; exit 1
+                          elif [ x$operation = xconfigure ]; then debug=a;   shift;
+                          elif [ x$operation = xmake ]; then
+                              if [ x"$2" = x ]; then echo "In make-mode, '--debug' needs a value"; exit 1
+                              else debug="$2"; check_v debug "$debug"; shift;shift; fi
+                          else
+                              echo "Operation '$operation' not recognized, please use 'configure' or 'make'"
+                          fi;;
   -d=*|--debug=*)         debug="${1#*=}";                       check_v debug "$debug";   shift;;
   -d*)                    debug=$(echo "$1" | sed -e's/-d//');   check_v debug "$debug";   shift;;
   -p|--prepare-redo)      prepare_redo=1;                                                  shift;;
@@ -235,8 +241,8 @@ done
 # Check configuration status
 # --------------------------
 if ! [ x$check_config = x ]; then
-    # Find the color option to pass to `ls'. Note that `--color' (for GNU
-    # Coreutils `ls') should be checked first because it also has `-G', but
+    # Find the color option to pass to 'ls'. Note that '--color' (for GNU
+    # Coreutils 'ls') should be checked first because it also has '-G', but
     # for something else.
     if   ls --color 2> /dev/null > /dev/null; then coloropt="--color=auto"
     elif ls -G      2> /dev/null > /dev/null; then coloropt="-G"
@@ -282,7 +288,7 @@ EOF
             check=$(ls .local/version-info/python/)
             if ! [ "x$check" = x ]; then
                 printresults=1
-                ln -s .local/version-info/python/*  $checkdir/
+                ln -s "$(pwd)"/.local/version-info/python/*  $checkdir/
             fi
             check=$(ls .local/version-info/proglib/)
             if ! [ "x$check" = x ]; then
@@ -296,7 +302,7 @@ EOF
 
                 # Then sort all the links based on the most recent dates of the
                 # files they link to (with '-L').
-                ls -Llt $checkdir \
+                ls -Llt $checkdir  \
                     | awk '/^-/ && c++<5 {printf "[at %s] %s\n", $(NF-1), $NF}'
             fi
         else
@@ -372,10 +378,11 @@ EOF
 # Run operations in controlled environment
 # ----------------------------------------
 controlled_env() {
+
     # Get the full address of the build directory:
     bdir=`.local/bin/realpath .build`
 
-    # Remove all existing environment variables (with `env -i') and only
+    # Remove all existing environment variables (with 'env -i') and only
     # use some pre-defined environment variables, then build the project.
     envmake=".local/bin/env -i HOME=$bdir sys_rm=$(which rm) $gopt"
     envmake="$envmake highlightnew=$highlightnew"
@@ -383,7 +390,7 @@ controlled_env() {
     envmake="$envmake --no-builtin-rules --no-builtin-variables -f $1"
     if ! [ x"$debug" = x  ]; then envmake="$envmake --debug=$debug"; fi
 
-    # Set the number of jobs. Note that for the `configure.sh' script the
+    # Set the number of jobs. Note that for the 'configure.sh' script the
     # default value has to be 0, so the default is the maximum number of
     # threads. But here, the default value is 1.
     if ! [ x"$jobs"  = x0 ]; then envmake="$envmake -j$jobs";  fi
@@ -415,7 +422,7 @@ case $operation in
         #
         # In some scenarios (for example when using a tarball from arXiv),
         # it may happen that the host server has removed the executable
-        # flags of all the files. In `README.md' we instruct the readers on
+        # flags of all the files. In 'README.md' we instruct the readers on
         # setting the executable flag of this script. But we don't want the
         # user to have to worry about any other file that needs an
         # executable flag.
@@ -456,7 +463,7 @@ case $operation in
             # Set the group writing permission for everything in the
             # installed software directory. The common build process sets
             # the writing permissions of the installed programs/libraries
-            # to `755'. So group members can't write over a file. This
+            # to '755'. So group members can't write over a file. This
             # creates problems when another group member wants to update
             # the software for example. We thus need to manually add the
             # group writing flag to all installed software files.
@@ -473,17 +480,17 @@ case $operation in
     make)
 
         # Make sure the configure script has been completed properly
-        # (`configuration-done.txt' exists).
+        # ('configuration-done.txt' exists).
         if ! [ -f .build/software/configuration-done.txt ]; then
             configuration_necessary
         fi
 
         # Run data preparation phase (optionally build Makefiles with
-        # special values for optimizing the main `top-make.mk'). But note
+        # special values for optimizing the main 'top-make.mk'). But note
         # that data preparation is only done automatically the first time
-        # the project is built (when `.build/software/preparation-done.mk'
+        # the project is built (when '.build/software/preparation-done.mk'
         # doesn't yet exist). After that, if the user wants to re-do the
-        # preparation they have to use the `--prepare-redo' option.
+        # preparation they have to use the '--prepare-redo' option.
         if ! [ -f .build/software/preparation-done.mk ] \
                 || [ x"$prepare_redo" = x1 ]; then
             controlled_env reproduce/analysis/make/top-prepare.mk
@@ -497,7 +504,7 @@ case $operation in
     shell)
 
         # Make sure the configure script has been completed properly
-        # (`configuration-done.txt' exists).
+        # ('configuration-done.txt' exists).
         if ! [ -f .build/software/configuration-done.txt ]; then
             configuration_necessary
         fi
@@ -519,7 +526,7 @@ case $operation in
                        OMPI_MCA_plm_rsh_agent=/bin/false \
                        PYTHONPATH="$instdir"/lib/python/site-packages \
                        PYTHONPATH3="$instdir"/lib/python/site-packages \
-                       PS1="[\[\033[32m\](maneage)\[\033[00m\] \u@\h \W]$ " \
+                       PS1="[\[\033[01;35m\]maneage@\h \W\[\033[32m\]\[\033[00m\]]$ " \
                        "$instdir"/bin/bash
         ;;
 
@@ -535,5 +542,5 @@ Please run with '--help' for more information.
 
 EOF
         exit 1
-    ;;
+        ;;
 esac

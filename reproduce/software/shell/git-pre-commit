@@ -1,10 +1,10 @@
 #!@BINDIR@/bash
 #
 # The example hook script to store the metadata information of version
-# controlled files (with each commit) using the `metastore' program.
+# controlled files (with each commit) using the 'metastore' program.
 #
 # Copyright (C) 2016 Przemyslaw Pawelczyk <przemoc@gmail.com>
-# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # WARNING:
 #
@@ -17,9 +17,9 @@
 #     git reset HEAD -- .metadata
 #     git checkout HEAD -- .metadata
 #
-# This script is taken from the `examples/hooks/pre-commit' file of the
-# `metastore' package (installed within the project, with an MIT license
-# for copyright). Here, the name of the `MSFILE' and also set special
+# This script is taken from the 'examples/hooks/pre-commit' file of the
+# 'metastore' package (installed within the project, with an MIT license
+# for copyright). Here, the name of the 'MSFILE' and also set special
 # characters for the installation location of meta-store so our own
 # installation is found by Git.
 #

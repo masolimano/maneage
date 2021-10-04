@@ -2,7 +2,7 @@
 #
 # Very basic tools necessary to start Maneage's default building.
 #
-# Copyright (C) 2020-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2020-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -185,6 +185,19 @@ build_program() {
         # All others accept the configure script.
         ./configure --prefix="$instdir" $configoptions
 
+        # In Flock 0.4.0 there is a crash that can be fixed by simply
+        # replacing '%1u' with '%ld' on GNU/Linux and '%d' on macOS. This
+        # has been reported to flock maintainers:
+        # https://github.com/discoteq/flock/issues/33
+        if [ x$progname = xflock ]; then
+            case $on_mac_os in
+                yes) sed -e's/\%1u/\%d/'  src/flock.c > src/flock-new.c;;
+                no)  sed -e's/\%1u/\%ld/' src/flock.c > src/flock-new.c;;
+                *)   echo "pre-make-build.sh: '$on_mac_os' unrecognized value for on_mac_os";;
+            esac
+            mv src/flock-new.c src/flock.c
+        fi
+
         # To build GNU Make, we don't want to assume the existance of a
         # Make program, so we use its 'build.sh' script and its own built
         # 'make' program to install itself.
@@ -192,7 +205,7 @@ build_program() {
             /bin/sh build.sh
             ./make install
         else
-            make
+            make V=1
             make install
         fi
     fi
@@ -235,13 +248,20 @@ build_program
 # '--disable-dependency-tracking' configure-time option is necessary so
 # Make doesn't check for an existing 'make' implementation (recall that we
 # aren't assuming any 'make' on the host).
+#
+# If GNU Guile is already present on the host system, Make will try to link
+# with it, and this will cause dependency problems later. So we have
+# distabled Guile. If a project needs the Guile extensions of Make, we need
+# to add a build rule for Guile in Maneage, with a special Guile-enabled
+# Make that has a different executable name (using the '--program-prefix='
+# configure option) from the "default" make (which is this one!).
 progname="make"
 progname_tex="GNU Make"
 url=$(awk '/^'$progname'-url/{print $3}' $urlfile)
 version=$(awk '/^'$progname'-version/{print $3}' $versionsfile)
 tarball=$progname-$version.tar.lz
 download_tarball
-build_program --disable-dependency-tracking
+build_program "--disable-dependency-tracking --without-guile"
 
 
 
@@ -274,11 +294,11 @@ fi
 # -----
 #
 # Flock (or file-lock) is necessary to serialize operations when
-# necessary. GNU/Linux machines have it as part of their `util-linux'
+# necessary. GNU/Linux machines have it as part of their 'util-linux'
 # programs. But to be consistent in non-GNU/Linux systems, we will be using
 # our own build.
 #
-# The reason that `flock' is built here is that generally the building of
+# The reason that 'flock' is built here is that generally the building of
 # software is done in parallel, but we need it to serialize the download
 # process of the software tarballs to avoid network complications when too
 # many simultaneous download commands are called.

@@ -10,8 +10,8 @@
 # your project to make a smoothly readable English text. Afterwards, please
 # feel free to modify them as you wish.
 #
-# Copyright (C) 2021 Boud Roukema <boud@cosmo.torun.pl>
-# Copyright (C) 2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2021-2022 Boud Roukema <boud@cosmo.torun.pl>
+# Copyright (C) 2021-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This script is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the

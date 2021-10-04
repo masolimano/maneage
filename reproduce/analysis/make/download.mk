@@ -5,7 +5,7 @@
 # recipes in this Makefile all use a single file lock to have one download
 # script running at every instant.
 #
-# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@
 # --------------------
 #
 # The input dataset properties are defined in
-# `$(pconfdir)/INPUTS.conf'. For this template we only have one dataset to
+# '$(pconfdir)/INPUTS.conf'. For this template we only have one dataset to
 # enable easy processing, so all the extra checks in this rule may seem
 # redundant.
 #
 # In a real project, you will need more than one dataset. In that case,
-# just add them to the target list and add an `elif' statement to define it
+# just add them to the target list and add an 'elif' statement to define it
 # in the recipe.
 #
 # Files in a server usually have very long names, which are mainly designed
@@ -48,7 +48,7 @@
 # internet, therefore downloading is inherently done in series. As a
 # result, when more than one dataset is necessary for download, if they are
 # done in parallel, the speed will be slower than downloading them in
-# series. We thus use the `flock' program to tie/lock the downloading
+# series. We thus use the 'flock' program to tie/lock the downloading
 # process with a file and make sure that only one downloading event is in
 # progress at every moment.
 $(indir):; mkdir $@
@@ -56,7 +56,7 @@ downloadwrapper = $(bashdir)/download-multi-try
 inputdatasets = $(foreach i, wfpc2, $(indir)/$(i).fits)
 $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 
-        # Set the necessary parameters for this input file.
+#	Set the necessary parameters for this input file.
 	if   [ $* = wfpc2 ]; then
 	  localname=$(DEMO-DATA); url=$(DEMO-URL); mdf=$(DEMO-MD5);
 	else
@@ -64,13 +64,13 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	echo; echo; exit 1
 	fi
 
-        # Download (or make the link to) the input dataset. If the file
-        # exists in `INDIR', it may be a symbolic link to some other place
-        # in the filesystem. To avoid too many links when using these files
-        # during processing, we'll use `readlink -f' so the link we make
-        # here points to the final file directly (note that `readlink' is
-        # part of GNU Coreutils). If its not a link, the `readlink' part
-        # has no effect.
+#	Download (or make the link to) the input dataset. If the file
+#	exists in 'INDIR', it may be a symbolic link to some other place in
+#	the filesystem. To avoid too many links when using these files
+#	during processing, we'll use 'readlink -f' so the link we make here
+#	points to the final file directly (note that 'readlink' is part of
+#	GNU Coreutils). If its not a link, the 'readlink' part has no
+#	effect.
 	unchecked=$@.unchecked
 	if [ -f $(INDIR)/$$localname ]; then
 	  ln -fs $$(readlink -f $(INDIR)/$$localname) $$unchecked
@@ -80,7 +80,7 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 	                     $(lockdir)/download $$url $$unchecked
 	fi
 
-        # Check the md5 sum to see if this is the proper dataset.
+#	Check the md5 sum to see if this is the proper dataset.
 	sum=$$(md5sum $$unchecked | awk '{print $$1}')
 	if [ $$sum = $$mdf ]; then
 	  mv $$unchecked $@

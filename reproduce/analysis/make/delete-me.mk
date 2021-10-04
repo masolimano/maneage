@@ -1,6 +1,6 @@
 # Dummy Makefile to create a random dataset for plotting.
 #
-# Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,16 +30,16 @@
 dm-squared = $(tex-publish-dir)/squared.txt
 $(dm-squared): $(pconfdir)/delete-me-squared-num.conf | $(tex-publish-dir)
 
-        # When the plotted values are re-made, it is necessary to also
-        # delete the TiKZ externalized files so the plot is also re-made by
-        # PGFPlots.
+#	When the plotted values are re-made, it is necessary to also delete
+#	the TiKZ externalized files so the plot is also re-made by
+#	PGFPlots.
 	rm -f $(tikzdir)/delete-me-squared.pdf
 
-        # Write the column metadata in a temporary file name (appending
-        # '.tmp' to the actual target name). Once all steps are done, it is
-        # renamed to the final target. We do this because if there is an
-        # error in the middle, Make will not consider the job to be
-        # complete and will stop here.
+#	Write the column metadata in a temporary file name (appending
+#	'.tmp' to the actual target name). Once all steps are done, it is
+#	renamed to the final target. We do this because if there is an
+#	error in the middle, Make will not consider the job to be complete
+#	and will stop here.
 	echo "# Data for demonstration plot of default Maneage (MANaging data linEAGE)." > $@.tmp
 	echo "# It is a simple plot, showing the power of two: y=x^2! " >> $@.tmp
 	echo "# " >> $@.tmp
@@ -50,11 +50,11 @@ $(dm-squared): $(pconfdir)/delete-me-squared-num.conf | $(tex-publish-dir)
 	echo "# " >> $@.tmp
 	$(call print-general-metadata, $@.tmp)
 
-        # Generate the table of random values.
+#	Generate the table of random values.
 	awk 'BEGIN {for(i=1;i<=$(delete-me-squared-num);i+=0.5) \
 	              printf("%-8.1f%.2f\n", i, i*i); }' >> $@.tmp
 
-        # Write it into the final target
+#	Write it into the final target
 	mv $@.tmp $@
 
 
@@ -71,11 +71,11 @@ $(dm-histdir): | $(texdir); mkdir $@
 dm-img-pdf = $(dm-histdir)/wfpc2.pdf
 $(dm-img-pdf): $(dm-histdir)/%.pdf: $(indir)/%.fits | $(dm-histdir)
 
-        # When the plotted values are re-made, it is necessary to also
-        # delete the TiKZ externalized files so the plot is also re-made.
+#	When the plotted values are re-made, it is necessary to also
+#	delete the TiKZ externalized files so the plot is also re-made.
 	rm -f $(tikzdir)/delete-me-image-histogram.pdf
 
-        # Convert the dataset to a PDF.
+#	Convert the dataset to a PDF.
 	astconvertt --colormap=gray --fluxhigh=4 $< -h0 -o$@
 
 
@@ -92,15 +92,15 @@ dm-img-histogram = $(tex-publish-dir)/wfpc2-histogram.txt
 $(dm-img-histogram): $(tex-publish-dir)/%-histogram.txt: $(indir)/%.fits \
                      | $(tex-publish-dir)
 
-        # When the plotted values are re-made, it is necessary to also
-        # delete the TiKZ externalized files so the plot is also re-made.
+#	When the plotted values are re-made, it is necessary to also delete
+#	the TiKZ externalized files so the plot is also re-made.
 	rm -f $(tikzdir)/delete-me-image-histogram.pdf
 
-        # Generate the pixel value histogram.
+#	Generate the pixel value histogram.
 	aststatistics --lessthan=5 $< -h0 --histogram -o$@.data
 
-        # Put a two-line description of the dataset, copy the column
-        # metadata from '$@.data', and add copyright.
+#	Put a two-line description of the dataset, copy the column metadata
+#	from '$@.data', and add copyright.
 	echo "# Histogram of example image to demonstrate Maneage (MANaging data linEAGE)." \
 	     > $@.tmp
 	echo "# Example image URL: $(DEMO-URL)" >> $@.tmp
@@ -109,8 +109,8 @@ $(dm-img-histogram): $(tex-publish-dir)/%-histogram.txt: $(indir)/%.fits \
 	echo "# " >> $@.tmp
 	$(call print-general-metadata, $@.tmp)
 
-        # Add the column numbers in a formatted manner, rename it to the
-        # output and clean up.
+#	Add the column numbers in a formatted manner, rename it to the
+#	output and clean up.
 	awk '!/^#/{printf("%-15.4f%d\n", $$1, $$2)}' $@.data >> $@.tmp
 	mv $@.tmp $@
 	rm $@.data
@@ -123,7 +123,7 @@ $(dm-img-histogram): $(tex-publish-dir)/%-histogram.txt: $(indir)/%.fits \
 # ----------------
 #
 # This is just as a demonstration on how to get analysic configuration
-# parameters from variables defined in `reproduce/analysis/config/'.
+# parameters from variables defined in 'reproduce/analysis/config/'.
 dm-img-stats = $(dm-histdir)/wfpc2-stats.txt
 $(dm-img-stats): $(dm-histdir)/%-stats.txt: $(indir)/%.fits \
                  | $(dm-histdir)
@@ -143,17 +143,17 @@ $(dm-img-stats): $(dm-histdir)/%-stats.txt: $(indir)/%.fits \
 $(mtexdir)/delete-me.tex: $(dm-squared) $(dm-img-pdf) $(dm-img-histogram) \
                           $(dm-img-stats)
 
-        # Write the number of random values used.
+#	Write the number of random values used.
 	echo "\newcommand{\deletemenum}{$(delete-me-squared-num)}" > $@
 
-        # Note that since Make variables start with a `$(', if you want to
-        # use `$' within the shell (not Make), you have to quote any
-        # occurance of `$' with another `$'. That is why there are `$$' in
-        # the AWK command below.
-        #
-        # Here, we are first using AWK to find the minimum and maximum
-        # values, then using it again to read each separately to use in the
-        # macro definition.
+#	Note that since Make variables start with a '$(', if you want to
+#	use '$' within the shell (not Make), you have to quote any
+#	occurance of '$' with another '$'. That is why there are '$$' in
+#	the AWK command below.
+#
+#	Here, we are first using AWK to find the minimum and maximum
+#	values, then using it again to read each separately to use in the
+#	macro definition.
 	mm=$$(awk 'BEGIN{min=99999; max=-min}
 	           !/^#/{if($$2>max) max=$$2; if($$2<min) min=$$2;}
 	           END{print min, max}' $(dm-squared));
@@ -162,7 +162,7 @@ $(mtexdir)/delete-me.tex: $(dm-squared) $(dm-img-pdf) $(dm-img-histogram) \
 	v=$$(echo "$$mm" | awk '{printf "%.3f", $$2}');
 	echo "\newcommand{\deletememax}{$$v}"             >> $@
 
-        # Write the statistics of the demo image as a macro.
+#	Write the statistics of the demo image as a macro.
 	mean=$$(awk     '{printf("%.2f", $$1)}' $(dm-img-stats))
 	echo "\newcommand{\deletemewfpctwomean}{$$mean}"          >> $@
 	median=$$(awk   '{printf("%.2f", $$2)}' $(dm-img-stats))

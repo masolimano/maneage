@@ -1,7 +1,7 @@
 Reproducible source for XXXXXXXXXXXXXXXXX
 -------------------------------------------------------------------------
 
-Copyright (C) 2018-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
+Copyright (C) 2018-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>\
 See the end of the file for license conditions.
 
 This is the reproducible project source for the paper titled "**XXX XXXXX
@@ -188,6 +188,55 @@ analysis and finally create the final paper).
 
 
 
+### Building on ARM
+
+As of 2021-10-13, very little testing of Maneage has been done on arm64
+(tested in [aarch64](https://en.wikipedia.org/wiki/AArch64)). However,
+_some_ testing has been done on [the
+PinePhone](https://en.wikipedia.org/wiki/PinePhone), running
+[Debian/Mobian](https://wiki.mobian-project.org/doku.php?id=pinephone). In
+principle default Maneage branch (not all high-level software have been
+tested) should run fully (configure + make) from the raw source to the
+final verified pdf. Some issues that you might need to be aware of are
+listed below.
+
+#### Older packages
+
+In old packages that may be still needed and that have an old
+`config.guess` file (e.g. from 2002, such as fftw2-2.1.5-4.2, that are not
+in the base Maneage branch) may crash during the build. A workaround is to
+provide an updated (e.g. 2018) 'config.guess' file (automake --add-missing
+--force-missing --copy) in 'reproduce/software/patches/' and copy it over
+the old file during the build of the package.
+
+#### An un-killable running job
+
+Vampires may be a problem on the pinephone/aarch64. A "vampire" is defined
+here as a job that is in the "R" (running) state, using nearly 95-100% of a
+cpu, for an extremely long time (hours), without producing any output to
+its log file, and is immune to being killed by the user or root with 'kill
+-9'. A reboot and relaunch of the './project configure --existing-conf'
+command is the only solution currently known (as of 2021-10-13) for
+vampires. These are known to have occurred with linux-image-5.13-sunxi64.
+
+
+#### RAM/swap space
+
+Adding atleast 3 Gb of swap space (man swapon, man mkswap, man dd) on the
+eMMC may help to reduce the chance of having errors due to the lack of RAM.
+
+
+#### Time scale
+
+On the PinePhone v1.2b, apart from the time wasted by vampires, expect
+roughly 24 hours' wall time in total for the full 'configure' phase. The
+default 'maneage' example calculations, diagrams and pdf production are
+light and should be very fast.
+
+
+
+
+
 ### Building in Docker containers
 
 Docker containers are a common way to build projects in an independent
@@ -251,8 +300,9 @@ MB), not the full TeXLive collection!
 
     ```shell
     FROM debian:stable-slim
-    RUN apt-get update && apt-get install -y gcc g++ wget
+    RUN apt update && apt install -y gcc g++ wget
     RUN useradd -ms /bin/sh maneager
+    RUN printf '123\n123' | passwd root
     USER maneager
     WORKDIR /home/maneager
     RUN mkdir build
@@ -285,22 +335,22 @@ MB), not the full TeXLive collection!
 
     ```shell
     # C and C++ compiler.
-    RUN apt-get update && apt-get install -y gcc g++
+    RUN apt update && apt install -y gcc g++
 
     # Uncomment this if you don't have 'software-XXXX.tar.gz' (below).
-    #RUN apt-get install -y wget
+    #RUN apt install -y wget
     ```
 
  3. **Define a user:** Some core software packages will complain if you try
     to install them as the default (root) user. Generally, it is also good
-    practice to avoid being the root user. After building the Docker image,
-    you can always run it as root with this command: `docker run -u 0 -it
-    XXXXXXX` (where `XXXXXXX` is the image identifier). Hence with the
-    commands below we define a `maneager` user and activate it for the next
-    steps.
+    practice to avoid being the root user. Hence with the commands below we
+    define a `maneager` user and activate it for the next steps. But just
+    in case root access is necessary temporarily, with the `passwd`
+    command, we are setting the root password to `123`.
 
     ```shell
     RUN useradd -ms /bin/sh maneager
+    RUN printf '123\n123' | passwd root
     USER maneager
     WORKDIR /home/maneager
     ```
@@ -476,21 +526,24 @@ steps.
      deleted later).
 
      ```shell
-     mkdir docker
-     cd docker
+     mkdir docker-tmp
+     cd docker-tmp
      ```
 
  3.  Make a `Dockerfile` (within the new/empty directory) with the
-     following contents. Just replacing `UID` with your user ID (found in
-     step 1 above).
+     following contents. Just replace `UID` with your user ID (found in
+     step 1 above). Note that we are manually setting the `maneager` (user)
+     password to `123` and the root password to '456' (both should be
+     repeated because they must be confirmed by `passwd`).
 
      ```
      FROM debian:stable-slim
-     RUN apt-get update && apt-get install -y gcc g++ wget
-     RUN useradd -ms /bin/sh --uid UID maneager
+     RUN useradd -ms /bin/sh --uid UID maneager; \
+         printf '123\n123' | passwd maneager; \
+         printf '456\n456' | passwd root
      USER maneager
      WORKDIR /home/maneager
-     RUN mkdir build
+     RUN mkdir build; mkdir build/analysis
      ```
 
  4.  Create a Docker image based on the `Dockerfile` above. Just replace
@@ -499,9 +552,7 @@ steps.
      to have root/administrator previlages when running it, so
 
      ```shell
-     sudo su
-     docker build -t MANEAGEBASE ./
-     exit
+     sudo docker build -t MANEAGEBASE ./
      ```
 
  5.  You don't need the temporary directory any more (the docker image is
@@ -509,43 +560,87 @@ steps.
 
      ```shell
      cd ..
-     rm -rf docker
+     rm -rf docker-tmp
      ```
 
  6.  Put the following contents into a newly created plain-text file called
-     `docker-run`, while setting the initial variables based on your system
-     (the `software_dir` and `data_dir` can point to empty directories: if
-     you don't already have the necessary software or data, they
-     will/should be downloaded automatically).
+     `docker-run`, while setting the mandatory variables based on your
+     system. The name `docker-run` is already inside Maneage's `.gitignore`
+     file, so you don't have to worry about mistakenly commiting this file
+     (which contains private information: directories in this computer).
 
      ```
      #!/bin/sh
-     # Create Docker container from existing image. This script be run in the
-     # top project source directory (that has 'README.md' and 'paper.tex'). If
-     # not, replace the '$(pwd)' with the project source directory.
+     #
+     # Create a Docker container from an existing image of the built
+     # software environment, but with the source, data and build (analysis)
+     # directories directly within the host file system. This script should
+     # be run in the top project source directory (that has 'README.md' and
+     # 'paper.tex'). If not, replace the '$(pwd)' part with the project
+     # source directory.
+
+     # MANDATORY: Name of Docker container
      docker_name=MANEAGEBASE
-     data_dir=/PATH/TO/DATA/DIRECTORY
-     analysis_dir=/PATH/TO/ANALYSIS/DIRECTORY
-     software_dir=/PATH/TO/SOFTWARE/DIRECTORY
-     sudo docker run -v $(pwd):/home/maneager/source \
-                     -v $analysis_dir:/home/maneager/build/analysis \
-                     -v $software_dir:/home/maneager/software \
-                     -v $data_dir:/home/maneager/data \
-                     -it $docker_name
+
+     # MANDATORY: Location of "build" directory on this system (to host the
+     # 'analysis' sub-directory for output data products and possibly others).
+     build_dir=/PATH/TO/THIS/PROJECT/S/BUILD/DIR
+
+     # OPTIONAL: Location of project's input data in this system. If not
+     # present, a 'data' directory under the build directory will be created.
+     data_dir=/PATH/TO/THIS/PROJECT/S/DATA/DIR
+
+     # OPTIONAL: Location of software tarballs to use in building Maneage's
+     # internal software environment.
+     software_dir=/PATH/TO/SOFTWARE/TARBALL/DIR
+
+
+
+
+
+     # Internal proceessing
+     # --------------------
+     #
+     # Sanity check: Make sure that the build directory actually exists.
+     if ! [ -d $build_dir ]; then
+         echo "ERROR: '$build_dir' doesn't exist"; exit 1;
+     fi
+
+     # If the host operating system has '/dev/shm', then give Docker access
+     # to it also for improved speed in some scenarios (like configuration).
+     if [ -d /dev/shm ]; then shmopt="-v /dev/shm:/dev/shm";
+     else                     shmopt=""; fi
+
+     # If the 'analysis' and 'data' directories (that are mounted), don't exist,
+     # then create them (otherwise Docker will create them as 'root' before
+     # creating the container, and we won't have permission to write in them.
+     analysis_dir="$build_dir"/analysis
+     if ! [ -d $analysis_dir ]; then mkdir $analysis_dir; fi
+
+     # If the data or software directories don't exist, put them in the build
+     # directory (they will remain empty, but this helps in simplifiying the
+     # mounting command!).
+     if ! [ -d $data_dir ]; then
+         data_dir="$build_dir"/data
+         if ! [ -d $data_dir ]; then mkdir $data_dir; fi
+     fi
+     if ! [ -d $software_dir ]; then
+         software_dir="$build_dir"/tarballs-software
+         if ! [ -d $software_dir ]; then mkdir $software_dir; fi
+     fi
+
+     # Run the Docker image while setting up the directories.
+     sudo docker run -v "$software_dir":/home/maneager/tarballs-software \
+                     -v "$analysis_dir":/home/maneager/build/analysis \
+                     -v "$data_dir":/home/maneager/data \
+                     -v "$(pwd)":/home/maneager/source \
+                     $shmopt -it $docker_name
      ```
 
- 7.  Make the `docker-run` script executable and **put its name in your
-     `.gitignore`**. It is important that this file doesn't go into your
-     project's history because it contains directory names only for this
-     particular system (you can always recreate it and update the directory
-     values for another system, by looking at this `README.md` and
-     copy-pasting). If you use the standard `docker-run` name for this tiny
-     script, it is already included in Maneage's `.gitignore`, so you don't
-     need to re-insert it there.
+ 7.  Make the `docker-run` script executable.
 
      ```shell
-     chmod docker-run
-     emacs .gitignore
+     chmod +x docker-run
      ```
 
  8.  You can now start the Docker image by executing your newly added
@@ -556,19 +651,40 @@ steps.
      ./docker-run
      ```
 
- 9.  You are now within the container. Go into the project source directory
-     and run these commands to build the software environment.
+ 9.  You are now within the container. First, we'll add the GNU C and C++
+     compilers (which are necessary to build our own programs in Maneage)
+     and the GNU WGet downloader (which may be necessary if you don't have
+     a core software's tarball already). Maneage will build pre-defined
+     versions of both and will use them. But for the very first packages,
+     they are necessary. In the process, by setting the `PS1` environment
+     variable, we'll define a color-coding for the interactive shell prompt
+     (red for root and purple for the user).
+
+     ```shell
+     su
+     echo 'export PS1="[\[\033[01;31m\]\u@\h \W\[\033[32m\]\[\033[00m\]]# "' >> ~/.bashrc
+     source ~/.bashrc
+     apt update
+     apt install -y gcc g++ wget
+     exit
+     echo 'export PS1="[\[\033[01;35m\]\u@\h \W\[\033[32m\]\[\033[00m\]]$ "' >> ~/.bashrc
+     source ~/.bashrc
+     ```
+
+ 10. Now that the compiler is ready, we can start Maneage's
+     configuration. So let's go into the project source directory and run
+     these commands to build the software environment.
 
      ```shell
      cd source
-     ./project configure --build-dir=/home/maneager/build \
-                         --software-dir=/home/maneager/software \
-                         --input-dir=/home/maneager/data
+     ./project configure --input-dir=/home/maneager/data \
+                         --build-dir=/home/maneager/build \
+                         --software-dir=/home/maneager/tarballs-software
      ```
 
- 10. After the configuration finishes successfully, it will say so. It will
-     then ask you to run `./project make`. **But don't do that yet**. Keep
-     this Docker container open and don't exit the container or
+ 11. After the configuration finishes successfully, it will say so. It will
+     then ask you to run `./project make`. **But don't do that
+     yet**. Keep this Docker container open and don't exit the container or
      terminal. Open a new terminal, and follow the steps described in the
      sub-section above to preserve (or "commit") the built container as a
      Docker image. Let's assume you call it `MY-PROJECT-ENV`. After the new
@@ -579,13 +695,13 @@ steps.
      docker image list      # In the other terminal.
      ```
 
- 11. Now that you have safely "committed" your current Docker container
+ 12. Now that you have safely "committed" your current Docker container
      into a separate Docker image, you can **exit the container** safely
      with the `exit` command. Don't worry, you won't loose the built
      software environment: it is all now saved separately within the Docker
      image.
 
- 12. Re-open your `docker-run` script and change `MANEAGEBASE` to
+ 13. Re-open your `docker-run` script and change `MANEAGEBASE` to
      `MY-PROJECT-ENV` (or any other name you set for the environment you
      committed above).
 
@@ -593,7 +709,7 @@ steps.
      emacs docker-run
      ```
 
- 13. That is it! You can now always easily enter your container (only for
+ 14. That is it! You can now always easily enter your container (only for
      the software environemnt) with the command below. Within the
      container, any file you save/edit in the `source` directory of the
      docker container is the same file on your host OS and any file you
@@ -607,7 +723,7 @@ steps.
      ./docker-run
      ```
 
- 14. In case you want to store the image as a single file as backup or to
+ 15. In case you want to store the image as a single file as backup or to
      move to another computer, you can run the commands below. They will
      produce a single `project-env.tar.gz` file.
 
@@ -616,7 +732,7 @@ steps.
      gzip --best project-env.tar
      ```
 
- 15. To load the tarball above into a clean docker environment (for example
+ 16. To load the tarball above into a clean docker environment (for example
      on another system) copy the `my-project-env.tar.gz` file there and run
      the command below. You can then create the `docker-run` script for
      that system and run it to enter. Just don't forget that if your

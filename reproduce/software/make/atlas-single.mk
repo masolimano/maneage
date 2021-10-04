@@ -3,12 +3,12 @@
 # ------------------------------------------------------------------------
 #                      !!!!! IMPORTANT NOTES !!!!!
 #
-# This Makefile will be run during the initial `./project configure'
+# This Makefile will be run during the initial './project configure'
 # script. It is not included into the reproduction pipe after that.
 #
 # ------------------------------------------------------------------------
 #
-# Copyright (C) 2019-2021 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
