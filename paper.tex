@@ -111,11 +111,11 @@ Working in this way, will let you focus clearly on your science and not have to 
 Once your project is ready for publication, there is also a ``Publication checklist'' in \texttt{README-hacking.md} that will guide you in the steps to do for making your project as FAIR as possible (Findable, Accessibile, Interoperable, and Reusable).
 
 The default \LaTeX{} structure within Maneage also has two \LaTeX{} macros for easy marking of text within your document as \emph{new} and \emph{notes}.
-To activate them, please use the \texttt{--highlight-new} or \texttt{--highlight-notes} options with \texttt{./project make}.
+To activate them, please use the \texttt{-{}-highlight-new} or \texttt{-{}-highlight-notes} options with \texttt{./project make}.
 
-For example if you run \texttt{./project make --highlight-new}, then \new{this text (that has been marked as \texttt{new}) will show up as green in the final PDF}.
-If you run \texttt{./project make --highlight-notes} then you will see a note following this sentence that is written in red and has square brackets around it (it is invisible without this option).
-\tonote{This text is written within a \texttt{tonote} and is invisible without \texttt{--highlight-notes}.}
+For example if you run \texttt{./project make -{}-highlight-new}, then \new{this text (that has been marked as \texttt{new}) will show up as green in the final PDF}.
+If you run \texttt{./project make -{}-highlight-notes} then you will see a note following this sentence that is written in red and has square brackets around it (it is invisible without this option).
+\tonote{This text is written within a \texttt{tonote} and is invisible without \texttt{-{}-highlight-notes}.}
 You can also use these two options together to both highlight the new parts and add notes within the text.
 
 Another thing you may notice from the \LaTeX{} source of this default paper is there is one line per sentence (and one sentence in a line).
@@ -123,7 +123,7 @@ Of course, as with everything else in Maneage, you are free to use any format th
 The reason behind this choice is that this source is under Git version control and that Git also primarily works on lines.
 In this way, when a change in a setence is made, git will only highlight/color that line/sentence we have found that this helps a lot in viewing the changes.
 Also, this format helps in reminding the author when the sentence is getting too long!
-Here is a tip when looking at the changes of narrative document in Git: use the \texttt{--word-diff} option (for example \texttt{git diff --word-diff}, you can also use it with \texttt{git log}).
+Here is a tip when looking at the changes of narrative document in Git: use the \texttt{-{}-word-diff} option (for example \texttt{git diff -{}-word-diff}, you can also use it with \texttt{git log}).
 
 Figure \ref{squared} shows a simple plot as a demonstration of creating plots within \LaTeX{} (using the {\small PGFP}lots package).
 The minimum value in this distribution is $\deletememin$, and $\deletememax$ is the maximum.
