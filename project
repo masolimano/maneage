@@ -126,6 +126,7 @@ Make (analysis) options:
   -p, --prepare-redo       Re-do preparation (only done automatically once).
 
 Make (final PDF) options:
+      --refresh-bib        Force refresh the bibliography.
       --highlight-new      Highlight '\new' parts of text as green.
       --highlight-notes    Show '\tonote' regions as red text in PDF.
 
@@ -208,6 +209,7 @@ do
   #
   # Note that Make's 'debug' can take values, but when called without any
   # value, it is like giving it a value of 'a'):
+  --refresh-bib)          [ -f tex/src/references.tex ] && touch tex/src/references.tex;   shift;;
   --highlight-new)        highlightnew=1;                                                  shift;;
   --highlight-new=*)      on_off_option_error --highlight-new;;
   --highlight-notes)      highlightnotes=1;                                                shift;;
