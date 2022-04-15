@@ -27,22 +27,20 @@
 # Download input data
 # --------------------
 #
-# The input dataset properties are defined in
-# '$(pconfdir)/INPUTS.conf'. For this template we only have one dataset to
-# enable easy processing, so all the extra checks in this rule may seem
-# redundant.
+# 'reproduce/analysis/config/INPUTS.conf' contains the input dataset
+# properties. In most cases, you will not need to edit this rule (or
+# file!). Simply follow the instructions of 'INPUTS.conf' and set the
+# variables names according to the described standards.
 #
-# In a real project, you will need more than one dataset. In that case,
-# just add them to the target list and add an 'elif' statement to define it
-# in the recipe.
-#
-# Files in a server usually have very long names, which are mainly designed
-# for helping in data-base management and being generic. Since Make uses
-# file names to identify which rule to execute, and the scope of this
-# research project is much less than the generic survey/dataset, it is
-# easier to have a simple/short name for the input dataset and work with
-# that. In the first condition of the recipe below, we connect the short
-# name with the raw database name of the dataset.
+# TECHNICAL NOTE on the '$(foreach, n ...)' loop of 'inputdatasets': we are
+# using several (relatively complex!) features particular to Make: In GNU
+# Make, '.VARIABLES' "... expands to a list of the names of all global
+# variables defined so far" (from the "Other Special Variables" section of
+# the GNU Make manual). Assuming that the pattern 'INPUT-%-sha256' is only
+# used for input files, we find all the variables that contain the input
+# file name (the '%' is the filename). Finally, using the
+# pattern-substitution function ('patsubst'), we remove the fixed string at
+# the start and end of the variable name.
 #
 # Download lock file: Most systems have a single connection to the
 # internet, therefore downloading is inherently done in series. As a
@@ -53,16 +51,16 @@
 # progress at every moment.
 $(indir):; mkdir $@
 downloadwrapper = $(bashdir)/download-multi-try
-inputdatasets = $(foreach i, wfpc2, $(indir)/$(i).fits)
-$(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
+inputdatasets = $(foreach i, \
+                  $(patsubst INPUT-%-sha256,%, \
+                    $(filter INPUT-%-sha256,$(.VARIABLES))), \
+                  $(indir)/$(i))
+$(inputdatasets): $(indir)/%: | $(indir) $(lockdir)
 
-#	Set the necessary parameters for this input file.
-	if   [ $* = wfpc2 ]; then
-	  localname=$(DEMO-DATA); url=$(DEMO-URL); mdf=$(DEMO-MD5);
-	else
-	echo; echo; echo "Not recognized input dataset: '$*.fits'."
-	echo; echo; exit 1
-	fi
+#	Set the necessary parameters for this input file as shell variables
+#	(to help in readability).
+	url=$(INPUT-$*-url)
+	sha=$(INPUT-$*-sha256)
 
 #	Download (or make the link to) the input dataset. If the file
 #	exists in 'INDIR', it may be a symbolic link to some other place in
@@ -72,25 +70,25 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 #	GNU Coreutils). If its not a link, the 'readlink' part has no
 #	effect.
 	unchecked=$@.unchecked
-	if [ -f $(INDIR)/$$localname ]; then
-	  ln -fs $$(readlink -f $(INDIR)/$$localname) $$unchecked
+	if [ -f $(INDIR)/$* ]; then
+	  ln -fs $$(readlink -f $(INDIR)/$*) $$unchecked
 	else
 	  touch $(lockdir)/download
 	  $(downloadwrapper) "wget --no-use-server-timestamps -O" \
 	                     $(lockdir)/download $$url $$unchecked
 	fi
 
-#	Check the md5 sum to see if this is the proper dataset.
-	sum=$$(md5sum $$unchecked | awk '{print $$1}')
-	if [ $$sum = $$mdf ]; then
+#	Check the checksum to see if this is the proper dataset.
+	sum=$$(sha256sum $$unchecked | awk '{print $$1}')
+	if [ $$sum = $$sha ]; then
 	  mv $$unchecked $@
 	  echo "Integrity confirmed, using $@ in this project."
 	else
 	  echo; echo;
-	  echo "Wrong MD5 checksum for input file '$$localname':"
+	  echo "Wrong SHA256 checksum for input file '$*':"
 	  echo "  File location: $$unchecked"; \
-	  echo "  Expected MD5 checksum:   $$mdf"; \
-	  echo "  Calculated MD5 checksum: $$sum"; \
+	  echo "  Expected SHA256 checksum:   $$sha"; \
+	  echo "  Calculated SHA256 checksum: $$sum"; \
 	  echo; exit 1
 	fi
 
@@ -104,4 +102,4 @@ $(inputdatasets): $(indir)/%.fits: | $(indir) $(lockdir)
 # It is very important to mention the address where the data were
 # downloaded in the final report.
 $(mtexdir)/download.tex: $(pconfdir)/INPUTS.conf | $(mtexdir)
-	echo "\\newcommand{\\wfpctwourl}{$(DEMO-URL)}" > $@
+	echo "\\newcommand{\\wfpctwourl}{$(INPUT-wfpc2.fits-url)}" > $@

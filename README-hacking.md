@@ -568,7 +568,7 @@ First custom commit
      the default `origin` remote server to specify that this is Maneage's
      remote server. This will allow you to use the conventional `origin`
      name for your own project as shown in the next steps. Second, you will
-     create and go into the conventional `master` branch to start
+     create and go into the conventional `main` branch to start
      committing in your project later.
 
      ```shell
@@ -576,7 +576,7 @@ First custom commit
      $ mv project my-project                            # Change the name to your project's name.
      $ cd my-project                                    # Go into the cloned directory.
      $ git remote rename origin origin-maneage          # Rename current/only remote to "origin-maneage".
-     $ git checkout -b master                           # Create and enter your own "master" branch.
+     $ git checkout -b main                             # Create and enter your own "main" branch.
      $ pwd                                              # Just to confirm where you are.
      ```
 
@@ -631,7 +631,7 @@ First custom commit
      a new project which is bad in this scenario, and will not allow you to
      push to it). It will give you a URL (usually starting with `git@` and
      ending in `.git`), put this URL in place of `XXXXXXXXXX` in the first
-     command below. With the second command, "push" your `master` branch to
+     command below. With the second command, "push" your `main` branch to
      your `origin` remote, and (with the `--set-upstream` option) set them
      to track/follow each other. However, the `maneage` branch is currently
      tracking/following your `origin-maneage` remote (automatically set
@@ -642,7 +642,7 @@ First custom commit
 
      ```shell
      git remote add origin XXXXXXXXXX        # Newly created repo is now called 'origin'.
-     git push --set-upstream origin master   # Push 'master' branch to 'origin' (with tracking).
+     git push --set-upstream origin main     # Push 'main' branch to 'origin' (with tracking).
      git push origin maneage                 # Push 'maneage' branch to 'origin' (no tracking).
      ```
 
@@ -650,7 +650,7 @@ First custom commit
      your name (with your possible coauthors) and tentative abstract in
      `paper.tex`. You should see the relevant place in the preamble (prior
      to `\begin{document}`. Just note that some core project metadata like
-     the project tile are actually set in
+     the project title are actually set in
      `reproduce/analysis/config/metadata.conf`. So set your project title
      in there. After you are done, run the `./project make` command again
      to see your changes in the final PDF and make sure that your changes
@@ -696,13 +696,14 @@ First custom commit
        $ rm reproduce/analysis/config/delete-me*
        ```
 
-     - Disable verification of outputs by removing the `yes` from
-       `reproduce/analysis/config/verify-outputs.conf`. Later, when you are
-       ready to submit your paper, or publish the dataset, activate
-       verification and make the proper corrections in this file (described
-       under the "Other basic customizations" section below). This is a
-       critical step and only takes a few minutes when your project is
-       finished. So DON'T FORGET to activate it in the end.
+     - `reproduce/analysis/config/verify-outputs.conf`: Disable
+       verification of outputs by changing the `yes` (the value of
+       `verify-outputs`) to `no`. Later, when you are ready to submit your
+       paper, or publish the dataset, activate verification and make the
+       proper corrections in this file (described under the "Other basic
+       customizations" section below). This is a critical step and only
+       takes a few minutes when your project is finished. So DON'T FORGET
+       to activate it in the end.
 
      - Re-make the project (after a cleaning) to see if you haven't
        introduced any errors.
@@ -714,7 +715,7 @@ First custom commit
 
  7. **Ignore changes in some Maneage files**: One of the main advantages of
      Maneage is that you can later update your infra-structure by merging
-     your `master` branch with the `maneage` branch. This is good for many
+     your `main` branch with the `maneage` branch. This is good for many
      low-level features that you will likely never modify yourself. But it
      is not desired for some files like `paper.tex` (you don't want changes
      in Maneage's default `paper.tex` to cause conflicts with all the text
@@ -758,7 +759,7 @@ First custom commit
      add a copyright notice in your name under the existing one(s), like
      the line with capital letters below. To start with, add this line with
      your name and email address to `paper.tex`,
-     `tex/src/preamble-header.tex`, `reproduce/analysis/make/top-make.mk`,
+     `tex/src/preamble-project.tex`, `reproduce/analysis/make/top-make.mk`,
      and generally, all the files you modified in the previous step.
 
      ```
@@ -781,7 +782,7 @@ First custom commit
      ```
 
  10. **Your first commit**: You have already made some small and basic
-     changes in the steps above and you are in your project's `master`
+     changes in the steps above and you are in your project's `main`
      branch. So, you can officially make your first commit in your
      project's history and push it. But before that, you need to make sure
      that there are no problems in the project. This is a good habit to
@@ -838,24 +839,12 @@ Other basic customizations
      Gnuastro, go through the analysis steps in `reproduce/analysis` and
      remove all its use cases (clearly marked).
 
- - **Input dataset**: The input datasets are managed through the
-     `reproduce/analysis/config/INPUTS.conf` file. It is best to gather all
-     the information regarding all the input datasets into this one central
-     file. To ensure that the proper dataset is being downloaded and used
-     by the project, it is also recommended get an [MD5
-     checksum](https://en.wikipedia.org/wiki/MD5) of the file and include
-     that in `INPUTS.conf` so the project can check it automatically. The
-     preparation/downloading of the input datasets is done in
-     `reproduce/analysis/make/download.mk`. Have a look there to see how
-     these values are to be used. This information about the input datasets
-     is also used in the initial `configure` script (to inform the users),
-     so also modify that file. You can find all occurrences of the demo
-     dataset with the command below and replace it with your input's
-     dataset.
-
-     ```shell
-     $ grep -ir wfpc2 ./*
-     ```
+ - **Input datasets**: The input datasets are managed through the
+     `reproduce/analysis/config/INPUTS.conf` file. It is best to gather the
+     following information regarding all the input datasets into this one
+     central file: 1) the SHA256 checksum of the file, 2) the URL where the
+     file can be downloaded online. Please read the comments at the start
+     of `reproduce/analysis/config/INPUTS.conf` carefully.
 
  - **`README.md`**: Correct all the `XXXXX` place holders (name of your
      project, your own name, address of your project's online/remote
@@ -1535,10 +1524,10 @@ for the benefit of others.
         # with your project.
         $ git log --oneline --graph --decorate --all # General view of branches.
 
-        # Go to your 'master' branch and import all the updates into
-        # 'master', don't worry about the printed outputs (in particular
+        # Go to your 'main' branch and import all the updates into
+        # 'main', don't worry about the printed outputs (in particular
         # the 'CONFLICT's), we'll clean them up in the next step.
-        $ git checkout master
+        $ git checkout main
         $ git merge maneage
 
         # Ignore conflicting Maneage files that you had previously deleted
@@ -1556,7 +1545,7 @@ for the benefit of others.
         git status
 
         # TIP: If you want the changes in one file to be only from a
-        # special branch ('maneage' or 'master', completely ignoring
+        # special branch ('maneage' or 'main', completely ignoring
         # changes in the other), use this command:
         # $ git checkout <BRANCH-NAME> -- <FILENAME>
 
@@ -1579,7 +1568,7 @@ for the benefit of others.
         ./project make
 
         # When everything is OK, before continuing with your project's
-        # work, don't forget to push both your 'master' branch and your
+        # work, don't forget to push both your 'main' branch and your
         # updated 'maneage' branch to your remote server.
         git push
         git push origin maneage
