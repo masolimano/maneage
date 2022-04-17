@@ -1522,7 +1522,7 @@ for the benefit of others.
 
         # Have a look at the commits in the 'maneage' branch in relation
         # with your project.
-        $ git log --oneline --graph --decorate --all # General view of branches.
+        $ git log --oneline --graph --all # General view of branches.
 
         # Go to your 'main' branch and import all the updates into
         # 'main', don't worry about the printed outputs (in particular

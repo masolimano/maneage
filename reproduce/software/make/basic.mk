@@ -60,7 +60,7 @@ ibidir  = $(BDIR)/software/installed/version-info/proglib
 # Ultimate Makefile target. GNU Nano (a simple and very light-weight text
 # editor) is installed by default, it is recommended to have it in the
 # 'basic.mk', so Maneaged projects can be edited on any system (even when
-# there is no command-line text editor is available).
+# there is no command-line text editor available).
 targets-proglib = low-level-links \
                   gcc-$(gcc-version) \
                   nano-$(nano-version)
