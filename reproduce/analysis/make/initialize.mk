@@ -241,6 +241,12 @@ clean:
 #	Delete the top-level PDF file.
 	rm -f *.pdf
 
+#	Delete possible LaTeX output in top directory. This can happen when
+#	the user has run LaTeX with applications other than maneage. For
+#	example, when opening 'paper.tex' file with 'texstudio' and
+#	executing 'build'.
+	rm -f *.aux *.log *.synctex *.auxlock *.dvi *.out *.run.xml *.bcf
+
 #	Delete all the built outputs except the dependency programs. We'll
 #	use Bash's extended options builtin ('shopt') to enable "extended
 #	glob" (for listing of files). It allows extended features like
