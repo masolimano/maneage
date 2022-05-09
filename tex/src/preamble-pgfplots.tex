@@ -109,13 +109,15 @@
 %% Uncomment the following lines for EPS and PS images. Note that you still
 %% have to use the 'pdflatex' executable and also add a '[dvips]' option to
 %% graphicx.
-
-%% \tikzset{external/system call={rm -f "\image".eps "\image".ps
-%% "\image".dvi; latex \tikzexternalcheckshellescape -halt-on-error
-%% -interaction=batchmode -jobname "\image" "\texsource";
-%% dvips -o "\image".ps "\image".dvi;
-%% ps2eps "\image.ps"}}
-
+%%\tikzset{
+%%  external/system call={
+%%    rm -f "\image".eps "\image".ps "\image".dvi;
+%%    latex \tikzexternalcheckshellescape -halt-on-error
+%%          -interaction=batchmode -jobname "\image" "\texsource";
+%%    dvips -o "\image".ps "\image".dvi;
+%%    ps2eps "\image.ps"
+%%  }
+%%}
 
 
 

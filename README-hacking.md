@@ -1066,14 +1066,13 @@ future.
    the plots should be uploaded directly to Zenodo so they can be
    viewed/downloaded with a simple link in the caption. For example see the
    last sentence of the caption of Figure 1 in
-   [arXiv:2006.03018v1](https://arxiv.org/pdf/2006.03018v1.pdf), it points
-   to [the
-   data](https://zenodo.org/record/3872248/files/tools-per-year.txt) that
-   was used to create that figure's top plot. As you see, this will allow
-   your paper's readers (again, most probably your future-self!) to
-   directly access the numbers of each visualization (plot/figure) with a
-   simple click in a trusted server. This also shows the major advantage of
-   having your data as simple plain-text where possible, as described
+   [arXiv:2006.03018](https://arxiv.org/pdf/2006.03018.pdf), it points to
+   [the data](https://zenodo.org/record/3872248/files/tools-per-year.txt)
+   that was used to create that figure's left-side plot. As you see, this
+   will allow your paper's readers (again, most probably your future-self!)
+   to directly access the numbers of each visualization (plot/figure) with
+   a simple click in a trusted server. This also shows the major advantage
+   of having your data as simple plain-text where possible, as described
    above. To help you keep all your to-be-visualized datasets in a single
    place, Maneage has the two `tex-publish-dir` and `data-publish-dir`
    directories that are defined in `reproduce/analysis/make/initialize.mk`,
@@ -1116,7 +1115,7 @@ future.
  - **Confirm if your project builds from scratch**: Before publishing
    anything, you should see if your project can indeed reproduce itself!
    You may be mistakenly using temporarily created files that aren't built
-   when teh project is built from scratch (this happens a lot and is very
+   when the project is built from scratch (this happens a lot and is very
    dangerous for the integrity of your project!). So, go to a temporary
    directory, clone your project from its repository and try configuring
    and building it from scratch in a new-temporary build-directory. It is
@@ -1177,8 +1176,8 @@ future.
        `.build/software/tarballs`. It is necessary to upload these with
        your project to avoid relying on third party servers. In the future
        any one of those servers may go down and if so, your project won't
-       be buildable. You can generate this tarball easily with `make
-       dist-software`.
+       be buildable. You can generate this tarball easily with `./project
+       make dist-software`.
 
      * All the figure (and other) output datasets of the project. Don't
        rename these files, let them have the same descriptive name

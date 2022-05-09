@@ -165,7 +165,9 @@ export OMPI_MCA_plm_rsh_agent=/bin/false
 
 # Recipe startup script.
 export PROJECT_STATUS := make
-export BASH_ENV := $(shell pwd)/reproduce/software/shell/bashrc.sh
+export BASH_ENV := $(curdir)/reproduce/software/shell/bashrc.sh
+
+
 
 
 
@@ -209,9 +211,18 @@ $(lockdir): | $(bsdir); mkdir $@
 
 
 
-# Version and distribution tarball definitions
-project-commit-hash := $(shell if [ -d .git ]; then \
-    echo $$(git describe --dirty --always --long); else echo NOGIT; fi)
+# Version and distribution tarball definitions.
+#
+# We need to export 'LD_LIBRARY_PATH' before calling 'git' because we the
+# default export of 'LD_LIBRARY_PATH' doesn't take effect at this point
+# (only within the recipes). Its also safe to directly use the 'git'
+# executable using its absolute location (and not rely on 'PATH' at this
+# stage).
+project-commit-hash := $(shell \
+    if [ -d .git ]; then \
+      export LD_LIBRARY_PATH="$(installdir)/lib"; \
+      echo $$($(installdir)/bin/git describe --dirty --always --long); \
+    else echo NOGIT; fi)
 project-package-name := maneaged-$(project-commit-hash)
 project-package-contents = $(texdir)/$(project-package-name)
 
@@ -385,7 +396,6 @@ $(project-package-contents): paper.pdf | $(texdir)
 
 # Package into '.tar.gz' or '.tar.lz'.
 dist dist-lzip: $(project-package-contents)
-	curdir=$$(pwd)
 	cd $(texdir)
 	tar -cf $(project-package-name).tar $(project-package-name)
 	if [ $@ = dist ]; then
@@ -396,21 +406,19 @@ dist dist-lzip: $(project-package-contents)
 	  lzip -f --best $(project-package-name).tar
 	fi
 	rm -rf $(project-package-name)
-	cd $$curdir
+	cd $(curdir)
 	mv $(texdir)/$(project-package-name).tar.$$suffix ./
 
 # Package into '.zip'.
 dist-zip: $(project-package-contents)
-	curdir=$$(pwd)
 	cd $(texdir)
 	zip -q -r $(project-package-name).zip $(project-package-name)
 	rm -rf $(project-package-name)
-	cd $$curdir
+	cd $(curdir)
 	mv $(texdir)/$(project-package-name).zip ./
 
 # Package the software tarballs.
 dist-software:
-	curdir=$$(pwd)
 	dirname=software-$(project-commit-hash)
 	cd $(bsdir)
 	if [ -d $$dirname ]; then rm -rf $$dirname; fi
@@ -419,7 +427,7 @@ dist-software:
 	tar -cf $$dirname.tar $$dirname
 	gzip -f --best $$dirname.tar
 	rm -rf $$dirname
-	cd $$curdir
+	cd $(curdir)
 	mv $(bsdir)/$$dirname.tar.gz ./
 
 

@@ -120,18 +120,18 @@ $(ibidir)/fontconfig-$(fontconfig-version): \
                      $(ibidir)/libxml2-$(libxml2-version) \
                      $(ibidir)/freetype-$(freetype-version) \
                      $(ibidir)/util-linux-$(util-linux-version)
-        # Import the source.
+#	Import the source.
 	tarball=fontconfig-$(fontconfig-version).tar.lz
 	$(call import-source, $(fontconfig-url), $(fontconfig-checksum))
 
-        # Add the extra environment variables for using 'libuuid' of
-        # 'util-linux'.
+#	Add the extra environment variables for using 'libuuid' of
+#	'util-linux'.
 	ulidir=$(idir)/util-linux
 	export LDFLAGS="-L$$ulidir/lib $(LDFLAGS)"
 	export CPPFLAGS="-I$$ulidir/include $(CPPFLAGS)"
 	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH):$$ulidir/lib/pkgconfig
 
-        # Build it.
+#	Build it.
 	$(call gbuild, fontconfig-$(fontconfig-version),, \
 	               $(XORG_CONFIG) --sysconfdir=$(idir)/etc \
 	               --disable-docs, V=1 -j$(numthreads))

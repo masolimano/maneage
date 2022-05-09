@@ -1200,7 +1200,7 @@ $(ibidir)/binutils-$(binutils-version): \
 # being, if the project is being run on a macOS, we'll just set a link.
 $(ibidir)/gcc-$(gcc-version): $(ibidir)/binutils-$(binutils-version)
 
-        # Function to let the users know what to do if build fails.
+#	Function to let the users know what to do if build fails.
 	error_message() {
 	    echo; echo
 	    echo "_________________________________________________"
