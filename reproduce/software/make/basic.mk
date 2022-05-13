@@ -883,6 +883,7 @@ $(ibidir)/diffutils-$(diffutils-version): \
 	echo "GNU Diffutils $(diffutils-version)" > $@
 
 $(ibidir)/file-$(file-version): $(ibidir)/coreutils-$(coreutils-version)
+	export CFLAGS="-std=c99"
 	tarball=file-$(file-version).tar.lz
 	$(call import-source, $(file-url), $(file-checksum))
 	$(call gbuild, file-$(file-version), static, \
